@@ -1,0 +1,46 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+
+# Apple toolchains
+.build/
+.swiftpm/
+DerivedData/
+build/
+dist/
+Pods/
+Carthage/Build/
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# Apple app artifacts
+*.app
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.hmap
+
+# Generated app mirror
+LookInside/DerivedSource/*
+!LookInside/DerivedSource/README.md
+
+# Local scratch and editor trash
+.tmp-upstream/
+.claude/
+*.orig
+*.swp
+*.swo
+*~

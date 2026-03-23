@@ -1,0 +1,1040 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 73;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1CAA3D22E471EC006D9285 /* Security.framework */; };
+		50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9517A22C3AECA00A5F958 /* Quartz.framework */; };
+		50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA1CAA3D22E471EC006D9285 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		AA48F29B21CC0CA50032EC2C /* LookInside.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LookInside.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAB9517A22C3AECA00A5F958 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
+		AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		50EAE1F32F71C01A00EBE063 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				About/LKAboutViewController.m,
+				About/LKAboutWindowController.m,
+				AppDelegate.m,
+				AppIcon.icon,
+				Assets.xcassets,
+				"Base/Category/LookinAttributesGroup+LookinClient.m",
+				"Base/Category/LookinAttributesSection+LookinClient.m",
+				"Base/Category/LookinAutoLayoutConstraint+LookinClient.m",
+				"Base/Category/LookinCustomDisplayItemInfo+LookinClient.m",
+				"Base/Category/LookinDisplayItem+LookinClient.m",
+				"Base/Category/LookinObject+LookinClient.m",
+				"Base/Category/NSAppearance+LookinClient.m",
+				"Base/Category/NSArray+LookinClient.m",
+				"Base/Category/NSButton+LookinClient.m",
+				"Base/Category/NSColor+LookinClient.m",
+				"Base/Category/NSControl+LookinClient.m",
+				"Base/Category/NSPointerArray+LookinClient.m",
+				"Base/Category/NSString+LookinClient.m",
+				"Base/Category/NSString+Score.m",
+				"Base/Category/NSView+LookinClient.m",
+				"Base/Category/ShortCocoa+LookinClient.m",
+				Base/InputSearch/LKInputSearchSuggestionItem.m,
+				Base/InputSearch/LKInputSearchSuggestionsContentView.m,
+				Base/InputSearch/LKInputSearchSuggestionsRowView.m,
+				Base/InputSearch/LKInputSearchSuggestionWindowController.m,
+				Base/InputSearch/LKInputSearchView.m,
+				Base/LKBaseControl.m,
+				Base/LKBaseView.m,
+				Base/LKBaseViewController.m,
+				Base/LKColorIndicatorLayer.m,
+				Base/LKImageControl.m,
+				Base/LKImageTextView.m,
+				Base/LKLabel.m,
+				Base/LKNumberInputView.m,
+				Base/LKOutlineItem.m,
+				Base/LKOutlineRowView.m,
+				Base/LKOutlineView.m,
+				Base/LKPanelContentView.m,
+				Base/LKPerformanceReporter.m,
+				Base/LKPopPanel.m,
+				Base/LKProgressIndicatorView.m,
+				Base/LKSplitView.m,
+				Base/LKSwiftDemangler.swift,
+				Base/LKTableRowView.m,
+				Base/LKTableView.m,
+				Base/LKTableViewHorizontalScrollWidthManager.m,
+				Base/LKTextControl.m,
+				Base/LKTextFieldView.m,
+				Base/LKTextsMenuView.m,
+				Base/LKTipsView.m,
+				Base/LKTwoColors.m,
+				Base/LKUserActionManager.m,
+				Base/LKWindow.m,
+				Base/LKWindowController.m,
+				Base/Message/LookinMsgAttribute.m,
+				Base/Message/LookinMsgTargetAction.m,
+				Connection/LKAppsManager.m,
+				Connection/LKConnectionManager.m,
+				Connection/LKConnectionRequest.m,
+				Connection/LKInspectableApp.m,
+				Console/LKConsoleDataSource.m,
+				Console/LKConsoleDataSourceRowItem.m,
+				Console/LKConsoleInputRowView.m,
+				Console/LKConsoleReturnRowView.m,
+				Console/LKConsoleSelectPopoverController.m,
+				Console/LKConsoleSelectPopoverItemControl.m,
+				Console/LKConsoleSubmitRowView.m,
+				Console/LKConsoleViewController.m,
+				DanceScript/DanceScriptManager.m,
+				Dashboard/AttributeView/Constraint/LKConstraintPopoverController.m,
+				Dashboard/AttributeView/Constraint/LKDashboardAttributeConstraintsItemControl.m,
+				Dashboard/AttributeView/Constraint/LKDashboardAttributeConstraintsView.m,
+				Dashboard/AttributeView/JSON/LKDashboardAttributeJsonView.m,
+				Dashboard/AttributeView/JSON/LKJSONAttributeContentView.m,
+				Dashboard/AttributeView/JSON/LKJSONAttributeItem.m,
+				Dashboard/AttributeView/JSON/LKJSONAttributeViewController.m,
+				Dashboard/AttributeView/JSON/LKJSONAttributeWindowController.m,
+				Dashboard/AttributeView/LKDashboardAttributeClassView.m,
+				Dashboard/AttributeView/LKDashboardAttributeColorView.m,
+				Dashboard/AttributeView/LKDashboardAttributeEnumsView.m,
+				Dashboard/AttributeView/LKDashboardAttributeInsetsView.m,
+				Dashboard/AttributeView/LKDashboardAttributeNumberInputView.m,
+				Dashboard/AttributeView/LKDashboardAttributeOpenImageView.m,
+				Dashboard/AttributeView/LKDashboardAttributePointView.m,
+				Dashboard/AttributeView/LKDashboardAttributeRectView.m,
+				Dashboard/AttributeView/LKDashboardAttributeRelationView.m,
+				Dashboard/AttributeView/LKDashboardAttributeRowsCountView.m,
+				Dashboard/AttributeView/LKDashboardAttributeShadowView.m,
+				Dashboard/AttributeView/LKDashboardAttributeSizeView.m,
+				Dashboard/AttributeView/LKDashboardAttributeStringArrayView.m,
+				Dashboard/AttributeView/LKDashboardAttributeSwitchView.m,
+				Dashboard/AttributeView/LKDashboardAttributeTextView.m,
+				Dashboard/AttributeView/LKDashboardAttributeView.m,
+				Dashboard/AttributeView/LKDashboardTextControlEditingFlag.m,
+				Dashboard/LKDashboardAccessoryWindowController.m,
+				Dashboard/LKDashboardCardTitleControl.m,
+				Dashboard/LKDashboardCardView.m,
+				Dashboard/LKDashboardSectionView.m,
+				Dashboard/LKDashboardSectionViewPool.m,
+				Dashboard/LKDashboardViewController.m,
+				Dashboard/LKEnumListRegistry.m,
+				Dashboard/Search/LKDashboardHeaderView.m,
+				Dashboard/Search/LKDashboardSearchCardView.m,
+				Dashboard/Search/LKDashboardSearchMethodsDataSource.m,
+				Dashboard/Search/LKDashboardSearchMethodsView.m,
+				Dashboard/Search/LKDashboardSearchPropView.m,
+				"DerivedSource/LookinCore/Category/CALayer+Lookin.m",
+				"DerivedSource/LookinCore/Category/Color+Lookin.m",
+				"DerivedSource/LookinCore/Category/Image+Lookin.m",
+				"DerivedSource/LookinCore/Category/NSArray+Lookin.m",
+				"DerivedSource/LookinCore/Category/NSObject+Lookin.m",
+				"DerivedSource/LookinCore/Category/NSSet+Lookin.m",
+				"DerivedSource/LookinCore/Category/NSString+Lookin.m",
+				DerivedSource/LookinCore/LookinAppInfo.m,
+				DerivedSource/LookinCore/LookinAttribute.m,
+				DerivedSource/LookinCore/LookinAttributeModification.m,
+				DerivedSource/LookinCore/LookinAttributesGroup.m,
+				DerivedSource/LookinCore/LookinAttributesSection.m,
+				DerivedSource/LookinCore/LookinAttrIdentifiers.m,
+				DerivedSource/LookinCore/LookinAutoLayoutConstraint.m,
+				DerivedSource/LookinCore/LookinConnectionAttachment.m,
+				DerivedSource/LookinCore/LookinConnectionResponseAttachment.m,
+				DerivedSource/LookinCore/LookinCustomAttrModification.m,
+				DerivedSource/LookinCore/LookinCustomDisplayItemInfo.m,
+				DerivedSource/LookinCore/LookinDashboardBlueprint.m,
+				DerivedSource/LookinCore/LookinDisplayItem.m,
+				DerivedSource/LookinCore/LookinDisplayItemDetail.m,
+				DerivedSource/LookinCore/LookinEventHandler.m,
+				DerivedSource/LookinCore/LookinHierarchyFile.m,
+				DerivedSource/LookinCore/LookinHierarchyInfo.m,
+				DerivedSource/LookinCore/LookinObject.m,
+				DerivedSource/LookinCore/LookinStaticAsyncUpdateTask.m,
+				DerivedSource/LookinCore/LookinTuple.m,
+				DerivedSource/LookinCore/LookinWeakContainer.m,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTChannel.m,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTProtocol.m,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTUSBHub.m,
+				DerivedSource/LookinServerBase/LookinIvarTrace.m,
+				Export/LKExportAccessoryView.m,
+				Export/LKExportManager.m,
+				Export/LookinDocument.m,
+				Hierarchy/LKDanceUIAttrMaker.m,
+				Hierarchy/LKHierarchyController.m,
+				Hierarchy/LKHierarchyDataSource.m,
+				"Hierarchy/LKHierarchyDataSource+KeyDown.m",
+				Hierarchy/LKHierarchyHandlersPopoverController.m,
+				Hierarchy/LKHierarchyHandlersPopoverItemView.m,
+				Hierarchy/LKHierarchyItem.m,
+				Hierarchy/LKHierarchyRowView.m,
+				Hierarchy/LKHierarchyView.m,
+				InfoPlist.xcstrings,
+				Launch/LKLaunchAppView.m,
+				Launch/LKLaunchViewController.m,
+				Launch/LKLaunchWindowController.m,
+				Localizable.xcstrings,
+				LookinArchiveIcon.icns,
+				main.m,
+				Manager/LKAppMenuManager.m,
+				Manager/LKHelper.m,
+				Manager/LKNavigationManager.m,
+				Manager/LKPreferenceManager.m,
+				Measure/LKMeasureController.m,
+				Measure/LKMeasureResultLineData.m,
+				Measure/LKMeasureResultView.m,
+				Other/LKServerVersionRequestor.m,
+				Other/LKVersionComparer.m,
+				Preference/LKPreferencePopupView.m,
+				Preference/LKPreferenceSwitchView.m,
+				Preference/LKPreferenceViewController.m,
+				Preference/LKPreferenceWindowController.m,
+				ReactiveObjC/extobjc/RACEXTRuntimeExtensions.m,
+				"ReactiveObjC/NSArray+RACSequenceAdditions.m",
+				"ReactiveObjC/NSControl+RACCommandSupport.m",
+				"ReactiveObjC/NSControl+RACTextSignalSupport.m",
+				"ReactiveObjC/NSData+RACSupport.m",
+				"ReactiveObjC/NSDictionary+RACSequenceAdditions.m",
+				"ReactiveObjC/NSEnumerator+RACSequenceAdditions.m",
+				"ReactiveObjC/NSFileHandle+RACSupport.m",
+				"ReactiveObjC/NSIndexSet+RACSequenceAdditions.m",
+				"ReactiveObjC/NSInvocation+RACTypeParsing.m",
+				"ReactiveObjC/NSNotificationCenter+RACSupport.m",
+				"ReactiveObjC/NSObject+RACAppKitBindings.m",
+				"ReactiveObjC/NSObject+RACDeallocating.m",
+				"ReactiveObjC/NSObject+RACDescription.m",
+				"ReactiveObjC/NSObject+RACKVOWrapper.m",
+				"ReactiveObjC/NSObject+RACLifting.m",
+				"ReactiveObjC/NSObject+RACPropertySubscribing.m",
+				"ReactiveObjC/NSObject+RACSelectorSignal.m",
+				"ReactiveObjC/NSOrderedSet+RACSequenceAdditions.m",
+				"ReactiveObjC/NSSet+RACSequenceAdditions.m",
+				"ReactiveObjC/NSString+RACKeyPathUtilities.m",
+				"ReactiveObjC/NSString+RACSequenceAdditions.m",
+				"ReactiveObjC/NSString+RACSupport.m",
+				"ReactiveObjC/NSText+RACSignalSupport.m",
+				"ReactiveObjC/NSURLConnection+RACSupport.m",
+				"ReactiveObjC/NSUserDefaults+RACSupport.m",
+				ReactiveObjC/RACArraySequence.m,
+				ReactiveObjC/RACBehaviorSubject.m,
+				ReactiveObjC/RACBlockTrampoline.m,
+				ReactiveObjC/RACChannel.m,
+				ReactiveObjC/RACCommand.m,
+				ReactiveObjC/RACCompoundDisposable.m,
+				ReactiveObjC/RACCompoundDisposableProvider.d,
+				ReactiveObjC/RACDelegateProxy.m,
+				ReactiveObjC/RACDisposable.m,
+				ReactiveObjC/RACDynamicSequence.m,
+				ReactiveObjC/RACDynamicSignal.m,
+				ReactiveObjC/RACEagerSequence.m,
+				ReactiveObjC/RACEmptySequence.m,
+				ReactiveObjC/RACEmptySignal.m,
+				ReactiveObjC/RACErrorSignal.m,
+				ReactiveObjC/RACEvent.m,
+				ReactiveObjC/RACGroupedSignal.m,
+				ReactiveObjC/RACImmediateScheduler.m,
+				ReactiveObjC/RACIndexSetSequence.m,
+				ReactiveObjC/RACKVOChannel.m,
+				ReactiveObjC/RACKVOProxy.m,
+				ReactiveObjC/RACKVOTrampoline.m,
+				ReactiveObjC/RACMulticastConnection.m,
+				ReactiveObjC/RACPassthroughSubscriber.m,
+				ReactiveObjC/RACQueueScheduler.m,
+				ReactiveObjC/RACReplaySubject.m,
+				ReactiveObjC/RACReturnSignal.m,
+				ReactiveObjC/RACScheduler.m,
+				ReactiveObjC/RACScopedDisposable.m,
+				ReactiveObjC/RACSequence.m,
+				ReactiveObjC/RACSerialDisposable.m,
+				ReactiveObjC/RACSignal.m,
+				"ReactiveObjC/RACSignal+Operations.m",
+				ReactiveObjC/RACSignalProvider.d,
+				ReactiveObjC/RACSignalSequence.m,
+				ReactiveObjC/RACStream.m,
+				ReactiveObjC/RACStringSequence.m,
+				ReactiveObjC/RACSubject.m,
+				ReactiveObjC/RACSubscriber.m,
+				ReactiveObjC/RACSubscriptingAssignmentTrampoline.m,
+				ReactiveObjC/RACSubscriptionScheduler.m,
+				ReactiveObjC/RACTargetQueueScheduler.m,
+				ReactiveObjC/RACTestScheduler.m,
+				ReactiveObjC/RACTuple.m,
+				ReactiveObjC/RACTupleSequence.m,
+				ReactiveObjC/RACUnarySequence.m,
+				ReactiveObjC/RACUnit.m,
+				ReactiveObjC/RACValueTransformer.m,
+				Read/LKReadHierarchyController.m,
+				Read/LKReadHierarchyDataSource.m,
+				Read/LKReadViewController.m,
+				Read/LKReadWindowController.m,
+				"ShortCocoa/ShortCocoa+Layout.m",
+				"ShortCocoa/ShortCocoa+Others.m",
+				"ShortCocoa/ShortCocoa+Private.m",
+				"ShortCocoa/ShortCocoa+String.m",
+				"ShortCocoa/ShortCocoa+UIToolkit.m",
+				ShortCocoa/ShortCocoaCore.m,
+				Static/LKMessageManager.m,
+				Static/LKReloadItemAndChildrenUpdateTaskMaker.m,
+				Static/LKReloadSingleItemUpdateTaskMaker.m,
+				Static/LKStaticAsyncUpdateManager.m,
+				Static/LKStaticHierarchyController.m,
+				Static/LKStaticHierarchyDataSource.m,
+				Static/LKStaticViewController.m,
+				Static/LKStaticWindowController.m,
+				Static/Preview/LKDisplayItemNode.m,
+				Static/Preview/LKPreviewController.m,
+				Static/Preview/LKPreviewPanGestureRecognizer.m,
+				Static/Preview/LKPreviewStageView.m,
+				Static/Preview/LKPreviewView.m,
+				Toolbar/LKMenuPopoverAppsListController.m,
+				Toolbar/LKMenuPopoverSettingController.m,
+				Toolbar/LKWindowToolbarAppButton.m,
+				Toolbar/LKWindowToolbarHelper.m,
+				Toolbar/LKWindowToolbarScaleView.m,
+			);
+			target = AA48F29A21CC0CA50032EC2C /* LookInside */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		50EAE1F42F71C01A00EBE063 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 50EADFB42F71C00C00EBE063 /* Sources */;
+			membershipExceptions = (
+				About/LKAboutViewController.h,
+				About/LKAboutWindowController.h,
+				AppDelegate.h,
+				"Base/Category/LookinAttributesGroup+LookinClient.h",
+				"Base/Category/LookinAttributesSection+LookinClient.h",
+				"Base/Category/LookinAutoLayoutConstraint+LookinClient.h",
+				"Base/Category/LookinCustomDisplayItemInfo+LookinClient.h",
+				"Base/Category/LookinDisplayItem+LookinClient.h",
+				"Base/Category/LookinObject+LookinClient.h",
+				"Base/Category/NSAppearance+LookinClient.h",
+				"Base/Category/NSArray+LookinClient.h",
+				"Base/Category/NSButton+LookinClient.h",
+				"Base/Category/NSColor+LookinClient.h",
+				"Base/Category/NSControl+LookinClient.h",
+				"Base/Category/NSPointerArray+LookinClient.h",
+				"Base/Category/NSString+LookinClient.h",
+				"Base/Category/NSString+Score.h",
+				"Base/Category/NSView+LookinClient.h",
+				"Base/Category/ShortCocoa+LookinClient.h",
+				Base/InputSearch/LKInputSearchSuggestionItem.h,
+				Base/InputSearch/LKInputSearchSuggestionsContentView.h,
+				Base/InputSearch/LKInputSearchSuggestionsRowView.h,
+				Base/InputSearch/LKInputSearchSuggestionWindowController.h,
+				Base/InputSearch/LKInputSearchView.h,
+				Base/LKBaseControl.h,
+				Base/LKBaseView.h,
+				Base/LKBaseViewController.h,
+				Base/LKColorIndicatorLayer.h,
+				Base/LKImageControl.h,
+				Base/LKImageTextView.h,
+				Base/LKLabel.h,
+				Base/LKNumberInputView.h,
+				Base/LKOutlineItem.h,
+				Base/LKOutlineRowView.h,
+				Base/LKOutlineView.h,
+				Base/LKPanelContentView.h,
+				Base/LKPerformanceReporter.h,
+				Base/LKPopPanel.h,
+				Base/LKProgressIndicatorView.h,
+				Base/LKSplitView.h,
+				Base/LKTableRowView.h,
+				Base/LKTableView.h,
+				Base/LKTableViewHorizontalScrollWidthManager.h,
+				Base/LKTextControl.h,
+				Base/LKTextFieldView.h,
+				Base/LKTextsMenuView.h,
+				Base/LKTipsView.h,
+				Base/LKTwoColors.h,
+				Base/LKUserActionManager.h,
+				Base/LKWindow.h,
+				Base/LKWindowController.h,
+				"Base/LookinClient-Bridging-Header.h",
+				Base/Message/LookinMsgAttribute.h,
+				Base/Message/LookinMsgTargetAction.h,
+				Connection/LKAppsManager.h,
+				Connection/LKConnectionManager.h,
+				Connection/LKConnectionRequest.h,
+				Connection/LKInspectableApp.h,
+				Console/LKConsoleDataSource.h,
+				Console/LKConsoleDataSourceRowItem.h,
+				Console/LKConsoleInputRowView.h,
+				Console/LKConsoleReturnRowView.h,
+				Console/LKConsoleSelectPopoverController.h,
+				Console/LKConsoleSelectPopoverItemControl.h,
+				Console/LKConsoleSubmitRowView.h,
+				Console/LKConsoleViewController.h,
+				DanceScript/DanceScriptManager.h,
+				Dashboard/AttributeView/Constraint/LKConstraintPopoverController.h,
+				Dashboard/AttributeView/Constraint/LKDashboardAttributeConstraintsItemControl.h,
+				Dashboard/AttributeView/Constraint/LKDashboardAttributeConstraintsView.h,
+				Dashboard/AttributeView/JSON/LKDashboardAttributeJsonView.h,
+				Dashboard/AttributeView/JSON/LKJSONAttributeContentView.h,
+				Dashboard/AttributeView/JSON/LKJSONAttributeItem.h,
+				Dashboard/AttributeView/JSON/LKJSONAttributeViewController.h,
+				Dashboard/AttributeView/JSON/LKJSONAttributeWindowController.h,
+				Dashboard/AttributeView/LKDashboardAttributeClassView.h,
+				Dashboard/AttributeView/LKDashboardAttributeColorView.h,
+				Dashboard/AttributeView/LKDashboardAttributeEnumsView.h,
+				Dashboard/AttributeView/LKDashboardAttributeInsetsView.h,
+				Dashboard/AttributeView/LKDashboardAttributeNumberInputView.h,
+				Dashboard/AttributeView/LKDashboardAttributeOpenImageView.h,
+				Dashboard/AttributeView/LKDashboardAttributePointView.h,
+				Dashboard/AttributeView/LKDashboardAttributeRectView.h,
+				Dashboard/AttributeView/LKDashboardAttributeRelationView.h,
+				Dashboard/AttributeView/LKDashboardAttributeRowsCountView.h,
+				Dashboard/AttributeView/LKDashboardAttributeShadowView.h,
+				Dashboard/AttributeView/LKDashboardAttributeSizeView.h,
+				Dashboard/AttributeView/LKDashboardAttributeStringArrayView.h,
+				Dashboard/AttributeView/LKDashboardAttributeSwitchView.h,
+				Dashboard/AttributeView/LKDashboardAttributeTextView.h,
+				Dashboard/AttributeView/LKDashboardAttributeView.h,
+				Dashboard/AttributeView/LKDashboardTextControlEditingFlag.h,
+				Dashboard/LKDashboardAccessoryWindowController.h,
+				Dashboard/LKDashboardCardTitleControl.h,
+				Dashboard/LKDashboardCardView.h,
+				Dashboard/LKDashboardSectionView.h,
+				Dashboard/LKDashboardSectionViewPool.h,
+				Dashboard/LKDashboardViewController.h,
+				Dashboard/LKEnumListRegistry.h,
+				Dashboard/Search/LKDashboardHeaderView.h,
+				Dashboard/Search/LKDashboardSearchCardView.h,
+				Dashboard/Search/LKDashboardSearchMethodsDataSource.h,
+				Dashboard/Search/LKDashboardSearchMethodsView.h,
+				Dashboard/Search/LKDashboardSearchPropView.h,
+				"DerivedSource/LookinCore/Category/CALayer+Lookin.h",
+				"DerivedSource/LookinCore/Category/Color+Lookin.h",
+				"DerivedSource/LookinCore/Category/Image+Lookin.h",
+				"DerivedSource/LookinCore/Category/NSArray+Lookin.h",
+				"DerivedSource/LookinCore/Category/NSObject+Lookin.h",
+				"DerivedSource/LookinCore/Category/NSSet+Lookin.h",
+				"DerivedSource/LookinCore/Category/NSString+Lookin.h",
+				DerivedSource/LookinCore/include/LookinCore.h,
+				DerivedSource/LookinCore/LookinAppInfo.h,
+				DerivedSource/LookinCore/LookinAttribute.h,
+				DerivedSource/LookinCore/LookinAttributeModification.h,
+				DerivedSource/LookinCore/LookinAttributesGroup.h,
+				DerivedSource/LookinCore/LookinAttributesSection.h,
+				DerivedSource/LookinCore/LookinAttrIdentifiers.h,
+				DerivedSource/LookinCore/LookinAttrType.h,
+				DerivedSource/LookinCore/LookinAutoLayoutConstraint.h,
+				DerivedSource/LookinCore/LookinCodingValueType.h,
+				DerivedSource/LookinCore/LookinConnectionAttachment.h,
+				DerivedSource/LookinCore/LookinConnectionResponseAttachment.h,
+				DerivedSource/LookinCore/LookinCustomAttrModification.h,
+				DerivedSource/LookinCore/LookinCustomDisplayItemInfo.h,
+				DerivedSource/LookinCore/LookinDashboardBlueprint.h,
+				DerivedSource/LookinCore/LookinDefines.h,
+				DerivedSource/LookinCore/LookinDisplayItem.h,
+				DerivedSource/LookinCore/LookinDisplayItemDetail.h,
+				DerivedSource/LookinCore/LookinEventHandler.h,
+				DerivedSource/LookinCore/LookinHierarchyFile.h,
+				DerivedSource/LookinCore/LookinHierarchyInfo.h,
+				DerivedSource/LookinCore/LookinObject.h,
+				DerivedSource/LookinCore/LookinStaticAsyncUpdateTask.h,
+				DerivedSource/LookinCore/LookinTuple.h,
+				DerivedSource/LookinCore/LookinWeakContainer.h,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTChannel.h,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTPrivate.h,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTProtocol.h,
+				DerivedSource/LookinCore/Peertalk/Lookin_PTUSBHub.h,
+				DerivedSource/LookinCore/Peertalk/Peertalk.h,
+				DerivedSource/LookinServerBase/LookinIvarTrace.h,
+				Export/LKExportAccessoryView.h,
+				Export/LKExportManager.h,
+				Export/LookinDocument.h,
+				Hierarchy/LKDanceUIAttrMaker.h,
+				Hierarchy/LKHierarchyController.h,
+				Hierarchy/LKHierarchyDataSource.h,
+				"Hierarchy/LKHierarchyDataSource+KeyDown.h",
+				Hierarchy/LKHierarchyHandlersPopoverController.h,
+				Hierarchy/LKHierarchyHandlersPopoverItemView.h,
+				Hierarchy/LKHierarchyItem.h,
+				Hierarchy/LKHierarchyRowView.h,
+				Hierarchy/LKHierarchyView.h,
+				Launch/LKLaunchAppView.h,
+				Launch/LKLaunchViewController.h,
+				Launch/LKLaunchWindowController.h,
+				Manager/LKAppMenuManager.h,
+				Manager/LKHelper.h,
+				Manager/LKNavigationManager.h,
+				Manager/LKPreferenceManager.h,
+				Measure/LKMeasureController.h,
+				Measure/LKMeasureResultLineData.h,
+				Measure/LKMeasureResultView.h,
+				Other/LKServerVersionRequestor.h,
+				Other/LKVersionComparer.h,
+				Preference/LKPreferencePopupView.h,
+				Preference/LKPreferenceSwitchView.h,
+				Preference/LKPreferenceViewController.h,
+				Preference/LKPreferenceWindowController.h,
+				ReactiveObjC/extobjc/RACEXTKeyPathCoding.h,
+				ReactiveObjC/extobjc/RACEXTRuntimeExtensions.h,
+				ReactiveObjC/extobjc/RACEXTScope.h,
+				ReactiveObjC/extobjc/RACmetamacros.h,
+				"ReactiveObjC/NSArray+RACSequenceAdditions.h",
+				"ReactiveObjC/NSControl+RACCommandSupport.h",
+				"ReactiveObjC/NSControl+RACTextSignalSupport.h",
+				"ReactiveObjC/NSData+RACSupport.h",
+				"ReactiveObjC/NSDictionary+RACSequenceAdditions.h",
+				"ReactiveObjC/NSEnumerator+RACSequenceAdditions.h",
+				"ReactiveObjC/NSFileHandle+RACSupport.h",
+				"ReactiveObjC/NSIndexSet+RACSequenceAdditions.h",
+				"ReactiveObjC/NSInvocation+RACTypeParsing.h",
+				"ReactiveObjC/NSNotificationCenter+RACSupport.h",
+				"ReactiveObjC/NSObject+RACAppKitBindings.h",
+				"ReactiveObjC/NSObject+RACDeallocating.h",
+				"ReactiveObjC/NSObject+RACDescription.h",
+				"ReactiveObjC/NSObject+RACKVOWrapper.h",
+				"ReactiveObjC/NSObject+RACLifting.h",
+				"ReactiveObjC/NSObject+RACPropertySubscribing.h",
+				"ReactiveObjC/NSObject+RACSelectorSignal.h",
+				"ReactiveObjC/NSOrderedSet+RACSequenceAdditions.h",
+				"ReactiveObjC/NSSet+RACSequenceAdditions.h",
+				"ReactiveObjC/NSString+RACKeyPathUtilities.h",
+				"ReactiveObjC/NSString+RACSequenceAdditions.h",
+				"ReactiveObjC/NSString+RACSupport.h",
+				"ReactiveObjC/NSText+RACSignalSupport.h",
+				"ReactiveObjC/NSURLConnection+RACSupport.h",
+				"ReactiveObjC/NSUserDefaults+RACSupport.h",
+				ReactiveObjC/RACAnnotations.h,
+				ReactiveObjC/RACArraySequence.h,
+				ReactiveObjC/RACBehaviorSubject.h,
+				ReactiveObjC/RACBlockTrampoline.h,
+				ReactiveObjC/RACChannel.h,
+				ReactiveObjC/RACCommand.h,
+				ReactiveObjC/RACCompoundDisposable.h,
+				ReactiveObjC/RACCompoundDisposableProvider.h,
+				ReactiveObjC/RACDelegateProxy.h,
+				ReactiveObjC/RACDisposable.h,
+				ReactiveObjC/RACDynamicSequence.h,
+				ReactiveObjC/RACDynamicSignal.h,
+				ReactiveObjC/RACEagerSequence.h,
+				ReactiveObjC/RACEmptySequence.h,
+				ReactiveObjC/RACEmptySignal.h,
+				ReactiveObjC/RACErrorSignal.h,
+				ReactiveObjC/RACEvent.h,
+				ReactiveObjC/RACEXTKeyPathCoding.h,
+				ReactiveObjC/RACEXTRuntimeExtensions.h,
+				ReactiveObjC/RACEXTScope.h,
+				ReactiveObjC/RACGroupedSignal.h,
+				ReactiveObjC/RACImmediateScheduler.h,
+				ReactiveObjC/RACIndexSetSequence.h,
+				ReactiveObjC/RACKVOChannel.h,
+				ReactiveObjC/RACKVOProxy.h,
+				ReactiveObjC/RACKVOTrampoline.h,
+				ReactiveObjC/RACmetamacros.h,
+				ReactiveObjC/RACMulticastConnection.h,
+				"ReactiveObjC/RACMulticastConnection+Private.h",
+				ReactiveObjC/RACPassthroughSubscriber.h,
+				ReactiveObjC/RACQueueScheduler.h,
+				"ReactiveObjC/RACQueueScheduler+Subclass.h",
+				ReactiveObjC/RACReplaySubject.h,
+				ReactiveObjC/RACReturnSignal.h,
+				ReactiveObjC/RACScheduler.h,
+				"ReactiveObjC/RACScheduler+Private.h",
+				"ReactiveObjC/RACScheduler+Subclass.h",
+				ReactiveObjC/RACScopedDisposable.h,
+				ReactiveObjC/RACSequence.h,
+				ReactiveObjC/RACSerialDisposable.h,
+				ReactiveObjC/RACSignal.h,
+				"ReactiveObjC/RACSignal+Operations.h",
+				ReactiveObjC/RACSignalProvider.h,
+				ReactiveObjC/RACSignalSequence.h,
+				ReactiveObjC/RACStream.h,
+				"ReactiveObjC/RACStream+Private.h",
+				ReactiveObjC/RACStringSequence.h,
+				ReactiveObjC/RACSubject.h,
+				ReactiveObjC/RACSubscriber.h,
+				"ReactiveObjC/RACSubscriber+Private.h",
+				ReactiveObjC/RACSubscriptingAssignmentTrampoline.h,
+				ReactiveObjC/RACSubscriptionScheduler.h,
+				ReactiveObjC/RACTargetQueueScheduler.h,
+				ReactiveObjC/RACTestScheduler.h,
+				ReactiveObjC/RACTuple.h,
+				ReactiveObjC/RACTupleSequence.h,
+				ReactiveObjC/RACUnarySequence.h,
+				ReactiveObjC/RACUnit.h,
+				ReactiveObjC/RACValueTransformer.h,
+				ReactiveObjC/ReactiveObjC.h,
+				Read/LKReadHierarchyController.h,
+				Read/LKReadHierarchyDataSource.h,
+				Read/LKReadViewController.h,
+				Read/LKReadWindowController.h,
+				ShortCocoa/ShortCocoa.h,
+				"ShortCocoa/ShortCocoa+Layout.h",
+				"ShortCocoa/ShortCocoa+Others.h",
+				"ShortCocoa/ShortCocoa+Private.h",
+				"ShortCocoa/ShortCocoa+String.h",
+				"ShortCocoa/ShortCocoa+UIToolkit.h",
+				ShortCocoa/ShortCocoaCore.h,
+				ShortCocoa/ShortCocoaDefines.h,
+				Static/LKMessageManager.h,
+				Static/LKReloadItemAndChildrenUpdateTaskMaker.h,
+				Static/LKReloadSingleItemUpdateTaskMaker.h,
+				Static/LKStaticAsyncUpdateManager.h,
+				Static/LKStaticHierarchyController.h,
+				Static/LKStaticHierarchyDataSource.h,
+				Static/LKStaticViewController.h,
+				Static/LKStaticWindowController.h,
+				Static/Preview/LKDisplayItemNode.h,
+				Static/Preview/LKPreviewController.h,
+				Static/Preview/LKPreviewPanGestureRecognizer.h,
+				Static/Preview/LKPreviewStageView.h,
+				Static/Preview/LKPreviewView.h,
+				Toolbar/LKMenuPopoverAppsListController.h,
+				Toolbar/LKMenuPopoverSettingController.h,
+				Toolbar/LKWindowToolbarAppButton.h,
+				Toolbar/LKWindowToolbarHelper.h,
+				Toolbar/LKWindowToolbarScaleView.h,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		50EADFB32F71BFF200EBE063 /* LookInside */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (50EAE1F32F71C01A00EBE063 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 50EAE1F42F71C01A00EBE063 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LookInside; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA48F29821CC0CA50032EC2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */,
+				50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */,
+				50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A9FB6E904476A1F9D0BB82E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AA1CAA3D22E471EC006D9285 /* Security.framework */,
+				AAB9517A22C3AECA00A5F958 /* Quartz.framework */,
+				AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		AA48F29221CC0CA50032EC2C = {
+			isa = PBXGroup;
+			children = (
+				50EADFB32F71BFF200EBE063 /* LookInside */,
+				AA48F29C21CC0CA50032EC2C /* Products */,
+				0A9FB6E904476A1F9D0BB82E /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		AA48F29C21CC0CA50032EC2C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA48F29B21CC0CA50032EC2C /* LookInside.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA48F29A21CC0CA50032EC2C /* LookInside */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA48F2AC21CC0CA60032EC2C /* Build configuration list for PBXNativeTarget "LookInside" */;
+			buildPhases = (
+				50EADFB42F71C00C00EBE063 /* Sources */,
+				AA48F29821CC0CA50032EC2C /* Frameworks */,
+				AA48F29921CC0CA50032EC2C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LookInside;
+			productName = Lookin;
+			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA48F29321CC0CA50032EC2C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2630;
+				ORGANIZATIONNAME = hughkli;
+				TargetAttributes = {
+					AA48F29A21CC0CA50032EC2C = {
+						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1500;
+						SystemCapabilities = {
+							com.apple.HardenedRuntime = {
+								enabled = 1;
+							};
+							com.apple.Sandbox = {
+								enabled = 0;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = AA48F29621CC0CA50032EC2C /* Build configuration list for PBXProject "LookInside" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = AA48F29221CC0CA50032EC2C;
+			packageReferences = (
+			);
+			preferredProjectObjectVersion = 50;
+			productRefGroup = AA48F29C21CC0CA50032EC2C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA48F29A21CC0CA50032EC2C /* LookInside */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA48F29921CC0CA50032EC2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		50EADFB42F71C00C00EBE063 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA48F2AA21CC0CA60032EC2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 7;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 964G86XT2P;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-format-nonliteral",
+				);
+			};
+			name = Debug;
+		};
+		AA48F2AB21CC0CA60032EC2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 7;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 964G86XT2P;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-format-nonliteral",
+				);
+			};
+			name = Release;
+		};
+		AA48F2AD21CC0CA60032EC2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = LookInside/Lookin.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
+				DEFINES_MODULE = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_ENHANCED_SECURITY = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_POINTER_AUTHENTICATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/LookInside",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/LookInside/PrefixHeaders.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SHOULD_COMPILE_LOOKIN_SERVER=1",
+				);
+				GCC_WARN_SHADOW = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/LookInside",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/include",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Category",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Peertalk",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
+					"$(SRCROOT)/LookInside/ReactiveObjC",
+				);
+				INFOPLIST_FILE = LookInside/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_OUTPUT_FORMAT = XML;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 2.0.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.look.inside;
+				PRODUCT_NAME = LookInside;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = YES;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-format-nonliteral",
+				);
+			};
+			name = Debug;
+		};
+		AA48F2AE21CC0CA60032EC2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				AUTOMATION_APPLE_EVENTS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = LookInside/Lookin.entitlements;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 0;
+				DEAD_CODE_STRIPPING = YES;
+				DEFINES_MODULE = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_ENHANCED_SECURITY = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_POINTER_AUTHENTICATION = NO;
+				ENABLE_RESOURCE_ACCESS_PHOTO_LIBRARY = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/LookInside",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SRCROOT)/LookInside/PrefixHeaders.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SHOULD_COMPILE_LOOKIN_SERVER=1",
+				);
+				GCC_WARN_SHADOW = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/LookInside",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/include",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Category",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Peertalk",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
+					"$(SRCROOT)/LookInside/ReactiveObjC",
+				);
+				INFOPLIST_FILE = LookInside/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_OUTPUT_FORMAT = XML;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 2.0.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
+				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.look.inside;
+				PRODUCT_NAME = LookInside;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
+				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
+				RUNTIME_EXCEPTION_ALLOW_UNSIGNED_EXECUTABLE_MEMORY = YES;
+				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
+				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-format-nonliteral",
+				);
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA48F29621CC0CA50032EC2C /* Build configuration list for PBXProject "LookInside" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA48F2AA21CC0CA60032EC2C /* Debug */,
+				AA48F2AB21CC0CA60032EC2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA48F2AC21CC0CA60032EC2C /* Build configuration list for PBXNativeTarget "LookInside" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA48F2AD21CC0CA60032EC2C /* Debug */,
+				AA48F2AE21CC0CA60032EC2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA48F29321CC0CA50032EC2C /* Project object */;
+}

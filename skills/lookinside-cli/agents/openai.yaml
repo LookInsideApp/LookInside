@@ -1,0 +1,4 @@
+interface:
+  display_name: "LookInside CLI"
+  short_description: "Inspect iOS app targets with the lookinside CLI."
+  default_prompt: "Use $lookinside-cli to inspect a running app, capture a hierarchy, or export a LookInside archive."

@@ -1,0 +1,61 @@
+name: Build Matrix
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-matrix-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            slug: macos
+            destination: generic/platform=macOS
+          - name: iOS
+            slug: ios
+            destination: generic/platform=iOS
+          - name: iOS Simulator
+            slug: ios-sim
+            destination: generic/platform=iOS Simulator
+          - name: tvOS
+            slug: tvos
+            destination: generic/platform=tvOS
+          - name: tvOS Simulator
+            slug: tvos-sim
+            destination: generic/platform=tvOS Simulator
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      - name: Install xcbeautify
+        run: brew install xcbeautify
+
+      - name: Build LookinServer
+        run: |
+          xcodebuild \
+            -workspace LookInside.xcworkspace \
+            -scheme LookinServer \
+            -configuration Debug \
+            -destination "${{ matrix.destination }}" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData/${{ matrix.slug }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            build | xcbeautify
