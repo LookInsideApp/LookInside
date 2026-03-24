@@ -32,6 +32,11 @@ let package = Package(
             name: "LookinServer",
             targets: ["LookinServer"]
         ),
+        .library(
+            name: "LookinServerDynamic",
+            type: .dynamic,
+            targets: ["LookinServer"]
+        ),
         .executable(
             name: "lookinside",
             targets: ["LookInsideCLI"]
