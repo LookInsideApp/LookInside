@@ -353,19 +353,34 @@ typedef NS_ENUM(NSInteger, LICErrorCode) {
 - (NSArray<LICDiscoveredTarget *> *)usbTargets {
     NSMutableArray<LICDiscoveredTarget *> *targets = [NSMutableArray array];
     NSArray<NSNumber *> *deviceIDs = [self attachedUSBDeviceIDs];
-    for (NSNumber *deviceID in deviceIDs) {
-        for (NSInteger port = LookinUSBDeviceIPv4PortNumberStart; port <= LookinUSBDeviceIPv4PortNumberEnd; port++) {
-            NSError *error = nil;
-            LICChannelSession *session = [self connectToUSBDeviceID:deviceID port:port error:&error];
-            if (!session) {
-                continue;
-            }
-            LICDiscoveredTarget *target = [self targetFromSession:session transport:@"usb" port:port deviceID:deviceID.stringValue error:nil];
-            [session close];
-            if (target) {
-                [targets addObject:target];
+    if (deviceIDs.count == 0) {
+        return targets;
+    }
+
+    dispatch_semaphore_t done = dispatch_semaphore_create(0);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+        for (NSNumber *deviceID in deviceIDs) {
+            for (NSInteger port = LookinUSBDeviceIPv4PortNumberStart; port <= LookinUSBDeviceIPv4PortNumberEnd; port++) {
+                NSError *error = nil;
+                LICChannelSession *session = [self connectToUSBDeviceID:deviceID port:port error:&error];
+                if (!session) {
+                    continue;
+                }
+                LICDiscoveredTarget *target = [self targetFromSession:session transport:@"usb" port:port deviceID:deviceID.stringValue error:nil];
+                [session close];
+                if (target) {
+                    @synchronized (targets) {
+                        [targets addObject:target];
+                    }
+                }
             }
         }
+        dispatch_semaphore_signal(done);
+    });
+
+    while (dispatch_semaphore_wait(done, DISPATCH_TIME_NOW) != 0) {
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                 beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
     }
     return targets;
 }
@@ -381,7 +396,7 @@ typedef NS_ENUM(NSInteger, LICErrorCode) {
     }];
 
     [Lookin_PTUSBHub sharedHub];
-    [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.4]];
+    [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:2.0]];
     [center removeObserver:token];
     return deviceIDs.array;
 }
