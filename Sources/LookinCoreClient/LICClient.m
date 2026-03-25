@@ -513,13 +513,23 @@ typedef NS_ENUM(NSInteger, LICErrorCode) {
         return nil;
     }
 
-    LICChannelSession *session = nil;
+    __block LICChannelSession *session = nil;
+    __block NSError *connectError = nil;
     if ([target.transport isEqualToString:@"usb"]) {
-        session = [self connectToUSBDeviceID:@(target.deviceID.integerValue) port:target.port error:error];
+        dispatch_semaphore_t done = dispatch_semaphore_create(0);
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_DEFAULT, 0), ^{
+            session = [self connectToUSBDeviceID:@(target.deviceID.integerValue) port:target.port error:&connectError];
+            dispatch_semaphore_signal(done);
+        });
+        while (dispatch_semaphore_wait(done, DISPATCH_TIME_NOW) != 0) {
+            [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                                     beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+        }
     } else {
-        session = [self connectToSimulatorPort:target.port error:error];
+        session = [self connectToSimulatorPort:target.port error:&connectError];
     }
     if (!session) {
+        if (error) *error = connectError;
         return nil;
     }
 

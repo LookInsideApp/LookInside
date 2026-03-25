@@ -1,284 +1,184 @@
 # LookInside
 
-LookInside is a macOS UI inspector for debuggable iOS apps.
+LookInside 是一个 macOS UI 调试工具，用于检查运行在 iOS 模拟器或 USB 连接真机上的 iOS 应用视图层级。
 
-This repository packages:
+本仓库包含：
 
-- the macOS app in [`LookInside/`](LookInside/), [`LookInside.xcodeproj`](LookInside.xcodeproj), and [`LookInside.xcworkspace`](LookInside.xcworkspace)
-- shared inspection libraries in [`Sources/`](Sources/)
-- the `lookinside` command-line tool in [`Sources/LookInsideCLI`](Sources/LookInsideCLI)
+- macOS 桌面应用（[`LookInside/`](LookInside/)）
+- 共享检查库（[`Sources/`](Sources/)）
+- 命令行工具 `lookinside`（[`Sources/LookInsideCLI`](Sources/LookInsideCLI)）
 
-LookInside is a community continuation of Lookin. The public product name in this repository is `LookInside`, while compatibility module names such as `LookinServer`, `LookinShared`, and `LookinCore` are intentionally preserved to reduce migration friction for existing integrations.
+LookInside 是 [Lookin](https://github.com/CocoaUIInspector/Lookin) 的社区续作，保留了兼容模块名（`LookinServer`、`LookinShared`、`LookinCore`）以降低迁移成本。
 
-The project is intended to ship without telemetry, crash upload, or automatic update services.
+## 环境要求
 
-## What It Does
+- macOS 11+
+- Xcode 及命令行工具
+- 已集成 [LookinServer](https://github.com/QMUI/LookinServer) 的可调试 iOS 应用
 
-LookInside can:
-
-- discover inspectable apps running in the iOS Simulator or on USB-connected devices
-- inspect target metadata from a desktop app or the CLI
-- fetch live view hierarchies
-- export hierarchy archives for later analysis
-
-## Build
-
-### Requirements
-
-- macOS
-- Xcode and command line tools
-- a debuggable iOS app running in Simulator or on a connected device if you want to inspect something live
-
-### Build the CLI
+## 构建
 
 ```bash
-swift build
-swift build -c debug --product lookinside
+swift build -c release --product lookinside
 ```
 
-### Build the macOS app
+产物路径为 `.build/release/lookinside`，单文件独立运行，可直接拷贝给其他 macOS 11+ 的机器使用，无需额外依赖。
+
+## 使用流程
+
+### 第一步：在 iOS 应用中集成 LookinServer
+
+在 `Podfile` 中添加：
+
+```ruby
+pod 'LookinServer'
+```
+
+执行 `pod install` 后，将应用运行到模拟器或 USB 连接的真机上。
+
+### 第二步：发现目标设备
 
 ```bash
-bash Scripts/sync-derived-source.sh
-xcodebuild -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build
+# 模拟器
+lookinside list
+
+# USB 真机
+lookinside list --transport usb
+
+# JSON 格式输出
+lookinside list --format json --transport usb
 ```
 
-The sync step refreshes the app's mirrored shared sources from [`Sources/`](Sources/) into [`LookInside/DerivedSource`](LookInside/DerivedSource).
-
-## CLI Quick Start
-
-Run `swift run lookinside ...` from the repository root. If you run it from `~` or another directory, SwiftPM will fail with `Could not find Package.swift`.
-
-```bash
-cd /path/to/LookInside
-swift build -c debug --product lookinside
-.build/debug/lookinside list --format json
-```
-
-The built binary is the most direct way to use the CLI during local development:
-
-```bash
-.build/debug/lookinside list
-.build/debug/lookinside inspect --target <id>
-.build/debug/lookinside hierarchy --target <id>
-.build/debug/lookinside export --target <id> --output ~/Desktop/sample.lookinside
-```
-
-## Commands
-
-- `lookinside list [--format text|json] [--transport simulator|usb] [--bundle-id <id>] [--name-contains <text>] [--ids-only]`
-- `lookinside inspect --target <id> [--format text|json]`
-- `lookinside hierarchy --target <id> [--format tree|json] [--output <path>]`
-- `lookinside export --target <id> --output <path> [--format auto|json|archive]`
-
-## Common Argument Patterns
-
-List only simulator targets as JSON:
-
-```bash
-.build/debug/lookinside list --format json --transport simulator
-```
-
-List only target IDs for piping into other tools:
-
-```bash
-.build/debug/lookinside list --transport simulator --ids-only
-```
-
-Filter by app name substring:
-
-```bash
-.build/debug/lookinside list --format json --name-contains Mini
-```
-
-Fetch a hierarchy as JSON instead of a text tree:
-
-```bash
-.build/debug/lookinside hierarchy --target <id> --format json
-```
-
-Write a hierarchy tree to disk:
-
-```bash
-.build/debug/lookinside hierarchy --target <id> --output /tmp/sample-tree.txt
-```
-
-Export the same hierarchy payload as JSON:
-
-```bash
-.build/debug/lookinside export --target <id> --output /tmp/sample.json --format json
-```
-
-Export a LookInside archive:
-
-```bash
-.build/debug/lookinside export --target <id> --output /tmp/sample.lookinside
-```
-
-`export --format auto` infers the format from the extension. JSON exports must use `.json`. Archive exports must use `.archive`, `.lookin`, or `.lookinside`.
-
-## Example Output Shapes
-
-`targetID` values are opaque identifiers discovered at runtime. In practice they look like `simulator:47164:1774294178`.
-
-Example `list --format json` output:
+输出示例：
 
 ```json
 [
   {
-    "appInfoIdentifier": 1774294178,
-    "appName": "MiniTerm",
-    "bundleIdentifier": "wiki.qaq.MiniTerm",
-    "deviceDescription": "iPhone Air",
-    "osDescription": "26.3.1",
-    "port": 47164,
-    "serverReadableVersion": "1.2.8",
-    "serverVersion": 0,
-    "targetID": "simulator:47164:1774294178",
-    "transport": "simulator"
+    "appInfoIdentifier" : 1774438131,
+    "appName" : "MyApp",
+    "bundleIdentifier" : "com.example.myapp",
+    "deviceDescription" : "iPhone",
+    "deviceID" : "10",
+    "osDescription" : "18.0",
+    "port" : 47175,
+    "serverReadableVersion" : "1.2.8",
+    "serverVersion" : 0,
+    "targetID" : "usb:10:47175:1774438131",
+    "transport" : "usb"
   }
 ]
 ```
 
-Example `inspect --format json` output:
+记录输出中的 `targetID`，后续命令均需要它。
 
-```json
-{
-  "connectionState": "connected",
-  "protocolVersion": 7,
-  "target": {
-    "appInfoIdentifier": 1774294178,
-    "appName": "MiniTerm",
-    "bundleIdentifier": "wiki.qaq.MiniTerm",
-    "deviceDescription": "iPhone Air",
-    "osDescription": "26.3.1",
-    "port": 47164,
-    "serverReadableVersion": "1.2.8",
-    "serverVersion": 0,
-    "targetID": "simulator:47164:1774294178",
-    "transport": "simulator"
-  }
-}
+### 第三步：获取视图层级
+
+**文本树（直观易读）：**
+
+```bash
+lookinside hierarchy --target usb:10:47175:1774438131
 ```
 
-Example `hierarchy` tree output:
+输出示例：
 
-```text
-- UIWindow#2 [keyWindow] frame={0, 0, 420, 912}
-  - UITransitionView#11 frame={0, 0, 420, 912}
-    - _UIMultiLayer#12 frame={0, 0, 420, 912}
-      - UIDropShadowView#14 frame={0, 0, 420, 912}
-        - UILayoutContainerView#16 frame={0, 0, 420, 912}
-          - UITransitionView#21 frame={0, 0, 420, 912}
-            - UIViewControllerWrapperView#23 frame={0, 0, 420, 912}
-              - UILayoutContainerView#25 frame={0, 0, 420, 912}
-                - UINavigationTransitionView#30 frame={0, 0, 420, 912}
-                  - UIViewControllerWrapperView#32 frame={0, 0, 420, 912}
-                    - UIView#34 frame={0, 0, 420, 912}
-                      - UICollectionView#37 frame={0, 0, 420, 912}
-                        - _UITouchPassthroughView#54 frame={0, -234, 420, 912}
-                        - _UITouchPassthroughView#56 frame={0, -234, 420, 912}
-                          - UIKit.ScrollEdgeEffectView#58 alpha=0.00 frame={0, 0, 420, 176.80}
-                          - UIKit.ScrollEdgeEffectView#81 alpha=0.00 frame={0, 764.20, 420, 147.80}
-                        - _UIScrollViewScrollIndicator#104 alpha=0.00 frame={414, 486, 3, 106}
+```
+- UIWindow#2 [keyWindow] frame={0, 0, 402, 874}
+  - UITransitionView#8 frame={0, 0, 402, 874}
+    - _UIMultiLayer#9 frame={0, 0, 402, 874}
+      - UILayoutContainerView#13 frame={0, 0, 402, 874}
+        - UINavigationTransitionView#18 frame={0, 0, 402, 874}
+          - UIViewControllerWrapperView#20 frame={0, 0, 402, 874}
+            - UIView#22 frame={0, 0, 402, 874}
+              - PagerView#25 frame={0, 0, 402, 874}
+                - UITableView#64 frame={0, 116, 402, 631}
 ```
 
-Example `hierarchy --format json` shape:
+**JSON 格式（适合程序解析或 AI 分析）：**
+
+```bash
+lookinside hierarchy --target usb:10:47175:1774438131 --format json
+```
+
+输出示例：
 
 ```json
 {
   "app": {
-    "appName": "MiniTerm",
-    "bundleIdentifier": "wiki.qaq.MiniTerm",
-    "deviceDescription": "iPhone Air",
-    "deviceType": "0",
-    "osDescription": "26.3.1",
-    "osMainVersion": 26,
-    "screenWidth": 420,
-    "screenHeight": 912,
+    "appName": "MyApp",
+    "bundleIdentifier": "com.example.myapp",
+    "deviceDescription": "iPhone",
+    "osDescription": "18.0",
+    "screenWidth": 402,
+    "screenHeight": 874,
     "screenScale": 3,
-    "serverReadableVersion": "1.2.8",
-    "serverVersion": 0,
-    "swiftEnabledInLookinServer": -1
+    "serverReadableVersion": "1.2.8"
   },
-  "collapsedClassList": [],
-  "colorAlias": {},
   "displayItems": [
     {
       "className": "UIWindow",
-      "memoryAddress": "0x1045098b0",
       "oid": 2,
-      "frame": { "x": 0, "y": 0, "width": 420, "height": 912 },
-      "bounds": { "x": 0, "y": 0, "width": 420, "height": 912 },
+      "frame": { "x": 0, "y": 0, "width": 402, "height": 874 },
       "alpha": 1,
       "isHidden": false,
       "representedAsKeyWindow": true,
-      "customDisplayTitle": "",
-      "children": [
-        {
-          "className": "UITransitionView",
-          "oid": 11,
-          "children": []
-        }
-      ]
+      "children": [ ... ]
     }
-  ],
-  "serverVersion": 7
+  ]
 }
 ```
 
-The JSON hierarchy is recursive. Each item includes geometry (`frame`, `bounds`), visibility (`alpha`, `isHidden`), identity (`className`, `memoryAddress`, `oid`), and nested `children`.
-
-## Codex Skill
-
-This repository also ships a Codex skill for the CLI at [`skills/lookinside-cli`](skills/lookinside-cli).
-
-Install it into your local Codex skills directory:
+输出内容较大时，建议写入文件：
 
 ```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-ln -s "$PWD/skills/lookinside-cli" "${CODEX_HOME:-$HOME/.codex}/skills/lookinside-cli"
+lookinside hierarchy --target <targetID> --format json --output /tmp/hierarchy.json
 ```
 
-If the symlink already exists, replace it with:
+### 第四步：导出快照
 
 ```bash
-ln -sfn "$PWD/skills/lookinside-cli" "${CODEX_HOME:-$HOME/.codex}/skills/lookinside-cli"
+# JSON 文件（供其他工具消费）
+lookinside export --target <targetID> --output /tmp/snapshot.json
+
+# LookInside 归档文件（可在桌面应用中打开）
+lookinside export --target <targetID> --output /tmp/snapshot.lookinside
 ```
 
-Then invoke it in Codex with a prompt such as:
+## 配合 AI 使用
 
-```text
-Use $lookinside-cli to inspect a running app, capture a hierarchy, or export a LookInside archive.
+将层级数据输出到文件，发给 AI 助手分析：
+
+```bash
+# 一步获取并保存
+lookinside hierarchy --target $(lookinside list --transport usb --ids-only) \
+  --format json --output /tmp/hierarchy.json
 ```
 
-The skill includes a concise workflow guide plus output-shape reference material for `list`, `inspect`, `hierarchy`, and `export`.
+将 `/tmp/hierarchy.json` 提供给 AI 后，AI 可以根据 `className`、`frame`、`alpha`、`isHidden` 以及嵌套的 `children` 结构，完整理解当前界面状态。
 
-## Project Notes
+### Claude Code Skill
 
-- `ReactiveObjC` is vendored under [`LookInside/ReactiveObjC`](LookInside/ReactiveObjC)
-- `Peertalk` is vendored under [`Sources/LookinCore/Peertalk`](Sources/LookinCore/Peertalk) with preserved MIT notice in [`Resources/Licenses/Peertalk.txt`](Resources/Licenses/Peertalk.txt)
-- `ShortCocoa` is vendored under [`LookInside/ShortCocoa`](LookInside/ShortCocoa) and distributed here on the same GPL-3.0 basis as upstream Lookin; see [`Resources/Licenses/ShortCocoa.md`](Resources/Licenses/ShortCocoa.md)
-- canonical shared runtime code lives in [`Sources/LookinCore`](Sources/LookinCore) and [`Sources/LookinServerBase`](Sources/LookinServerBase)
-- the macOS app builds mirrored copies from [`LookInside/DerivedSource`](LookInside/DerivedSource), so shared-source changes should be made in [`Sources/`](Sources/) and then synced
+本仓库为 Claude Code 提供了内置 Skill，位于 [`skills/lookinside-cli`](skills/lookinside-cli)。
 
-## License
+安装：
 
-This repository is distributed under GPL-3.0. See [`LICENSE`](LICENSE) and preserved third-party notices in [`Resources/Licenses/`](Resources/Licenses/).
+```bash
+mkdir -p "${CLAUDE_HOME:-$HOME/.claude}/skills"
+ln -sfn "$PWD/skills/lookinside-cli" "${CLAUDE_HOME:-$HOME/.claude}/skills/lookinside-cli"
+```
 
-Notable bundled components:
+安装后，Claude Code 可自动完成设备发现、层级抓取和快照导出等操作。
 
-- `ReactiveObjC`: MIT, see [`Resources/Licenses/ReactiveObjC.md`](Resources/Licenses/ReactiveObjC.md)
-- `Peertalk`: MIT, see [`Resources/Licenses/Peertalk.txt`](Resources/Licenses/Peertalk.txt)
-- `LookinServer`: MIT, see [`Resources/Licenses/LookinServer.txt`](Resources/Licenses/LookinServer.txt)
-- `ShortCocoa`: distributed in this repository on the same GPL-3.0 basis as upstream Lookin, see [`Resources/Licenses/ShortCocoa.md`](Resources/Licenses/ShortCocoa.md)
-- `Lookin` upstream client code: GPL-3.0, see [`Resources/Licenses/LookinClient.txt`](Resources/Licenses/LookinClient.txt)
+## 命令速查
 
-## Acknowledgements
+| 命令 | 说明 |
+|------|------|
+| `lookinside list` | 发现可检查的应用 |
+| `lookinside inspect --target <id>` | 查看目标设备元信息 |
+| `lookinside hierarchy --target <id>` | 获取实时视图层级 |
+| `lookinside export --target <id> --output <path>` | 导出层级快照 |
 
-LookInside is derived from upstream Lookin work and keeps compatibility with that ecosystem where practical.
+常用选项：`--format text\|json`、`--transport simulator\|usb`、`--output <path>`
 
-Primary upstream references:
+## 许可证
 
-- `CocoaUIInspector/Lookin`
-- `QMUI/LookinServer`
+GPL-3.0，详见 [`LICENSE`](LICENSE)。第三方组件许可证见 [`Resources/Licenses/`](Resources/Licenses/)。
