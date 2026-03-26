@@ -22,7 +22,7 @@
 #if TARGET_OS_IPHONE
 #import "../LookinServer/Server/Category/UIColor+LookinServer.h"
 #import "../LookinServer/Server/Category/UIImage+LookinServer.h"
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
 #endif
 
 @interface LookinDisplayItem ()
@@ -100,7 +100,7 @@
     [aCoder encodeCGRect:self.bounds forKey:@"bounds"];
     [aCoder encodeObject:self.backgroundColor.lks_rgbaComponents forKey:@"backgroundColor"];
     
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
     [aCoder encodeRect:self.frame forKey:@"frame"];
     [aCoder encodeRect:self.bounds forKey:@"bounds"];
     [aCoder encodeObject:self.backgroundColor.lookin_rgbaComponents forKey:@"backgroundColor"];
@@ -151,7 +151,7 @@
         self.frame = [aDecoder decodeCGRectForKey:@"frame"];
         self.bounds = [aDecoder decodeCGRectForKey:@"bounds"];
         self.backgroundColor = [UIColor lks_colorFromRGBAComponents:[aDecoder decodeObjectForKey:@"backgroundColor"]];
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
         self.frame = [aDecoder decodeRectForKey:@"frame"];
         self.bounds = [aDecoder decodeRectForKey:@"bounds"];
         self.backgroundColor = [NSColor lookin_colorFromRGBAComponents:[aDecoder decodeObjectForKey:@"backgroundColor"]];

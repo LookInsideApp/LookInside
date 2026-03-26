@@ -14,7 +14,7 @@
 #import "TargetConditionals.h"
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
 #import <AppKit/AppKit.h>
 #endif
 

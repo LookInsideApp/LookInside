@@ -43,7 +43,11 @@ static NSString * const CodingKey_DeviceType = @"8";
     if (strcmp(returnType, @encode(CGRect)) == 0) {
         CGRect value = CGRectZero;
         [invocation getReturnValue:&value];
+#if TARGET_OS_OSX
         return [NSValue valueWithRect:value];
+#else
+        return [NSValue valueWithCGRect:value];
+#endif
     }
     if (strcmp(returnType, @encode(CGFloat)) == 0 || strcmp(returnType, @encode(double)) == 0) {
         CGFloat value = 0;
@@ -115,7 +119,7 @@ static NSString * const CodingKey_DeviceType = @"8";
     
     NSData *appIconData = UIImagePNGRepresentation(self.appIcon);
     [aCoder encodeObject:appIconData forKey:CodingKey_AppIcon];
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
     NSData *screenshotData = [self.screenshot TIFFRepresentation];
     [aCoder encodeObject:screenshotData forKey:CodingKey_Screenshot];
     
@@ -189,7 +193,7 @@ static NSString * const CodingKey_DeviceType = @"8";
     info.appInfoIdentifier = selfIdentifier;
     info.appName = [self appName];
     info.appBundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
     info.deviceDescription = [self _invokeAdapterSelector:@"deviceDescription"] ?: @"Mac";
     info.deviceType = LookinAppInfoDeviceMac;
     info.osDescription = [self _invokeAdapterSelector:@"operatingSystemDescription"] ?: @"macOS";
@@ -198,7 +202,7 @@ static NSString * const CodingKey_DeviceType = @"8";
     info.deviceDescription = [UIDevice currentDevice].name;
     if ([self isSimulator]) {
         info.deviceType = LookinAppInfoDeviceSimulator;
-    } else if ([LKS_MultiplatformAdapter isiPad]) {
+    } else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         info.deviceType = LookinAppInfoDeviceIPad;
     } else {
         info.deviceType = LookinAppInfoDeviceOthers;
@@ -209,7 +213,7 @@ static NSString * const CodingKey_DeviceType = @"8";
 #endif
     
     CGRect screenBounds = CGRectZero;
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
     screenBounds = [(NSValue *)[self _invokeAdapterSelector:@"mainScreenBounds"] rectValue];
 #else
     screenBounds = [(NSValue *)[self _invokeAdapterSelector:@"mainScreenBounds"] CGRectValue];
@@ -245,7 +249,7 @@ static NSString * const CodingKey_DeviceType = @"8";
 + (LookinImage *)appIcon {
 #if TARGET_OS_TV
     return nil;
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
     NSImage *icon = [NSApp applicationIconImage];
     if (icon) {
         return icon;
@@ -275,7 +279,7 @@ static NSString * const CodingKey_DeviceType = @"8";
 }
 
 + (LookinImage *)screenshotImage {
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
     NSWindow *window = [self _invokeAdapterSelector:@"keyWindow"];
     if (!window) {
         return nil;
@@ -295,7 +299,7 @@ static NSString * const CodingKey_DeviceType = @"8";
     [invocation getReturnValue:&image];
     return image;
 #else
-    UIWindow *window = [LKS_MultiplatformAdapter keyWindow];
+    UIWindow *window = [self _invokeAdapterSelector:@"keyWindow"];
     if (!window) {
         return nil;
     }

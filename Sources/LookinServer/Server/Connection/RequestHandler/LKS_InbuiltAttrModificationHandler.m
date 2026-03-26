@@ -16,7 +16,7 @@
 #import "CALayer+LookinServer.h"
 #import "LookinServerDefines.h"
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import "Color+Lookin.h"
 
 @implementation LKS_InbuiltAttrModificationHandler

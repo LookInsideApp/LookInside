@@ -14,7 +14,7 @@
 #import "LookinDashboardBlueprint.h"
 #import "CALayer+LookinServer.h"
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import "Color+Lookin.h"
 #import "NSObject+LookinServer.h"
 #import "LookinIvarTrace.h"

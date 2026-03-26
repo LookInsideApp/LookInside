@@ -77,7 +77,7 @@ static NSString * const CodingKey_DeviceType = @"8";
     
     NSData *appIconData = UIImagePNGRepresentation(self.appIcon);
     [aCoder encodeObject:appIconData forKey:CodingKey_AppIcon];
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
     NSData *screenshotData = [self.screenshot TIFFRepresentation];
     [aCoder encodeObject:screenshotData forKey:CodingKey_Screenshot];
     

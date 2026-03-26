@@ -15,7 +15,7 @@
 #import "NSObject+LookinServer.h"
 #import "LKS_MultiplatformAdapter.h"
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 @implementation LKS_HierarchyDisplayItemsMaker
 

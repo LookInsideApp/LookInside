@@ -9,7 +9,7 @@
 
 #import "LookinDefines.h"
 #import <Foundation/Foundation.h>
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import <AppKit/AppKit.h>
 #endif
 
@@ -42,7 +42,7 @@
 
 @end
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 @interface NSView (LookinServer)
 

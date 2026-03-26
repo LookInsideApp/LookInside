@@ -14,7 +14,7 @@
 #import "CALayer+LookinServer.h"
 #import "LKS_AttrGroupsMaker.h"
 #import "LKS_HierarchyDisplayItemsMaker.h"
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import "LKS_MultiplatformAdapter.h"
 #endif
 
@@ -26,7 +26,7 @@
 
 @implementation LKS_HierarchyDetailsHandler
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 static NSArray<NSView *> *LKDetailHideVisibleSubviews(NSArray<NSView *> *subviews) {
     NSMutableArray<NSView *> *hiddenSubviews = [NSMutableArray array];
     for (NSView *subview in subviews.copy) {
@@ -78,7 +78,7 @@ static NSImage *LKDetailSnapshotImageForView(NSView *view) {
             LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
             detail.displayItemOid = task.oid;
             NSObject *targetObject = [NSObject lks_objectWithOid:task.oid];
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
             if ([targetObject isKindOfClass:NSView.class]) {
                 NSView *view = (NSView *)targetObject;
                 if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot && view.subviews.count) {
@@ -124,8 +124,13 @@ static NSImage *LKDetailSnapshotImageForView(NSView *view) {
                     detail.groupScreenshot = [layer lks_groupScreenshotWithLowQuality:NO];
                 }
                 if (task.needBasisVisualInfo) {
+#if TARGET_OS_OSX
                     detail.frameValue = [NSValue valueWithRect:layer.frame];
                     detail.boundsValue = [NSValue valueWithRect:layer.bounds];
+#else
+                    detail.frameValue = [NSValue valueWithCGRect:layer.frame];
+                    detail.boundsValue = [NSValue valueWithCGRect:layer.bounds];
+#endif
                     detail.hiddenValue = @(layer.hidden);
                     detail.alphaValue = @(layer.opacity);
                 }

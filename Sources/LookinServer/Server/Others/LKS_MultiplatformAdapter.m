@@ -7,7 +7,7 @@
 //
 
 #import "LKS_MultiplatformAdapter.h"
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import <AppKit/AppKit.h>
 #else
 #import <UIKit/UIKit.h>
@@ -15,7 +15,7 @@
 
 @implementation LKS_MultiplatformAdapter
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 + (NSWindow *)keyWindow {
     NSWindow *keyWindow = NSApplication.sharedApplication.keyWindow;

@@ -21,7 +21,7 @@
 #import "LKS_HierarchyDetailsHandler.h"
 #import <objc/runtime.h>
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import "Image+Lookin.h"
 #else
 #import "UIImage+LookinServer.h"
@@ -77,7 +77,7 @@
 - (void)handleRequestType:(uint32_t)requestType tag:(uint32_t)tag object:(id)object {
     if (requestType == LookinRequestTypePing) {
         LookinConnectionResponseAttachment *attachment = [LookinConnectionResponseAttachment new];
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
         attachment.appIsInBackground = NO;
 #else
         attachment.appIsInBackground = ![LKS_ConnectionManager sharedInstance].applicationIsActive;
@@ -217,7 +217,7 @@
     }
 
     if (requestType == LookinRequestTypeFetchImageViewImage) {
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
         NSImageView *imageView = (NSImageView *)[NSObject lks_objectWithOid:[(NSNumber *)object unsignedLongValue]];
         if (![imageView isKindOfClass:[NSImageView class]] || !imageView.image) {
             [self _respondWithError:LookinErr_ObjNotFound requestType:requestType tag:tag];

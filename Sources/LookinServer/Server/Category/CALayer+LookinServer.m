@@ -11,9 +11,13 @@
 #import "NSArray+Lookin.h"
 #import "LookinIvarTrace.h"
 #import "NSObject+LookinServer.h"
+#if !TARGET_OS_OSX
+#import "UIColor+LookinServer.h"
+#endif
 
 @implementation CALayer (LookinServer)
 
+#if TARGET_OS_OSX
 static NSArray<NSView *> *LKHideVisibleSubviews(NSArray<NSView *> *subviews) {
     NSMutableArray<NSView *> *hiddenSubviews = [NSMutableArray array];
     for (NSView *subview in subviews.copy) {
@@ -24,6 +28,7 @@ static NSArray<NSView *> *LKHideVisibleSubviews(NSArray<NSView *> *subviews) {
     }
     return hiddenSubviews.copy;
 }
+#endif
 
 static NSArray<CALayer *> *LKHideVisibleNonHostSublayers(NSArray<CALayer *> *sublayers) {
     NSMutableArray<CALayer *> *hiddenSublayers = [NSMutableArray array];
@@ -37,11 +42,13 @@ static NSArray<CALayer *> *LKHideVisibleNonHostSublayers(NSArray<CALayer *> *sub
     return hiddenSublayers.copy;
 }
 
+#if TARGET_OS_OSX
 static void LKRestoreHiddenViews(NSArray<NSView *> *subviews) {
     for (NSView *subview in subviews) {
         subview.hidden = NO;
     }
 }
+#endif
 
 static void LKRestoreHiddenLayers(NSArray<CALayer *> *sublayers) {
     for (CALayer *sublayer in sublayers) {
@@ -58,7 +65,7 @@ static void LKRestoreHiddenLayers(NSArray<CALayer *> *sublayers) {
     return completedList;
 }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 - (NSWindow *)lks_window {
     CALayer *layer = self;

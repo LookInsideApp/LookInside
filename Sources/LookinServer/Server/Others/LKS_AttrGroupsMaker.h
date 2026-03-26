@@ -10,13 +10,13 @@
 #import "LookinDefines.h"
 
 @class LookinAttributesGroup;
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 @class NSView, NSWindow;
 #endif
 
 @interface LKS_AttrGroupsMaker : NSObject
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 + (NSArray<LookinAttributesGroup *> *)attrGroupsForView:(NSView *)view;
 

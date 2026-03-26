@@ -12,7 +12,7 @@
 #import "NSArray+Lookin.h"
 #import "LookinServerDefines.h"
 #import "LKS_ObjectRegistry.h"
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import "LookinObject.h"
 #import "LookinAutoLayoutConstraint.h"
 #import "LKS_MultiplatformAdapter.h"
@@ -105,7 +105,7 @@
 
 @end
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 static const void *LKUserInteractionEnabledKey = &LKUserInteractionEnabledKey;
 static const void *LKContentModeKey = &LKContentModeKey;

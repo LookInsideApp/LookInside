@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 #import <AppKit/AppKit.h>
 #else
 #import <UIKit/UIKit.h>
@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface LKS_MultiplatformAdapter : NSObject
 
-#if TARGET_OS_MAC
+#if TARGET_OS_OSX
 
 + (NSWindow *)keyWindow;
 

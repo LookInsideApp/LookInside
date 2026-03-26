@@ -11,7 +11,7 @@
 #import "TargetConditionals.h"
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
 #import <AppKit/AppKit.h>
 #endif
 
@@ -144,7 +144,7 @@ enum {
 #define LookinColor UIColor
 #define LookinInsets UIEdgeInsets
 #define LookinImage UIImage
-#elif TARGET_OS_MAC
+#elif TARGET_OS_OSX
 #define LookinColor NSColor
 #define LookinInsets NSEdgeInsets
 #define LookinImage NSImage
