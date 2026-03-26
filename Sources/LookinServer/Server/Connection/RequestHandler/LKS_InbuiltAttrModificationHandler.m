@@ -21,6 +21,41 @@
 
 @implementation LKS_InbuiltAttrModificationHandler
 
++ (NSArray<LookinAttributesGroup *> *)_attrGroupsForReceiver:(NSObject *)receiver {
+    if ([receiver isKindOfClass:[CALayer class]]) {
+        return [LKS_AttrGroupsMaker attrGroupsForLayer:(CALayer *)receiver];
+    }
+    if ([receiver isKindOfClass:[NSView class]]) {
+        return [LKS_AttrGroupsMaker attrGroupsForView:(NSView *)receiver];
+    }
+    if ([receiver isKindOfClass:[NSWindow class]]) {
+        return [LKS_AttrGroupsMaker attrGroupsForWindow:(NSWindow *)receiver];
+    }
+    return nil;
+}
+
++ (void)_fillBasisDetail:(LookinDisplayItemDetail *)detail withReceiver:(NSObject *)receiver {
+    if ([receiver isKindOfClass:[CALayer class]]) {
+        CALayer *layer = (CALayer *)receiver;
+        detail.frameValue = [NSValue valueWithRect:layer.frame];
+        detail.boundsValue = [NSValue valueWithRect:layer.bounds];
+        detail.hiddenValue = @(layer.hidden);
+        detail.alphaValue = @(layer.opacity);
+    } else if ([receiver isKindOfClass:[NSView class]]) {
+        NSView *view = (NSView *)receiver;
+        detail.frameValue = [NSValue valueWithRect:view.frame];
+        detail.boundsValue = [NSValue valueWithRect:view.bounds];
+        detail.hiddenValue = @(view.hidden);
+        detail.alphaValue = @(view.layer ? view.layer.opacity : 1);
+    } else if ([receiver isKindOfClass:[NSWindow class]]) {
+        NSWindow *window = (NSWindow *)receiver;
+        detail.frameValue = [NSValue valueWithRect:window.frame];
+        detail.boundsValue = [NSValue valueWithRect:window.contentView.bounds];
+        detail.hiddenValue = @(!window.visible);
+        detail.alphaValue = @(window.alphaValue);
+    }
+}
+
 + (void)handleModification:(LookinAttributeModification *)modification completion:(void (^)(LookinDisplayItemDetail *data, NSError *error))completion {
     if (!completion || ![modification isKindOfClass:[LookinAttributeModification class]]) {
         if (completion) {
@@ -29,8 +64,8 @@
         return;
     }
 
-    CALayer *receiver = (CALayer *)[NSObject lks_objectWithOid:modification.targetOid];
-    if (![receiver isKindOfClass:[CALayer class]]) {
+    NSObject *receiver = [NSObject lks_objectWithOid:modification.targetOid];
+    if (!receiver) {
         completion(nil, LookinErr_ObjNotFound);
         return;
     }
@@ -98,11 +133,8 @@
 
     LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
     detail.displayItemOid = modification.targetOid;
-    detail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForLayer:receiver];
-    detail.frameValue = [NSValue valueWithRect:receiver.frame];
-    detail.boundsValue = [NSValue valueWithRect:receiver.bounds];
-    detail.hiddenValue = @(receiver.hidden);
-    detail.alphaValue = @(receiver.opacity);
+    detail.attributesGroupList = [self _attrGroupsForReceiver:receiver];
+    [self _fillBasisDetail:detail withReceiver:receiver];
     completion(detail, error);
 }
 
@@ -113,15 +145,44 @@
     for (LookinStaticAsyncUpdateTask *task in tasks) {
         LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
         detail.displayItemOid = task.oid;
-        CALayer *layer = (CALayer *)[NSObject lks_objectWithOid:task.oid];
-        if (![layer isKindOfClass:[CALayer class]]) {
+        NSObject *receiver = [NSObject lks_objectWithOid:task.oid];
+        if (!receiver) {
             block(detail);
             continue;
         }
-        if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
+        if ([receiver isKindOfClass:[CALayer class]] && task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
+            CALayer *layer = (CALayer *)receiver;
             detail.soloScreenshot = [layer lks_soloScreenshotWithLowQuality:NO];
-        } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+        } else if ([receiver isKindOfClass:[CALayer class]] && task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+            CALayer *layer = (CALayer *)receiver;
             detail.groupScreenshot = [layer lks_groupScreenshotWithLowQuality:NO];
+        } else if ([receiver isKindOfClass:[NSView class]]) {
+            NSView *view = (NSView *)receiver;
+            if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot && view.subviews.count > 0) {
+                NSArray<NSView *> *hiddenSubviews = [view.subviews filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSView *subview, NSDictionary<NSString *, id> *bindings) {
+                    return !subview.hidden;
+                }]];
+                [hiddenSubviews enumerateObjectsUsingBlock:^(NSView *subview, NSUInteger idx, BOOL *stop) {
+                    subview.hidden = YES;
+                }];
+                @try {
+                    NSBitmapImageRep *bitmapRep = [view bitmapImageRepForCachingDisplayInRect:view.bounds];
+                    [view cacheDisplayInRect:view.bounds toBitmapImageRep:bitmapRep];
+                    NSImage *image = [[NSImage alloc] initWithSize:view.bounds.size];
+                    [image addRepresentation:bitmapRep];
+                    detail.soloScreenshot = image;
+                } @finally {
+                    [hiddenSubviews enumerateObjectsUsingBlock:^(NSView *subview, NSUInteger idx, BOOL *stop) {
+                        subview.hidden = NO;
+                    }];
+                }
+            } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+                NSBitmapImageRep *bitmapRep = [view bitmapImageRepForCachingDisplayInRect:view.bounds];
+                [view cacheDisplayInRect:view.bounds toBitmapImageRep:bitmapRep];
+                NSImage *image = [[NSImage alloc] initWithSize:view.bounds.size];
+                [image addRepresentation:bitmapRep];
+                detail.groupScreenshot = image;
+            }
         }
         block(detail);
     }

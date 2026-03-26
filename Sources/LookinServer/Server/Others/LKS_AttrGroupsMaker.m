@@ -311,6 +311,16 @@
             [self _attributeWithID:LookinAttr_ViewLayer_Shadow_OffsetW type:LookinAttrTypeDouble value:@(view.layer ? view.layer.shadowOffset.width : 0)],
             [self _attributeWithID:LookinAttr_ViewLayer_Shadow_OffsetH type:LookinAttrTypeDouble value:@(view.layer ? view.layer.shadowOffset.height : 0)]
         ]],
+        [self _sectionWithID:LookinAttrSec_ViewLayer_ContentMode attrs:@[
+            [self _attributeWithID:LookinAttr_ViewLayer_ContentMode_Mode type:LookinAttrTypeEnumInt value:@(view.contentMode)]
+        ]],
+        [self _sectionWithID:LookinAttrSec_ViewLayer_TintColor attrs:@[
+            [self _attributeWithID:LookinAttr_ViewLayer_TintColor_Color type:LookinAttrTypeUIColor value:view.tintColor ? view.tintColor.lookin_rgbaComponents : nil],
+            [self _attributeWithID:LookinAttr_ViewLayer_TintColor_Mode type:LookinAttrTypeEnumInt value:@(view.tintAdjustmentMode)]
+        ]],
+        [self _sectionWithID:LookinAttrSec_ViewLayer_Tag attrs:@[
+            [self _attributeWithID:LookinAttr_ViewLayer_Tag_Tag type:LookinAttrTypeLong value:@(view.tag)]
+        ]],
     ]];
     if (viewLayerGroup) {
         [groups addObject:viewLayerGroup];
@@ -341,7 +351,10 @@
         NSVisualEffectView *effectView = (NSVisualEffectView *)view;
         LookinAttributesGroup *effectGroup = [self _groupWithID:LookinAttrGroup_UIVisualEffectView sections:@[
             [self _sectionWithID:LookinAttrSec_UIVisualEffectView_Style attrs:@[
-                [self _attributeWithID:LookinAttr_UIVisualEffectView_Style_Style type:LookinAttrTypeEnumInt value:@(effectView.material)]
+                [self _attributeWithID:LookinAttr_UIVisualEffectView_Style_Style type:LookinAttrTypeEnumInt value:effectView.lks_blurEffectStyleNumber]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIVisualEffectView_QMUIForegroundColor attrs:@[
+                [self _attributeWithID:LookinAttr_UIVisualEffectView_QMUIForegroundColor_Color type:LookinAttrTypeUIColor value:effectView.tintColor ? effectView.tintColor.lookin_rgbaComponents : nil]
             ]]
         ]];
         if (effectGroup) {
@@ -380,12 +393,24 @@
             ]],
             [self _sectionWithID:LookinAttrSec_UITextField_Alignment attrs:@[
                 [self _attributeWithID:LookinAttr_UITextField_Alignment_Alignment type:LookinAttrTypeEnumInt value:@(textField.alignment)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITextField_Clears attrs:@[
+                [self _attributeWithID:LookinAttr_UITextField_Clears_ClearsOnBeginEditing type:LookinAttrTypeBOOL value:@(textField.clearsOnBeginEditing)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITextField_CanAdjustFont attrs:@[
+                [self _attributeWithID:LookinAttr_UITextField_CanAdjustFont_CanAdjustFont type:LookinAttrTypeBOOL value:@(textField.adjustsFontSizeToFitWidth)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITextField_ClearButtonMode attrs:@[
+                [self _attributeWithID:LookinAttr_UITextField_ClearButtonMode_Mode type:LookinAttrTypeEnumInt value:@(textField.clearButtonMode)]
             ]]
         ] : @[
             [self _sectionWithID:LookinAttrSec_UILabel_Text attrs:@[
                 [self _attributeWithID:LookinAttr_UILabel_Text_Text type:LookinAttrTypeNSString value:textField.stringValue ?: @""]
             ]],
             [self _sectionWithID:LookinAttrSec_UILabel_Font attrs:[self _fontAttrsForObject:textField nameIdentifier:LookinAttr_UILabel_Font_Name sizeIdentifier:LookinAttr_UILabel_Font_Size]],
+            [self _sectionWithID:LookinAttrSec_UILabel_NumberOfLines attrs:@[
+                [self _attributeWithID:LookinAttr_UILabel_NumberOfLines_NumberOfLines type:LookinAttrTypeLong value:@(textField.numberOfLines)]
+            ]],
             [self _sectionWithID:LookinAttrSec_UILabel_TextColor attrs:@[
                 [self _attributeWithID:LookinAttr_UILabel_TextColor_Color type:LookinAttrTypeUIColor value:textField.textColor ? textField.textColor.lookin_rgbaComponents : nil]
             ]],
@@ -393,7 +418,10 @@
                 [self _attributeWithID:LookinAttr_UILabel_Alignment_Alignment type:LookinAttrTypeEnumInt value:@(textField.alignment)]
             ]],
             [self _sectionWithID:LookinAttrSec_UILabel_BreakMode attrs:@[
-                [self _attributeWithID:LookinAttr_UILabel_BreakMode_Mode type:LookinAttrTypeEnumInt value:@([textField.cell respondsToSelector:@selector(lineBreakMode)] ? ((NSTextFieldCell *)textField.cell).lineBreakMode : NSLineBreakByTruncatingTail)]
+                [self _attributeWithID:LookinAttr_UILabel_BreakMode_Mode type:LookinAttrTypeEnumInt value:@(textField.lineBreakMode)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UILabel_CanAdjustFont attrs:@[
+                [self _attributeWithID:LookinAttr_UILabel_CanAdjustFont_CanAdjustFont type:LookinAttrTypeBOOL value:@(textField.adjustsFontSizeToFitWidth)]
             ]]
         ])];
         if (textGroup) {
@@ -432,7 +460,16 @@
         LookinAttributesGroup *controlGroup = [self _groupWithID:LookinAttrGroup_UIControl sections:@[
             [self _sectionWithID:LookinAttrSec_UIControl_EnabledSelected attrs:@[
                 [self _attributeWithID:LookinAttr_UIControl_EnabledSelected_Enabled type:LookinAttrTypeBOOL value:@(control.enabled)],
-                [self _attributeWithID:LookinAttr_UIControl_EnabledSelected_Selected type:LookinAttrTypeBOOL value:@([control isKindOfClass:[NSButton class]] ? (((NSButton *)control).state == NSControlStateValueOn) : NO)]
+                [self _attributeWithID:LookinAttr_UIControl_EnabledSelected_Selected type:LookinAttrTypeBOOL value:@(control.selected)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIControl_QMUIOutsideEdge attrs:@[
+                [self _attributeWithID:LookinAttr_UIControl_QMUIOutsideEdge_Edge type:LookinAttrTypeUIEdgeInsets value:[self _insetsValue:control.qmui_outsideEdge]]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIControl_VerAlignment attrs:@[
+                [self _attributeWithID:LookinAttr_UIControl_VerAlignment_Alignment type:LookinAttrTypeEnumInt value:@(control.contentVerticalAlignment)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIControl_HorAlignment attrs:@[
+                [self _attributeWithID:LookinAttr_UIControl_HorAlignment_Alignment type:LookinAttrTypeEnumInt value:@(control.contentHorizontalAlignment)]
             ]]
         ]];
         if (controlGroup) {
@@ -444,7 +481,13 @@
         NSButton *button = (NSButton *)view;
         LookinAttributesGroup *buttonGroup = [self _groupWithID:LookinAttrGroup_UIButton sections:@[
             [self _sectionWithID:LookinAttrSec_UIButton_ContentInsets attrs:@[
-                [self _attributeWithID:LookinAttr_UIButton_ContentInsets_Insets type:LookinAttrTypeUIEdgeInsets value:[self _insetsValue:NSEdgeInsetsZero]]
+                [self _attributeWithID:LookinAttr_UIButton_ContentInsets_Insets type:LookinAttrTypeUIEdgeInsets value:[self _insetsValue:button.contentEdgeInsets]]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIButton_TitleInsets attrs:@[
+                [self _attributeWithID:LookinAttr_UIButton_TitleInsets_Insets type:LookinAttrTypeUIEdgeInsets value:[self _insetsValue:button.titleEdgeInsets]]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIButton_ImageInsets attrs:@[
+                [self _attributeWithID:LookinAttr_UIButton_ImageInsets_Insets type:LookinAttrTypeUIEdgeInsets value:[self _insetsValue:button.imageEdgeInsets]]
             ]]
         ]];
         if (buttonGroup) {
@@ -479,7 +522,10 @@
                 [self _attributeWithID:LookinAttr_UIScrollView_Offset_Offset type:LookinAttrTypeCGPoint value:[self _pointValue:scrollView.contentView.bounds.origin]]
             ]],
             [self _sectionWithID:LookinAttrSec_UIScrollView_ContentSize attrs:@[
-                [self _attributeWithID:LookinAttr_UIScrollView_ContentSize_Size type:LookinAttrTypeCGSize value:[self _sizeValue:documentView ? documentView.frame.size : CGSizeZero]]
+                [self _attributeWithID:LookinAttr_UIScrollView_ContentSize_Size type:LookinAttrTypeCGSize value:[self _sizeValue:scrollView.contentSize]]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UIScrollView_Behavior attrs:@[
+                [self _attributeWithID:LookinAttr_UIScrollView_Behavior_Behavior type:LookinAttrTypeEnumInt value:@(scrollView.contentInsetAdjustmentBehavior)]
             ]],
             [self _sectionWithID:LookinAttrSec_UIScrollView_ShowsIndicator attrs:@[
                 [self _attributeWithID:LookinAttr_UIScrollView_ShowsIndicator_Hor type:LookinAttrTypeBOOL value:@(scrollView.hasHorizontalScroller)],
@@ -493,15 +539,46 @@
                 [self _attributeWithID:LookinAttr_UIScrollView_ScrollPaging_ScrollEnabled type:LookinAttrTypeBOOL value:@(YES)],
                 [self _attributeWithID:LookinAttr_UIScrollView_ScrollPaging_PagingEnabled type:LookinAttrTypeBOOL value:@(NO)]
             ]],
+            [self _sectionWithID:LookinAttrSec_UIScrollView_ContentTouches attrs:@[
+                [self _attributeWithID:LookinAttr_UIScrollView_ContentTouches_Delay type:LookinAttrTypeBOOL value:@(scrollView.delaysContentTouches)],
+                [self _attributeWithID:LookinAttr_UIScrollView_ContentTouches_CanCancel type:LookinAttrTypeBOOL value:@(scrollView.canCancelContentTouches)]
+            ]],
             [self _sectionWithID:LookinAttrSec_UIScrollView_Zoom attrs:@[
-                [self _attributeWithID:LookinAttr_UIScrollView_Zoom_Bounce type:LookinAttrTypeBOOL value:@(scrollView.allowsMagnification)],
-                [self _attributeWithID:LookinAttr_UIScrollView_Zoom_Scale type:LookinAttrTypeDouble value:@(scrollView.magnification)],
+                [self _attributeWithID:LookinAttr_UIScrollView_Zoom_Bounce type:LookinAttrTypeBOOL value:@(scrollView.bouncesZoom)],
+                [self _attributeWithID:LookinAttr_UIScrollView_Zoom_Scale type:LookinAttrTypeDouble value:@(scrollView.zoomScale)],
                 [self _attributeWithID:LookinAttr_UIScrollView_Zoom_MinScale type:LookinAttrTypeDouble value:@(scrollView.minMagnification)],
                 [self _attributeWithID:LookinAttr_UIScrollView_Zoom_MaxScale type:LookinAttrTypeDouble value:@(scrollView.maxMagnification)]
             ]]
         ]];
         if (scrollGroup) {
             [groups addObject:scrollGroup];
+        }
+    }
+
+    if ([view isKindOfClass:[NSTableView class]]) {
+        NSTableView *tableView = (NSTableView *)view;
+        LookinAttributesGroup *tableGroup = [self _groupWithID:LookinAttrGroup_UITableView sections:@[
+            [self _sectionWithID:LookinAttrSec_UITableView_Style attrs:@[
+                [self _attributeWithID:LookinAttr_UITableView_Style_Style type:LookinAttrTypeEnumInt value:@(tableView.style)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITableView_SectionsNumber attrs:@[
+                [self _attributeWithID:LookinAttr_UITableView_SectionsNumber_Number type:LookinAttrTypeLong value:@(tableView.numberOfSections)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITableView_RowsNumber attrs:@[
+                [self _attributeWithID:LookinAttr_UITableView_RowsNumber_Number type:LookinAttrTypeLong value:@(tableView.numberOfRows)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITableView_SeparatorStyle attrs:@[
+                [self _attributeWithID:LookinAttr_UITableView_SeparatorStyle_Style type:LookinAttrTypeEnumInt value:@(tableView.separatorStyle)]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITableView_SeparatorColor attrs:@[
+                [self _attributeWithID:LookinAttr_UITableView_SeparatorColor_Color type:LookinAttrTypeUIColor value:tableView.separatorColor ? tableView.separatorColor.lookin_rgbaComponents : nil]
+            ]],
+            [self _sectionWithID:LookinAttrSec_UITableView_SeparatorInset attrs:@[
+                [self _attributeWithID:LookinAttr_UITableView_SeparatorInset_Inset type:LookinAttrTypeUIEdgeInsets value:[self _insetsValue:tableView.separatorInset]]
+            ]]
+        ]];
+        if (tableGroup) {
+            [groups addObject:tableGroup];
         }
     }
 
