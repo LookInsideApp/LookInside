@@ -136,6 +136,8 @@
 				"DerivedSource/LookinCore/Category/NSObject+Lookin.m",
 				"DerivedSource/LookinCore/Category/NSSet+Lookin.m",
 				"DerivedSource/LookinCore/Category/NSString+Lookin.m",
+				"DerivedSource/LookinCore/Category/NSValue+Lookin.m",
+				DerivedSource/LookinCore/LKS_MultiplatformAdapter.m,
 				DerivedSource/LookinCore/LookinAppInfo.m,
 				DerivedSource/LookinCore/LookinAttribute.m,
 				DerivedSource/LookinCore/LookinAttributeModification.m,
@@ -416,7 +418,9 @@
 				"DerivedSource/LookinCore/Category/NSObject+Lookin.h",
 				"DerivedSource/LookinCore/Category/NSSet+Lookin.h",
 				"DerivedSource/LookinCore/Category/NSString+Lookin.h",
+				"DerivedSource/LookinCore/Category/NSValue+Lookin.h",
 				DerivedSource/LookinCore/include/LookinCore.h,
+				DerivedSource/LookinCore/LKS_MultiplatformAdapter.h,
 				DerivedSource/LookinCore/LookinAppInfo.h,
 				DerivedSource/LookinCore/LookinAttribute.h,
 				DerivedSource/LookinCore/LookinAttributeModification.h,
@@ -881,11 +885,13 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LookInside/Lookin.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-					CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -922,7 +928,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-					MARKETING_VERSION = 2.0.2;
+				MARKETING_VERSION = 2.0.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.look.inside;
 				PRODUCT_NAME = LookInside;
@@ -952,11 +958,13 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = LookInside/Lookin.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-					CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -993,7 +1001,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-					MARKETING_VERSION = 2.0.2;
+				MARKETING_VERSION = 2.0.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = wiki.qaq.look.inside;
 				PRODUCT_NAME = LookInside;

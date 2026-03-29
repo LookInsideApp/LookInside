@@ -46,8 +46,7 @@
 }
 
 - (void)removeTaskWithItem:(LookinDisplayItem *)item {
-    BOOL prefersViewOID = [LKHelper appInfoLooksLikeMacTarget:[LKStaticHierarchyDataSource sharedInstance].rawHierarchyInfo.appInfo];
-    NSSet<NSNumber *> *itemOids = [NSSet setWithArray:[item availableObjectOidsPreferView:prefersViewOID]];
+    NSSet<NSNumber *> *itemOids = [NSSet setWithArray:[item availableObjectOidsPreferView:NO]];
     for (LookinStaticAsyncUpdateTasksPackage *pack in self.packages) {
         pack.tasks = [pack.tasks lookin_filter:^BOOL(LookinStaticAsyncUpdateTask *task) {
             if ([itemOids containsObject:@(task.oid)]) {
@@ -208,9 +207,12 @@
 }
 
 - (LookinStaticAsyncUpdateTask *)_taskFromDisplayItem:(LookinDisplayItem *)item type:(LookinStaticAsyncUpdateTaskType)type {
-    BOOL prefersViewOID = [LKHelper appInfoLooksLikeMacTarget:self.dataSource.rawHierarchyInfo.appInfo];
+    // macOS 上优先使用 viewObject.oid，因为服务端的 detail handler 能为所有 NSView 对象
+    // （包括 layer-backed 的 SwiftUI 视图）截图。使用 layerObject.oid 可能访问到已释放的 layer。
+    // iOS 上优先使用 layerObject.oid，以匹配上游行为。
+    BOOL preferViewOid = [LKHelper appInfoLooksLikeMacTarget:self.dataSource.rawHierarchyInfo.appInfo];
     unsigned long oid = 0;
-    if (prefersViewOID && item.viewObject.oid) {
+    if (preferViewOid && item.viewObject.oid) {
         oid = item.viewObject.oid;
     } else if (item.layerObject.oid) {
         oid = item.layerObject.oid;

@@ -16,15 +16,11 @@
 #import "NSArray+Lookin.h"
 #import "NSString+Lookin.h"
 
-#if TARGET_OS_IPHONE
 #import "LKS_HierarchyDisplayItemsMaker.h"
 #import "LKSConfigManager.h"
 #import "LKS_CustomAttrSetterManager.h"
-#endif
 
 @implementation LookinHierarchyInfo
-
-#if TARGET_OS_IPHONE
 
 + (instancetype)staticInfoWithLookinVersion:(NSString *)version {
     BOOL readCustomInfo = NO;
@@ -53,8 +49,6 @@
     info.colorAlias = [LKSConfigManager colorAlias];
     return info;
 }
-
-#endif
 
 #pragma mark - <NSSecureCoding>
 

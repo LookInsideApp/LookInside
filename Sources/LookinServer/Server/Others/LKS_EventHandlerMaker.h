@@ -1,4 +1,5 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#ifdef SHOULD_COMPILE_LOOKIN_SERVER
+
 //
 //  LKS_EventHandlerMaker.h
 //  LookinServer
@@ -13,7 +14,7 @@
 
 @interface LKS_EventHandlerMaker : NSObject
 
-+ (NSArray<LookinEventHandler *> *)makeForView:(UIView *)view;
++ (NSArray<LookinEventHandler *> *)makeForView:(LookinView *)view;
 
 @end
 

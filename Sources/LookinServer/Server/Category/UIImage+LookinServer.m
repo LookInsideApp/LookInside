@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  UIImage+LookinServer.m
 //  LookinServer
@@ -11,7 +11,7 @@
 #import "UIImage+LookinServer.h"
 #import "LookinServerDefines.h"
 
-@implementation UIImage (LookinServer)
+@implementation LookinImage (LookinServer)
 
 #ifdef LOOKIN_SERVER_DISABLE_HOOK
 
@@ -31,6 +31,7 @@
         Method newMethod = class_getClassMethod([self class], @selector(lks_imageNamed:));
         method_exchangeImplementations(oriMethod, newMethod);
         
+#if TARGET_OS_IPHONE
         oriMethod = class_getClassMethod([self class], @selector(imageWithContentsOfFile:));
         newMethod = class_getClassMethod([self class], @selector(lks_imageWithContentsOfFile:));
         method_exchangeImplementations(oriMethod, newMethod);
@@ -44,9 +45,19 @@
             newMethod = class_getClassMethod([self class], @selector(lks_imageNamed:inBundle:withConfiguration:));
             method_exchangeImplementations(oriMethod, newMethod);
         }
+#endif
+
+#if TARGET_OS_OSX
+#endif
     });
 }
++ (LookinImage *)lks_imageNamed:(NSString *)name {
+    LookinImage *image = [self lks_imageNamed:name];
+    image.lks_imageSourceName = name;
+    return image;
+}
 
+#if TARGET_OS_IPHONE
 + (nullable UIImage *)lks_imageNamed:(NSString *)name inBundle:(nullable NSBundle *)bundle withConfiguration:(nullable UIImageConfiguration *)configuration API_AVAILABLE(ios(13.0),tvos(13.0),watchos(6.0))
 {
     UIImage *image = [self lks_imageNamed:name inBundle:bundle withConfiguration:configuration];
@@ -61,12 +72,6 @@
     return image;
 }
 
-+ (UIImage *)lks_imageNamed:(NSString *)name {
-    UIImage *image = [self lks_imageNamed:name];
-    image.lks_imageSourceName = name;
-    return image;
-}
-
 + (UIImage *)lks_imageWithContentsOfFile:(NSString *)path {
     UIImage *image = [self lks_imageWithContentsOfFile:path];
     
@@ -74,6 +79,10 @@
     image.lks_imageSourceName = fileName;
     return image;
 }
+#endif
+
+#if TARGET_OS_OSX
+#endif
 
 - (void)setLks_imageSourceName:(NSString *)lks_imageSourceName {
     [self lookin_bindObject:lks_imageSourceName.copy forKey:@"lks_imageSourceName"];
@@ -85,9 +94,12 @@
 
 #endif /* LOOKIN_SERVER_DISABLE_HOOK */
 
+#if TARGET_OS_IPHONE
 - (NSData *)lookin_data {
     return UIImagePNGRepresentation(self);
 }
+#endif
+// macOS 上 lookin_data 由 Image+Lookin.m（NSImage (LookinClient) 分类）提供。
 
 @end
 

@@ -626,6 +626,7 @@
       }
     },
     "Fail to inspect this iOS app due to a version problem." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -640,6 +641,9 @@
           }
         }
       }
+    },
+    "Fail to inspect this target app due to a version problem." : {
+
     },
     "Failed to get target object in iOS app" : {
       "localizations" : {
@@ -2067,7 +2071,11 @@
         }
       }
     },
+    "Target app is linked with a higher version LookinServer.framework. Update this community build from the current repository source." : {
+
+    },
     "Target iOS app is linked with a higher version LookinServer.framework. Update this community build from the current repository source." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

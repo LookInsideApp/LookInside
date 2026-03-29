@@ -1,4 +1,5 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#ifdef SHOULD_COMPILE_LOOKIN_SERVER
+
 //
 //  LKS_HierarchyDisplayItemsMaker.h
 //  LookinServer
@@ -24,7 +25,9 @@
 
 /// 把 layer 的 sublayers 转换为 displayItem 数组并返回
 + (NSArray<LookinDisplayItem *> *)subitemsOfLayer:(CALayer *)layer;
-
+#if TARGET_OS_OSX
++ (NSArray<LookinDisplayItem *> *)subitemsOfView:(NSView *)view;
+#endif
 @end
 
 #endif /* SHOULD_COMPILE_LOOKIN_SERVER */

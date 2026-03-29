@@ -104,14 +104,10 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
     return rootItem;
 }
 
-- (LookinObject *)windowObject {
-    return self.viewObject;
-}
-
 - (unsigned long)bestObjectOidPreferView:(BOOL)preferView {
-    if (preferView && self.viewObject.oid) {
-        return self.viewObject.oid;
-    }
+    // 始终优先使用 layerObject.oid，以匹配上游行为。
+    // 上游服务端 detail handler 通过 CALayer OID 解析并截图，
+    // 这是经过验证的可靠路径。
     if (self.layerObject.oid) {
         return self.layerObject.oid;
     }
@@ -134,10 +130,6 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
         [oids addObject:@(self.layerObject.oid)];
     }
     return oids.array;
-}
-
-- (BOOL)isFlipped {
-    return NO;
 }
 
 - (NSString *)title {
@@ -186,9 +178,6 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
 }
 
 - (NSImage *)appropriateScreenshot {
-    if ([self usesGroupScreenshotFallbackInPreview]) {
-        return self.groupScreenshot;
-    }
     if (self.isExpandable && self.isExpanded) {
         return self.soloScreenshot;
     }
@@ -197,6 +186,12 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
 
 - (BOOL)usesGroupScreenshotFallbackInPreview {
     if (!(self.isExpandable && self.isExpanded)) {
+        return NO;
+    }
+    // Window 根节点的 soloScreenshot 始终是近乎透明的（只有窗口边框）。
+    // 这是预期行为——子视图负责渲染实际内容。不要对这些节点回退到
+    // groupScreenshot，否则祖先抑制逻辑会导致所有子视图变为空白。
+    if (self.windowObject && !self.layerObject && !self.viewObject) {
         return NO;
     }
     return LKShouldFallbackToGroupScreenshot(self.soloScreenshot, self.groupScreenshot);
@@ -257,15 +252,6 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
     if (self.customInfo) {
         return [self.customInfo.frameInWindow rectValue];
     }
-    if ([self _lk_usesAbsoluteRootCoordinates]) {
-        LookinDisplayItem *rootItem = [self _lk_rootItem];
-        CGRect rootFrame = rootItem.frame;
-        CGRect frame = self.frame;
-        return CGRectMake(frame.origin.x - rootFrame.origin.x,
-                          frame.origin.y - rootFrame.origin.y,
-                          frame.size.width,
-                          frame.size.height);
-    }
     if (!self.superItem) {
         return self.frame;
     }
@@ -282,22 +268,7 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
     } else {
         y = selfFrame.origin.y - superBounds.origin.y + superFrameToRoot.origin.y;
     }
-    /*
     
-    // 处理当前视图坐标系到父视图坐标系的转换
-    if (self.isFlipped == self.superItem.isFlipped) {
-        // 父子视图坐标系相同
-        
-    } else {
-        // 父子视图坐标系不同
-        if (self.isFlipped) {
-            // 当前视图原点在左上角，父视图原点在左下角
-        } else {
-            // 当前视图原点在左下角，父视图原点在左上角
-            y = superFrameToRoot.origin.y + selfFrame.origin.y;
-        }
-    }
-    */
     CGFloat width = selfFrame.size.width;
     CGFloat height = selfFrame.size.height;
     return CGRectMake(x, y, width, height);

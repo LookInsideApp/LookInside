@@ -1,4 +1,5 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#ifdef SHOULD_COMPILE_LOOKIN_SERVER
+
 //
 //  LKS_GestureTargetActionsSearcher.m
 //  LookinServer
@@ -14,7 +15,7 @@
 
 @implementation LKS_GestureTargetActionsSearcher
 
-+ (NSArray<LookinTwoTuple *> *)getTargetActionsFromRecognizer:(UIGestureRecognizer *)recognizer {
++ (NSArray<LookinTwoTuple *> *)getTargetActionsFromRecognizer:(LookinGestureRecognizer *)recognizer {
     if (!recognizer) {
         return @[];
     }

@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  UIImageView+LookinServer.m
 //  LookinServer
@@ -11,7 +11,7 @@
 #import "UIImage+LookinServer.h"
 #import "NSObject+LookinServer.h"
 
-@implementation UIImageView (LookinServer)
+@implementation LookinImageView (LookinServer)
 
 - (NSString *)lks_imageSourceName {
     return self.image.lks_imageSourceName;

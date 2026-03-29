@@ -1,4 +1,5 @@
-#if SHOULD_COMPILE_LOOKIN_SERVER && canImport(UIKit)
+#if SHOULD_COMPILE_LOOKIN_SERVER
+
 //
     //  LKS_TraceManager+Extension.swift
     //  LookinServer
@@ -7,7 +8,19 @@
 //
 
     import Foundation
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+import AppKit
+private typealias LookinView = NSView
+private typealias LookinViewController = NSViewController
+private typealias LookinGestureRecognizer = NSGestureRecognizer
+#endif
+
+#if canImport(UIKit)
     import UIKit
+private typealias LookinView = UIView
+private typealias LookinViewController = UIViewController
+private typealias LookinGestureRecognizer = UIGestureRecognizer
+#endif
     #if SPM_LOOKIN_SERVER_ENABLED
         import LookinServerBase
     #endif
@@ -19,17 +32,17 @@
             let initialInClass: AnyClass? = currClass
 
             while let m = mirror, let unwrappedCurrClass = currClass {
-                for child in m.children {
+            m.children.forEach { child in
                     if let child = child as? (label: String?, value: NSObject) {
                         let label: String? = child.label?.replacingOccurrences(of: "$__lazy_storage_$_", with: "")
                         let value = child.value
 
-                        guard (value is UIView) || (value is CALayer) || (value is UIViewController) || (value is UIGestureRecognizer) else {
-                            continue
+                    guard (value is LookinView) || (value is CALayer) || (value is LookinViewController) || (value is LookinGestureRecognizer) else {
+                        return
                         }
 
-                        guard let label, label.count > 0 else {
-                            continue
+                    guard let label = label, label.count > 0 else {
+                        return
                         }
 
                         let ivarTrace = LookinIvarTrace()
@@ -39,13 +52,13 @@
 
                         ivarTrace.ivarName = label
 
-                        if value === hostObject {
+                    if (value === hostObject) {
                             ivarTrace.relation = LookinIvarTraceRelationValue_Self
-                        } else if let hostView = hostObject as? UIView {
+                    } else if let hostView = hostObject as? LookinView {
                             var ivarLayer: CALayer? = nil
                             if let layer = value as? CALayer {
                                 ivarLayer = layer
-                            } else if let view = value as? UIView {
+                        } else if let view = value as? LookinView {
                                 ivarLayer = view.layer
                             }
                             if let layer = ivarLayer, layer.superlayer === hostView.layer {
@@ -64,7 +77,7 @@
         private static func makeDisplayClassName(superClass: AnyClass, childClass: AnyClass?) -> String {
             let superName = NSStringFromClass(superClass)
 
-            guard let childClass else {
+        guard let childClass = childClass else {
                 return superName
             }
             let childName = NSStringFromClass(childClass)

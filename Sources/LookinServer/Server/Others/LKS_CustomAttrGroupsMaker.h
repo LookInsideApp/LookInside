@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#ifdef SHOULD_COMPILE_LOOKIN_SERVER
 //
 //  LKS_CustomAttrGroupsMaker.h
 //  LookinServer
@@ -13,6 +13,9 @@
 @interface LKS_CustomAttrGroupsMaker : NSObject
 
 - (instancetype)initWithLayer:(CALayer *)layer;
+#if TARGET_OS_OSX
+- (instancetype)initWithView:(NSView *)view;
+#endif
 
 - (void)execute;
 

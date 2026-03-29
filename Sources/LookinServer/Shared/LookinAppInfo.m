@@ -129,8 +129,6 @@ static NSString * const CodingKey_DeviceType = @"8";
     return NO;
 }
 
-#if TARGET_OS_IPHONE
-
 + (LookinAppInfo *)currentInfoWithScreenshot:(BOOL)hasScreenshot icon:(BOOL)hasIcon localIdentifiers:(NSArray<NSNumber *> *)localIdentifiers {
     NSInteger selfIdentifier = [self getAppInfoIdentifier];
     if ([localIdentifiers containsObject:@(selfIdentifier)]) {
@@ -149,20 +147,33 @@ static NSString * const CodingKey_DeviceType = @"8";
 #endif
     info.appInfoIdentifier = selfIdentifier;
     info.appName = [self appName];
+#if TARGET_OS_IPHONE
     info.deviceDescription = [UIDevice currentDevice].name;
+#elif TARGET_OS_OSX
+    info.deviceDescription = [LKS_MultiplatformAdapter deviceDescription];
+#endif
     info.appBundleIdentifier = [[NSBundle mainBundle] bundleIdentifier];
     if ([self isSimulator]) {
         info.deviceType = LookinAppInfoDeviceSimulator;
     } else if ([LKS_MultiplatformAdapter isiPad]) {
         info.deviceType = LookinAppInfoDeviceIPad;
+#if TARGET_OS_OSX
+    } else {
+        info.deviceType = LookinAppInfoDeviceMac;
+#else
     } else {
         info.deviceType = LookinAppInfoDeviceOthers;
+#endif
     }
     
+#if TARGET_OS_IPHONE
     info.osDescription = [UIDevice currentDevice].systemVersion;
-    
-    NSString *mainVersionStr = [[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@"."].firstObject;
+    NSString *mainVersionStr = [[[UIDevice currentDevice] systemVersion] componentsSeparatedByString:@”.”].firstObject;
     info.osMainVersion = [mainVersionStr integerValue];
+#elif TARGET_OS_OSX
+    info.osDescription = [LKS_MultiplatformAdapter operatingSystemDescription];
+    info.osMainVersion = [LKS_MultiplatformAdapter operatingSystemMainVersion];
+#endif
     
     CGSize screenSize = [LKS_MultiplatformAdapter mainScreenBounds].size;
     info.screenWidth = screenSize.width;
@@ -181,50 +192,67 @@ static NSString * const CodingKey_DeviceType = @"8";
 
 + (NSString *)appName {
     NSDictionary *info = [[NSBundle mainBundle] infoDictionary];
-    NSString *displayName = [info objectForKey:@"CFBundleDisplayName"];
-    NSString *name = [info objectForKey:@"CFBundleName"];
+    NSString *displayName = [info objectForKey:@”CFBundleDisplayName”];
+    NSString *name = [info objectForKey:@”CFBundleName”];
     return displayName.length ? displayName : name;
 }
 
-+ (UIImage *)appIcon {
++ (LookinImage *)appIcon {
 #if TARGET_OS_TV
     return nil;
-#else
+#elif TARGET_OS_IPHONE
     NSString *imageName;
-    id CFBundleIcons = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIcons"];
+    id CFBundleIcons = [[[NSBundle mainBundle] infoDictionary] objectForKey:@”CFBundleIcons”];
     if ([CFBundleIcons respondsToSelector:@selector(objectForKey:)]) {
-        id CFBundlePrimaryIcon = [CFBundleIcons objectForKey:@"CFBundlePrimaryIcon"];
+        id CFBundlePrimaryIcon = [CFBundleIcons objectForKey:@”CFBundlePrimaryIcon”];
         if ([CFBundlePrimaryIcon respondsToSelector:@selector(objectForKey:)]) {
-            imageName = [[CFBundlePrimaryIcon objectForKey:@"CFBundleIconFiles"] lastObject];
+            imageName = [[CFBundlePrimaryIcon objectForKey:@”CFBundleIconFiles”] lastObject];
         } else if ([CFBundlePrimaryIcon isKindOfClass:NSString.class]) {
             imageName = CFBundlePrimaryIcon;
         }
     }
     if (!imageName.length) {
-        // 正常情况下拿到的 name 可能比如 “AppIcon60x60”。但某些情况可能为 nil，此时直接 return 否则 [UIImage imageNamed:nil] 可能导致 console 报 "CUICatalog: Invalid asset name supplied: '(null)'" 的错误信息
+        // 正常情况下拿到的 name 可能比如 "AppIcon60x60"。但某些情况可能为 nil，此时直接 return 否则 [UIImage imageNamed:nil] 可能导致 console 报 "CUICatalog: Invalid asset name supplied: '(null)'" 的错误信息
         return nil;
     }
     return [UIImage imageNamed:imageName];
+#elif TARGET_OS_OSX
+    return [[NSApplication sharedApplication] applicationIconImage];
 #endif
 }
 
-+ (UIImage *)screenshotImage {
-    UIWindow *window = [LKS_MultiplatformAdapter keyWindow];
++ (LookinImage *)screenshotImage {
+    LookinWindow *window = [LKS_MultiplatformAdapter keyWindow];
+#if TARGET_OS_OSX
+    // macOS 上当应用失去焦点或处于后台时 keyWindow 为 nil。
+    // 回退到第一个可见窗口（优先 mainWindow，其次任意已排序的窗口）。
+    if (!window) {
+        window = [NSApplication sharedApplication].mainWindow;
+    }
+    if (!window) {
+        window = [NSApplication sharedApplication].windows.firstObject;
+    }
+#endif
     if (!window) {
         return nil;
     }
+#if TARGET_OS_IPHONE
     CGSize size = window.bounds.size;
     if (size.width <= 0 || size.height <= 0) {
-        // *** Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'UIGraphicsBeginImageContext() failed to allocate CGBitampContext: size={0, 0}, scale=3.000000, bitmapInfo=0x2002. Use UIGraphicsImageRenderer to avoid this assert.'
-
-        // https://github.com/hughkli/Lookin/issues/21
         return nil;
     }
     UIGraphicsBeginImageContextWithOptions(size, YES, 0.4);
     [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
-    
+#elif TARGET_OS_OSX
+    CGImageRef cgImage = CGWindowListCreateImage(CGRectZero, kCGWindowListOptionIncludingWindow, (int)window.windowNumber, kCGWindowImageBoundsIgnoreFraming);
+    if (!cgImage) {
+        return nil;
+    }
+    NSImage *image = [[NSImage alloc] initWithCGImage:cgImage size:window.frame.size];
+    CGImageRelease(cgImage);
+#endif
     return image;
 }
 
@@ -234,8 +262,6 @@ static NSString * const CodingKey_DeviceType = @"8";
     }
     return NO;
 }
-
-#endif
 
 + (NSInteger)getAppInfoIdentifier {
     static dispatch_once_t onceToken;

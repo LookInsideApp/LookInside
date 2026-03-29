@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  LKS_RequestHandler.m
 //  LookinServer
@@ -18,14 +18,14 @@
 #import "NSObject+LookinServer.h"
 #import "LKS_AttrGroupsMaker.h"
 #import "LKS_InbuiltAttrModificationHandler.h"
+#import "LKS_CustomAttrModificationHandler.h"
+#import "LKS_AttrModificationPatchHandler.h"
 #import "LKS_HierarchyDetailsHandler.h"
-#import <objc/runtime.h>
-
-#if TARGET_OS_OSX
-#import "Image+Lookin.h"
-#else
+#import "LookinServerDefines.h"
+#import "LookinHierarchyInfo+LookinServer.h"
 #import "UIImage+LookinServer.h"
-#endif
+#import "NSValue+Lookin.h"
+#import <objc/runtime.h>
 
 @interface LKS_RequestHandler ()
 
@@ -44,6 +44,7 @@
             @(LookinRequestTypeHierarchy),
             @(LookinRequestTypeHierarchyDetails),
             @(LookinRequestTypeInbuiltAttrModification),
+            @(LookinRequestTypeCustomAttrModification),
             @(LookinRequestTypeAttrModificationPatch),
             @(LookinRequestTypeFetchObject),
             @(LookinRequestTypeAllAttrGroups),

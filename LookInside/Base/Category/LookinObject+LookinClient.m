@@ -17,9 +17,15 @@
 
 - (NSString *)lk_simpleDemangledClassName {
     NSString *name = [LKSwiftDemangler simpleParseWithInput:self.rawClassName];
-    // 理论上可能有 bad case，比如 xx<aaa.bbb>，期望拿到 xx 但是这里会拿到 bbb……不过似乎没发现过，所以先这样简单处理吧
-    NSString *result = [name componentsSeparatedByString:@"."].lastObject;
-    return result;
+    // 去掉模块前缀（例如 "AppKit._NSCoreHostingView<AppKit.ThemeWidgetView>" 中的 "AppKit."），
+    // 但只考虑泛型 '<' 括号之前的点号，避免误拆泛型类型参数内部的点号。
+    NSUInteger angleBracketIndex = [name rangeOfString:@"<"].location;
+    NSString *prefixPortion = (angleBracketIndex != NSNotFound) ? [name substringToIndex:angleBracketIndex] : name;
+    NSRange lastDotRange = [prefixPortion rangeOfString:@"." options:NSBackwardsSearch];
+    if (lastDotRange.location != NSNotFound) {
+        return [name substringFromIndex:lastDotRange.location + 1];
+    }
+    return name;
 }
 
 @end

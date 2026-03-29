@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  UIImageView+LookinServer.h
 //  LookinServer
@@ -7,9 +7,9 @@
 //  https://lookin.work
 //
 
-#import <UIKit/UIKit.h>
+#import "LookinDefines.h"
 
-@interface UIImageView (LookinServer)
+@interface LookinImageView (LookinServer)
 
 - (NSString *)lks_imageSourceName;
 - (NSNumber *)lks_imageViewOidIfHasImage;
