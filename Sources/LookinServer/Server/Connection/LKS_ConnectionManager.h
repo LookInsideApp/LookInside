@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  Lookin.h
 //  Lookin
@@ -7,10 +7,12 @@
 //  https://lookin.work
 //
 
-#if TARGET_OS_OSX
-#import <AppKit/AppKit.h>
-#else
+#import "TargetConditionals.h"
+
+#if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <Appkit/Appkit.h>
 #endif
 
 extern NSString *const LKS_ConnectionDidEndNotificationName;
@@ -22,7 +24,6 @@ extern NSString *const LKS_ConnectionDidEndNotificationName;
 + (instancetype)sharedInstance;
 
 @property(nonatomic, assign) BOOL applicationIsActive;
-@property(nonatomic, assign) int preferredListenPort;
 
 - (void)respond:(LookinConnectionResponseAttachment *)data requestType:(uint32_t)requestType tag:(uint32_t)tag;
 

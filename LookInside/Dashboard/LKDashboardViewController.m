@@ -271,6 +271,8 @@
         modification.clientReadableVersion = [LKHelper lookinReadableVersion];
         if ([LookinDashboardBlueprint isUIViewPropertyWithAttrID:attribute.identifier]) {
             modification.targetOid = modifyingItem.viewObject.oid;
+        } else if ([LookinDashboardBlueprint isWindowPropertyWithAttrID:attribute.identifier]) {
+            modification.targetOid = modifyingItem.windowObject.oid;
         } else {
             modification.targetOid = modifyingItem.layerObject.oid;
         }

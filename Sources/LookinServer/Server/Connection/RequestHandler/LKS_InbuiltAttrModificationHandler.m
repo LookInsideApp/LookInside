@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  LKS_InbuiltAttrModificationHandler.m
 //  LookinServer
@@ -8,59 +8,24 @@
 //
 
 #import "LKS_InbuiltAttrModificationHandler.h"
+#import "UIColor+LookinServer.h"
 #import "LookinAttributeModification.h"
+#import "LKS_AttrGroupsMaker.h"
 #import "LookinDisplayItemDetail.h"
 #import "LookinStaticAsyncUpdateTask.h"
-#import "LKS_AttrGroupsMaker.h"
-#import "NSObject+LookinServer.h"
-#import "CALayer+LookinServer.h"
 #import "LookinServerDefines.h"
-
-#if TARGET_OS_OSX
-#import "Color+Lookin.h"
-
+#import "LKS_CustomAttrGroupsMaker.h"
+#import "UIView+LookinServer.h"
+#import "NSValue+Lookin.h"
 @implementation LKS_InbuiltAttrModificationHandler
 
-+ (NSArray<LookinAttributesGroup *> *)_attrGroupsForReceiver:(NSObject *)receiver {
-    if ([receiver isKindOfClass:[CALayer class]]) {
-        return [LKS_AttrGroupsMaker attrGroupsForLayer:(CALayer *)receiver];
-    }
-    if ([receiver isKindOfClass:[NSView class]]) {
-        return [LKS_AttrGroupsMaker attrGroupsForView:(NSView *)receiver];
-    }
-    if ([receiver isKindOfClass:[NSWindow class]]) {
-        return [LKS_AttrGroupsMaker attrGroupsForWindow:(NSWindow *)receiver];
-    }
-    return nil;
-}
-
-+ (void)_fillBasisDetail:(LookinDisplayItemDetail *)detail withReceiver:(NSObject *)receiver {
-    if ([receiver isKindOfClass:[CALayer class]]) {
-        CALayer *layer = (CALayer *)receiver;
-        detail.frameValue = [NSValue valueWithRect:layer.frame];
-        detail.boundsValue = [NSValue valueWithRect:layer.bounds];
-        detail.hiddenValue = @(layer.hidden);
-        detail.alphaValue = @(layer.opacity);
-    } else if ([receiver isKindOfClass:[NSView class]]) {
-        NSView *view = (NSView *)receiver;
-        detail.frameValue = [NSValue valueWithRect:view.frame];
-        detail.boundsValue = [NSValue valueWithRect:view.bounds];
-        detail.hiddenValue = @(view.hidden);
-        detail.alphaValue = @(view.layer ? view.layer.opacity : 1);
-    } else if ([receiver isKindOfClass:[NSWindow class]]) {
-        NSWindow *window = (NSWindow *)receiver;
-        detail.frameValue = [NSValue valueWithRect:window.frame];
-        detail.boundsValue = [NSValue valueWithRect:window.contentView.bounds];
-        detail.hiddenValue = @(!window.visible);
-        detail.alphaValue = @(window.alphaValue);
-    }
-}
-
 + (void)handleModification:(LookinAttributeModification *)modification completion:(void (^)(LookinDisplayItemDetail *data, NSError *error))completion {
-    if (!completion || ![modification isKindOfClass:[LookinAttributeModification class]]) {
-        if (completion) {
+    if (!completion) {
+        NSAssert(NO, @"");
+        return;
+    }
+    if (!modification || ![modification isKindOfClass:[LookinAttributeModification class]]) {
             completion(nil, LookinErr_Inner);
-        }
         return;
     }
 
@@ -69,151 +34,242 @@
         completion(nil, LookinErr_ObjNotFound);
         return;
     }
-    if (![receiver respondsToSelector:modification.setterSelector]) {
-        completion(nil, LookinErr_Inner);
-        return;
-    }
 
     NSMethodSignature *setterSignature = [receiver methodSignatureForSelector:modification.setterSelector];
-    if (!setterSignature || setterSignature.numberOfArguments != 3) {
-        completion(nil, LookinErr_Inner);
-        return;
-    }
-
     NSInvocation *setterInvocation = [NSInvocation invocationWithMethodSignature:setterSignature];
     setterInvocation.target = receiver;
     setterInvocation.selector = modification.setterSelector;
 
+    if (setterSignature.numberOfArguments != 3 || ![receiver respondsToSelector:modification.setterSelector]) {
+        completion(nil, LookinErr_Inner);
+        return;
+    }
+
     switch (modification.attrType) {
-        case LookinAttrTypeBOOL: {
-            BOOL value = [(NSNumber *)modification.value boolValue];
-            [setterInvocation setArgument:&value atIndex:2];
+        case LookinAttrTypeNone:
+        case LookinAttrTypeVoid: {
+        completion(nil, LookinErr_Inner);
+        return;
+    }
+        case LookinAttrTypeChar: {
+            char expectedValue = [(NSNumber *)modification.value charValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeInt:
+        case LookinAttrTypeEnumInt: {
+            int expectedValue = [(NSNumber *)modification.value intValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeShort: {
+            short expectedValue = [(NSNumber *)modification.value shortValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeLong:
+        case LookinAttrTypeEnumLong: {
+            long expectedValue = [(NSNumber *)modification.value longValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeLongLong: {
+            long long expectedValue = [(NSNumber *)modification.value longLongValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeUnsignedChar: {
+            unsigned char expectedValue = [(NSNumber *)modification.value unsignedCharValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeUnsignedInt: {
+            unsigned int expectedValue = [(NSNumber *)modification.value unsignedIntValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeUnsignedShort: {
+            unsigned short expectedValue = [(NSNumber *)modification.value unsignedShortValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeUnsignedLong: {
+            unsigned long expectedValue = [(NSNumber *)modification.value unsignedLongValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeUnsignedLongLong: {
+            unsigned long long expectedValue = [(NSNumber *)modification.value unsignedLongLongValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
             break;
         }
         case LookinAttrTypeFloat: {
-            float value = [(NSNumber *)modification.value floatValue];
-            [setterInvocation setArgument:&value atIndex:2];
+            float expectedValue = [(NSNumber *)modification.value floatValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
             break;
         }
         case LookinAttrTypeDouble: {
-            double value = [(NSNumber *)modification.value doubleValue];
-            [setterInvocation setArgument:&value atIndex:2];
+            double expectedValue = [(NSNumber *)modification.value doubleValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeBOOL: {
+            BOOL expectedValue = [(NSNumber *)modification.value boolValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeSel: {
+            SEL expectedValue = NSSelectorFromString(modification.value);
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeClass: {
+            Class expectedValue = NSClassFromString(modification.value);
+            [setterInvocation setArgument:&expectedValue atIndex:2];
             break;
         }
         case LookinAttrTypeCGPoint: {
-            CGPoint value = [(NSValue *)modification.value pointValue];
-            [setterInvocation setArgument:&value atIndex:2];
+            CGPoint expectedValue = [(NSValue *)modification.value CGPointValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeCGVector: {
+            CGVector expectedValue = [(NSValue *)modification.value CGVectorValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeCGSize: {
+            CGSize expectedValue = [(NSValue *)modification.value CGSizeValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
             break;
         }
         case LookinAttrTypeCGRect: {
-            CGRect value = [(NSValue *)modification.value rectValue];
-            [setterInvocation setArgument:&value atIndex:2];
+            CGRect expectedValue = [(NSValue *)modification.value CGRectValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
             break;
         }
-        case LookinAttrTypeUIColor: {
-            NSColor *color = [NSColor lookin_colorFromRGBAComponents:modification.value];
-            [setterInvocation setArgument:&color atIndex:2];
+        case LookinAttrTypeCGAffineTransform: {
+            CGAffineTransform expectedValue = [(NSValue *)modification.value CGAffineTransformValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+        case LookinAttrTypeUIEdgeInsets: {
+            LookinInsets expectedValue = [(NSValue *)modification.value InsetsValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+#if !TARGET_OS_OSX
+        case LookinAttrTypeUIOffset: {
+            UIOffset expectedValue = [(NSValue *)modification.value UIOffsetValue];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            break;
+        }
+#endif
+        case LookinAttrTypeCustomObj:
+        case LookinAttrTypeNSString: {
+            NSObject *expectedValue = modification.value;
+            [setterInvocation setArgument:&expectedValue atIndex:2];
             [setterInvocation retainArguments];
             break;
         }
-        default:
+        case LookinAttrTypeUIColor: {
+            NSArray<NSNumber *> *rgba = modification.value;
+            LookinColor *expectedValue = [LookinColor lks_colorFromRGBAComponents:rgba];
+            [setterInvocation setArgument:&expectedValue atIndex:2];
+            [setterInvocation retainArguments];
+            break;
+        }
+        default: {
             completion(nil, LookinErr_Inner);
             return;
+        }
     }
 
     NSError *error = nil;
     @try {
         [setterInvocation invoke];
     } @catch (NSException *exception) {
-        error = [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Exception userInfo:@{
-            NSLocalizedDescriptionKey: @"The modification may have failed.",
-            NSLocalizedRecoverySuggestionErrorKey: exception.reason ?: @"Unknown exception."
-        }];
+        NSString *errorMsg = [NSString stringWithFormat:LKS_Localized(@"<%@: %p>: an exception was raised when invoking %@. (%@)"), NSStringFromClass(receiver.class), receiver, NSStringFromSelector(modification.setterSelector), exception.reason];
+        error = [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Exception userInfo:@{NSLocalizedDescriptionKey:LKS_Localized(@"The modification may failed."), NSLocalizedRecoverySuggestionErrorKey:errorMsg}];
+    } @finally {
+
     }
 
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        CALayer *layer = nil;
+        if ([receiver isKindOfClass:[CALayer class]]) {
+            layer = (CALayer *)receiver;
+        } else if ([receiver isKindOfClass:[LookinView class]]) {
+            layer = ((LookinView *)receiver).layer;
+        } else {
+            completion(nil, LookinErr_ObjNotFound);
+            return;
+        }
+        // 比如试图更改 frame 时，这个改动很有可能触发用户业务的 relayout，因此这时 dispatch 一下以确保拿到的 attrGroups 数据是最新的
     LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
     detail.displayItemOid = modification.targetOid;
-    detail.attributesGroupList = [self _attrGroupsForReceiver:receiver];
-    [self _fillBasisDetail:detail withReceiver:receiver];
+        detail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForLayer:layer];
+
+        NSString *version = modification.clientReadableVersion;
+        if (version.length > 0 && [version lookin_numbericOSVersion] >= 10004) {
+            LKS_CustomAttrGroupsMaker *maker = [[LKS_CustomAttrGroupsMaker alloc] initWithLayer:layer];
+            [maker execute];
+            detail.customAttrGroupList = [maker getGroups];
+        }
+
+        detail.frameValue = [NSValue valueWithCGRect:layer.frame];
+        detail.boundsValue = [NSValue valueWithCGRect:layer.bounds];
+        detail.hiddenValue = [NSNumber numberWithBool:layer.isHidden];
+        detail.alphaValue = @(layer.opacity);
+
     completion(detail, error);
+    });
 }
+
 
 + (void)handlePatchWithTasks:(NSArray<LookinStaticAsyncUpdateTask *> *)tasks block:(void (^)(LookinDisplayItemDetail *data))block {
     if (!block) {
+        NSAssert(NO, @"");
         return;
     }
-    for (LookinStaticAsyncUpdateTask *task in tasks) {
-        LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
-        detail.displayItemOid = task.oid;
-        NSObject *receiver = [NSObject lks_objectWithOid:task.oid];
-        if (!receiver) {
-            block(detail);
-            continue;
-        }
-        if ([receiver isKindOfClass:[CALayer class]] && task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
-            CALayer *layer = (CALayer *)receiver;
-            detail.soloScreenshot = [layer lks_soloScreenshotWithLowQuality:NO];
-        } else if ([receiver isKindOfClass:[CALayer class]] && task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
-            CALayer *layer = (CALayer *)receiver;
-            detail.groupScreenshot = [layer lks_groupScreenshotWithLowQuality:NO];
-        } else if ([receiver isKindOfClass:[NSView class]]) {
-            NSView *view = (NSView *)receiver;
-            if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot && view.subviews.count > 0) {
-                NSArray<NSView *> *hiddenSubviews = [view.subviews filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(NSView *subview, NSDictionary<NSString *, id> *bindings) {
-                    return !subview.hidden;
-                }]];
-                [hiddenSubviews enumerateObjectsUsingBlock:^(NSView *subview, NSUInteger idx, BOOL *stop) {
-                    subview.hidden = YES;
-                }];
-                @try {
-                    NSBitmapImageRep *bitmapRep = [view bitmapImageRepForCachingDisplayInRect:view.bounds];
-                    [view cacheDisplayInRect:view.bounds toBitmapImageRep:bitmapRep];
-                    NSImage *image = [[NSImage alloc] initWithSize:view.bounds.size];
-                    [image addRepresentation:bitmapRep];
-                    detail.soloScreenshot = image;
-                } @finally {
-                    [hiddenSubviews enumerateObjectsUsingBlock:^(NSView *subview, NSUInteger idx, BOOL *stop) {
-                        subview.hidden = NO;
-                    }];
-                }
+    [tasks enumerateObjectsUsingBlock:^(LookinStaticAsyncUpdateTask * _Nonnull task, NSUInteger idx, BOOL * _Nonnull stop) {
+        LookinDisplayItemDetail *itemDetail = [LookinDisplayItemDetail new];
+        itemDetail.displayItemOid = task.oid;
+        id object = [NSObject lks_objectWithOid:task.oid];
+
+#if TARGET_OS_OSX
+        NSView *view = object;
+        if (view && [view isKindOfClass:[NSView class]] && !view.layer) {
+            if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
+                LookinImage *image = [view lks_soloScreenshotWithLowQuality:NO];
+                itemDetail.soloScreenshot = image;
             } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
-                NSBitmapImageRep *bitmapRep = [view bitmapImageRepForCachingDisplayInRect:view.bounds];
-                [view cacheDisplayInRect:view.bounds toBitmapImageRep:bitmapRep];
-                NSImage *image = [[NSImage alloc] initWithSize:view.bounds.size];
-                [image addRepresentation:bitmapRep];
-                detail.groupScreenshot = image;
-            }
+                LookinImage *image = [view lks_groupScreenshotWithLowQuality:NO];
+                itemDetail.groupScreenshot = image;
         }
-        block(detail);
-    }
-}
-
-@end
-
-#else
-
-#import "UIColor+LookinServer.h"
-#import "LKS_CustomAttrGroupsMaker.h"
-
-@implementation LKS_InbuiltAttrModificationHandler
-
-+ (void)handleModification:(LookinAttributeModification *)modification completion:(void (^)(LookinDisplayItemDetail *data, NSError *error))completion {
-    completion(nil, LookinErr_Inner);
-}
-
-+ (void)handlePatchWithTasks:(NSArray<LookinStaticAsyncUpdateTask *> *)tasks block:(void (^)(LookinDisplayItemDetail *data))block {
-    if (!block) {
-        return;
-    }
-    for (LookinStaticAsyncUpdateTask *task in tasks) {
-        LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
-        detail.displayItemOid = task.oid;
-        block(detail);
-    }
-}
-
-@end
-
+            block(itemDetail);
+            return;
+        }
 #endif
+
+
+        if (!object || ![object isKindOfClass:[CALayer class]]) {
+            block(itemDetail);
+            return;
+        }
+
+        CALayer *layer = object;
+        if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
+            LookinImage *image = [layer lks_soloScreenshotWithLowQuality:NO];
+            itemDetail.soloScreenshot = image;
+        } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+            LookinImage *image = [layer lks_groupScreenshotWithLowQuality:NO];
+            itemDetail.groupScreenshot = image;
+        }
+        block(itemDetail);
+                }];
+}
+
+@end
 
 #endif /* SHOULD_COMPILE_LOOKIN_SERVER */

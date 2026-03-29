@@ -427,6 +427,38 @@ static NSString * const Key_ReceivingConfigTime_Class = @"ConfigTime_Class";
                                                         LookinAttrSec_UITextField_TextColor,
                                                         LookinAttrSec_UITextField_Alignment,
 
+                                                        // NSImageView
+                                                        LookinAttrSec_NSImageView_Name,
+                                                        LookinAttrSec_NSImageView_Open,
+                                                        // NSControl
+                                                        LookinAttrSec_NSControl_State,
+                                                        LookinAttrSec_NSControl_ControlSize,
+                                                        LookinAttrSec_NSControl_Font,
+                                                        LookinAttrSec_NSControl_Alignment,
+                                                        LookinAttrSec_NSControl_Value,
+                                                        // NSButton
+                                                        LookinAttrSec_NSButton_Title,
+                                                        LookinAttrSec_NSButton_Bordered,
+                                                        LookinAttrSec_NSButton_Transparent,
+                                                        LookinAttrSec_NSButton_ButtonType,
+                                                        LookinAttrSec_NSButton_BezelStyle,
+                                                        // NSTextField
+                                                        LookinAttrSec_NSTextField_Bezeled,
+                                                        LookinAttrSec_NSTextField_BezelStyle,
+                                                        LookinAttrSec_NSTextField_Bordered,
+                                                        LookinAttrSec_NSTextField_Editable,
+                                                        LookinAttrSec_NSTextField_Selectable,
+                                                        LookinAttrSec_NSTextField_TextColor,
+                                                        LookinAttrSec_NSTextField_Placeholder,
+                                                        // NSTextView
+                                                        LookinAttrSec_NSTextView_String,
+                                                        LookinAttrSec_NSTextView_Basic,
+                                                        LookinAttrSec_NSTextView_Font,
+                                                        LookinAttrSec_NSTextView_TextColor,
+                                                        LookinAttrSec_NSTextView_Alignment,
+                                                        LookinAttrSec_NSTextView_Size,
+                                                        LookinAttrSec_NSTextView_ContainerInset,
+
         ];
         targetSet = [NSSet setWithArray:array];
     });

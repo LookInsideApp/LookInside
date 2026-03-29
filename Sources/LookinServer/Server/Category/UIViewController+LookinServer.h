@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  UIViewController+LookinServer.h
 //  LookinServer
@@ -7,11 +7,11 @@
 //  https://lookin.work
 //
 
-#import <UIKit/UIKit.h>
+#import "LookinDefines.h"
 
-@interface UIViewController (LookinServer)
+@interface LookinViewController (LookinServer)
 
-+ (UIViewController *)lks_visibleViewController;
++ (LookinViewController *)lks_visibleViewController;
 
 @end
 

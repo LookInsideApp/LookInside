@@ -177,8 +177,7 @@
     BOOL isSelected = (self.dataSource.selectedItem == self.displayItem);
     BOOL isHovered = (self.dataSource.hoveredItem == self.displayItem);
     
-    BOOL suppressedByAncestorGroupFallback = [self.displayItem hasAncestorUsingGroupScreenshotFallbackInPreview];
-    LookinImage *appropriateScreenshot = suppressedByAncestorGroupFallback ? nil : self.displayItem.appropriateScreenshot;
+    LookinImage *appropriateScreenshot = self.displayItem.appropriateScreenshot;
     if (appropriateScreenshot) {
         NSAssert(MAX(appropriateScreenshot.representations.firstObject.pixelsWide, appropriateScreenshot.representations.firstObject.pixelsHigh) <= LookinNodeImageMaxLengthInPx , @"image is too large");
     }
@@ -252,9 +251,16 @@
         CGFloat xOffSet = -self.screenSize.width / 2;
         CGFloat yOffSet = self.screenSize.height / 2;
         
-        CGFloat transformedX = (originX + width / 2 + xOffSet);
-        // The client works with top-left-based root coordinates for both iOS and macOS.
-        CGFloat transformedY = (-(originY + height / 2) + yOffSet);
+        CGFloat transformedX = 0;
+        CGFloat transformedY = 0;
+
+        if (self.isMacTarget) {
+            transformedX = (originX + width / 2 + xOffSet);
+            transformedY = (originY + height / 2 - yOffSet);
+        } else {
+            transformedX = (originX + width / 2 + xOffSet);
+            transformedY = (-(originY + height / 2) + yOffSet);
+        }
 
         CGFloat factor = 0.01;
         

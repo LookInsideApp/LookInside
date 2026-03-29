@@ -30,13 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// 任意上级 item 是否在预览里用 groupScreenshot 代替了 soloScreenshot。
 - (BOOL)hasAncestorUsingGroupScreenshotFallbackInPreview;
 
-/// Compatibility shim for older client code paths that still distinguish windows.
-@property(nonatomic, strong, readonly) LookinObject *windowObject;
-
-/// The shared hierarchy model no longer carries flipped state, so the client treats it as non-flipped.
-@property(nonatomic, assign, readonly) BOOL isFlipped;
-
-/// className 以 “UI”、“CA” 等开头时认为是系统类，该属性将返回 YES
+/// className 以 “UI”、”CA” 等开头时认为是系统类，该属性将返回 YES
 @property(nonatomic, assign, readonly) BOOL representedForSystemClass;
 
 - (BOOL)isUserCustom;

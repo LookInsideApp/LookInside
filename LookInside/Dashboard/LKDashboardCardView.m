@@ -267,6 +267,15 @@
                  LookinAttrGroup_UITextField: NSImageMake(@"dashboard_textfield"),
                  LookinAttrGroup_UIVisualEffectView: NSImageMake(@"dashboard_effectview"),
                  LookinAttrGroup_UIStackView: NSImageMake(@"dashboard_stackview"),
+                 LookinAttrGroup_NSImageView: NSImageMake(@"dashboard_imageview"),
+                 LookinAttrGroup_NSControl: NSImageMake(@"dashboard_control"),
+                 LookinAttrGroup_NSButton: NSImageMake(@"dashboard_button"),
+                 LookinAttrGroup_NSScrollView: NSImageMake(@"dashboard_scrollview"),
+                 LookinAttrGroup_NSTableView: NSImageMake(@"dashboard_tableview"),
+                 LookinAttrGroup_NSTextView: NSImageMake(@"dashboard_textview"),
+                 LookinAttrGroup_NSTextField: NSImageMake(@"dashboard_textfield"),
+                 LookinAttrGroup_NSVisualEffectView: NSImageMake(@"dashboard_effectview"),
+                 LookinAttrGroup_NSStackView: NSImageMake(@"dashboard_stackview"),
                  LookinAttrGroup_UserCustom: NSImageMake(@"dashboard_custom")
                  };
     });

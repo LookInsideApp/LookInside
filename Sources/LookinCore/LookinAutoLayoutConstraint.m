@@ -15,7 +15,6 @@
 
 @implementation LookinAutoLayoutConstraint
 
-#if TARGET_OS_IPHONE
 
 + (instancetype)instanceFromNSConstraint:(NSLayoutConstraint *)constraint isEffective:(BOOL)isEffective firstItemType:(LookinConstraintItemType)firstItemType secondItemType:(LookinConstraintItemType)secondItemType {
     LookinAutoLayoutConstraint *instance = [LookinAutoLayoutConstraint new];
@@ -57,7 +56,6 @@
     }
 }
 
-#endif
 
 #pragma mark - <NSSecureCoding>
 

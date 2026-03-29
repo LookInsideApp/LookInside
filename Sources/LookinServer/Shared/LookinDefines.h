@@ -43,6 +43,10 @@ static const int LookinUSBDeviceIPv4PortNumberEnd = 47179;
 static const int LookinSimulatorIPv4PortNumberStart = 47164;
 static const int LookinSimulatorIPv4PortNumberEnd = 47169;
 
+/// LookinServer 在 macOS 原生应用中会依次尝试监听 47170 ~ 47174 这几个端口
+static const int LookinMacIPv4PortNumberStart = 47170;
+static const int LookinMacIPv4PortNumberEnd = 47174;
+
 enum {
     /// 确认两端是否可以响应通讯
     LookinRequestTypePing = 200,

@@ -97,7 +97,7 @@ let package = Package(
             dependencies: ["LookinCore", "LookinServerBase", "LookinServerSwift"],
             path: "Sources/LookinServer",
             exclude: ["Shared"],
-            publicHeadersPath: "",
+            publicHeadersPath: "include",
             cSettings: sharedCDefines + [
                 .headerSearchPath("Server"),
                 .headerSearchPath("Server/Category"),
@@ -105,6 +105,7 @@ let package = Package(
                 .headerSearchPath("Server/Connection/RequestHandler"),
                 .headerSearchPath("Server/Others"),
                 .headerSearchPath("../LookinCore"),
+                .headerSearchPath("../LookinCore/include"),
                 .headerSearchPath("../LookinCore/Category"),
                 .headerSearchPath("../LookinCore/Peertalk"),
             ],

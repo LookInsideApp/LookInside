@@ -12,6 +12,7 @@
 #import <objc/runtime.h>
 #import "TargetConditionals.h"
 #import "LookinWeakContainer.h"
+#import "Image+Lookin.h"
 
 @implementation NSObject (Lookin)
 
@@ -190,7 +191,7 @@ static char kAssociatedObjectKey_LookinAllBindObjects;
 #elif TARGET_OS_OSX
         if ([self isKindOfClass:[NSImage class]]) {
             NSImage *image = (NSImage *)self;
-            return [image TIFFRepresentation];
+            return [image lookin_data];
             
         } else {
             NSAssert(NO, @"");

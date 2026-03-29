@@ -1,4 +1,5 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#ifdef SHOULD_COMPILE_LOOKIN_SERVER
+
 //
 //  LKSConfigManager.m
 //  LookinServer
@@ -49,8 +50,8 @@
     return nil;
 }
 
-+ (NSDictionary<NSString *, UIColor *> *)colorAlias {
-    NSDictionary<NSString *, UIColor *> *result = [self queryColorAliasWithClass:[NSObject class] selector:@"lookin_colorAlias"];
++ (NSDictionary<NSString *, LookinColor *> *)colorAlias {
+    NSDictionary<NSString *, LookinColor *> *result = [self queryColorAliasWithClass:[NSObject class] selector:@"lookin_colorAlias"];
     if (result) {
         return result;
     }
@@ -60,11 +61,11 @@
     if (!configClass) {
         return nil;
     }
-    NSDictionary<NSString *, UIColor *> *legacyCodeResult = [self queryColorAliasWithClass:configClass selector:@"colors"];
+    NSDictionary<NSString *, LookinColor *> *legacyCodeResult = [self queryColorAliasWithClass:configClass selector:@"colors"];
     return legacyCodeResult;
 }
 
-+ (NSDictionary<NSString *, UIColor *> *)queryColorAliasWithClass:(Class)class selector:(NSString *)selectorName {
++ (NSDictionary<NSString *, LookinColor *> *)queryColorAliasWithClass:(Class)class selector:(NSString *)selectorName {
     SEL selector = NSSelectorFromString(selectorName);
     if (![class respondsToSelector:selector]) {
         return nil;
@@ -81,13 +82,13 @@
         NSMutableDictionary *validDictionary = [NSMutableDictionary dictionary];
         [(NSDictionary *)colorAlias enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
             if ([key isKindOfClass:[NSString class]]) {
-                if ([obj isKindOfClass:[UIColor class]]) {
+                if ([obj isKindOfClass:[LookinColor class]]) {
                     [validDictionary setObject:obj forKey:key];
                     
                 } else if ([obj isKindOfClass:[NSDictionary class]]) {
                     __block BOOL isValidSubDict = YES;
                     [((NSDictionary *)obj) enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull subKey, id  _Nonnull subObj, BOOL * _Nonnull stop) {
-                        if (![subKey isKindOfClass:[NSString class]] || ![subObj isKindOfClass:[UIColor class]]) {
+                        if (![subKey isKindOfClass:[NSString class]] || ![subObj isKindOfClass:[LookinColor class]]) {
                             isValidSubDict = NO;
                             *stop = YES;
                         }
@@ -110,7 +111,7 @@
     if (![self shouldCaptureImageOfLayer:layer]) {
         return NO;
     }
-    UIView *view = layer.lks_hostView;
+    LookinView *view = layer.lks_hostView;
     if (!view) {
         return YES;
     }
@@ -119,6 +120,25 @@
     }
     return YES;
 }
+
+#if TARGET_OS_OSX
++ (BOOL)shouldCaptureScreenshotOfView:(NSView *)view {
+    if (!view) {
+        return YES;
+    }
+    if (![self shouldCaptureImageOfView:view]) {
+        return NO;
+    }
+    CALayer *layer = view.layer;
+    if (!layer) {
+        return YES;
+    }
+    if (![self shouldCaptureImageOfLayer:layer]) {
+        return NO;
+    }
+    return YES;
+}
+#endif
 
 + (BOOL)shouldCaptureImageOfLayer:(CALayer *)layer {
     if (!layer) {
@@ -154,7 +174,7 @@
     return YES;
 }
 
-+ (BOOL)shouldCaptureImageOfView:(UIView *)view {
++ (BOOL)shouldCaptureImageOfView:(LookinView *)view {
     if (!view) {
         return YES;
     }

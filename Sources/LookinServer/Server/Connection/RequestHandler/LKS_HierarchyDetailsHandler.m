@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  LKS_HierarchyDetailsHandler.m
 //  LookinServer
@@ -9,151 +9,230 @@
 
 #import "LKS_HierarchyDetailsHandler.h"
 #import "LookinDisplayItemDetail.h"
+#import "LKS_AttrGroupsMaker.h"
 #import "LookinStaticAsyncUpdateTask.h"
+#import "LKS_ConnectionManager.h"
+#import "LookinServerDefines.h"
+#import "LKS_CustomAttrGroupsMaker.h"
+#import "LKS_HierarchyDisplayItemsMaker.h"
+#import "UIView+LookinServer.h"
+#import "NSValue+Lookin.h"
 #import "NSObject+LookinServer.h"
 #import "CALayer+LookinServer.h"
-#import "LKS_AttrGroupsMaker.h"
-#import "LKS_HierarchyDisplayItemsMaker.h"
-#if TARGET_OS_OSX
-#import "LKS_MultiplatformAdapter.h"
-#endif
-
 @interface LKS_HierarchyDetailsHandler ()
 
-@property(nonatomic, assign) BOOL cancelled;
+@property(nonatomic, strong) NSMutableArray<LookinStaticAsyncUpdateTasksPackage *> *taskPackages;
+/// 标识哪些 oid 已经拉取过 attrGroups 了
+@property(nonatomic, strong) NSMutableSet<NSNumber *> *attrGroupsSyncedOids;
+
+@property(nonatomic, copy) LKS_HierarchyDetailsHandler_ProgressBlock progressBlock;
+@property(nonatomic, copy) LKS_HierarchyDetailsHandler_FinishBlock finishBlock;
 
 @end
 
 @implementation LKS_HierarchyDetailsHandler
 
-#if TARGET_OS_OSX
-static NSArray<NSView *> *LKDetailHideVisibleSubviews(NSArray<NSView *> *subviews) {
-    NSMutableArray<NSView *> *hiddenSubviews = [NSMutableArray array];
-    for (NSView *subview in subviews.copy) {
-        if (!subview.isHidden) {
-            subview.hidden = YES;
-            [hiddenSubviews addObject:subview];
+- (instancetype)init {
+    if (self = [super init]) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleConnectionDidEnd:) name:LKS_ConnectionDidEndNotificationName object:nil];
+
+        self.attrGroupsSyncedOids = [NSMutableSet set];
         }
+    return self;
     }
-    return hiddenSubviews.copy;
-}
-
-static void LKDetailRestoreHiddenSubviews(NSArray<NSView *> *subviews) {
-    for (NSView *subview in subviews) {
-        subview.hidden = NO;
-    }
-}
-
-static NSImage *LKDetailSnapshotImageForView(NSView *view) {
-    if (!view || view.bounds.size.width <= 0 || view.bounds.size.height <= 0) {
-        return nil;
-    }
-    NSBitmapImageRep *bitmapRep = [view bitmapImageRepForCachingDisplayInRect:view.bounds];
-    if (!bitmapRep) {
-        return nil;
-    }
-    [bitmapRep setSize:view.bounds.size];
-    [view cacheDisplayInRect:view.bounds toBitmapImageRep:bitmapRep];
-    NSImage *image = [[NSImage alloc] initWithSize:view.bounds.size];
-    [image addRepresentation:bitmapRep];
-    return image;
-}
-#endif
 
 - (void)startWithPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages block:(LKS_HierarchyDetailsHandler_ProgressBlock)progressBlock finishedBlock:(LKS_HierarchyDetailsHandler_FinishBlock)finishBlock {
     if (!progressBlock || !finishBlock) {
+        NSAssert(NO, @"");
         return;
     }
     if (!packages.count) {
         finishBlock();
         return;
     }
+    self.taskPackages = [packages mutableCopy];
+    self.progressBlock = progressBlock;
+    self.finishBlock = finishBlock;
 
-    for (LookinStaticAsyncUpdateTasksPackage *package in packages) {
-        if (self.cancelled) {
-            return;
-        }
-        NSMutableArray<LookinDisplayItemDetail *> *details = [NSMutableArray array];
-        for (LookinStaticAsyncUpdateTask *task in package.tasks ?: @[]) {
-            LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
-            detail.displayItemOid = task.oid;
-            NSObject *targetObject = [NSObject lks_objectWithOid:task.oid];
-#if TARGET_OS_OSX
-            if ([targetObject isKindOfClass:NSView.class]) {
-                NSView *view = (NSView *)targetObject;
-                if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot && view.subviews.count) {
-                    NSArray<NSView *> *hiddenSubviews = LKDetailHideVisibleSubviews(view.subviews ?: @[]);
-                    @try {
-                        detail.soloScreenshot = LKDetailSnapshotImageForView(view);
-                    } @finally {
-                        LKDetailRestoreHiddenSubviews(hiddenSubviews);
-                    }
-                } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
-                    detail.groupScreenshot = LKDetailSnapshotImageForView(view);
-                }
-                if (task.needBasisVisualInfo) {
-                    detail.frameValue = [NSValue valueWithRect:view.frame];
-                    detail.boundsValue = [NSValue valueWithRect:view.bounds];
-                    detail.hiddenValue = @(view.hidden);
-                    detail.alphaValue = @(view.layer ? view.layer.opacity : 1);
-                }
-                if (task.attrRequest != LookinDetailUpdateTaskAttrRequest_NotNeed) {
-                    detail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForView:view];
-                }
-            } else if ([targetObject isKindOfClass:NSWindow.class]) {
-                NSWindow *window = (NSWindow *)targetObject;
-                if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
-                    detail.groupScreenshot = [LKS_MultiplatformAdapter screenshotForWindow:window];
-                }
-                if (task.needBasisVisualInfo) {
-                    detail.frameValue = [NSValue valueWithRect:window.frame];
-                    detail.boundsValue = [NSValue valueWithRect:window.contentView.bounds];
-                    detail.hiddenValue = @(!window.visible);
-                    detail.alphaValue = @(window.alphaValue);
-                }
-                if (task.attrRequest != LookinDetailUpdateTaskAttrRequest_NotNeed) {
-                    detail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForWindow:window];
-                }
-            } else
-#endif
-            if ([targetObject isKindOfClass:[CALayer class]]) {
-                CALayer *layer = (CALayer *)targetObject;
-                if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
-                    detail.soloScreenshot = [layer lks_soloScreenshotWithLowQuality:NO];
-                } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
-                    detail.groupScreenshot = [layer lks_groupScreenshotWithLowQuality:NO];
-                }
-                if (task.needBasisVisualInfo) {
-#if TARGET_OS_OSX
-                    detail.frameValue = [NSValue valueWithRect:layer.frame];
-                    detail.boundsValue = [NSValue valueWithRect:layer.bounds];
-#else
-                    detail.frameValue = [NSValue valueWithCGRect:layer.frame];
-                    detail.boundsValue = [NSValue valueWithCGRect:layer.bounds];
-#endif
-                    detail.hiddenValue = @(layer.hidden);
-                    detail.alphaValue = @(layer.opacity);
-                }
-                if (task.needSubitems) {
-                    detail.subitems = [LKS_HierarchyDisplayItemsMaker subitemsOfLayer:layer];
-                }
-                if (task.attrRequest != LookinDetailUpdateTaskAttrRequest_NotNeed) {
-                    detail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForLayer:layer];
-                }
-            } else {
-                detail.failureCode = -1;
-            }
-            [details addObject:detail];
-        }
-        progressBlock(details.copy);
-    }
-    if (!self.cancelled) {
-        finishBlock();
-    }
+    [LookinView lks_rebuildGlobalInvolvedRawConstraints];
+
+    [self _dequeueAndHandlePackage];
 }
 
 - (void)cancel {
-    self.cancelled = YES;
+    [self.taskPackages removeAllObjects];
+}
+
+- (void)_dequeueAndHandlePackage {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        LookinStaticAsyncUpdateTasksPackage *package = self.taskPackages.firstObject;
+        if (!package) {
+            self.finishBlock();
+            return;
+        }
+        //        NSLog(@"LookinServer - will handle tasks, count: %@", @(tasks.count));
+        NSArray<LookinDisplayItemDetail *> *details = [package.tasks lookin_map:^id(NSUInteger idx, LookinStaticAsyncUpdateTask *task) {
+            LookinDisplayItemDetail *itemDetail = [LookinDisplayItemDetail new];
+            itemDetail.displayItemOid = task.oid;
+
+            id object = [NSObject lks_objectWithOid:task.oid];
+            NSLog(@"LKS_Detail - oid=%lu object=%@ class=%@ taskType=%lu",
+                  (unsigned long)task.oid,
+                  object ? @"found" : @"nil",
+                  object ? NSStringFromClass([object class]) : @"(null)",
+                  (unsigned long)task.taskType);
+
+#if TARGET_OS_OSX
+            // 处理所有 NSView 对象（包括 layer-backed 的 SwiftUI 视图）
+            if ([object isKindOfClass:[NSView class]]) {
+                NSView *view = (NSView *)object;
+                // 对于 layer-backed 视图，委托给 CALayer 截图路径，
+                // 该路径使用 renderInContext:（在现代 macOS 上有效）。
+                // cacheDisplayInRect: 只能捕获 drawRect: 的内容，
+                // 对 layer-backed 视图会产生空白图片。
+                if (view.layer) {
+                    CALayer *layer = view.layer;
+                    if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
+                        itemDetail.soloScreenshot = [layer lks_soloScreenshotWithLowQuality:NO];
+                    } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+                        itemDetail.groupScreenshot = [layer lks_groupScreenshotWithLowQuality:NO];
+                    }
+                } else {
+                    // 非 layer-backed 视图：使用 cacheDisplayInRect:
+                if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot && view.subviews.count) {
+                        NSMutableArray<NSView *> *hiddenSubviews = [NSMutableArray array];
+                        for (NSView *subview in view.subviews.copy) {
+                            if (!subview.isHidden) {
+                                subview.hidden = YES;
+                                [hiddenSubviews addObject:subview];
+                            }
+                        }
+                    @try {
+                            itemDetail.soloScreenshot = [view lks_groupScreenshotWithLowQuality:NO];
+                    } @finally {
+                            for (NSView *subview in hiddenSubviews) {
+                                subview.hidden = NO;
+                            }
+                    }
+                } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+                        itemDetail.groupScreenshot = [view lks_groupScreenshotWithLowQuality:NO];
+    }
+}
+
+                BOOL shouldMakeAttr = [self queryIfShouldMakeAttrsFromTask:task];
+                if (shouldMakeAttr) {
+                    itemDetail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForView:view];
+
+                    NSString *version = task.clientReadableVersion;
+                    if (version.length > 0 && [version lookin_numbericOSVersion] >= 10004) {
+                        LKS_CustomAttrGroupsMaker *maker = [[LKS_CustomAttrGroupsMaker alloc] initWithView:view];
+                        [maker execute];
+                        itemDetail.customAttrGroupList = [maker getGroups];
+                        itemDetail.customDisplayTitle = [maker getCustomDisplayTitle];
+                        itemDetail.danceUISource = [maker getDanceUISource];
+                    }
+                    [self.attrGroupsSyncedOids addObject:@(task.oid)];
+                }
+                if (task.needBasisVisualInfo) {
+                    itemDetail.frameValue = [NSValue valueWithCGRect:view.frame];
+                    itemDetail.boundsValue = [NSValue valueWithCGRect:view.bounds];
+                    itemDetail.hiddenValue = @(view.hidden);
+                    itemDetail.alphaValue = @(view.layer ? view.layer.opacity : 1);
+                }
+                if (task.needSubitems) {
+                    itemDetail.subitems = [LKS_HierarchyDisplayItemsMaker subitemsOfView:view];
+                }
+                return itemDetail;
+
+            } else if ([object isKindOfClass:[NSWindow class]]) {
+                NSLog(@"LKS_Detail - oid=%lu -> NSWindow path", (unsigned long)task.oid);
+                NSWindow *window = (NSWindow *)object;
+                if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+                    CGImageRef cgImage = CGWindowListCreateImage(CGRectZero,
+                        kCGWindowListOptionIncludingWindow,
+                        (int)window.windowNumber,
+                        kCGWindowImageBoundsIgnoreFraming);
+                    if (cgImage) {
+                        itemDetail.groupScreenshot = [[NSImage alloc] initWithCGImage:cgImage size:window.frame.size];
+                        CGImageRelease(cgImage);
+                    }
+                }
+                if (task.needBasisVisualInfo) {
+                    itemDetail.frameValue = [NSValue valueWithCGRect:window.frame];
+                    itemDetail.boundsValue = [NSValue valueWithCGRect:window.contentView.bounds];
+                    itemDetail.hiddenValue = @(!window.visible);
+                    itemDetail.alphaValue = @(window.alphaValue);
+                }
+                return itemDetail;
+            }
+#endif
+            if (!object || ![object isKindOfClass:[CALayer class]]) {
+                NSLog(@"LKS_Detail - oid=%lu -> FAILED (object=%@, class=%@)", (unsigned long)task.oid, object ? @"found" : @"nil", object ? NSStringFromClass([object class]) : @"(null)");
+                itemDetail.failureCode = -1;
+                return itemDetail;
+            }
+            NSLog(@"LKS_Detail - oid=%lu -> CALayer path", (unsigned long)task.oid);
+            CALayer *layer = object;
+
+            if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {
+                LookinImage *image = [layer lks_soloScreenshotWithLowQuality:NO];
+                itemDetail.soloScreenshot = image;
+            } else if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
+                LookinImage *image = [layer lks_groupScreenshotWithLowQuality:NO];
+                itemDetail.groupScreenshot = image;
+            }
+
+            BOOL shouldMakeAttr = [self queryIfShouldMakeAttrsFromTask:task];
+            if (shouldMakeAttr) {
+                itemDetail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForLayer:layer];
+
+                NSString *version = task.clientReadableVersion;
+                if (version.length > 0 && [version lookin_numbericOSVersion] >= 10004) {
+                    LKS_CustomAttrGroupsMaker *maker = [[LKS_CustomAttrGroupsMaker alloc] initWithLayer:layer];
+                    [maker execute];
+                    itemDetail.customAttrGroupList = [maker getGroups];
+                    itemDetail.customDisplayTitle = [maker getCustomDisplayTitle];
+                    itemDetail.danceUISource = [maker getDanceUISource];
+                }
+                [self.attrGroupsSyncedOids addObject:@(task.oid)];
+            }
+            if (task.needBasisVisualInfo) {
+                itemDetail.frameValue = [NSValue valueWithCGRect:layer.frame];
+                itemDetail.boundsValue = [NSValue valueWithCGRect:layer.bounds];
+                itemDetail.hiddenValue = [NSNumber numberWithBool:layer.isHidden];
+                itemDetail.alphaValue = @(layer.opacity);
+            }
+
+            if (task.needSubitems) {
+                itemDetail.subitems = [LKS_HierarchyDisplayItemsMaker subitemsOfLayer:layer];
+            }
+
+            return itemDetail;
+        }];
+        self.progressBlock(details);
+
+        [self.taskPackages removeObjectAtIndex:0];
+        [self _dequeueAndHandlePackage];
+    });
+}
+
+- (BOOL)queryIfShouldMakeAttrsFromTask:(LookinStaticAsyncUpdateTask *)task {
+    switch (task.attrRequest) {
+        case LookinDetailUpdateTaskAttrRequest_Automatic: {
+            BOOL alreadyMadeBefore = [self.attrGroupsSyncedOids containsObject:@(task.oid)];
+            return !alreadyMadeBefore;
+        }
+        case LookinDetailUpdateTaskAttrRequest_Need:
+            return YES;
+        case LookinDetailUpdateTaskAttrRequest_NotNeed:
+            return NO;
+    }
+    NSAssert(NO, @"");
+    return YES;
+}
+
+- (void)_handleConnectionDidEnd:(id)obj {
+    [self cancel];
 }
 
 @end

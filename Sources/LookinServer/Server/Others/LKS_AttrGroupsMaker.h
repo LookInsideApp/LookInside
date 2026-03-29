@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  LKS_AttrGroupsMaker.h
 //  LookinServer
@@ -19,8 +19,6 @@
 #if TARGET_OS_OSX
 
 + (NSArray<LookinAttributesGroup *> *)attrGroupsForView:(NSView *)view;
-
-+ (NSArray<LookinAttributesGroup *> *)attrGroupsForWindow:(NSWindow *)window;
 
 #endif
 

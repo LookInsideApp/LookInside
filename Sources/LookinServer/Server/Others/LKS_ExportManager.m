@@ -1,4 +1,5 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION)
+#ifdef SHOULD_COMPILE_LOOKIN_SERVER
+
 //
 //  LKS_ExportManager.m
 //  LookinServer
@@ -14,7 +15,9 @@
 #import "LookinAppInfo.h"
 #import "LookinServerDefines.h"
 #import "LKS_MultiplatformAdapter.h"
+#import "LookinHierarchyInfo+LookinServer.h"
 
+#if TARGET_OS_IPHONE
 @interface LKS_ExportManagerMaskView : UIView
 
 @property(nonatomic, strong) UIView *tipsView;
@@ -53,7 +56,7 @@
         [self.tipsView addSubview:self.secondLabel];
         
         self.thirdLabel = [UILabel new];
-        self.thirdLabel.text = LKS_Localized(@"The file can be opened by LookInside.app on macOS.");
+        self.thirdLabel.text = LKS_Localized(@"The file can be opened by Lookin.app on macOS.");
         self.thirdLabel.textColor = [UIColor colorWithRed:173/255.0 green:180/255.0 blue:190/255.0 alpha:1];
         self.thirdLabel.font = [UIFont systemFontOfSize:12];
         self.thirdLabel.textAlignment = NSTextAlignmentCenter;
@@ -86,15 +89,19 @@
 }
 
 @end
+#endif
+
+#if TARGET_OS_OSX
+#endif
 
 @interface LKS_ExportManager ()
 
 #if TARGET_OS_TV
-#else
+#elif TARGET_OS_IPHONE
 @property(nonatomic, strong) UIDocumentInteractionController *documentController;
+@property(nonatomic, strong) LKS_ExportManagerMaskView *maskView;
 #endif
 
-@property(nonatomic, strong) LKS_ExportManagerMaskView *maskView;
 
 @end
 
@@ -113,7 +120,7 @@
     return [self sharedInstance];
 }
 
-#if TARGET_OS_TV
+#if TARGET_OS_TV || TARGET_OS_OSX
 - (void)exportAndShare {
     NSAssert(NO, @"not supported");
 }

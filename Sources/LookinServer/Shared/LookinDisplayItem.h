@@ -27,11 +27,11 @@ typedef NS_ENUM(NSUInteger, LookinDisplayItemImageEncodeType) {
 };
 
 typedef NS_ENUM(NSUInteger, LookinDoNotFetchScreenshotReason) {
-    // can sync screenshot
+    // 可以同步截图
     LookinFetchScreenshotPermitted,
-    // layer is too large
+    // layer 尺寸过大
     LookinDoNotFetchScreenshotForTooLarge,
-    // refused by user config in LookinServer
+    // 被 LookinServer 的用户配置拒绝
     LookinDoNotFetchScreenshotForUserConfig
 };
 
@@ -75,11 +75,15 @@ typedef NS_ENUM(NSUInteger, LookinDisplayItemProperty) {
 
 @property(nonatomic, assign) CGRect bounds;
 
+/// 仅在 macOS 上有效，iOS 始终返回 NO
+@property(nonatomic, assign, getter=isFlipped) BOOL flipped;
+
 /// 不存在 subitems 时，该属性的值为 nil
 @property(nonatomic, strong) LookinImage *soloScreenshot;
 /// 无论是否存在 subitems，该属性始终存在
 @property(nonatomic, strong) LookinImage *groupScreenshot;
 
+@property(nonatomic, strong) LookinObject *windowObject;
 @property(nonatomic, strong) LookinObject *viewObject;
 @property(nonatomic, strong) LookinObject *layerObject;
 @property(nonatomic, strong) LookinObject *hostViewControllerObject;
@@ -149,7 +153,7 @@ typedef NS_ENUM(NSUInteger, LookinDisplayItemProperty) {
 
 @property(nonatomic, assign) LookinDisplayItemImageEncodeType screenshotEncodeType;
 
-/// Whether to fetch screenshot and why. Default to LookinFetchScreenshotPermitted.
+/// 是否获取截图及原因。默认值为 LookinFetchScreenshotPermitted。
 @property(nonatomic, assign) LookinDoNotFetchScreenshotReason doNotFetchScreenshotReason;
 
 @property(nonatomic, weak) LookinPreviewItemLayer *previewLayer;

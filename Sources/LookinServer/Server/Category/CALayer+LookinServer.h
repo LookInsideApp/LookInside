@@ -1,4 +1,4 @@
-#if defined(SHOULD_COMPILE_LOOKIN_SERVER) && (TARGET_OS_IPHONE || TARGET_OS_TV || TARGET_OS_VISION || TARGET_OS_MAC)
+#if defined(SHOULD_COMPILE_LOOKIN_SERVER)
 //
 //  UIView+LookinMobile.h
 //  WeRead
@@ -8,29 +8,15 @@
 //
 
 #import "LookinDefines.h"
-#import "TargetConditionals.h"
-#if TARGET_OS_OSX
-#import <AppKit/AppKit.h>
-#else
-#import <UIKit/UIKit.h>
-#endif
-
-#if TARGET_OS_OSX
-#define LKSPlatformView NSView
-#define LKSPlatformWindow NSWindow
-#else
-#define LKSPlatformView UIView
-#define LKSPlatformWindow UIWindow
-#endif
 
 @interface CALayer (LookinServer)
 
 /// 如果 myView.layer == myLayer，则 myLayer.lks_hostView 会返回 myView
-@property(nonatomic, readonly, weak) LKSPlatformView *lks_hostView;
+@property(nonatomic, readonly, weak) LookinView *lks_hostView;
 
-- (LKSPlatformWindow *)lks_window;
+- (LookinWindow *)lks_window;
 
-- (CGRect)lks_frameInWindow:(LKSPlatformWindow *)window;
+- (CGRect)lks_frameInWindow:(LookinWindow *)window;
 
 - (LookinImage *)lks_groupScreenshotWithLowQuality:(BOOL)lowQuality;
 /// 当没有 sublayers 时，该方法返回 nil
