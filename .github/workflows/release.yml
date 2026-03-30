@@ -121,7 +121,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lookinside-${{ needs.prepare.outputs.build_version }}-unsigned
-          path: .
+          path: build/releases/${{ needs.prepare.outputs.build_version }}
 
       - name: Setup Keychain and Signing Env
         id: setup_keychain
@@ -182,7 +182,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: lookinside-${{ needs.prepare.outputs.build_version }}-unsigned
-          path: .
+          path: build/releases/${{ needs.prepare.outputs.build_version }}
 
       - name: Setup Keychain and Signing Env
         id: setup_keychain
