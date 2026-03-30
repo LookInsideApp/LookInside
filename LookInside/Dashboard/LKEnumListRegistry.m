@@ -371,6 +371,17 @@
             MakeItem(@"NSLayoutAttributeLastBaseline", 11),
             MakeItem(@"NSLayoutAttributeFirstBaseline", 12),
         ];
+        mData[@"NSWindowTitleVisibility"] = @[
+            MakeItem(@"NSWindowTitleVisible", 0),
+            MakeItem(@"NSWindowTitleHidden", 1),
+        ];
+        mData[@"NSWindowAnimationBehavior"] = @[
+            MakeItem(@"NSWindowAnimationBehaviorDefault", 0),
+            MakeItem(@"NSWindowAnimationBehaviorNone", 2),
+            MakeItem(@"NSWindowAnimationBehaviorDocumentWindow", 3),
+            MakeItem(@"NSWindowAnimationBehaviorUtilityWindow", 4),
+            MakeItem(@"NSWindowAnimationBehaviorAlertPanel", 5),
+        ];
         self.data = mData;
     }
     return self;

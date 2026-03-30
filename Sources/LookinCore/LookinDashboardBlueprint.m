@@ -46,6 +46,7 @@
             LookinAttrGroup_NSTextField,
             LookinAttrGroup_NSVisualEffectView,
             LookinAttrGroup_NSStackView,
+            LookinAttrGroup_NSWindow,
 #endif
         ];
     });
@@ -267,6 +268,14 @@
                 LookinAttrSec_NSStackView_Distribution,
                 LookinAttrSec_NSStackView_Alignment,
                 LookinAttrSec_NSStackView_Spacing,
+            ],
+
+            LookinAttrGroup_NSWindow: @[
+                LookinAttrSec_NSWindow_Title,
+                LookinAttrSec_NSWindow_State,
+                LookinAttrSec_NSWindow_Appearance,
+                LookinAttrSec_NSWindow_Behavior,
+                LookinAttrSec_NSWindow_Size,
             ],
 #endif
             
@@ -750,6 +759,33 @@
                 LookinAttr_NSStackView_Spacing_Spacing
             ],
 
+            LookinAttrSec_NSWindow_Title: @[
+                LookinAttr_NSWindow_Title_Title,
+                LookinAttr_NSWindow_Title_Subtitle,
+            ],
+            LookinAttrSec_NSWindow_State: @[
+                LookinAttr_NSWindow_State_KeyWindow,
+                LookinAttr_NSWindow_State_MainWindow,
+                LookinAttr_NSWindow_State_Visible,
+            ],
+            LookinAttrSec_NSWindow_Appearance: @[
+                LookinAttr_NSWindow_Appearance_TitlebarAppearsTransparent,
+                LookinAttr_NSWindow_Appearance_TitleVisibility,
+                LookinAttr_NSWindow_Appearance_BackgroundColor,
+                LookinAttr_NSWindow_Appearance_AlphaValue,
+                LookinAttr_NSWindow_Appearance_Opaque,
+                LookinAttr_NSWindow_Appearance_HasShadow,
+            ],
+            LookinAttrSec_NSWindow_Behavior: @[
+                LookinAttr_NSWindow_Behavior_Movable,
+                LookinAttr_NSWindow_Behavior_MovableByWindowBackground,
+                LookinAttr_NSWindow_Behavior_AnimationBehavior,
+            ],
+            LookinAttrSec_NSWindow_Size: @[
+                LookinAttr_NSWindow_Size_MinSize,
+                LookinAttr_NSWindow_Size_MaxSize,
+            ],
+
 #endif
         };
     });
@@ -810,7 +846,8 @@
             LookinAttrGroup_NSTextView:         @"NSTextView",
             LookinAttrGroup_NSTextField:        @"NSTextField",
             LookinAttrGroup_NSVisualEffectView: @"NSVisualEffectView",
-            LookinAttrGroup_NSStackView:        @"NSStackView"
+            LookinAttrGroup_NSStackView:        @"NSStackView",
+            LookinAttrGroup_NSWindow:           @"NSWindow"
         };
     });
     NSString *title = rawInfo[groupID];
@@ -967,6 +1004,11 @@
             LookinAttrSec_NSStackView_Distribution: @"Distribution",
             LookinAttrSec_NSStackView_Alignment: @"Alignment",
             LookinAttrSec_NSStackView_Spacing: @"Spacing",
+            LookinAttrSec_NSWindow_Title: @"Title",
+            LookinAttrSec_NSWindow_State: @"State",
+            LookinAttrSec_NSWindow_Appearance: @"Appearance",
+            LookinAttrSec_NSWindow_Behavior: @"Behavior",
+            LookinAttrSec_NSWindow_Size: @"Size",
         };
     });
     return rawInfo[secID];
@@ -2363,6 +2405,104 @@
             LookinAttr_NSStackView_Spacing_Spacing: @{
                 @"className": @"NSStackView",
                 @"fullTitle": @"Spacing",
+                @"patch": @(YES)
+            },
+
+            // MARK: - NSWindow
+            LookinAttr_NSWindow_Title_Title: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"Title",
+                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_Title_Subtitle: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"Subtitle",
+                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"patch": @(NO),
+                @"osVersion": @(11)
+            },
+            LookinAttr_NSWindow_State_KeyWindow: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"KeyWindow",
+                @"getterString": @"isKeyWindow",
+                @"setterString": @"",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_State_MainWindow: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"MainWindow",
+                @"getterString": @"isMainWindow",
+                @"setterString": @"",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_State_Visible: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"Visible",
+                @"getterString": @"isVisible",
+                @"setterString": @"",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_Appearance_TitlebarAppearsTransparent: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"TitlebarAppearsTransparent",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSWindow_Appearance_TitleVisibility: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"TitleVisibility",
+                @"enumList": @"NSWindowTitleVisibility",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSWindow_Appearance_BackgroundColor: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"BackgroundColor",
+                @"typeIfObj": @(LookinAttrTypeUIColor),
+                @"patch": @(YES)
+            },
+            LookinAttr_NSWindow_Appearance_AlphaValue: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"AlphaValue",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSWindow_Appearance_Opaque: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"Opaque",
+                @"getterString": @"isOpaque",
+                @"setterString": @"",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_Appearance_HasShadow: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"HasShadow",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSWindow_Behavior_Movable: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"Movable",
+                @"getterString": @"isMovable",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_Behavior_MovableByWindowBackground: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"MovableByWindowBackground",
+                @"getterString": @"isMovableByWindowBackground",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_Behavior_AnimationBehavior: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"AnimationBehavior",
+                @"enumList": @"NSWindowAnimationBehavior",
+                @"patch": @(NO)
+            },
+            LookinAttr_NSWindow_Size_MinSize: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"MinSize",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSWindow_Size_MaxSize: @{
+                @"className": @"NSWindow",
+                @"fullTitle": @"MaxSize",
                 @"patch": @(YES)
             },
         };

@@ -427,6 +427,12 @@ static NSString * const Key_ReceivingConfigTime_Class = @"ConfigTime_Class";
                                                         LookinAttrSec_UITextField_TextColor,
                                                         LookinAttrSec_UITextField_Alignment,
 
+                                                        // NSWindow
+                                                        LookinAttrSec_NSWindow_Title,
+                                                        LookinAttrSec_NSWindow_State,
+                                                        LookinAttrSec_NSWindow_Appearance,
+                                                        LookinAttrSec_NSWindow_Behavior,
+                                                        LookinAttrSec_NSWindow_Size,
                                                         // NSImageView
                                                         LookinAttrSec_NSImageView_Name,
                                                         LookinAttrSec_NSImageView_Open,

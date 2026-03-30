@@ -53,6 +53,9 @@
             item.soloScreenshot = [rootView lks_soloScreenshotWithLowQuality:lowQuality];
         }
         item.screenshotEncodeType = LookinDisplayItemImageEncodeTypeNSData;
+        if (hasAttrList) {
+            item.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForWindow:window];
+        }
         if (rootView) {
             item.subitems = @[[self _displayItemWithView:rootView screenshots:hasScreenshots attrList:hasAttrList lowImageQuality:lowQuality readCustomInfo:readCustomInfo saveCustomSetter:saveCustomSetter]];
         }

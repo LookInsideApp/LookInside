@@ -7,6 +7,9 @@
 //
 
 #import "NSWindow+LookinServer.h"
+#import "NSObject+LookinServer.h"
+#import "LookinIvarTrace.h"
+#import "NSArray+Lookin.h"
 
 
 @implementation NSWindow (LookinServer)
@@ -26,6 +29,36 @@
     CGRect frame = self.frame;
     frame.origin = CGPointZero;
     return frame;
+}
+
+- (NSArray<NSArray<NSString *> *> *)lks_relatedClassChainList {
+    NSMutableArray *array = [NSMutableArray arrayWithCapacity:2];
+    NSArray<NSString *> *completedList = [self lks_classChainList];
+    NSUInteger endingIndex = [completedList indexOfObject:@"NSWindow"];
+    if (endingIndex != NSNotFound) {
+        completedList = [completedList subarrayWithRange:NSMakeRange(0, endingIndex + 1)];
+    }
+    [array addObject:completedList];
+    if (self.windowController) {
+        NSArray<NSString *> *controllerList = [self.windowController lks_classChainList];
+        NSUInteger controllerEndingIndex = [controllerList indexOfObject:@"NSWindowController"];
+        if (controllerEndingIndex != NSNotFound) {
+            controllerList = [controllerList subarrayWithRange:NSMakeRange(0, controllerEndingIndex + 1)];
+        }
+        [array addObject:controllerList];
+    }
+    return array.copy;
+}
+
+- (NSArray<NSString *> *)lks_selfRelation {
+    NSMutableArray *array = [NSMutableArray array];
+    if (self.windowController) {
+        [array addObject:[NSString stringWithFormat:@"(%@ *).window", NSStringFromClass(self.windowController.class)]];
+    }
+    if (self.delegate) {
+        [array addObject:[NSString stringWithFormat:@"(%@ *) delegate", NSStringFromClass([(NSObject *)self.delegate class])]];
+    }
+    return array.copy;
 }
 
 @end

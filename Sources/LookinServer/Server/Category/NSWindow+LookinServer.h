@@ -20,6 +20,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (CGRect)lks_bounds;
 
+// Returns the class chain list for this window, used by the Class attribute group
+- (NSArray<NSArray<NSString *> *> *)lks_relatedClassChainList;
+
+// Returns the self relation strings for this window, used by the Relation attribute group
+- (NSArray<NSString *> *)lks_selfRelation;
+
 @end
 
 NS_ASSUME_NONNULL_END

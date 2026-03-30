@@ -17,6 +17,7 @@
 #import "LKS_CustomAttrGroupsMaker.h"
 #import "UIView+LookinServer.h"
 #import "NSValue+Lookin.h"
+#import "NSWindow+LookinServer.h"
 @implementation LKS_InbuiltAttrModificationHandler
 
 + (void)handleModification:(LookinAttributeModification *)modification completion:(void (^)(LookinDisplayItemDetail *data, NSError *error))completion {
@@ -196,6 +197,22 @@
     }
 
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+#if TARGET_OS_OSX
+        if ([receiver isKindOfClass:[NSWindow class]]) {
+            NSWindow *window = (NSWindow *)receiver;
+            LookinDisplayItemDetail *detail = [LookinDisplayItemDetail new];
+            detail.displayItemOid = modification.targetOid;
+            detail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForWindow:window];
+            CGRect windowBounds = window.frame;
+            windowBounds.origin = CGPointZero;
+            detail.frameValue = [NSValue valueWithCGRect:windowBounds];
+            detail.boundsValue = [NSValue valueWithCGRect:windowBounds];
+            detail.hiddenValue = @(!window.isVisible);
+            detail.alphaValue = @(window.alphaValue);
+            completion(detail, error);
+            return;
+        }
+#endif
         CALayer *layer = nil;
         if ([receiver isKindOfClass:[CALayer class]]) {
             layer = (CALayer *)receiver;

@@ -34,7 +34,8 @@ LookinAttrGroupIdentifier const LookinAttrGroup_UITextField = @"tf";
 LookinAttrGroupIdentifier const LookinAttrGroup_UIVisualEffectView = @"ve";
 LookinAttrGroupIdentifier const LookinAttrGroup_UIStackView = @"UIStackView";
 
-#if TARGET_OS_OSX
+
+
 LookinAttrGroupIdentifier const LookinAttrGroup_NSImageView = @"NSImageView";
 LookinAttrGroupIdentifier const LookinAttrGroup_NSControl = @"NSControl";
 LookinAttrGroupIdentifier const LookinAttrGroup_NSButton = @"NSButton";
@@ -44,7 +45,8 @@ LookinAttrGroupIdentifier const LookinAttrGroup_NSTextView = @"NSTextView";
 LookinAttrGroupIdentifier const LookinAttrGroup_NSTextField = @"NSTextField";
 LookinAttrGroupIdentifier const LookinAttrGroup_NSVisualEffectView = @"NSVisualEffectView";
 LookinAttrGroupIdentifier const LookinAttrGroup_NSStackView = @"NSStackView";
-#endif
+LookinAttrGroupIdentifier const LookinAttrGroup_NSWindow = @"NSWindow";
+
 
 LookinAttrGroupIdentifier const LookinAttrGroup_UserCustom = @"guc"; // 用户自定义
 
@@ -143,17 +145,14 @@ LookinAttrSectionIdentifier const LookinAttrSec_UIStackView_Distribution = @"usv
 LookinAttrSectionIdentifier const LookinAttrSec_UIStackView_Alignment = @"usv_align";
 LookinAttrSectionIdentifier const LookinAttrSec_UIStackView_Spacing = @"usv_spa";
 
-#if TARGET_OS_OSX
 LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_Name = @"NSImageView_Name";
 LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_Open = @"NSImageView_Open";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_State = @"NSControl_State";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_ControlSize = @"NSControl_ControlSize";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Font = @"NSControl_Font";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Alignment = @"NSControl_Alignment";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Misc = @"NSControl_Misc";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Value = @"NSControl_Value";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_ButtonType = @"NSButton_ButtonType";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_Title = @"NSButton_Title";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_BezelStyle = @"NSButton_BezelStyle";
@@ -162,7 +161,6 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSButton_Transparent = @"NSButto
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_BezelColor = @"NSButton_BezelColor";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_ContentTintColor = @"NSButton_ContentTintColor";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_Misc = @"NSButton_Misc";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_ContentOffset = @"NSScrollView_ContentOffset";
 LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_ContentSize = @"NSScrollView_ContentSize";
 LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_ContentInset = @"NSScrollView_ContentInset";
@@ -174,7 +172,6 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_PageScroll = @"NSSc
 LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_ScrollElasiticity = @"NSScrollView_ScrollElasiticity";
 LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_Misc = @"NSScrollView_Misc";
 LookinAttrSectionIdentifier const LookinAttrSec_NSScrollView_Magnification = @"NSScrollView_Magnification";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_RowHeight = @"NSTableView_RowHeight";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_AutomaticRowHeights = @"NSTableView_AutomaticRowHeights";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_IntercellSpacing = @"NSTableView_IntercellSpacing";
@@ -200,7 +197,6 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_RowActionsVisible = 
 LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_UsesStaticContents = @"NSTableView_UsesStaticContents";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_UserInterfaceLayoutDirection = @"NSTableView_UserInterfaceLayoutDirection";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTableView_VerticalMotionCanBeginDrag = @"NSTableView_VerticalMotionCanBeginDrag";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_Font = @"NSTextView_Font";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_Basic = @"NSTextView_Basic";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_String = @"NSTextView_String";
@@ -210,7 +206,6 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_ContainerInset = @"NS
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_BaseWritingDirection = @"NSTextView_BaseWritingDirection";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_Size = @"NSTextView_Size";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextView_Resizable = @"NSTextView_Resizable";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_Bordered = @"NSTextField_Bordered";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_Bezeled = @"NSTextField_Bezeled";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_BezelStyle = @"NSTextField_BezelStyle";
@@ -223,20 +218,23 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_AllowsDefaultTighten
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_LineBreakStrategy = @"NSTextField_LineBreakStrategy";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_Placeholder = @"NSTextField_Placeholder";
 LookinAttrSectionIdentifier const LookinAttrSec_NSTextField_TextColor = @"NSTextField_TextColor";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSVisualEffectView_Material = @"NSVisualEffectView_Material";
 LookinAttrSectionIdentifier const LookinAttrSec_NSVisualEffectView_InteriorBackgroundStyle = @"NSVisualEffectView_InteriorBackgroundStyle";
 LookinAttrSectionIdentifier const LookinAttrSec_NSVisualEffectView_BlendingMode = @"NSVisualEffectView_BlendingMode";
 LookinAttrSectionIdentifier const LookinAttrSec_NSVisualEffectView_State = @"NSVisualEffectView_State";
 LookinAttrSectionIdentifier const LookinAttrSec_NSVisualEffectView_Emphasized = @"NSVisualEffectView_Emphasized";
-
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_Orientation = @"NSStackView_Orientation";
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_EdgeInsets = @"NSStackView_EdgeInsets";
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_DetachesHiddenViews = @"NSStackView_DetachesHiddenViews";
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_Distribution = @"NSStackView_Distribution";
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_Alignment = @"NSStackView_Alignment";
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_Spacing = @"NSStackView_Spacing";
-#endif
+
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Title = @"NSWindow_Title";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_State = @"NSWindow_State";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Appearance = @"NSWindow_Appearance";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Behavior = @"NSWindow_Behavior";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Size = @"NSWindow_Size";
 
 #pragma mark - Attr
 
@@ -357,10 +355,8 @@ LookinAttrIdentifier const LookinAttr_UIStackView_Distribution_Distribution = @"
 LookinAttrIdentifier const LookinAttr_UIStackView_Alignment_Alignment = @"usv_ali_ali";
 LookinAttrIdentifier const LookinAttr_UIStackView_Spacing_Spacing = @"usv_spa_spa";
 
-#if TARGET_OS_OSX
 LookinAttrIdentifier const LookinAttr_NSImageView_Name_Name = @"NSImageView_Name_Name";
 LookinAttrIdentifier const LookinAttr_NSImageView_Open_Open = @"NSImageView_Open_Open";
-
 LookinAttrIdentifier const LookinAttr_NSControl_State_Enabled = @"NSControl_State_Enabled";
 LookinAttrIdentifier const LookinAttr_NSControl_State_Highlighted = @"NSControl_State_Highlighted";
 LookinAttrIdentifier const LookinAttr_NSControl_State_Continuous = @"NSControl_State_Continuous";
@@ -377,7 +373,6 @@ LookinAttrIdentifier const LookinAttr_NSControl_Value_IntValue = @"NSControl_Val
 LookinAttrIdentifier const LookinAttr_NSControl_Value_IntegerValue = @"NSControl_Value_IntegerValue";
 LookinAttrIdentifier const LookinAttr_NSControl_Value_FloatValue = @"NSControl_Value_FloatValue";
 LookinAttrIdentifier const LookinAttr_NSControl_Value_DoubleValue = @"NSControl_Value_DoubleValue";
-
 LookinAttrIdentifier const LookinAttr_NSButton_ButtonType_ButtonType = @"NSButton_ButtonType_ButtonType";
 LookinAttrIdentifier const LookinAttr_NSButton_Title_Title = @"NSButton_Title_Title";
 LookinAttrIdentifier const LookinAttr_NSButton_Title_AlernateTitle = @"NSButton_Title_AlernateTitle";
@@ -390,7 +385,6 @@ LookinAttrIdentifier const LookinAttr_NSButton_Misc_ShowsBorderOnlyWhileMouseIns
 LookinAttrIdentifier const LookinAttr_NSButton_Misc_MaxAcceleratorLevel = @"NSButton_Misc_MaxAcceleratorLevel";
 LookinAttrIdentifier const LookinAttr_NSButton_Misc_SpringLoaded = @"NSButton_Misc_SpringLoaded";
 LookinAttrIdentifier const LookinAttr_NSButton_Misc_HasDestructiveAction = @"NSButton_Misc_HasDestructiveAction";
-
 LookinAttrIdentifier const LookinAttr_NSScrollView_ContentOffset_Offset = @"NSScrollView_ContentOffset_Offset";
 LookinAttrIdentifier const LookinAttr_NSScrollView_ContentSize_Size = @"NSScrollView_ContentSize_Size";
 LookinAttrIdentifier const LookinAttr_NSScrollView_ContentInset_ContentInset = @"NSScrollView_ContentInset_ContentInset";
@@ -419,7 +413,6 @@ LookinAttrIdentifier const LookinAttr_NSScrollView_Magnification_AllowsMagnifica
 LookinAttrIdentifier const LookinAttr_NSScrollView_Magnification_Magnification = @"NSScrollView_Magnification_Magnification";
 LookinAttrIdentifier const LookinAttr_NSScrollView_Magnification_Max = @"NSScrollView_Magnification_Max";
 LookinAttrIdentifier const LookinAttr_NSScrollView_Magnification_Min = @"NSScrollView_Magnification_Min";
-
 LookinAttrIdentifier const LookinAttr_NSTableView_AllowsColumnReordering_AllowsColumnReordering = @"NSTableView_AllowsColumnReordering_AllowsColumnReordering";
 LookinAttrIdentifier const LookinAttr_NSTableView_AllowsColumnResizing_AllowsColumnResizing = @"NSTableView_AllowsColumnResizing_AllowsColumnResizing";
 LookinAttrIdentifier const LookinAttr_NSTableView_ColumnAutoresizingStyle_ColumnAutoresizingStyle = @"NSTableView_ColumnAutoresizingStyle_ColumnAutoresizingStyle";
@@ -446,7 +439,6 @@ LookinAttrIdentifier const LookinAttr_NSTableView_RowActionsVisible_RowActionsVi
 LookinAttrIdentifier const LookinAttr_NSTableView_UsesStaticContents_UsesStaticContents = @"NSTableView_UsesStaticContents_UsesStaticContents";
 LookinAttrIdentifier const LookinAttr_NSTableView_UserInterfaceLayoutDirection_UserInterfaceLayoutDirection = @"NSTableView_UserInterfaceLayoutDirection_UserInterfaceLayoutDirection";
 LookinAttrIdentifier const LookinAttr_NSTableView_Style_Style = @"NSTableView_Style_Style";
-
 LookinAttrIdentifier const LookinAttr_NSTextView_Font_Name = @"NSTextView_Font_Name";
 LookinAttrIdentifier const LookinAttr_NSTextView_Font_Size = @"NSTextView_Font_Size";
 LookinAttrIdentifier const LookinAttr_NSTextView_Basic_Editable = @"NSTextView_Basic_Editable";
@@ -463,7 +455,6 @@ LookinAttrIdentifier const LookinAttr_NSTextView_MaxSize_MaxSize = @"NSTextView_
 LookinAttrIdentifier const LookinAttr_NSTextView_MinSize_MinSize = @"NSTextView_MinSize_MinSize";
 LookinAttrIdentifier const LookinAttr_NSTextView_Resizable_Horizontal = @"NSTextView_Resizable_Horizontal";
 LookinAttrIdentifier const LookinAttr_NSTextView_Resizable_Vertical = @"NSTextView_Resizable_Vertical";
-
 LookinAttrIdentifier const LookinAttr_NSTextField_Bordered_Bordered = @"NSTextField_Bordered_Bordered";
 LookinAttrIdentifier const LookinAttr_NSTextField_Bezeled_Bezeled = @"NSTextField_Bezeled_Bezeled";
 LookinAttrIdentifier const LookinAttr_NSTextField_Editable_Editable = @"NSTextField_Editable_Editable";
@@ -476,19 +467,34 @@ LookinAttrIdentifier const LookinAttr_NSTextField_AllowsDefaultTighteningForTrun
 LookinAttrIdentifier const LookinAttr_NSTextField_LineBreakStrategy_LineBreakStrategy = @"NSTextField_LineBreakStrategy_LineBreakStrategy";
 LookinAttrIdentifier const LookinAttr_NSTextField_Placeholder_Placeholder = @"NSTextField_Placeholder_Placeholder";
 LookinAttrIdentifier const LookinAttr_NSTextField_TextColor_Color = @"NSTextField_TextColor_Color";
-
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_Material_Material = @"NSVisualEffectView_Material_Material";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_InteriorBackgroundStyle_InteriorBackgroundStyle = @"NSVisualEffectView_InteriorBackgroundStyle_InteriorBackgroundStyle";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_BlendingMode_BlendingMode = @"NSVisualEffectView_BlendingMode_BlendingMode";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_State_State = @"NSVisualEffectView_State_State";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_Emphasized_Emphasized = @"NSVisualEffectView_Emphasized_Emphasized";
-
 LookinAttrIdentifier const LookinAttr_NSStackView_Orientation_Orientation = @"NSStackView_Orientation_Orientation";
 LookinAttrIdentifier const LookinAttr_NSStackView_EdgeInsets_EdgeInsets = @"NSStackView_EdgeInsets_EdgeInsets";
 LookinAttrIdentifier const LookinAttr_NSStackView_DetachesHiddenViews_DetachesHiddenViews = @"NSStackView_DetachesHiddenViews_DetachesHiddenViews";
 LookinAttrIdentifier const LookinAttr_NSStackView_Distribution_Distribution = @"NSStackView_Distribution_Distribution";
 LookinAttrIdentifier const LookinAttr_NSStackView_Alignment_Alignment = @"NSStackView_Alignment_Alignment";
 LookinAttrIdentifier const LookinAttr_NSStackView_Spacing_Spacing = @"NSStackView_Spacing_Spacing";
-#endif
+
+LookinAttrIdentifier const LookinAttr_NSWindow_Title_Title = @"NSWindow_Title_Title";
+LookinAttrIdentifier const LookinAttr_NSWindow_Title_Subtitle = @"NSWindow_Title_Subtitle";
+LookinAttrIdentifier const LookinAttr_NSWindow_State_KeyWindow = @"NSWindow_State_KeyWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_State_MainWindow = @"NSWindow_State_MainWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_State_Visible = @"NSWindow_State_Visible";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_TitlebarAppearsTransparent = @"NSWindow_Appearance_TitlebarAppearsTransparent";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_TitleVisibility = @"NSWindow_Appearance_TitleVisibility";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_BackgroundColor = @"NSWindow_Appearance_BackgroundColor";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_AlphaValue = @"NSWindow_Appearance_AlphaValue";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_Opaque = @"NSWindow_Appearance_Opaque";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_HasShadow = @"NSWindow_Appearance_HasShadow";
+LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_Movable = @"NSWindow_Behavior_Movable";
+LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_MovableByWindowBackground = @"NSWindow_Behavior_MovableByWindowBackground";
+LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_AnimationBehavior = @"NSWindow_Behavior_AnimationBehavior";
+LookinAttrIdentifier const LookinAttr_NSWindow_Size_MinSize = @"NSWindow_Size_MinSize";
+LookinAttrIdentifier const LookinAttr_NSWindow_Size_MaxSize = @"NSWindow_Size_MaxSize";
+
 
 #endif /* SHOULD_COMPILE_LOOKIN_SERVER */

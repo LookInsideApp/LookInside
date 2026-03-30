@@ -31,6 +31,23 @@
         
         id object = [NSObject lks_objectWithOid:oid];
 #if TARGET_OS_OSX
+        if ([object isKindOfClass:[NSWindow class]]) {
+            NSWindow *window = (NSWindow *)object;
+            CGImageRef cgImage = CGWindowListCreateImage(CGRectZero,
+                kCGWindowListOptionIncludingWindow,
+                (int)window.windowNumber,
+                kCGWindowImageBoundsIgnoreFraming);
+            if (cgImage) {
+                NSImage *screenshot = [[NSImage alloc] initWithCGImage:cgImage size:window.frame.size];
+                CGImageRelease(cgImage);
+                detail.groupScreenshot = screenshot;
+                if (idx == 0) {
+                    detail.soloScreenshot = screenshot;
+                }
+            }
+            block(detail, oids.count, nil);
+            return;
+        }
         NSView *view = object;
         if (view && [view isKindOfClass:[NSView class]] && !view.layer) {
             if (idx == 0) {

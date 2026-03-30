@@ -157,9 +157,16 @@
                         CGImageRelease(cgImage);
                     }
                 }
+                BOOL shouldMakeAttr = [self queryIfShouldMakeAttrsFromTask:task];
+                if (shouldMakeAttr) {
+                    itemDetail.attributesGroupList = [LKS_AttrGroupsMaker attrGroupsForWindow:window];
+                    [self.attrGroupsSyncedOids addObject:@(task.oid)];
+                }
                 if (task.needBasisVisualInfo) {
-                    itemDetail.frameValue = [NSValue valueWithCGRect:window.frame];
-                    itemDetail.boundsValue = [NSValue valueWithCGRect:window.contentView.bounds];
+                    CGRect windowBounds = window.frame;
+                    windowBounds.origin = CGPointZero;
+                    itemDetail.frameValue = [NSValue valueWithCGRect:windowBounds];
+                    itemDetail.boundsValue = [NSValue valueWithCGRect:windowBounds];
                     itemDetail.hiddenValue = @(!window.visible);
                     itemDetail.alphaValue = @(window.alphaValue);
                 }

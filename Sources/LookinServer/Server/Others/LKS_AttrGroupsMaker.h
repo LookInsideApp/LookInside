@@ -20,6 +20,8 @@
 
 + (NSArray<LookinAttributesGroup *> *)attrGroupsForView:(NSView *)view;
 
++ (NSArray<LookinAttributesGroup *> *)attrGroupsForWindow:(NSWindow *)window;
+
 #endif
 
 + (NSArray<LookinAttributesGroup *> *)attrGroupsForLayer:(CALayer *)layer;
