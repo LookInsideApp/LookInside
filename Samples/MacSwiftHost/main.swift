@@ -5,7 +5,7 @@ import LookinServer
 private func LookinServerStartBridge()
 
 final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDataSource, NSTableViewDelegate {
-    private var window: NSWindow!
+    private var windowController: NSWindowController!
     private let tableItems = ["Mercury", "Venus", "Earth", "Mars", "Jupiter"]
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -19,10 +19,11 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
         )
         window.title = "LookInside Swift Host"
         window.isReleasedWhenClosed = false
-        window.contentView = buildContentView()
-        window.makeKeyAndOrderFront(nil)
+        window.contentViewController = buildContentViewController()
+        let windowController = NSWindowController(window: window)
+        windowController.showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
-        self.window = window
+        self.windowController = windowController
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -51,7 +52,8 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
         return cell
     }
 
-    private func buildContentView() -> NSView {
+    private func buildContentViewController() -> NSViewController {
+        
         let root = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: 900, height: 620))
         root.material = .sidebar
         root.blendingMode = .behindWindow
@@ -130,8 +132,10 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
         tableView.wantsLayer = true
         scrollView.documentView = tableView
         card.addSubview(scrollView)
-
-        return root
+        
+        let viewController = NSViewController()
+        viewController.view = root
+        return viewController
     }
 }
 

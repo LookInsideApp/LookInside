@@ -153,6 +153,7 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Font = @"NSControl_Fon
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Alignment = @"NSControl_Alignment";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Misc = @"NSControl_Misc";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Value = @"NSControl_Value";
+LookinAttrSectionIdentifier const LookinAttrSec_NSControl_StringValue = @"NSControl_StringValue";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_ButtonType = @"NSButton_ButtonType";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_Title = @"NSButton_Title";
 LookinAttrSectionIdentifier const LookinAttrSec_NSButton_BezelStyle = @"NSButton_BezelStyle";
@@ -231,10 +232,20 @@ LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_Alignment = @"NSStac
 LookinAttrSectionIdentifier const LookinAttrSec_NSStackView_Spacing = @"NSStackView_Spacing";
 
 LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Title = @"NSWindow_Title";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Subtitle = @"NSWindow_Subtitle";
 LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_State = @"NSWindow_State";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Style = @"NSWindow_Style";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_CollectionBehavior = @"NSWindow_CollectionBehavior";
 LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Appearance = @"NSWindow_Appearance";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_TitleVisibility = @"NSWindow_TitleVisibility";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_ToolbarStyle = @"NSWindow_ToolbarStyle";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_TitlebarSeparatorStyle = @"NSWindow_TitlebarSeparatorStyle";
 LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Behavior = @"NSWindow_Behavior";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_AnimationBehavior = @"NSWindow_AnimationBehavior";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Level = @"NSWindow_Level";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_TabbingMode = @"NSWindow_TabbingMode";
 LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Size = @"NSWindow_Size";
+LookinAttrSectionIdentifier const LookinAttrSec_NSWindow_Info = @"NSWindow_Info";
 
 #pragma mark - Attr
 
@@ -467,6 +478,9 @@ LookinAttrIdentifier const LookinAttr_NSTextField_AllowsDefaultTighteningForTrun
 LookinAttrIdentifier const LookinAttr_NSTextField_LineBreakStrategy_LineBreakStrategy = @"NSTextField_LineBreakStrategy_LineBreakStrategy";
 LookinAttrIdentifier const LookinAttr_NSTextField_Placeholder_Placeholder = @"NSTextField_Placeholder_Placeholder";
 LookinAttrIdentifier const LookinAttr_NSTextField_TextColor_Color = @"NSTextField_TextColor_Color";
+LookinAttrIdentifier const LookinAttr_NSTextField_BackgroundColor_Color = @"NSTextField_BackgroundColor_Color";
+LookinAttrIdentifier const LookinAttr_NSTextField_AllowsEditingTextAttributes_AllowsEditingTextAttributes = @"NSTextField_AllowsEditingTextAttributes_AllowsEditingTextAttributes";
+LookinAttrIdentifier const LookinAttr_NSTextField_ImportsGraphics_ImportsGraphics = @"NSTextField_ImportsGraphics_ImportsGraphics";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_Material_Material = @"NSVisualEffectView_Material_Material";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_InteriorBackgroundStyle_InteriorBackgroundStyle = @"NSVisualEffectView_InteriorBackgroundStyle_InteriorBackgroundStyle";
 LookinAttrIdentifier const LookinAttr_NSVisualEffectView_BlendingMode_BlendingMode = @"NSVisualEffectView_BlendingMode_BlendingMode";
@@ -484,8 +498,32 @@ LookinAttrIdentifier const LookinAttr_NSWindow_Title_Subtitle = @"NSWindow_Title
 LookinAttrIdentifier const LookinAttr_NSWindow_State_KeyWindow = @"NSWindow_State_KeyWindow";
 LookinAttrIdentifier const LookinAttr_NSWindow_State_MainWindow = @"NSWindow_State_MainWindow";
 LookinAttrIdentifier const LookinAttr_NSWindow_State_Visible = @"NSWindow_State_Visible";
+LookinAttrIdentifier const LookinAttr_NSWindow_State_CanBecomeKeyWindow = @"NSWindow_State_CanBecomeKeyWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_State_CanBecomeMainWindow = @"NSWindow_State_CanBecomeMainWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_Titled = @"NSWindow_Style_Titled";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_Closable = @"NSWindow_Style_Closable";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_Miniaturizable = @"NSWindow_Style_Miniaturizable";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_Resizable = @"NSWindow_Style_Resizable";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_UnifiedTitleAndToolbar = @"NSWindow_Style_UnifiedTitleAndToolbar";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_FullScreen = @"NSWindow_Style_FullScreen";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_FullSizeContentView = @"NSWindow_Style_FullSizeContentView";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_UtilityWindow = @"NSWindow_Style_UtilityWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_DocModalWindow = @"NSWindow_Style_DocModalWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_NonactivatingPanel = @"NSWindow_Style_NonactivatingPanel";
+LookinAttrIdentifier const LookinAttr_NSWindow_Style_HUDWindow = @"NSWindow_Style_HUDWindow";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_CanJoinAllSpaces = @"NSWindow_CollectionBehavior_CanJoinAllSpaces";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_MoveToActiveSpace = @"NSWindow_CollectionBehavior_MoveToActiveSpace";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_ParticipatesInCycle = @"NSWindow_CollectionBehavior_ParticipatesInCycle";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_IgnoresCycle = @"NSWindow_CollectionBehavior_IgnoresCycle";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_FullScreenPrimary = @"NSWindow_CollectionBehavior_FullScreenPrimary";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_FullScreenAuxiliary = @"NSWindow_CollectionBehavior_FullScreenAuxiliary";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_FullScreenNone = @"NSWindow_CollectionBehavior_FullScreenNone";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_FullScreenAllowsTiling = @"NSWindow_CollectionBehavior_FullScreenAllowsTiling";
+LookinAttrIdentifier const LookinAttr_NSWindow_CollectionBehavior_FullScreenDisallowsTiling = @"NSWindow_CollectionBehavior_FullScreenDisallowsTiling";
 LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_TitlebarAppearsTransparent = @"NSWindow_Appearance_TitlebarAppearsTransparent";
 LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_TitleVisibility = @"NSWindow_Appearance_TitleVisibility";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_ToolbarStyle = @"NSWindow_Appearance_ToolbarStyle";
+LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_TitlebarSeparatorStyle = @"NSWindow_Appearance_TitlebarSeparatorStyle";
 LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_BackgroundColor = @"NSWindow_Appearance_BackgroundColor";
 LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_AlphaValue = @"NSWindow_Appearance_AlphaValue";
 LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_Opaque = @"NSWindow_Appearance_Opaque";
@@ -493,8 +531,13 @@ LookinAttrIdentifier const LookinAttr_NSWindow_Appearance_HasShadow = @"NSWindow
 LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_Movable = @"NSWindow_Behavior_Movable";
 LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_MovableByWindowBackground = @"NSWindow_Behavior_MovableByWindowBackground";
 LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_AnimationBehavior = @"NSWindow_Behavior_AnimationBehavior";
+LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_Level = @"NSWindow_Behavior_Level";
+LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_HidesOnDeactivate = @"NSWindow_Behavior_HidesOnDeactivate";
+LookinAttrIdentifier const LookinAttr_NSWindow_Behavior_TabbingMode = @"NSWindow_Behavior_TabbingMode";
 LookinAttrIdentifier const LookinAttr_NSWindow_Size_MinSize = @"NSWindow_Size_MinSize";
 LookinAttrIdentifier const LookinAttr_NSWindow_Size_MaxSize = @"NSWindow_Size_MaxSize";
+LookinAttrIdentifier const LookinAttr_NSWindow_Info_WindowNumber = @"NSWindow_Info_WindowNumber";
+LookinAttrIdentifier const LookinAttr_NSWindow_Info_BackingScaleFactor = @"NSWindow_Info_BackingScaleFactor";
 
 
 #endif /* SHOULD_COMPILE_LOOKIN_SERVER */

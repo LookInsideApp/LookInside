@@ -407,7 +407,12 @@
     if ([identifier isEqualToString:LookinAttrGroup_UserCustom]) {
         return NO;
     }
-    NSUInteger sectionCount = [LookinDashboardBlueprint sectionIDsForGroupID:identifier].count;
+    // Use the actual section count from the group rather than the blueprint,
+    // because some groups (e.g. Layout for NSWindow) are built manually
+    // with fewer sections than the blueprint defines.
+    NSUInteger actualCount = self.attrGroup.attrSections.count;
+    NSUInteger blueprintCount = [LookinDashboardBlueprint sectionIDsForGroupID:identifier].count;
+    NSUInteger sectionCount = MIN(actualCount, blueprintCount);
     if (sectionCount > 1) {
         return YES;
     } else {

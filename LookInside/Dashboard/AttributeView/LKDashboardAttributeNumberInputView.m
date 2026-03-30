@@ -79,7 +79,14 @@
                                 LookinAttr_AutoLayout_Resistance_Hor,
                                 LookinAttr_AutoLayout_Hugging_Ver,
                                 LookinAttr_AutoLayout_Hugging_Hor,
-                                LookinAttr_UIStackView_Spacing_Spacing];
+                                LookinAttr_UIStackView_Spacing_Spacing,
+                                LookinAttr_NSWindow_Appearance_AlphaValue,
+                                LookinAttr_NSControl_Value_IntValue,
+                                LookinAttr_NSControl_Value_IntegerValue,
+                                LookinAttr_NSControl_Value_FloatValue,
+                                LookinAttr_NSControl_Value_DoubleValue,
+                                LookinAttr_NSTextField_PreferredMaxLayoutWidth_PreferredMaxLayoutWidth,
+                                LookinAttr_NSTextField_MaximumNumberOfLines_MaximumNumberOfLines];
         });
         if ([horizontalAttrs containsObject:self.attribute.identifier]) {
             self.inputView.viewStyle = LKNumberInputViewStyleHorizontal;
@@ -110,7 +117,16 @@
                     LookinAttr_UILabel_NumberOfLines_NumberOfLines: @1,
                     LookinAttr_UILabel_Font_Size: @1,
                     LookinAttr_UIStackView_Spacing_Spacing: @1,
-                    
+                    LookinAttr_NSWindow_Appearance_AlphaValue: @1,
+                    LookinAttr_NSWindow_Info_WindowNumber: @2,
+                    LookinAttr_NSWindow_Info_BackingScaleFactor: @2,
+                    LookinAttr_NSControl_Value_IntValue: @1,
+                    LookinAttr_NSControl_Value_IntegerValue: @1,
+                    LookinAttr_NSControl_Value_FloatValue: @1,
+                    LookinAttr_NSControl_Value_DoubleValue: @1,
+                    LookinAttr_NSTextField_PreferredMaxLayoutWidth_PreferredMaxLayoutWidth: @1,
+                    LookinAttr_NSTextField_MaximumNumberOfLines_MaximumNumberOfLines: @1,
+
                     LookinAttr_AutoLayout_Resistance_Ver: @2,
                     LookinAttr_AutoLayout_Resistance_Hor: @2,
                     LookinAttr_AutoLayout_Hugging_Ver: @2,

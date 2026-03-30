@@ -153,6 +153,10 @@ static BOOL LKShouldFallbackToGroupScreenshot(NSImage *soloScreenshot, NSImage *
         return self.customInfo.subtitle;
     }
     
+    NSString *windowControllerName = self.hostWindowControllerObject.lk_simpleDemangledClassName;
+    if (windowControllerName.length) {
+        return [NSString stringWithFormat:@"%@.window", windowControllerName];
+    }
     NSString *text = self.hostViewControllerObject.lk_simpleDemangledClassName;
     if (text.length) {
         return [NSString stringWithFormat:@"%@.view", text];

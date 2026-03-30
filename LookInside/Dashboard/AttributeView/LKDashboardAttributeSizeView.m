@@ -63,12 +63,18 @@
         return;
     }
     NSSize size = ((NSValue *)self.attribute.value).sizeValue;
-    NSArray<NSString *> *mainStrs = @[[NSString lookin_stringFromDouble:size.width decimal:3],
-                                      [NSString lookin_stringFromDouble:size.height decimal:3]];
-    
+    NSArray<NSNumber *> *dimensions = @[@(size.width), @(size.height)];
+
+    BOOL canEdit = [self canEdit];
     [self.inputsView enumerateObjectsUsingBlock:^(LKNumberInputView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        obj.textFieldView.textField.editable = [self canEdit];
-        obj.textFieldView.textField.stringValue = mainStrs[idx];
+        CGFloat dimension = dimensions[idx].doubleValue;
+        obj.textFieldView.textField.editable = canEdit;
+        // Display extremely large values (e.g. CGFLOAT_MAX) as "Max" for readability
+        if (dimension >= 1e15) {
+            obj.textFieldView.textField.stringValue = @"Max";
+        } else {
+            obj.textFieldView.textField.stringValue = [NSString lookin_stringFromDouble:dimension decimal:3];
+        }
     }];
 }
 

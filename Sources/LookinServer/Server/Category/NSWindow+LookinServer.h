@@ -26,6 +26,30 @@ NS_ASSUME_NONNULL_BEGIN
 // Returns the self relation strings for this window, used by the Relation attribute group
 - (NSArray<NSString *> *)lks_selfRelation;
 
+// styleMask flag accessors - individual BOOL getters/setters for each mask bit
+@property (nonatomic, readonly) BOOL lks_styleMaskTitled;
+@property (nonatomic, readonly) BOOL lks_styleMaskClosable;
+@property (nonatomic, readonly) BOOL lks_styleMaskMiniaturizable;
+@property (nonatomic, readonly) BOOL lks_styleMaskResizable;
+@property (nonatomic, readonly) BOOL lks_styleMaskUnifiedTitleAndToolbar;
+@property (nonatomic, readonly) BOOL lks_styleMaskFullScreen;
+@property (nonatomic, readonly) BOOL lks_styleMaskFullSizeContentView;
+@property (nonatomic, readonly) BOOL lks_styleMaskUtilityWindow;
+@property (nonatomic, readonly) BOOL lks_styleMaskDocModalWindow;
+@property (nonatomic, readonly) BOOL lks_styleMaskNonactivatingPanel;
+@property (nonatomic, readonly) BOOL lks_styleMaskHUDWindow;
+
+// collectionBehavior flag accessors
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorCanJoinAllSpaces;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorMoveToActiveSpace;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorParticipatesInCycle;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorIgnoresCycle;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorFullScreenPrimary;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorFullScreenAuxiliary;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorFullScreenNone;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorFullScreenAllowsTiling;
+@property (nonatomic, readonly) BOOL lks_collectionBehaviorFullScreenDisallowsTiling;
+
 @end
 
 NS_ASSUME_NONNULL_END

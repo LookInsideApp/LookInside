@@ -87,6 +87,7 @@ typedef NS_ENUM(NSUInteger, LookinDisplayItemProperty) {
 @property(nonatomic, strong) LookinObject *viewObject;
 @property(nonatomic, strong) LookinObject *layerObject;
 @property(nonatomic, strong) LookinObject *hostViewControllerObject;
+@property(nonatomic, strong) LookinObject *hostWindowControllerObject;
 
 /// attrGroups 列表
 @property(nonatomic, copy) NSArray<LookinAttributesGroup *> *attributesGroupList;

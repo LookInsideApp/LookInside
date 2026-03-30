@@ -351,7 +351,7 @@
     if (item.isUserCustom) {
         imageName = @"hierarchy_custom";
         
-    } else if (item.hostViewControllerObject) {
+    } else if (item.hostViewControllerObject || item.hostWindowControllerObject) {
         imageName = @"hierarchy_controller";
         
     } else if (item.viewObject) {

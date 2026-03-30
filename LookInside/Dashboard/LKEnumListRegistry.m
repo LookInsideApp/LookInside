@@ -206,6 +206,16 @@
             MakeItem(@"NSBezelStylePushDisclosure", 14),
             MakeItem(@"NSBezelStyleBadge", 15),
         ];
+        mData[@"NSTextFieldBezelStyle"] = @[
+            MakeItem(@"NSTextFieldSquareBezel", 0),
+            MakeItem(@"NSTextFieldRoundedBezel", 1),
+        ];
+        mData[@"NSLineBreakStrategy"] = @[
+            MakeItem(@"NSLineBreakStrategyNone", 0),
+            MakeItem(@"NSLineBreakStrategyPushOut", 1),
+            MakeItem(@"NSLineBreakStrategyHangulWordPriority", 2),
+            MakeItem(@"NSLineBreakStrategyStandard", 0xFFFF),
+        ];
         mData[@"NSCellImagePosition"] = @[
             MakeItem(@"NSNoImage", 0),
             MakeItem(@"NSImageOnly", 1),
@@ -381,6 +391,35 @@
             MakeItem(@"NSWindowAnimationBehaviorDocumentWindow", 3),
             MakeItem(@"NSWindowAnimationBehaviorUtilityWindow", 4),
             MakeItem(@"NSWindowAnimationBehaviorAlertPanel", 5),
+        ];
+        mData[@"NSWindowToolbarStyle"] = @[
+            MakeItem(@"NSWindowToolbarStyleAutomatic", 0),
+            MakeItem(@"NSWindowToolbarStyleExpanded", 1),
+            MakeItem(@"NSWindowToolbarStylePreference", 2),
+            MakeItem(@"NSWindowToolbarStyleUnified", 3),
+            MakeItem(@"NSWindowToolbarStyleUnifiedCompact", 4),
+        ];
+        mData[@"NSTitlebarSeparatorStyle"] = @[
+            MakeItem(@"NSTitlebarSeparatorStyleAutomatic", 0),
+            MakeItem(@"NSTitlebarSeparatorStyleNone", 1),
+            MakeItem(@"NSTitlebarSeparatorStyleLine", 2),
+            MakeItem(@"NSTitlebarSeparatorStyleShadow", 3),
+        ];
+        mData[@"NSWindowLevel"] = @[
+            MakeItem(@"NSNormalWindowLevel", 0),
+            MakeItem(@"NSFloatingWindowLevel", 3),
+            MakeItem(@"NSSubmenuWindowLevel", 3),
+            MakeItem(@"NSTornOffMenuWindowLevel", 3),
+            MakeItem(@"NSModalPanelWindowLevel", 8),
+            MakeItem(@"NSMainMenuWindowLevel", 24),
+            MakeItem(@"NSStatusWindowLevel", 25),
+            MakeItem(@"NSPopUpMenuWindowLevel", 101),
+            MakeItem(@"NSScreenSaverWindowLevel", 1000),
+        ];
+        mData[@"NSWindowTabbingMode"] = @[
+            MakeItem(@"NSWindowTabbingModeAutomatic", 0),
+            MakeItem(@"NSWindowTabbingModePreferred", 1),
+            MakeItem(@"NSWindowTabbingModeDisallowed", 2),
         ];
         self.data = mData;
     }

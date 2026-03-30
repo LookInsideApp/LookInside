@@ -20,6 +20,9 @@
 
 - (NSImage *)lks_snapshotImage {
     CGImageRef cgImage = CGWindowListCreateImage(CGRectZero, kCGWindowListOptionIncludingWindow, (int)self.windowNumber, kCGWindowImageBoundsIgnoreFraming);
+    if (!cgImage) {
+        return nil;
+    }
     NSImage *image = [[NSImage alloc] initWithCGImage:cgImage size:self.frame.size];
     CGImageRelease(cgImage);
     return image;
@@ -59,6 +62,138 @@
         [array addObject:[NSString stringWithFormat:@"(%@ *) delegate", NSStringFromClass([(NSObject *)self.delegate class])]];
     }
     return array.copy;
+}
+
+#pragma mark - StyleMask Flag Accessors
+
+- (BOOL)lks_styleMaskTitled {
+    return (self.styleMask & NSWindowStyleMaskTitled) != 0;
+}
+
+- (BOOL)lks_styleMaskClosable {
+    return (self.styleMask & NSWindowStyleMaskClosable) != 0;
+}
+
+- (BOOL)lks_styleMaskMiniaturizable {
+    return (self.styleMask & NSWindowStyleMaskMiniaturizable) != 0;
+}
+
+- (BOOL)lks_styleMaskResizable {
+    return (self.styleMask & NSWindowStyleMaskResizable) != 0;
+}
+
+- (BOOL)lks_styleMaskUnifiedTitleAndToolbar {
+    return (self.styleMask & NSWindowStyleMaskUnifiedTitleAndToolbar) != 0;
+}
+
+- (BOOL)lks_styleMaskFullScreen {
+    return (self.styleMask & NSWindowStyleMaskFullScreen) != 0;
+}
+
+- (BOOL)lks_styleMaskFullSizeContentView {
+    return (self.styleMask & NSWindowStyleMaskFullSizeContentView) != 0;
+}
+
+- (BOOL)lks_styleMaskUtilityWindow {
+    return (self.styleMask & NSWindowStyleMaskUtilityWindow) != 0;
+}
+
+- (BOOL)lks_styleMaskDocModalWindow {
+    return (self.styleMask & NSWindowStyleMaskDocModalWindow) != 0;
+}
+
+- (BOOL)lks_styleMaskNonactivatingPanel {
+    return (self.styleMask & NSWindowStyleMaskNonactivatingPanel) != 0;
+}
+
+- (BOOL)lks_styleMaskHUDWindow {
+    return (self.styleMask & NSWindowStyleMaskHUDWindow) != 0;
+}
+
+- (void)setLks_styleMaskTitled:(BOOL)value {
+    if (value) {
+        self.styleMask |= NSWindowStyleMaskTitled;
+    } else {
+        self.styleMask &= ~NSWindowStyleMaskTitled;
+    }
+}
+
+- (void)setLks_styleMaskClosable:(BOOL)value {
+    if (value) {
+        self.styleMask |= NSWindowStyleMaskClosable;
+    } else {
+        self.styleMask &= ~NSWindowStyleMaskClosable;
+    }
+}
+
+- (void)setLks_styleMaskMiniaturizable:(BOOL)value {
+    if (value) {
+        self.styleMask |= NSWindowStyleMaskMiniaturizable;
+    } else {
+        self.styleMask &= ~NSWindowStyleMaskMiniaturizable;
+    }
+}
+
+- (void)setLks_styleMaskResizable:(BOOL)value {
+    if (value) {
+        self.styleMask |= NSWindowStyleMaskResizable;
+    } else {
+        self.styleMask &= ~NSWindowStyleMaskResizable;
+    }
+}
+
+- (void)setLks_styleMaskUnifiedTitleAndToolbar:(BOOL)value {
+    if (value) {
+        self.styleMask |= NSWindowStyleMaskUnifiedTitleAndToolbar;
+    } else {
+        self.styleMask &= ~NSWindowStyleMaskUnifiedTitleAndToolbar;
+    }
+}
+
+- (void)setLks_styleMaskFullSizeContentView:(BOOL)value {
+    if (value) {
+        self.styleMask |= NSWindowStyleMaskFullSizeContentView;
+    } else {
+        self.styleMask &= ~NSWindowStyleMaskFullSizeContentView;
+    }
+}
+
+#pragma mark - CollectionBehavior Flag Accessors
+
+- (BOOL)lks_collectionBehaviorCanJoinAllSpaces {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorCanJoinAllSpaces) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorMoveToActiveSpace {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorMoveToActiveSpace) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorParticipatesInCycle {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorParticipatesInCycle) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorIgnoresCycle {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorIgnoresCycle) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorFullScreenPrimary {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorFullScreenPrimary) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorFullScreenAuxiliary {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorFullScreenAuxiliary) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorFullScreenNone {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorFullScreenNone) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorFullScreenAllowsTiling {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorFullScreenAllowsTiling) != 0;
+}
+
+- (BOOL)lks_collectionBehaviorFullScreenDisallowsTiling {
+    return (self.collectionBehavior & NSWindowCollectionBehaviorFullScreenDisallowsTiling) != 0;
 }
 
 @end

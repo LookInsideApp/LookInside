@@ -344,6 +344,10 @@ extern NSString *const LKAppShowConsoleNotificationName;
     if (hostViewControllerName.length) {
         [stringsToCopy addObject:hostViewControllerName];
     }
+    NSString *hostWindowControllerName = displayItem.hostWindowControllerObject.lk_simpleDemangledClassName;
+    if (hostWindowControllerName.length) {
+        [stringsToCopy addObject:hostWindowControllerName];
+    }
     if (displayItem.displayingObject.ivarTraces.count) {
         NSArray<NSString *> *ivarNames = [[displayItem.displayingObject.ivarTraces lookin_map:^id(NSUInteger idx, LookinIvarTrace *value) {
             NSString *name = value.ivarName;

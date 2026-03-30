@@ -20,8 +20,8 @@
 #import "LookinDashboardBlueprint.h"
 
 #if TARGET_OS_IPHONE
-#import "UIColor+LookinServer.h"
-#import "UIImage+LookinServer.h"
+#import "../LookinServer/Server/Category/UIColor+LookinServer.h"
+#import "../LookinServer/Server/Category/UIImage+LookinServer.h"
 #elif TARGET_OS_OSX
 #endif
 
@@ -59,6 +59,7 @@
     newDisplayItem.layerObject = self.layerObject.copy;
     newDisplayItem.windowObject = self.windowObject.copy;
     newDisplayItem.hostViewControllerObject = self.hostViewControllerObject.copy;
+    newDisplayItem.hostWindowControllerObject = self.hostWindowControllerObject.copy;
     newDisplayItem.attributesGroupList = [self.attributesGroupList lookin_map:^id(NSUInteger idx, LookinAttributesGroup *value) {
         return value.copy;
     }];
@@ -89,6 +90,7 @@
     [aCoder encodeObject:self.layerObject forKey:@"layerObject"];
     [aCoder encodeObject:self.windowObject forKey:@"windowObject"];
     [aCoder encodeObject:self.hostViewControllerObject forKey:@"hostViewControllerObject"];
+    [aCoder encodeObject:self.hostWindowControllerObject forKey:@"hostWindowControllerObject"];
     [aCoder encodeObject:self.attributesGroupList forKey:@"attributesGroupList"];
     [aCoder encodeObject:self.customAttrGroupList forKey:@"customAttrGroupList"];
     [aCoder encodeBool:self.representedAsKeyWindow forKey:@"representedAsKeyWindow"];
@@ -128,6 +130,7 @@
         self.viewObject = [aDecoder decodeObjectForKey:@"viewObject"];
         self.layerObject = [aDecoder decodeObjectForKey:@"layerObject"];
         self.hostViewControllerObject = [aDecoder decodeObjectForKey:@"hostViewControllerObject"];
+        self.hostWindowControllerObject = [aDecoder decodeObjectForKey:@"hostWindowControllerObject"];
         self.attributesGroupList = [aDecoder decodeObjectForKey:@"attributesGroupList"];
         self.customAttrGroupList = [aDecoder decodeObjectForKey:@"customAttrGroupList"];
         self.representedAsKeyWindow = [aDecoder decodeBoolForKey:@"representedAsKeyWindow"];

@@ -361,8 +361,12 @@
     } else if (strcmp(returnType, @encode(unsigned int)) == 0) {
         unsigned int targetValue;
         [invocation getReturnValue:&targetValue];
-        attribute.attrType = LookinAttrTypeUnsignedInt;
         attribute.value = @(targetValue);
+        if ([LookinDashboardBlueprint enumListNameWithAttrID:identifier]) {
+            attribute.attrType = LookinAttrTypeEnumInt;
+        } else {
+            attribute.attrType = LookinAttrTypeUnsignedInt;
+        }
 
     } else if (strcmp(returnType, @encode(unsigned short)) == 0) {
         unsigned short targetValue;
@@ -373,8 +377,12 @@
     } else if (strcmp(returnType, @encode(unsigned long)) == 0) {
         unsigned long targetValue;
         [invocation getReturnValue:&targetValue];
-        attribute.attrType = LookinAttrTypeUnsignedLong;
         attribute.value = @(targetValue);
+        if ([LookinDashboardBlueprint enumListNameWithAttrID:identifier]) {
+            attribute.attrType = LookinAttrTypeEnumLong;
+        } else {
+            attribute.attrType = LookinAttrTypeUnsignedLong;
+        }
 
     } else if (strcmp(returnType, @encode(unsigned long long)) == 0) {
         unsigned long long targetValue;

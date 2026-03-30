@@ -23,7 +23,7 @@
 - (instancetype)initWithFrame:(NSRect)frameRect {
     if (self = [super initWithFrame:frameRect]) {
         self.initialText = @"";
-        
+
         self.scrollView = [LKHelper scrollableTextView];
         self.scrollView.wantsLayer = YES;
         self.scrollView.layer.cornerRadius = DashboardCardControlCornerRadius;
@@ -52,11 +52,12 @@
 
 - (NSSize)sizeThatFits:(NSSize)limitedSize {
     limitedSize.width -= self.textView.textContainerInset.width * 2;
-    
+
     NSDictionary *attributes = @{NSFontAttributeName: self.textView.font};
     NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:[self.textView string] attributes:attributes];
     NSRect rect = [attributedString boundingRectWithSize:limitedSize options:NSStringDrawingUsesLineFragmentOrigin context:nil];
-    limitedSize.height = MIN(rect.size.height + self.textView.textContainerInset.height * 2, 80);
+    CGFloat contentHeight = rect.size.height + self.textView.textContainerInset.height * 2;
+    limitedSize.height = MIN(MAX(contentHeight, 24), 80);
     return limitedSize;
 }
 
@@ -72,7 +73,7 @@
 
 - (void)textDidEndEditing:(NSNotification *)notification {
     NSString *expectedValue = self.textView.string;
-    
+
     if ([expectedValue isEqual:self.initialText]) {
         NSLog(@"修改没有变化，不做任何提交");
         [self renderWithAttribute];
