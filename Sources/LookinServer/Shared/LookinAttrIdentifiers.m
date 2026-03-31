@@ -147,6 +147,9 @@ LookinAttrSectionIdentifier const LookinAttrSec_UIStackView_Spacing = @"usv_spa"
 
 LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_Name = @"NSImageView_Name";
 LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_Open = @"NSImageView_Open";
+LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_Scaling = @"NSImageView_Scaling";
+LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_Behavior = @"NSImageView_Behavior";
+LookinAttrSectionIdentifier const LookinAttrSec_NSImageView_ContentTintColor = @"NSImageView_ContentTintColor";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_State = @"NSControl_State";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_ControlSize = @"NSControl_ControlSize";
 LookinAttrSectionIdentifier const LookinAttrSec_NSControl_Font = @"NSControl_Font";
@@ -368,6 +371,12 @@ LookinAttrIdentifier const LookinAttr_UIStackView_Spacing_Spacing = @"usv_spa_sp
 
 LookinAttrIdentifier const LookinAttr_NSImageView_Name_Name = @"NSImageView_Name_Name";
 LookinAttrIdentifier const LookinAttr_NSImageView_Open_Open = @"NSImageView_Open_Open";
+LookinAttrIdentifier const LookinAttr_NSImageView_Scaling_ImageScaling = @"NSImageView_Scaling_ImageScaling";
+LookinAttrIdentifier const LookinAttr_NSImageView_Scaling_ImageAlignment = @"NSImageView_Scaling_ImageAlignment";
+LookinAttrIdentifier const LookinAttr_NSImageView_Scaling_ImageFrameStyle = @"NSImageView_Scaling_ImageFrameStyle";
+LookinAttrIdentifier const LookinAttr_NSImageView_Behavior_Animates = @"NSImageView_Behavior_Animates";
+LookinAttrIdentifier const LookinAttr_NSImageView_Behavior_Editable = @"NSImageView_Behavior_Editable";
+LookinAttrIdentifier const LookinAttr_NSImageView_ContentTintColor_ContentTintColor = @"NSImageView_ContentTintColor_ContentTintColor";
 LookinAttrIdentifier const LookinAttr_NSControl_State_Enabled = @"NSControl_State_Enabled";
 LookinAttrIdentifier const LookinAttr_NSControl_State_Highlighted = @"NSControl_State_Highlighted";
 LookinAttrIdentifier const LookinAttr_NSControl_State_Continuous = @"NSControl_State_Continuous";

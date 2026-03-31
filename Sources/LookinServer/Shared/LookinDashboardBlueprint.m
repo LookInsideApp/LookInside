@@ -160,7 +160,10 @@
 #if TARGET_OS_OSX
             LookinAttrGroup_NSImageView: @[
                 LookinAttrSec_NSImageView_Name,
-                LookinAttrSec_NSImageView_Open
+                LookinAttrSec_NSImageView_Open,
+                LookinAttrSec_NSImageView_Scaling,
+                LookinAttrSec_NSImageView_Behavior,
+                LookinAttrSec_NSImageView_ContentTintColor,
             ],
 
             LookinAttrGroup_NSControl: @[
@@ -469,6 +472,18 @@
             ],
             LookinAttrSec_NSImageView_Open:@[
                 LookinAttr_NSImageView_Open_Open
+            ],
+            LookinAttrSec_NSImageView_Scaling: @[
+                LookinAttr_NSImageView_Scaling_ImageScaling,
+                LookinAttr_NSImageView_Scaling_ImageAlignment,
+                LookinAttr_NSImageView_Scaling_ImageFrameStyle,
+            ],
+            LookinAttrSec_NSImageView_Behavior: @[
+                LookinAttr_NSImageView_Behavior_Animates,
+                LookinAttr_NSImageView_Behavior_Editable,
+            ],
+            LookinAttrSec_NSImageView_ContentTintColor: @[
+                LookinAttr_NSImageView_ContentTintColor_ContentTintColor,
             ],
             LookinAttrSec_NSControl_State: @[
                 LookinAttr_NSControl_State_Enabled,
@@ -974,6 +989,9 @@
             LookinAttrSec_UITextField_ClearButtonMode: @"ClearButtonMode",
             LookinAttrSec_NSImageView_Name: @"ImageName",
             LookinAttrSec_NSImageView_Open: @"Open",
+            LookinAttrSec_NSImageView_Scaling: @"Scaling",
+            LookinAttrSec_NSImageView_Behavior: @"Behavior",
+            LookinAttrSec_NSImageView_ContentTintColor: @"ContentTintColor",
             LookinAttrSec_NSControl_State: @"State",
             LookinAttrSec_NSControl_ControlSize: @"ControlSize",
             LookinAttrSec_NSControl_Font: @"Font",
@@ -1785,6 +1803,41 @@
                 @"getterString": @"lks_imageViewOidIfHasImage",
                 @"typeIfObj": @(LookinAttrTypeCustomObj),
                 @"hideIfNil": @(YES)
+            },
+            LookinAttr_NSImageView_Scaling_ImageScaling: @{
+                @"className": @"NSImageView",
+                @"fullTitle": @"ImageScaling",
+                @"enumList": @"NSImageScaling",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSImageView_Scaling_ImageAlignment: @{
+                @"className": @"NSImageView",
+                @"fullTitle": @"ImageAlignment",
+                @"enumList": @"NSImageAlignment",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSImageView_Scaling_ImageFrameStyle: @{
+                @"className": @"NSImageView",
+                @"fullTitle": @"ImageFrameStyle",
+                @"enumList": @"NSImageFrameStyle",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSImageView_Behavior_Animates: @{
+                @"className": @"NSImageView",
+                @"fullTitle": @"Animates",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSImageView_Behavior_Editable: @{
+                @"className": @"NSImageView",
+                @"fullTitle": @"Editable",
+                @"getterString": @"isEditable",
+                @"patch": @(YES)
+            },
+            LookinAttr_NSImageView_ContentTintColor_ContentTintColor: @{
+                @"className": @"NSImageView",
+                @"fullTitle": @"ContentTintColor",
+                @"typeIfObj": @(LookinAttrTypeUIColor),
+                @"patch": @(YES)
             },
             LookinAttr_NSControl_State_Enabled: @{
                 @"className": @"NSControl",

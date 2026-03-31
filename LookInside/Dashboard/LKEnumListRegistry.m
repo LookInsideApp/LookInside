@@ -233,6 +233,24 @@
             MakeItem(@"NSImageScaleNone", 2),
             MakeItem(@"NSImageScaleProportionallyUpOrDown", 3),
         ];
+        mData[@"NSImageAlignment"] = @[
+            MakeItem(@"NSImageAlignCenter", 0),
+            MakeItem(@"NSImageAlignTop", 1),
+            MakeItem(@"NSImageAlignTopLeft", 2),
+            MakeItem(@"NSImageAlignTopRight", 3),
+            MakeItem(@"NSImageAlignLeft", 4),
+            MakeItem(@"NSImageAlignBottom", 5),
+            MakeItem(@"NSImageAlignBottomLeft", 6),
+            MakeItem(@"NSImageAlignBottomRight", 7),
+            MakeItem(@"NSImageAlignRight", 8),
+        ];
+        mData[@"NSImageFrameStyle"] = @[
+            MakeItem(@"NSImageFrameNone", 0),
+            MakeItem(@"NSImageFramePhoto", 1),
+            MakeItem(@"NSImageFrameGrayBezel", 2),
+            MakeItem(@"NSImageFrameGroove", 3),
+            MakeItem(@"NSImageFrameButton", 4),
+        ];
         mData[@"NSControlStateValue"] = @[
             MakeItem(@"NSControlStateValueOff", 0),
             MakeItem(@"NSControlStateValueOn", 1),
