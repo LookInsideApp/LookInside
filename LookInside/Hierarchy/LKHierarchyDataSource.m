@@ -353,12 +353,14 @@
             LookinDisplayItem *keyWindowRootItem = [self.rawHierarchyInfo.displayItems lookin_firstFiltered:^BOOL(LookinDisplayItem *obj) {
                 return obj.representedAsKeyWindow;
             }];
-            [[LookinDisplayItem flatItemsFromHierarchicalItems:@[keyWindowRootItem]] enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(LookinDisplayItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                if (!!obj.hostViewControllerObject) {
-                    preferedSelectedItem = obj;
-                    *stop = YES;
-                }
-            }];
+            if (keyWindowRootItem) {
+                [[LookinDisplayItem flatItemsFromHierarchicalItems:@[keyWindowRootItem]] enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(LookinDisplayItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    if (!!obj.hostViewControllerObject) {
+                        preferedSelectedItem = obj;
+                        *stop = YES;
+                    }
+                }];
+            }
             *selectedItem = preferedSelectedItem;
         }
         
@@ -369,6 +371,7 @@
         if (!keyWindowItem) {
             keyWindowItem = self.rawHierarchyInfo.displayItems.firstObject;
         }
+        if (keyWindowItem) {
         [self.rawHierarchyInfo.displayItems enumerateObjectsUsingBlock:^(LookinDisplayItem * _Nonnull windowItem, NSUInteger idx, BOOL * _Nonnull stop) {
             if (windowItem == keyWindowItem) {
                 return;
@@ -499,8 +502,9 @@
                 obj.hasDeterminedExpansion = YES;
             }];
         }
+        } // if (keyWindowItem)
     }
-    
+
     [self buildDisplayingFlatItems];
 }
 
