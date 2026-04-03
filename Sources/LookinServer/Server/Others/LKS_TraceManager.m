@@ -253,6 +253,9 @@
 }
 
 - (void)_markIVarsInAllClassLevelsOfObject:(NSObject *)object {
+    if (!object) {
+        return;
+    }
     [self _markIVarsOfObject:object class:object.class];
 #ifdef LOOKIN_SERVER_SWIFT_ENABLED_SUCCESSFULLY
     [LKS_SwiftTraceManager swiftMarkIVarsOfObject:object];
