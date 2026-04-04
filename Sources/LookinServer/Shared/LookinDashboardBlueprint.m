@@ -35,7 +35,8 @@
             LookinAttrGroup_UITableView,
             LookinAttrGroup_UITextView,
             LookinAttrGroup_UITextField,
-            LookinAttrGroup_UIWindowScene
+            LookinAttrGroup_UIWindowScene,
+            LookinAttrGroup_UITraitCollection,
 #endif
 #if TARGET_OS_OSX
             LookinAttrGroup_NSImageView,
@@ -166,6 +167,14 @@
                 LookinAttrSec_UIWindowScene_StatusBar,
                 LookinAttrSec_UIWindowScene_Traits,
                 LookinAttrSec_UIWindowScene_Session,
+            ],
+            LookinAttrGroup_UITraitCollection: @[
+                LookinAttrSec_UITraitCollection_Appearance,
+                LookinAttrSec_UITraitCollection_SizeClass,
+                LookinAttrSec_UITraitCollection_Display,
+                LookinAttrSec_UITraitCollection_Device,
+                LookinAttrSec_UITraitCollection_Layout,
+                LookinAttrSec_UITraitCollection_Content,
             ],
 #endif
 #if TARGET_OS_OSX
@@ -502,10 +511,50 @@
                 LookinAttr_UIWindowScene_Traits_UserInterfaceStyle,
                 LookinAttr_UIWindowScene_Traits_HorizontalSizeClass,
                 LookinAttr_UIWindowScene_Traits_VerticalSizeClass,
+                LookinAttr_UIWindowScene_Traits_UserInterfaceLevel,
+                LookinAttr_UIWindowScene_Traits_ActiveAppearance,
+                LookinAttr_UIWindowScene_Traits_AccessibilityContrast,
+                LookinAttr_UIWindowScene_Traits_LegibilityWeight,
+                LookinAttr_UIWindowScene_Traits_DisplayScale,
+                LookinAttr_UIWindowScene_Traits_DisplayGamut,
+                LookinAttr_UIWindowScene_Traits_UserInterfaceIdiom,
+                LookinAttr_UIWindowScene_Traits_LayoutDirection,
+                LookinAttr_UIWindowScene_Traits_PreferredContentSizeCategory,
+                LookinAttr_UIWindowScene_Traits_SceneCaptureState,
+                LookinAttr_UIWindowScene_Traits_ImageDynamicRange,
+                LookinAttr_UIWindowScene_Traits_TypesettingLanguage,
             ],
             LookinAttrSec_UIWindowScene_Session: @[
                 LookinAttr_UIWindowScene_Session_PersistentIdentifier,
                 LookinAttr_UIWindowScene_Session_SessionRole,
+            ],
+            // UITraitCollection
+            LookinAttrSec_UITraitCollection_Appearance: @[
+                LookinAttr_UITraitCollection_Appearance_UserInterfaceStyle,
+                LookinAttr_UITraitCollection_Appearance_UserInterfaceLevel,
+                LookinAttr_UITraitCollection_Appearance_ActiveAppearance,
+                LookinAttr_UITraitCollection_Appearance_AccessibilityContrast,
+                LookinAttr_UITraitCollection_Appearance_LegibilityWeight,
+            ],
+            LookinAttrSec_UITraitCollection_SizeClass: @[
+                LookinAttr_UITraitCollection_SizeClass_HorizontalSizeClass,
+                LookinAttr_UITraitCollection_SizeClass_VerticalSizeClass,
+            ],
+            LookinAttrSec_UITraitCollection_Display: @[
+                LookinAttr_UITraitCollection_Display_DisplayScale,
+                LookinAttr_UITraitCollection_Display_DisplayGamut,
+                LookinAttr_UITraitCollection_Display_ImageDynamicRange,
+            ],
+            LookinAttrSec_UITraitCollection_Device: @[
+                LookinAttr_UITraitCollection_Device_UserInterfaceIdiom,
+                LookinAttr_UITraitCollection_Device_ForceTouchCapability,
+            ],
+            LookinAttrSec_UITraitCollection_Layout: @[
+                LookinAttr_UITraitCollection_Layout_LayoutDirection,
+            ],
+            LookinAttrSec_UITraitCollection_Content: @[
+                LookinAttr_UITraitCollection_Content_PreferredContentSizeCategory,
+                LookinAttr_UITraitCollection_Content_TypesettingLanguage,
             ],
 #endif
 #if TARGET_OS_OSX
@@ -944,6 +993,8 @@
             LookinAttrGroup_UITextField: @"UITextField",
             LookinAttrGroup_UIVisualEffectView: @"UIVisualEffectView",
             LookinAttrGroup_UIStackView: @"UIStackView",
+            LookinAttrGroup_UIWindowScene: @"UIWindowScene",
+            LookinAttrGroup_UITraitCollection: @"UITraitCollection",
 #else
             LookinAttrGroup_ViewLayer: @"CALayer / NSView",
             LookinAttrGroup_NSImageView:        @"NSImageView",
@@ -1122,6 +1173,22 @@
             LookinAttrSec_NSWindow_TabbingMode: @"TabbingMode",
             LookinAttrSec_NSWindow_Size: @"Size",
             LookinAttrSec_NSWindow_Info: @"Info",
+            // UIWindowScene
+            LookinAttrSec_UIWindowScene_State: @"State",
+            LookinAttrSec_UIWindowScene_Title: @"Title",
+            LookinAttrSec_UIWindowScene_Orientation: @"Orientation",
+            LookinAttrSec_UIWindowScene_Windows: @"Windows",
+            LookinAttrSec_UIWindowScene_Screen: @"Screen",
+            LookinAttrSec_UIWindowScene_StatusBar: @"StatusBar",
+            LookinAttrSec_UIWindowScene_Traits: @"Traits",
+            LookinAttrSec_UIWindowScene_Session: @"Session",
+            // UITraitCollection
+            LookinAttrSec_UITraitCollection_Appearance: @"Appearance",
+            LookinAttrSec_UITraitCollection_SizeClass: @"SizeClass",
+            LookinAttrSec_UITraitCollection_Display: @"Display",
+            LookinAttrSec_UITraitCollection_Device: @"Device",
+            LookinAttrSec_UITraitCollection_Layout: @"Layout",
+            LookinAttrSec_UITraitCollection_Content: @"Content",
         };
     });
     return rawInfo[secID];
@@ -2962,6 +3029,114 @@
                 @"enumList": @"UIUserInterfaceSizeClass",
                 @"patch": @(NO)
             },
+            LookinAttr_UIWindowScene_Traits_UserInterfaceLevel: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"UserInterfaceLevel",
+                @"getterString": @"lks_userInterfaceLevel",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceLevel",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_ActiveAppearance: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"ActiveAppearance",
+                @"getterString": @"lks_activeAppearance",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceActiveAppearance",
+                @"patch": @(NO),
+                @"osVersion": @(14)
+            },
+            LookinAttr_UIWindowScene_Traits_AccessibilityContrast: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"AccessibilityContrast",
+                @"getterString": @"lks_accessibilityContrast",
+                @"setterString": @"",
+                @"enumList": @"UIAccessibilityContrast",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_LegibilityWeight: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"LegibilityWeight",
+                @"getterString": @"lks_legibilityWeight",
+                @"setterString": @"",
+                @"enumList": @"UILegibilityWeight",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_DisplayScale: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"DisplayScale",
+                @"getterString": @"lks_traitDisplayScale",
+                @"setterString": @"",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_DisplayGamut: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"DisplayGamut",
+                @"getterString": @"lks_displayGamut",
+                @"setterString": @"",
+                @"enumList": @"UIDisplayGamut",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_UserInterfaceIdiom: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"UserInterfaceIdiom",
+                @"getterString": @"lks_userInterfaceIdiom",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceIdiom",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_LayoutDirection: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"LayoutDirection",
+                @"getterString": @"lks_layoutDirection",
+                @"setterString": @"",
+                @"enumList": @"UITraitEnvironmentLayoutDirection",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_PreferredContentSizeCategory: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"PreferredContentSizeCategory",
+                @"getterString": @"lks_preferredContentSizeCategory",
+                @"setterString": @"",
+                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UIWindowScene_Traits_SceneCaptureState: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"SceneCaptureState",
+                @"getterString": @"lks_sceneCaptureState",
+                @"setterString": @"",
+                @"enumList": @"UISceneCaptureState",
+                @"patch": @(NO),
+                @"osVersion": @(17)
+            },
+            LookinAttr_UIWindowScene_Traits_ImageDynamicRange: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"ImageDynamicRange",
+                @"getterString": @"lks_imageDynamicRange",
+                @"setterString": @"",
+                @"enumList": @"UIImageDynamicRange",
+                @"patch": @(NO),
+                @"osVersion": @(17)
+            },
+            LookinAttr_UIWindowScene_Traits_TypesettingLanguage: @{
+                @"className": @"UIWindowScene",
+                @"fullTitle": @"TypesettingLanguage",
+                @"getterString": @"lks_typesettingLanguage",
+                @"setterString": @"",
+                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"hideIfNil": @(YES),
+                @"patch": @(NO),
+                @"osVersion": @(17)
+            },
             LookinAttr_UIWindowScene_Session_PersistentIdentifier: @{
                 @"className": @"UIWindowScene",
                 @"fullTitle": @"PersistentIdentifier",
@@ -2977,6 +3152,138 @@
                 @"setterString": @"",
                 @"typeIfObj": @(LookinAttrTypeNSString),
                 @"patch": @(NO)
+            },
+            // MARK: - UITraitCollection
+            LookinAttr_UITraitCollection_Appearance_UserInterfaceStyle: @{
+                @"className": @"UIView",
+                @"fullTitle": @"UserInterfaceStyle",
+                @"getterString": @"lks_traitCollection_userInterfaceStyle",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceStyle",
+                @"patch": @(NO),
+                @"osVersion": @(12)
+            },
+            LookinAttr_UITraitCollection_Appearance_UserInterfaceLevel: @{
+                @"className": @"UIView",
+                @"fullTitle": @"UserInterfaceLevel",
+                @"getterString": @"lks_traitCollection_userInterfaceLevel",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceLevel",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UITraitCollection_Appearance_ActiveAppearance: @{
+                @"className": @"UIView",
+                @"fullTitle": @"ActiveAppearance",
+                @"getterString": @"lks_traitCollection_activeAppearance",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceActiveAppearance",
+                @"patch": @(NO),
+                @"osVersion": @(14)
+            },
+            LookinAttr_UITraitCollection_Appearance_AccessibilityContrast: @{
+                @"className": @"UIView",
+                @"fullTitle": @"AccessibilityContrast",
+                @"getterString": @"lks_traitCollection_accessibilityContrast",
+                @"setterString": @"",
+                @"enumList": @"UIAccessibilityContrast",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UITraitCollection_Appearance_LegibilityWeight: @{
+                @"className": @"UIView",
+                @"fullTitle": @"LegibilityWeight",
+                @"getterString": @"lks_traitCollection_legibilityWeight",
+                @"setterString": @"",
+                @"enumList": @"UILegibilityWeight",
+                @"patch": @(NO),
+                @"osVersion": @(13)
+            },
+            LookinAttr_UITraitCollection_SizeClass_HorizontalSizeClass: @{
+                @"className": @"UIView",
+                @"fullTitle": @"HorizontalSizeClass",
+                @"getterString": @"lks_traitCollection_horizontalSizeClass",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceSizeClass",
+                @"patch": @(NO)
+            },
+            LookinAttr_UITraitCollection_SizeClass_VerticalSizeClass: @{
+                @"className": @"UIView",
+                @"fullTitle": @"VerticalSizeClass",
+                @"getterString": @"lks_traitCollection_verticalSizeClass",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceSizeClass",
+                @"patch": @(NO)
+            },
+            LookinAttr_UITraitCollection_Display_DisplayScale: @{
+                @"className": @"UIView",
+                @"fullTitle": @"DisplayScale",
+                @"getterString": @"lks_traitCollection_displayScale",
+                @"setterString": @"",
+                @"patch": @(NO)
+            },
+            LookinAttr_UITraitCollection_Display_DisplayGamut: @{
+                @"className": @"UIView",
+                @"fullTitle": @"DisplayGamut",
+                @"getterString": @"lks_traitCollection_displayGamut",
+                @"setterString": @"",
+                @"enumList": @"UIDisplayGamut",
+                @"patch": @(NO),
+                @"osVersion": @(10)
+            },
+            LookinAttr_UITraitCollection_Display_ImageDynamicRange: @{
+                @"className": @"UIView",
+                @"fullTitle": @"ImageDynamicRange",
+                @"getterString": @"lks_traitCollection_imageDynamicRange",
+                @"setterString": @"",
+                @"enumList": @"UIImageDynamicRange",
+                @"patch": @(NO),
+                @"osVersion": @(17)
+            },
+            LookinAttr_UITraitCollection_Device_UserInterfaceIdiom: @{
+                @"className": @"UIView",
+                @"fullTitle": @"UserInterfaceIdiom",
+                @"getterString": @"lks_traitCollection_userInterfaceIdiom",
+                @"setterString": @"",
+                @"enumList": @"UIUserInterfaceIdiom",
+                @"patch": @(NO)
+            },
+            LookinAttr_UITraitCollection_Device_ForceTouchCapability: @{
+                @"className": @"UIView",
+                @"fullTitle": @"ForceTouchCapability",
+                @"getterString": @"lks_traitCollection_forceTouchCapability",
+                @"setterString": @"",
+                @"enumList": @"UIForceTouchCapability",
+                @"patch": @(NO),
+                @"osVersion": @(9)
+            },
+            LookinAttr_UITraitCollection_Layout_LayoutDirection: @{
+                @"className": @"UIView",
+                @"fullTitle": @"LayoutDirection",
+                @"getterString": @"lks_traitCollection_layoutDirection",
+                @"setterString": @"",
+                @"enumList": @"UITraitEnvironmentLayoutDirection",
+                @"patch": @(NO),
+                @"osVersion": @(10)
+            },
+            LookinAttr_UITraitCollection_Content_PreferredContentSizeCategory: @{
+                @"className": @"UIView",
+                @"fullTitle": @"PreferredContentSizeCategory",
+                @"getterString": @"lks_traitCollection_preferredContentSizeCategory",
+                @"setterString": @"",
+                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"patch": @(NO),
+                @"osVersion": @(10)
+            },
+            LookinAttr_UITraitCollection_Content_TypesettingLanguage: @{
+                @"className": @"UIView",
+                @"fullTitle": @"TypesettingLanguage",
+                @"getterString": @"lks_traitCollection_typesettingLanguage",
+                @"setterString": @"",
+                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"hideIfNil": @(YES),
+                @"patch": @(NO),
+                @"osVersion": @(17)
             },
         };
     });
