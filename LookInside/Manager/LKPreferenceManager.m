@@ -602,6 +602,13 @@ static NSString * const Key_ReceivingConfigTime_Class = @"ConfigTime_Class";
                                                         LookinAttrSec_UIWindowScene_StatusBar,
                                                         LookinAttrSec_UIWindowScene_Traits,
                                                         LookinAttrSec_UIWindowScene_Session,
+                                                        // UITraitCollection
+                                                        LookinAttrSec_UITraitCollection_Appearance,
+                                                        LookinAttrSec_UITraitCollection_SizeClass,
+                                                        LookinAttrSec_UITraitCollection_Display,
+                                                        LookinAttrSec_UITraitCollection_Device,
+                                                        LookinAttrSec_UITraitCollection_Layout,
+                                                        LookinAttrSec_UITraitCollection_Content,
 
         ];
         targetSet = [NSSet setWithArray:array];

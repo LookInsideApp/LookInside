@@ -278,6 +278,7 @@
                  LookinAttrGroup_NSStackView: NSImageMake(@"dashboard_stackview"),
                  LookinAttrGroup_NSWindow: NSImageMake(@"dashboard_layer"),
                  LookinAttrGroup_UIWindowScene: NSImageMake(@"dashboard_layer"),
+                 LookinAttrGroup_UITraitCollection: NSImageMake(@"dashboard_layer"),
                  LookinAttrGroup_UserCustom: NSImageMake(@"dashboard_custom")
                  };
     });
