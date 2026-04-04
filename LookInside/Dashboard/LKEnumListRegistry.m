@@ -470,6 +470,63 @@
             MakeItem(@"UIUserInterfaceSizeClassRegular", 2),
         ];
 
+        // MARK: - UITraitCollection
+        mData[@"UIUserInterfaceIdiom"] = @[
+            MakeItem(@"UIUserInterfaceIdiomUnspecified", -1),
+            MakeItem(@"UIUserInterfaceIdiomPhone", 0),
+            MakeItem(@"UIUserInterfaceIdiomPad", 1),
+            MakeItem(@"UIUserInterfaceIdiomTV", 2),
+            MakeItem(@"UIUserInterfaceIdiomCarPlay", 3),
+            MakeItemWithVersion(@"UIUserInterfaceIdiomMac", 5, 14),
+            MakeItemWithVersion(@"UIUserInterfaceIdiomVision", 6, 17),
+        ];
+        mData[@"UIUserInterfaceLevel"] = @[
+            MakeItem(@"UIUserInterfaceLevelUnspecified", -1),
+            MakeItem(@"UIUserInterfaceLevelBase", 0),
+            MakeItem(@"UIUserInterfaceLevelElevated", 1),
+        ];
+        mData[@"UIUserInterfaceActiveAppearance"] = @[
+            MakeItem(@"UIUserInterfaceActiveAppearanceUnspecified", -1),
+            MakeItem(@"UIUserInterfaceActiveAppearanceInactive", 0),
+            MakeItem(@"UIUserInterfaceActiveAppearanceActive", 1),
+        ];
+        mData[@"UIAccessibilityContrast"] = @[
+            MakeItem(@"UIAccessibilityContrastUnspecified", -1),
+            MakeItem(@"UIAccessibilityContrastNormal", 0),
+            MakeItem(@"UIAccessibilityContrastHigh", 1),
+        ];
+        mData[@"UILegibilityWeight"] = @[
+            MakeItem(@"UILegibilityWeightUnspecified", -1),
+            MakeItem(@"UILegibilityWeightRegular", 0),
+            MakeItem(@"UILegibilityWeightBold", 1),
+        ];
+        mData[@"UIForceTouchCapability"] = @[
+            MakeItem(@"UIForceTouchCapabilityUnknown", 0),
+            MakeItem(@"UIForceTouchCapabilityUnavailable", 1),
+            MakeItem(@"UIForceTouchCapabilityAvailable", 2),
+        ];
+        mData[@"UIDisplayGamut"] = @[
+            MakeItem(@"UIDisplayGamutUnspecified", -1),
+            MakeItem(@"UIDisplayGamutSRGB", 0),
+            MakeItem(@"UIDisplayGamutP3", 1),
+        ];
+        mData[@"UITraitEnvironmentLayoutDirection"] = @[
+            MakeItem(@"UITraitEnvironmentLayoutDirectionUnspecified", -1),
+            MakeItem(@"UITraitEnvironmentLayoutDirectionLeftToRight", 0),
+            MakeItem(@"UITraitEnvironmentLayoutDirectionRightToLeft", 1),
+        ];
+        mData[@"UIImageDynamicRange"] = @[
+            MakeItem(@"UIImageDynamicRangeUnspecified", -1),
+            MakeItem(@"UIImageDynamicRangeStandard", 0),
+            MakeItem(@"UIImageDynamicRangeConstrainedHigh", 1),
+            MakeItem(@"UIImageDynamicRangeHigh", 2),
+        ];
+        mData[@"UISceneCaptureState"] = @[
+            MakeItem(@"UISceneCaptureStateUnspecified", -1),
+            MakeItem(@"UISceneCaptureStateInactive", 0),
+            MakeItem(@"UISceneCaptureStateActive", 1),
+        ];
+
         // MARK: - NSSlider
         mData[@"NSSliderType"] = @[
             MakeItem(@"NSSliderTypeLinear", 0),
