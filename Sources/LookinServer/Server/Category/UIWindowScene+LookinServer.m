@@ -88,6 +88,66 @@
     return self.session.role;
 }
 
+- (NSInteger)lks_userInterfaceLevel {
+    return (NSInteger)self.traitCollection.userInterfaceLevel;
+}
+
+- (NSInteger)lks_activeAppearance {
+    if (@available(iOS 14.0, *)) {
+        return (NSInteger)self.traitCollection.activeAppearance;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_accessibilityContrast {
+    return (NSInteger)self.traitCollection.accessibilityContrast;
+}
+
+- (NSInteger)lks_legibilityWeight {
+    return (NSInteger)self.traitCollection.legibilityWeight;
+}
+
+- (CGFloat)lks_traitDisplayScale {
+    return self.traitCollection.displayScale;
+}
+
+- (NSInteger)lks_displayGamut {
+    return (NSInteger)self.traitCollection.displayGamut;
+}
+
+- (NSInteger)lks_userInterfaceIdiom {
+    return (NSInteger)self.traitCollection.userInterfaceIdiom;
+}
+
+- (NSInteger)lks_layoutDirection {
+    return (NSInteger)self.traitCollection.layoutDirection;
+}
+
+- (NSString *)lks_preferredContentSizeCategory {
+    return self.traitCollection.preferredContentSizeCategory;
+}
+
+- (NSInteger)lks_sceneCaptureState {
+    if (@available(iOS 17.0, *)) {
+        return (NSInteger)self.traitCollection.sceneCaptureState;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_imageDynamicRange {
+    if (@available(iOS 17.0, *)) {
+        return (NSInteger)self.traitCollection.imageDynamicRange;
+    }
+    return -1;
+}
+
+- (NSString *)lks_typesettingLanguage {
+    if (@available(iOS 17.0, *)) {
+        return self.traitCollection.typesettingLanguage;
+    }
+    return nil;
+}
+
 @end
 
 #endif

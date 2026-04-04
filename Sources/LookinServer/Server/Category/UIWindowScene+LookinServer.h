@@ -32,6 +32,20 @@ API_AVAILABLE(ios(13.0))
 @property (nonatomic, readonly, nullable) NSString *lks_sessionPersistentIdentifier;
 @property (nonatomic, readonly, nullable) NSString *lks_sessionRole;
 
+// Additional trait getters
+@property (nonatomic, readonly) NSInteger lks_userInterfaceLevel;
+@property (nonatomic, readonly) NSInteger lks_activeAppearance;
+@property (nonatomic, readonly) NSInteger lks_accessibilityContrast;
+@property (nonatomic, readonly) NSInteger lks_legibilityWeight;
+@property (nonatomic, readonly) CGFloat lks_traitDisplayScale;
+@property (nonatomic, readonly) NSInteger lks_displayGamut;
+@property (nonatomic, readonly) NSInteger lks_userInterfaceIdiom;
+@property (nonatomic, readonly) NSInteger lks_layoutDirection;
+@property (nonatomic, readonly, nullable) NSString *lks_preferredContentSizeCategory;
+@property (nonatomic, readonly) NSInteger lks_sceneCaptureState;
+@property (nonatomic, readonly) NSInteger lks_imageDynamicRange;
+@property (nonatomic, readonly, nullable) NSString *lks_typesettingLanguage;
+
 @end
 
 NS_ASSUME_NONNULL_END

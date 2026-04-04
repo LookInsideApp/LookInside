@@ -255,6 +255,102 @@
 
 #pragma mark - Screenshot
 
+#if TARGET_OS_IPHONE
+
+// MARK: - UITraitCollection getters
+
+- (NSInteger)lks_traitCollection_userInterfaceStyle {
+    if (@available(iOS 12.0, *)) {
+        return (NSInteger)self.traitCollection.userInterfaceStyle;
+    }
+    return 0;
+}
+
+- (NSInteger)lks_traitCollection_userInterfaceLevel {
+    if (@available(iOS 13.0, *)) {
+        return (NSInteger)self.traitCollection.userInterfaceLevel;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_traitCollection_activeAppearance {
+    if (@available(iOS 14.0, *)) {
+        return (NSInteger)self.traitCollection.activeAppearance;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_traitCollection_accessibilityContrast {
+    if (@available(iOS 13.0, *)) {
+        return (NSInteger)self.traitCollection.accessibilityContrast;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_traitCollection_legibilityWeight {
+    if (@available(iOS 13.0, *)) {
+        return (NSInteger)self.traitCollection.legibilityWeight;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_traitCollection_horizontalSizeClass {
+    return (NSInteger)self.traitCollection.horizontalSizeClass;
+}
+
+- (NSInteger)lks_traitCollection_verticalSizeClass {
+    return (NSInteger)self.traitCollection.verticalSizeClass;
+}
+
+- (CGFloat)lks_traitCollection_displayScale {
+    return self.traitCollection.displayScale;
+}
+
+- (NSInteger)lks_traitCollection_displayGamut {
+    if (@available(iOS 10.0, *)) {
+        return (NSInteger)self.traitCollection.displayGamut;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_traitCollection_imageDynamicRange {
+    if (@available(iOS 17.0, *)) {
+        return (NSInteger)self.traitCollection.imageDynamicRange;
+    }
+    return -1;
+}
+
+- (NSInteger)lks_traitCollection_userInterfaceIdiom {
+    return (NSInteger)self.traitCollection.userInterfaceIdiom;
+}
+
+- (NSInteger)lks_traitCollection_forceTouchCapability {
+    return (NSInteger)self.traitCollection.forceTouchCapability;
+}
+
+- (NSInteger)lks_traitCollection_layoutDirection {
+    if (@available(iOS 10.0, *)) {
+        return (NSInteger)self.traitCollection.layoutDirection;
+    }
+    return -1;
+}
+
+- (NSString *)lks_traitCollection_preferredContentSizeCategory {
+    if (@available(iOS 10.0, *)) {
+        return self.traitCollection.preferredContentSizeCategory;
+    }
+    return nil;
+}
+
+- (NSString *)lks_traitCollection_typesettingLanguage {
+    if (@available(iOS 17.0, *)) {
+        return self.traitCollection.typesettingLanguage;
+    }
+    return nil;
+}
+
+#endif
+
 #if TARGET_OS_OSX
 - (LookinImage *)lks_groupScreenshotWithLowQuality:(BOOL)lowQuality {
 

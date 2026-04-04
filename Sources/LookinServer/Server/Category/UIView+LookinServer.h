@@ -43,6 +43,25 @@
 - (LookinImage *)lks_soloScreenshotWithLowQuality:(BOOL)lowQuality;
 #endif
 
+#if TARGET_OS_IPHONE
+// UITraitCollection getters
+@property (nonatomic, readonly) NSInteger lks_traitCollection_userInterfaceStyle;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_userInterfaceLevel;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_activeAppearance;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_accessibilityContrast;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_legibilityWeight;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_horizontalSizeClass;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_verticalSizeClass;
+@property (nonatomic, readonly) CGFloat lks_traitCollection_displayScale;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_displayGamut;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_imageDynamicRange;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_userInterfaceIdiom;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_forceTouchCapability;
+@property (nonatomic, readonly) NSInteger lks_traitCollection_layoutDirection;
+@property (nonatomic, readonly, nullable) NSString *lks_traitCollection_preferredContentSizeCategory;
+@property (nonatomic, readonly, nullable) NSString *lks_traitCollection_typesettingLanguage;
+#endif
+
 @end
 
 #endif /* SHOULD_COMPILE_LOOKIN_SERVER */
