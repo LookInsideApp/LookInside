@@ -8,7 +8,7 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
     private var windowController: NSWindowController!
     private let tableItems = ["Mercury", "Venus", "Earth", "Mars", "Jupiter"]
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    func applicationDidFinishLaunching(_: Notification) {
         LookinServerStartBridge()
 
         let window = NSWindow(
@@ -26,15 +26,15 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
         self.windowController = windowController
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
         true
     }
 
-    func numberOfRows(in tableView: NSTableView) -> Int {
+    func numberOfRows(in _: NSTableView) -> Int {
         tableItems.count
     }
 
-    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+    func tableView(_ tableView: NSTableView, viewFor _: NSTableColumn?, row: Int) -> NSView? {
         let identifier = NSUserInterfaceItemIdentifier("PlanetCell")
         let cell = tableView.makeView(withIdentifier: identifier, owner: self) as? NSTableCellView ?? {
             let view = NSTableCellView(frame: .zero)
@@ -53,7 +53,6 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
     }
 
     private func buildContentViewController() -> NSViewController {
-        
         let root = NSVisualEffectView(frame: NSRect(x: 0, y: 0, width: 900, height: 620))
         root.material = .sidebar
         root.blendingMode = .behindWindow
@@ -132,7 +131,7 @@ final class SwiftHostAppDelegate: NSObject, NSApplicationDelegate, NSTableViewDa
         tableView.wantsLayer = true
         scrollView.documentView = tableView
         card.addSubview(scrollView)
-        
+
         let viewController = NSViewController()
         viewController.view = root
         return viewController

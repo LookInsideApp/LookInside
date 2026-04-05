@@ -9,7 +9,6 @@
 import UIKit
 
 class ViewController: UIViewController {
-
     private let stackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -106,13 +105,12 @@ class ViewController: UIViewController {
             sceneInfoLabel.text = "No WindowScene"
             return
         }
-        let activationState: String
-        switch windowScene.activationState {
-        case .foregroundActive: activationState = "ForegroundActive"
-        case .foregroundInactive: activationState = "ForegroundInactive"
-        case .background: activationState = "Background"
-        case .unattached: activationState = "Unattached"
-        @unknown default: activationState = "Unknown"
+        let activationState = switch windowScene.activationState {
+        case .foregroundActive: "ForegroundActive"
+        case .foregroundInactive: "ForegroundInactive"
+        case .background: "Background"
+        case .unattached: "Unattached"
+        @unknown default: "Unknown"
         }
         let sceneCount = UIApplication.shared.connectedScenes.count
         sceneInfoLabel.text = "Scene: \(windowScene.title ?? "untitled")\nState: \(activationState)\nConnected Scenes: \(sceneCount)"

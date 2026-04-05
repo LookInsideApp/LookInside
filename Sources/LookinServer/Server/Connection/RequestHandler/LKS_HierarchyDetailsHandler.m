@@ -40,9 +40,9 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleConnectionDidEnd:) name:LKS_ConnectionDidEndNotificationName object:nil];
 
         self.attrGroupsSyncedOids = [NSMutableSet set];
-        }
-    return self;
     }
+    return self;
+}
 
 - (void)startWithPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages block:(LKS_HierarchyDetailsHandler_ProgressBlock)progressBlock finishedBlock:(LKS_HierarchyDetailsHandler_FinishBlock)finishBlock {
     if (!progressBlock || !finishBlock) {
@@ -73,17 +73,11 @@
             self.finishBlock();
             return;
         }
-        //        NSLog(@"LookinServer - will handle tasks, count: %@", @(tasks.count));
         NSArray<LookinDisplayItemDetail *> *details = [package.tasks lookin_map:^id(NSUInteger idx, LookinStaticAsyncUpdateTask *task) {
             LookinDisplayItemDetail *itemDetail = [LookinDisplayItemDetail new];
             itemDetail.displayItemOid = task.oid;
 
             id object = [NSObject lks_objectWithOid:task.oid];
-            NSLog(@"LKS_Detail - oid=%lu object=%@ class=%@ taskType=%lu",
-                  (unsigned long)task.oid,
-                  object ? @"found" : @"nil",
-                  object ? NSStringFromClass([object class]) : @"(null)",
-                  (unsigned long)task.taskType);
 
 #if TARGET_OS_OSX
             // 处理所有 NSView 对象（包括 layer-backed 的 SwiftUI 视图）
@@ -148,7 +142,6 @@
                 return itemDetail;
 
             } else if ([object isKindOfClass:[NSWindow class]]) {
-                NSLog(@"LKS_Detail - oid=%lu -> NSWindow path", (unsigned long)task.oid);
                 NSWindow *window = (NSWindow *)object;
                 if (task.taskType == LookinStaticAsyncUpdateTaskTypeGroupScreenshot) {
                     CGImageRef cgImage = CGWindowListCreateImage(CGRectZero,
@@ -195,11 +188,9 @@
             }
 #endif
             if (!object || ![object isKindOfClass:[CALayer class]]) {
-                NSLog(@"LKS_Detail - oid=%lu -> FAILED (object=%@, class=%@)", (unsigned long)task.oid, object ? @"found" : @"nil", object ? NSStringFromClass([object class]) : @"(null)");
                 itemDetail.failureCode = -1;
                 return itemDetail;
             }
-            NSLog(@"LKS_Detail - oid=%lu -> CALayer path", (unsigned long)task.oid);
             CALayer *layer = object;
 
             if (task.taskType == LookinStaticAsyncUpdateTaskTypeSoloScreenshot) {

@@ -9,7 +9,6 @@
 import UIKit
 
 class DetailViewController: UIViewController {
-
     private let imageView: UIImageView = {
         let imageView = UIImageView(image: UIImage(systemName: "doc.text.magnifyingglass"))
         imageView.tintColor = .systemIndigo
@@ -44,7 +43,7 @@ class DetailViewController: UIViewController {
         return tableView
     }()
 
-    private let sampleItems = (1...20).map { "Item \($0)" }
+    private let sampleItems = (1 ... 20).map { "Item \($0)" }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,7 +81,7 @@ class DetailViewController: UIViewController {
 }
 
 extension DetailViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         sampleItems.count
     }
 

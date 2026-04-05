@@ -9,7 +9,6 @@
 import UIKit
 
 class SettingsViewController: UIViewController {
-
     private let stackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical

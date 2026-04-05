@@ -8,19 +8,21 @@
 //
 
     import Foundation
-#if canImport(AppKit) && !targetEnvironment(macCatalyst)
-import AppKit
-private typealias LookinView = NSView
-private typealias LookinViewController = NSViewController
-private typealias LookinGestureRecognizer = NSGestureRecognizer
-#endif
+    #if canImport(AppKit) && !targetEnvironment(macCatalyst)
+        import AppKit
 
-#if canImport(UIKit)
-    import UIKit
-private typealias LookinView = UIView
-private typealias LookinViewController = UIViewController
-private typealias LookinGestureRecognizer = UIGestureRecognizer
-#endif
+        private typealias LookinView = NSView
+        private typealias LookinViewController = NSViewController
+        private typealias LookinGestureRecognizer = NSGestureRecognizer
+    #endif
+
+    #if canImport(UIKit)
+        import UIKit
+
+        private typealias LookinView = UIView
+        private typealias LookinViewController = UIViewController
+        private typealias LookinGestureRecognizer = UIGestureRecognizer
+    #endif
     #if SPM_LOOKIN_SERVER_ENABLED
         import LookinServerBase
     #endif
@@ -32,17 +34,17 @@ private typealias LookinGestureRecognizer = UIGestureRecognizer
             let initialInClass: AnyClass? = currClass
 
             while let m = mirror, let unwrappedCurrClass = currClass {
-            m.children.forEach { child in
+                for child in m.children {
                     if let child = child as? (label: String?, value: NSObject) {
                         let label: String? = child.label?.replacingOccurrences(of: "$__lazy_storage_$_", with: "")
                         let value = child.value
 
-                    guard (value is LookinView) || (value is CALayer) || (value is LookinViewController) || (value is LookinGestureRecognizer) else {
-                        return
+                        guard (value is LookinView) || (value is CALayer) || (value is LookinViewController) || (value is LookinGestureRecognizer) else {
+                            continue
                         }
 
-                    guard let label = label, label.count > 0 else {
-                        return
+                        guard let label, label.count > 0 else {
+                            continue
                         }
 
                         let ivarTrace = LookinIvarTrace()
@@ -52,13 +54,13 @@ private typealias LookinGestureRecognizer = UIGestureRecognizer
 
                         ivarTrace.ivarName = label
 
-                    if (value === hostObject) {
+                        if value === hostObject {
                             ivarTrace.relation = LookinIvarTraceRelationValue_Self
-                    } else if let hostView = hostObject as? LookinView {
+                        } else if let hostView = hostObject as? LookinView {
                             var ivarLayer: CALayer? = nil
                             if let layer = value as? CALayer {
                                 ivarLayer = layer
-                        } else if let view = value as? LookinView {
+                            } else if let view = value as? LookinView {
                                 ivarLayer = view.layer
                             }
                             if let layer = ivarLayer, layer.superlayer === hostView.layer {
@@ -77,7 +79,7 @@ private typealias LookinGestureRecognizer = UIGestureRecognizer
         private static func makeDisplayClassName(superClass: AnyClass, childClass: AnyClass?) -> String {
             let superName = NSStringFromClass(superClass)
 
-        guard let childClass = childClass else {
+            guard let childClass else {
                 return superName
             }
             let childName = NSStringFromClass(childClass)
