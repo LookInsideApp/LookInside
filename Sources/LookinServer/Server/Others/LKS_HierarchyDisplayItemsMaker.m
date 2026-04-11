@@ -21,6 +21,10 @@
 #import "LKS_CustomAttrSetterManager.h"
 #import "LKS_MultiplatformAdapter.h"
 #import "NSValue+Lookin.h"
+#import "LookinAttributesGroup.h"
+#import "LookinAttributesSection.h"
+#import "LookinAttribute.h"
+#import "LookinAttrIdentifiers.h"
 //#import "LookinObject+LookinServer.h"
 #import "UIView+LookinServer.h"
 #import "NSWindow+LookinServer.h"
@@ -209,6 +213,32 @@
         item.danceuiSource = [maker getDanceUISource];
     }
 
+#if TARGET_OS_IPHONE
+    // Annotate MultiLayer rendering mode in the attribute panel
+    if (layer.lks_isMultiLayerContainer) {
+        LookinAttribute *multiLayerAttr = [LookinAttribute new];
+        multiLayerAttr.identifier = LookinAttr_UserCustom;
+        multiLayerAttr.displayTitle = @"MultiLayer";
+        multiLayerAttr.attrType = LookinAttrTypeBOOL;
+        multiLayerAttr.value = @(YES);
+
+        LookinAttributesSection *renderingSection = [LookinAttributesSection new];
+        renderingSection.identifier = LookinAttrSec_UserCustom;
+        renderingSection.attributes = @[multiLayerAttr];
+
+        LookinAttributesGroup *renderingGroup = [LookinAttributesGroup new];
+        renderingGroup.identifier = LookinAttrGroup_UserCustom;
+        renderingGroup.userCustomTitle = @"Rendering";
+        renderingGroup.attrSections = @[renderingSection];
+
+        if (item.customAttrGroupList) {
+            item.customAttrGroupList = [item.customAttrGroupList arrayByAddingObject:renderingGroup];
+        } else {
+            item.customAttrGroupList = @[renderingGroup];
+        }
+    }
+#endif
+
     item.isHidden = layer.isHidden;
     item.alpha = layer.opacity;
     item.layerObject = [LookinObject instanceWithObject:layer];
@@ -279,7 +309,42 @@
         item.subitems = [allSubitems copy];
     }
 #else
-    if (layer.sublayers.count) {
+    if (layer.lks_isMultiLayerContainer) {
+        // MultiLayer: separate inner layer's sublayers (normal children)
+        // from intermediate layers (effect layers).
+        CALayer *innerLayer = layer.lks_multiLayerInnerLayer;
+        NSMutableArray<LookinDisplayItem *> *allSubitems = [NSMutableArray array];
+
+        // Normal children: sublayers of the inner view.layer
+        for (CALayer *sublayer in innerLayer.sublayers.copy) {
+            LookinDisplayItem *childItem = [self _displayItemWithLayer:sublayer screenshots:hasScreenshots attrList:hasAttrList lowImageQuality:lowQuality readCustomInfo:readCustomInfo saveCustomSetter:saveCustomSetter];
+            if (childItem) {
+                [allSubitems addObject:childItem];
+            }
+        }
+
+        // Effect Layers group: sublayers of _outermostLayer that are not the inner layer
+        NSMutableArray<LookinDisplayItem *> *effectItems = [NSMutableArray array];
+        for (CALayer *sublayer in layer.sublayers.copy) {
+            if (sublayer == innerLayer) {
+                continue;
+            }
+            LookinDisplayItem *effectItem = [self _displayItemWithLayer:sublayer screenshots:hasScreenshots attrList:hasAttrList lowImageQuality:lowQuality readCustomInfo:readCustomInfo saveCustomSetter:saveCustomSetter];
+            if (effectItem) {
+                [effectItems addObject:effectItem];
+            }
+        }
+        if (effectItems.count > 0) {
+            LookinDisplayItem *effectGroupItem = [LookinDisplayItem new];
+            effectGroupItem.customDisplayTitle = @"Effect Layers";
+            effectGroupItem.shouldCaptureImage = NO;
+            effectGroupItem.subitems = [effectItems copy];
+            [allSubitems addObject:effectGroupItem];
+        }
+
+        item.subitems = allSubitems.count > 0 ? [allSubitems copy] : nil;
+
+    } else if (layer.sublayers.count) {
         NSArray<CALayer *> *sublayers = [layer.sublayers copy];
         NSMutableArray<LookinDisplayItem *> *allSubitems = [NSMutableArray arrayWithCapacity:sublayers.count];
         [sublayers enumerateObjectsUsingBlock:^(__kindof CALayer * _Nonnull sublayer, NSUInteger idx, BOOL * _Nonnull stop) {
