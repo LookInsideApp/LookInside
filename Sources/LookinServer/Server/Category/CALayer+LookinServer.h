@@ -24,11 +24,6 @@
 /// (i.e. [hostView layer]). Returns nil otherwise.
 @property(nonatomic, readonly) CALayer *lks_multiLayerInnerLayer;
 
-/// Returns YES when this layer or any ancestor (up to 8 levels) is inside
-/// a _UIMultiLayer structure. Used to decide rendering strategy — layers
-/// inside MultiLayer should use renderInContext: instead of drawViewHierarchyInRect:.
-@property(nonatomic, readonly) BOOL lks_isInsideMultiLayerStructure;
-
 - (LookinWindow *)lks_window;
 
 - (CGRect)lks_frameInWindow:(LookinWindow *)window;

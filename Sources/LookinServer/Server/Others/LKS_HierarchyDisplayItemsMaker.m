@@ -27,10 +27,42 @@
 #import "LookinAttrIdentifiers.h"
 //#import "LookinObject+LookinServer.h"
 #import "UIView+LookinServer.h"
+#import "CALayer+LookinServer.h"
 #import "NSWindow+LookinServer.h"
 #if TARGET_OS_IPHONE
 #import "UIWindowScene+LookinServer.h"
 #endif
+
+#if TARGET_OS_IPHONE
+static NSArray<CALayer *> *LKSOrderedSublayersForDisplay(CALayer *layer) {
+    NSArray<CALayer *> *sublayers = [layer.sublayers copy];
+    if (!layer.lks_isMultiLayerContainer) {
+        return sublayers ?: @[];
+    }
+
+    CALayer *innerLayer = layer.lks_multiLayerInnerLayer;
+    if (!innerLayer) {
+        return sublayers ?: @[];
+    }
+    NSArray<CALayer *> *innerSublayers = [innerLayer.sublayers copy];
+
+    NSMutableArray<CALayer *> *orderedSublayers = [NSMutableArray array];
+    BOOL insertedInnerSublayers = NO;
+    for (CALayer *sublayer in sublayers) {
+        if (sublayer == innerLayer) {
+            [orderedSublayers addObjectsFromArray:innerSublayers ?: @[]];
+            insertedInnerSublayers = YES;
+        } else {
+            [orderedSublayers addObject:sublayer];
+        }
+    }
+    if (!insertedInnerSublayers) {
+        [orderedSublayers addObjectsFromArray:innerSublayers ?: @[]];
+    }
+    return orderedSublayers.copy;
+}
+#endif
+
 @implementation LKS_HierarchyDisplayItemsMaker
 
 + (NSArray<LookinDisplayItem *> *)itemsWithScreenshots:(BOOL)hasScreenshots attrList:(BOOL)hasAttrList lowImageQuality:(BOOL)lowQuality readCustomInfo:(BOOL)readCustomInfo saveCustomSetter:(BOOL)saveCustomSetter {
@@ -309,43 +341,8 @@
         item.subitems = [allSubitems copy];
     }
 #else
-    if (layer.lks_isMultiLayerContainer) {
-        // MultiLayer: separate inner layer's sublayers (normal children)
-        // from intermediate layers (effect layers).
-        CALayer *innerLayer = layer.lks_multiLayerInnerLayer;
-        NSMutableArray<LookinDisplayItem *> *allSubitems = [NSMutableArray array];
-
-        // Normal children: sublayers of the inner view.layer
-        for (CALayer *sublayer in innerLayer.sublayers.copy) {
-            LookinDisplayItem *childItem = [self _displayItemWithLayer:sublayer screenshots:hasScreenshots attrList:hasAttrList lowImageQuality:lowQuality readCustomInfo:readCustomInfo saveCustomSetter:saveCustomSetter];
-            if (childItem) {
-                [allSubitems addObject:childItem];
-            }
-        }
-
-        // Effect Layers group: sublayers of _outermostLayer that are not the inner layer
-        NSMutableArray<LookinDisplayItem *> *effectItems = [NSMutableArray array];
-        for (CALayer *sublayer in layer.sublayers.copy) {
-            if (sublayer == innerLayer) {
-                continue;
-            }
-            LookinDisplayItem *effectItem = [self _displayItemWithLayer:sublayer screenshots:hasScreenshots attrList:hasAttrList lowImageQuality:lowQuality readCustomInfo:readCustomInfo saveCustomSetter:saveCustomSetter];
-            if (effectItem) {
-                [effectItems addObject:effectItem];
-            }
-        }
-        if (effectItems.count > 0) {
-            LookinDisplayItem *effectGroupItem = [LookinDisplayItem new];
-            effectGroupItem.customDisplayTitle = @"Effect Layers";
-            effectGroupItem.shouldCaptureImage = NO;
-            effectGroupItem.subitems = [effectItems copy];
-            [allSubitems addObject:effectGroupItem];
-        }
-
-        item.subitems = allSubitems.count > 0 ? [allSubitems copy] : nil;
-
-    } else if (layer.sublayers.count) {
-        NSArray<CALayer *> *sublayers = [layer.sublayers copy];
+    NSArray<CALayer *> *sublayers = LKSOrderedSublayersForDisplay(layer);
+    if (sublayers.count) {
         NSMutableArray<LookinDisplayItem *> *allSubitems = [NSMutableArray arrayWithCapacity:sublayers.count];
         [sublayers enumerateObjectsUsingBlock:^(__kindof CALayer * _Nonnull sublayer, NSUInteger idx, BOOL * _Nonnull stop) {
             LookinDisplayItem *sublayer_item = [self _displayItemWithLayer:sublayer screenshots:hasScreenshots attrList:hasAttrList lowImageQuality:lowQuality readCustomInfo:readCustomInfo saveCustomSetter:saveCustomSetter];
@@ -384,7 +381,8 @@
         return @[];
     }
 #else
-    if (layer.sublayers.count == 0) {
+    NSArray<CALayer *> *sublayers = LKSOrderedSublayersForDisplay(layer);
+    if (sublayers.count == 0) {
         return @[];
     }
 #endif
@@ -392,7 +390,9 @@
 
     NSMutableArray<LookinDisplayItem *> *resultSubitems = [NSMutableArray array];
 
+#if TARGET_OS_OSX
     NSArray<CALayer *> *sublayers = [layer.sublayers copy];
+#endif
     [sublayers enumerateObjectsUsingBlock:^(__kindof CALayer * _Nonnull sublayer, NSUInteger idx, BOOL * _Nonnull stop) {
         LookinDisplayItem *sublayerItem = [self _displayItemWithLayer:sublayer screenshots:NO attrList:NO lowImageQuality:NO readCustomInfo:YES saveCustomSetter:YES];
         if (sublayerItem) {

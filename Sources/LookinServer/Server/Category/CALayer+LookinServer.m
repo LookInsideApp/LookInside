@@ -103,23 +103,6 @@
 #endif
 }
 
-- (BOOL)lks_isInsideMultiLayerStructure {
-#if TARGET_OS_IPHONE
-    if (self.lks_isMultiLayerContainer) {
-        return YES;
-    }
-    CALayer *current = self.superlayer;
-    for (NSUInteger depth = 0; current && depth < 8; depth++) {
-        if (current.lks_isMultiLayerContainer) {
-            return YES;
-        }
-        current = current.superlayer;
-    }
-    return NO;
-#else
-    return NO;
-#endif
-}
 
 #pragma mark - Screenshot
 
@@ -165,15 +148,11 @@
 
 - (LookinImage *)lks_groupScreenshotWithLowQuality:(BOOL)lowQuality {
 
-    // For _UIMultiLayer, use bounds.size (the natural layer size) instead of
-    // frame.size, because _UIMultiLayer inherits the original transform from
-    // view.layer — frame.size includes transform effects and may differ from
-    // bounds.size. Apple's __dbg_snapshotImage also uses bounds, not frame.
     CGSize renderSize;
 #if TARGET_OS_IPHONE
-    if (self.lks_isInsideMultiLayerStructure) {
-        // Use bounds.size for layers inside _UIMultiLayer — the outermost
-        // layer inherits the original transform, making frame.size unreliable.
+    if (self.lks_isMultiLayerContainer) {
+        // Only _UIMultiLayer containers use bounds.size — they inherit the
+        // original transform, making frame.size unreliable.
         renderSize = self.bounds.size;
     } else {
         renderSize = self.frame.size;
@@ -203,10 +182,13 @@
     return nil;
 }
 #if TARGET_OS_IPHONE
-    // Layers inside a _UIMultiLayer structure must use renderInContext:
-    // because drawViewHierarchyInRect: does not work correctly for views
-    // whose rendering is managed by the _UIMultiLayer compositor on iOS 26.
-    if (self.lks_isInsideMultiLayerStructure) {
+    // Only _UIMultiLayer containers themselves use renderInContext: to capture
+    // the full multi-layer stack (inner layer + effect layers). Child views
+    // inside the structure must still use drawViewHierarchyInRect: because
+    // they may rely on visual effects (vibrancy, blur) that renderInContext:
+    // cannot capture — e.g. _UIVisualEffectContentView children with adapted
+    // text colors would appear invisible without the blur backdrop.
+    if (self.lks_isMultiLayerContainer) {
         UIGraphicsBeginImageContextWithOptions(contextSize, NO, renderScale);
         CGContextRef context = UIGraphicsGetCurrentContext();
         [self renderInContext:context];
