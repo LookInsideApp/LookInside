@@ -150,6 +150,10 @@ static BOOL LKSMultiLayerViewIsMultiLayerWrapped(UIView *view) {
 /// but their subtrees render fine via `drawViewHierarchyInRect:` — treating
 /// them as effect subtrees would funnel every full-screen container in the
 /// app through the window-crop path and snapshot them as the entire window.
+///
+/// Matching uses `containsString:` rather than `hasPrefix:` so it is robust
+/// against Swift module-qualified names (e.g. `UIKit._GlassGroupView`) and
+/// mangled class names (`_TtC5UIKit..._GlassGroupLayerView`).
 static BOOL LKSMultiLayerWrappedViewIsEffectContainer(UIView *view) {
     if (!view) {
         return NO;
@@ -157,15 +161,31 @@ static BOOL LKSMultiLayerWrappedViewIsEffectContainer(UIView *view) {
     if ([view isKindOfClass:UIVisualEffectView.class]) {
         return YES;
     }
+
+    NSString *className = NSStringFromClass(view.class);
+
     // iOS 26 liquid-glass private classes that are not UIVisualEffectView
     // subclasses but still embed custom effect layers we cannot capture via
-    // drawViewHierarchyInRect:.
-    NSString *className = NSStringFromClass(view.class);
-    if ([className hasPrefix:@"_UILiquidLens"]
-        || [className hasPrefix:@"_UILiquidGlass"]
-        || [className hasPrefix:@"_UIGlassGroup"]) {
+    // drawViewHierarchyInRect: on the host itself.
+    if ([className containsString:@"_UILiquidLens"]
+        || [className containsString:@"_UILiquidGlass"]
+        || [className containsString:@"_GlassGroup"]) {
         return YES;
     }
+
+    // System bar container wrappers. iOS 26 wraps `_UITabBarContainerWrapperView`
+    // (and the navigation/toolbar equivalents) in `_UIMultiLayer` to composite
+    // the `_UILiquidLensView` instances embedded inside their subtrees.
+    // Whitelisting the wrapper routes the entire bar through the window-crop
+    // path — the only reliable way to capture the lens layers (both
+    // `renderInContext:` and `drawViewHierarchyInRect:` on the bar itself come
+    // up blank).
+    if ([className containsString:@"_UITabBar"]
+        || [className containsString:@"_UINavigationBar"]
+        || [className containsString:@"_UIToolbar"]) {
+        return YES;
+    }
+
     return NO;
 }
 
