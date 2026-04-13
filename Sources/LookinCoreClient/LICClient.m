@@ -352,11 +352,19 @@ static unsigned long LICBestObjectOIDForItem(LookinDisplayItem *item, BOOL prefe
             if (detail.failureCode != 0 || detail.displayItemOid == 0) {
                 continue;
             }
+#if TARGET_OS_IPHONE
+            NSData *soloData = UIImagePNGRepresentation(detail.soloScreenshot);
+#elif TARGET_OS_OSX
             NSData *soloData = [detail.soloScreenshot TIFFRepresentation];
+#endif
             if (soloData) {
                 soloScreenshots[@(detail.displayItemOid)] = soloData;
             }
+#if TARGET_OS_IPHONE
+            NSData *groupData = UIImagePNGRepresentation(detail.groupScreenshot);
+#elif TARGET_OS_OSX
             NSData *groupData = [detail.groupScreenshot TIFFRepresentation];
+#endif
             if (groupData) {
                 groupScreenshots[@(detail.displayItemOid)] = groupData;
             }
