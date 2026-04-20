@@ -1,4 +1,4 @@
-name: Build Matrix
+name: Build
 
 on:
   pull_request:
@@ -11,38 +11,14 @@ permissions:
   contents: read
 
 concurrency:
-  group: build-matrix-${{ github.workflow }}-${{ github.ref }}
+  group: build-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: ${{ matrix.name }}
+    name: macOS Client
     runs-on: macos-26
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: macOS
-            slug: macos
-            destination: generic/platform=macOS
-            extra_args: ARCHS=arm64e ONLY_ACTIVE_ARCH=YES
-          - name: iOS
-            slug: ios
-            destination: generic/platform=iOS
-            extra_args: ""
-          - name: iOS Simulator
-            slug: ios-sim
-            destination: generic/platform=iOS Simulator
-            extra_args: ""
-          - name: tvOS
-            slug: tvos
-            destination: generic/platform=tvOS
-            extra_args: ""
-          - name: tvOS Simulator
-            slug: tvos-sim
-            destination: generic/platform=tvOS Simulator
-            extra_args: ""
 
     steps:
       - name: Checkout
@@ -54,24 +30,19 @@ jobs:
       - name: Install xcbeautify
         run: brew install xcbeautify
 
+      - name: Resolve LookInsideServer
+        run: swift package resolve
+
       - name: Sync Derived Source
         run: bash Scripts/sync-derived-source.sh
 
-      - name: Build SwiftPM Products
-        if: matrix.slug == 'macos'
-        run: |
-          swift build -c debug --product lookinside
-          swift build -c debug --product LookinServerDynamic
-          swift build -c debug --product LookinServerInjected
-
-      - name: Build LookinServerInjected
+      - name: Build macOS Client
         run: |
           xcodebuild \
-            -workspace LookInside.xcworkspace \
-            -scheme LookinServerInjected \
+            -project LookInside.xcodeproj \
+            -scheme LookInside \
             -configuration Debug \
-            -destination "${{ matrix.destination }}" \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData/${{ matrix.slug }}" \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             CODE_SIGNING_ALLOWED=NO \
-            ${{ matrix.extra_args }} \
             build | xcbeautify

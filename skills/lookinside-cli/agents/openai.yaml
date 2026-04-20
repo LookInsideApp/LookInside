@@ -1,4 +1,0 @@
-interface:
-  display_name: "LookInside"
-  short_description: "Inspect app targets and embed LookinServer with the LookInside toolchain."
-  default_prompt: "Use $lookinside-cli to inspect a running target, export a hierarchy, or plan and embed a LookinServer integration."
