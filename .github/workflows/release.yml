@@ -73,20 +73,6 @@ jobs:
       - name: Install xcbeautify
         run: brew install xcbeautify
 
-      - name: Build CLI
-        timeout-minutes: 20
-        run: |
-          bash Scripts/build-release-from-tag.sh \
-            --tag "${{ needs.prepare.outputs.build_version }}" \
-            --stage build-cli
-
-      - name: Package Unsigned CLI
-        timeout-minutes: 5
-        run: |
-          bash Scripts/build-release-from-tag.sh \
-            --tag "${{ needs.prepare.outputs.build_version }}" \
-            --stage package-cli
-
       - name: Archive App
         timeout-minutes: 30
         run: |
@@ -99,71 +85,9 @@ jobs:
         with:
           name: lookinside-${{ needs.prepare.outputs.build_version }}-unsigned
           path: |
-            build/releases/${{ needs.prepare.outputs.build_version }}/unsigned-cli/lookinside
             build/releases/${{ needs.prepare.outputs.build_version }}/LookInside.xcarchive
           if-no-files-found: error
           retention-days: 7
-
-  sign_notarize_cli:
-    needs: [prepare, build_package]
-    runs-on: macos-26
-    timeout-minutes: 45
-    env:
-      PRESERVE_KEYCHAIN_STATE: "1"
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Download Unsigned Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: lookinside-${{ needs.prepare.outputs.build_version }}-unsigned
-          path: build/releases/${{ needs.prepare.outputs.build_version }}
-
-      - name: Setup Keychain and Signing Env
-        id: setup_keychain
-        env:
-          KEYCHAIN_CONTENT_GZIP: ${{ secrets.KEYCHAIN_CONTENT_GZIP }}
-          KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
-        run: |
-          bash Scripts/setup-ci-keychain.sh --output-file "${GITHUB_OUTPUT}"
-
-      - name: Sign CLI
-        timeout-minutes: 10
-        env:
-          SIGNING_IDENTITY: ${{ steps.setup_keychain.outputs.signing_identity }}
-          DEVELOPMENT_TEAM: ${{ steps.setup_keychain.outputs.development_team }}
-          KEYCHAIN_PATH: ${{ steps.setup_keychain.outputs.keychain_path }}
-          KEYCHAIN_PROFILE: ${{ steps.setup_keychain.outputs.keychain_profile }}
-          KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
-        run: |
-          bash Scripts/build-release-from-tag.sh \
-            --tag "${{ needs.prepare.outputs.build_version }}" \
-            --stage sign-cli
-
-      - name: Notarize CLI
-        timeout-minutes: 30
-        env:
-          SIGNING_IDENTITY: ${{ steps.setup_keychain.outputs.signing_identity }}
-          DEVELOPMENT_TEAM: ${{ steps.setup_keychain.outputs.development_team }}
-          KEYCHAIN_PATH: ${{ steps.setup_keychain.outputs.keychain_path }}
-          KEYCHAIN_PROFILE: ${{ steps.setup_keychain.outputs.keychain_profile }}
-          KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
-        run: |
-          bash Scripts/build-release-from-tag.sh \
-            --tag "${{ needs.prepare.outputs.build_version }}" \
-            --stage notarize-cli
-
-      - name: Upload Notarized CLI
-        uses: actions/upload-artifact@v4
-        with:
-          name: lookinside-${{ needs.prepare.outputs.build_version }}-cli
-          path: build/releases/${{ needs.prepare.outputs.build_version }}/lookinside-*-macOS-cli.zip
-          if-no-files-found: error
-          retention-days: 14
 
   sign_notarize_app:
     needs: [prepare, build_package]
@@ -226,22 +150,90 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  sign_notarize_cli:
+    needs: [prepare]
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      PRESERVE_KEYCHAIN_STATE: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      - name: Install xcbeautify
+        run: brew install xcbeautify
+
+      - name: Build CLI from LookInsideServer
+        timeout-minutes: 20
+        run: |
+          bash Scripts/build-release-from-tag.sh \
+            --tag "${{ needs.prepare.outputs.build_version }}" \
+            --stage build-cli
+
+      - name: Setup Keychain and Signing Env
+        id: setup_keychain
+        env:
+          KEYCHAIN_CONTENT_GZIP: ${{ secrets.KEYCHAIN_CONTENT_GZIP }}
+          KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
+        run: |
+          bash Scripts/setup-ci-keychain.sh --output-file "${GITHUB_OUTPUT}"
+
+      - name: Sign CLI
+        timeout-minutes: 10
+        env:
+          SIGNING_IDENTITY: ${{ steps.setup_keychain.outputs.signing_identity }}
+          DEVELOPMENT_TEAM: ${{ steps.setup_keychain.outputs.development_team }}
+          KEYCHAIN_PATH: ${{ steps.setup_keychain.outputs.keychain_path }}
+          KEYCHAIN_PROFILE: ${{ steps.setup_keychain.outputs.keychain_profile }}
+          KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
+        run: |
+          bash Scripts/build-release-from-tag.sh \
+            --tag "${{ needs.prepare.outputs.build_version }}" \
+            --stage sign-cli
+
+      - name: Notarize CLI
+        timeout-minutes: 30
+        env:
+          SIGNING_IDENTITY: ${{ steps.setup_keychain.outputs.signing_identity }}
+          DEVELOPMENT_TEAM: ${{ steps.setup_keychain.outputs.development_team }}
+          KEYCHAIN_PATH: ${{ steps.setup_keychain.outputs.keychain_path }}
+          KEYCHAIN_PROFILE: ${{ steps.setup_keychain.outputs.keychain_profile }}
+          KEYCHAIN_SECRET: ${{ secrets.KEYCHAIN_SECRET }}
+        run: |
+          bash Scripts/build-release-from-tag.sh \
+            --tag "${{ needs.prepare.outputs.build_version }}" \
+            --stage notarize-cli
+
+      - name: Upload Notarized CLI
+        uses: actions/upload-artifact@v4
+        with:
+          name: lookinside-${{ needs.prepare.outputs.build_version }}-cli
+          path: build/releases/${{ needs.prepare.outputs.build_version }}/LookInside-*-macOS-cli.zip
+          if-no-files-found: error
+          retention-days: 14
+
   collect_release:
-    needs: [prepare, sign_notarize_cli, sign_notarize_app]
+    needs: [prepare, sign_notarize_app, sign_notarize_cli]
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     steps:
-      - name: Download CLI Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: lookinside-${{ needs.prepare.outputs.build_version }}-cli
-          path: dist
-
       - name: Download App Artifact
         uses: actions/download-artifact@v4
         with:
           name: lookinside-${{ needs.prepare.outputs.build_version }}-app
+          path: dist
+
+      - name: Download CLI Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lookinside-${{ needs.prepare.outputs.build_version }}-cli
           path: dist
 
       - name: Generate Checksums

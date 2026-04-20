@@ -1,6 +1,15 @@
 {
-  "originHash" : "d7874ad4af3244e162af52c5a67777bc71b99759e978f6f2c918894c457f0575",
+  "originHash" : "b6cab38d2a9553e13eba86dbdf37a26de7bfd0bdf90e25a018c7fa0b35d59407",
   "pins" : [
+    {
+      "identity" : "lookinsideserver",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LookInsideApp/LookInsideServer.git",
+      "state" : {
+        "revision" : "0bdfdada167101b884ba35581f56cd25bc2a6f94",
+        "version" : "1.0.0"
+      }
+    },
     {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",

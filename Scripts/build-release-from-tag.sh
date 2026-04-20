@@ -16,6 +16,8 @@ RELEASE_VERSION=""
 STAGE="all"
 SKIP_TESTS=false
 SKIP_NOTARIZE=false
+LOOKINSIDE_SERVER_REPO="${LOOKINSIDE_SERVER_REPO:-https://github.com/LookInsideApp/LookInsideServer.git}"
+LOOKINSIDE_SERVER_REF="${LOOKINSIDE_SERVER_REF:-}"
 PRESERVE_KEYCHAIN_STATE="${PRESERVE_KEYCHAIN_STATE:-}"
 ORIGINAL_DEFAULT_KEYCHAIN=""
 ORIGINAL_KEYCHAINS=()
@@ -27,9 +29,10 @@ Usage: bash Scripts/build-release-from-tag.sh --tag <tag> [options]
 Options:
   --tag <tag>               Git tag or ref name, for example 2.2.0 or v2.2.0.
   --archive-root <path>     Output directory. Default: build/releases/<tag>
-  --stage <name>            all, build-cli, package-cli, sign-cli, notarize-cli,
-                            archive-app, sign-app, notarize-app, finalize
+  --stage <name>            all, archive-app, sign-app, notarize-app, build-cli, sign-cli, notarize-cli, finalize
   --keychain-profile <name> Override the auto-detected notarytool keychain profile.
+  --server-repo <url>       LookInsideServer git URL for CLI build. Default: https://github.com/LookInsideApp/LookInsideServer.git
+  --server-ref <ref>        LookInsideServer ref for CLI build. Default: matching tag, else main.
   --skip-tests              Skip preflight validation.
   --skip-notarize           Skip notarization.
   --help, -h                Show this help.
@@ -136,6 +139,14 @@ parse_args() {
                 KEYCHAIN_PROFILE="${2:-}"
                 shift 2
                 ;;
+            --server-repo)
+                LOOKINSIDE_SERVER_REPO="${2:-}"
+                shift 2
+                ;;
+            --server-ref)
+                LOOKINSIDE_SERVER_REF="${2:-}"
+                shift 2
+                ;;
             --skip-tests)
                 SKIP_TESTS=true
                 shift
@@ -163,15 +174,6 @@ normalize_tag_version() {
     echo "$raw"
 }
 
-build_setting() {
-    local key="$1"
-    xcodebuild \
-        -project "$PROJECT_FILE" \
-        -scheme "$SCHEME" \
-        -configuration "$CONFIGURATION" \
-        -showBuildSettings 2>/dev/null \
-        | awk -F' = ' -v search_key="$key" '$1 ~ search_key"$" { print $2; exit }'
-}
 run_preflight() {
     if [[ "$SKIP_TESTS" == "true" ]]; then
         log "Skipping preflight checks"
@@ -226,38 +228,16 @@ ensure_signing_context() {
     [[ -n "${KEYCHAIN_PROFILE:-}" ]] || fail "KEYCHAIN_PROFILE was not detected."
 }
 
-sign_cli() {
-    local cli_binary="$1"
-
-    chmod 755 "$cli_binary"
-    [[ -x "$cli_binary" ]] || fail "CLI binary is not executable: $cli_binary"
-
-    log "Signing CLI binary"
-    print_signing_context
-    codesign \
-        --sign "$SIGNING_IDENTITY" \
-        --options runtime \
-        --timestamp \
-        --verbose=4 \
-        --force \
-        "$cli_binary"
-
-    log "Verifying CLI signature"
-    codesign --verify --verbose=2 "$cli_binary"
-}
-
-package_cli() {
-    local cli_binary="$1"
-    local cli_zip="$2"
-
-    rm -f "$cli_zip"
-    ditto -c -k --keepParent "$cli_binary" "$cli_zip"
-}
-
 archive_app_unsigned() {
     local archive_path="$1"
 
     rm -rf "$archive_path" "$DERIVED_DATA_PATH"
+
+    log "Resolving SwiftPM dependencies"
+    swift package resolve
+
+    log "Syncing derived source from LookInsideServer"
+    bash Scripts/sync-derived-source.sh
 
     log "Archiving app without Xcode signing"
     xcodebuild \
@@ -343,52 +323,81 @@ write_checksums() {
 }
 
 init_release_paths() {
-    CLI_UNSIGNED_DIR="$ARCHIVE_ROOT/unsigned-cli"
-    CLI_UNSIGNED_BINARY="$CLI_UNSIGNED_DIR/lookinside"
-    if [[ -f "$CLI_UNSIGNED_BINARY" ]]; then
-        CLI_BINARY="$CLI_UNSIGNED_BINARY"
-    else
-        CLI_BINARY_DIR="$(swift build -c release --product lookinside --show-bin-path)"
-        CLI_BINARY="$CLI_BINARY_DIR/lookinside"
-    fi
-    CLI_ZIP="$ARCHIVE_ROOT/lookinside-${RELEASE_VERSION}-macOS-cli.zip"
-
     APP_ARCHIVE_PATH="$ARCHIVE_ROOT/LookInside.xcarchive"
     APP_PATH="$APP_ARCHIVE_PATH/Products/Applications/LookInside.app"
     APP_ZIP="$ARCHIVE_ROOT/LookInside-${RELEASE_VERSION}-macOS-app.zip"
+    CLI_WORKSPACE="$ARCHIVE_ROOT/server-checkout"
+    CLI_BIN="$ARCHIVE_ROOT/lookinside"
+    CLI_ZIP="$ARCHIVE_ROOT/LookInside-${RELEASE_VERSION}-macOS-cli.zip"
     CHECKSUM_FILE="$ARCHIVE_ROOT/checksums.txt"
+}
+
+resolve_server_ref() {
+    if [[ -n "$LOOKINSIDE_SERVER_REF" ]]; then
+        echo "$LOOKINSIDE_SERVER_REF"
+        return
+    fi
+
+    if git ls-remote --exit-code --tags "$LOOKINSIDE_SERVER_REPO" "v$RELEASE_VERSION" >/dev/null 2>&1; then
+        echo "v$RELEASE_VERSION"
+        return
+    fi
+
+    if git ls-remote --exit-code --tags "$LOOKINSIDE_SERVER_REPO" "$RELEASE_VERSION" >/dev/null 2>&1; then
+        echo "$RELEASE_VERSION"
+        return
+    fi
+
+    echo "main"
+}
+
+build_cli() {
+    local ref
+    ref="$(resolve_server_ref)"
+
+    log "Cloning LookInsideServer ref=$ref repo=$LOOKINSIDE_SERVER_REPO"
+    rm -rf "$CLI_WORKSPACE"
+    git clone --depth 1 --branch "$ref" "$LOOKINSIDE_SERVER_REPO" "$CLI_WORKSPACE"
+
+    log "Resolving SwiftPM dependencies for CLI build"
+    (cd "$CLI_WORKSPACE" && swift package resolve)
+
+    log "Building lookinside CLI (release)"
+    (cd "$CLI_WORKSPACE" && swift build -c release --product lookinside 2>&1) | format_output
+
+    local built_bin
+    built_bin="$(cd "$CLI_WORKSPACE" && swift build -c release --product lookinside --show-bin-path)/lookinside"
+    [[ -f "$built_bin" ]] || fail "lookinside binary not found at $built_bin"
+
+    rm -f "$CLI_BIN"
+    cp "$built_bin" "$CLI_BIN"
+    chmod 755 "$CLI_BIN"
+}
+
+sign_cli_binary() {
+    [[ -f "$CLI_BIN" ]] || fail "CLI binary not found at $CLI_BIN"
+
+    log "Signing lookinside CLI"
+    print_signing_context
+    codesign \
+        --sign "$SIGNING_IDENTITY" \
+        --options runtime \
+        --timestamp \
+        --verbose=4 \
+        --force \
+        "$CLI_BIN"
+
+    log "Verifying CLI signature"
+    codesign --verify --strict --verbose=2 "$CLI_BIN"
+
+    rm -f "$CLI_ZIP"
+    (cd "$ARCHIVE_ROOT" && ditto -c -k "$(basename "$CLI_BIN")" "$(basename "$CLI_ZIP")")
 }
 
 run_stage() {
     case "$STAGE" in
-        build-cli)
-            run_preflight
-            log "Release version override: MARKETING_VERSION=$RELEASE_VERSION CURRENT_PROJECT_VERSION=0"
-            log "Building CLI release binary"
-            swift build -c release --product lookinside
-            [[ -f "$CLI_BINARY" ]] || fail "CLI binary not found at $CLI_BINARY"
-            ;;
-        package-cli)
-            [[ -f "$CLI_BINARY" ]] || fail "CLI binary not found at $CLI_BINARY"
-            mkdir -p "$CLI_UNSIGNED_DIR"
-            cp "$CLI_BINARY" "$CLI_UNSIGNED_BINARY"
-            chmod 755 "$CLI_UNSIGNED_BINARY"
-            log "Prepared unsigned CLI binary"
-            log "CLI unsigned binary: $CLI_UNSIGNED_BINARY"
-            ;;
-        sign-cli)
-            ensure_signing_context
-            ensure_keychain_unlocked
-            [[ -f "$CLI_BINARY" ]] || fail "CLI binary not found at $CLI_BINARY"
-            sign_cli "$CLI_BINARY"
-            package_cli "$CLI_BINARY" "$CLI_ZIP"
-            ;;
-        notarize-cli)
-            ensure_signing_context
-            [[ -f "$CLI_ZIP" ]] || fail "CLI archive not found at $CLI_ZIP"
-            notarize_file "$CLI_ZIP" "CLI archive"
-            ;;
         archive-app)
+            run_preflight
             log "Release version override: MARKETING_VERSION=$RELEASE_VERSION CURRENT_PROJECT_VERSION=0"
             archive_app_unsigned "$APP_ARCHIVE_PATH"
             [[ -d "$APP_PATH" ]] || fail "Archived app not found at $APP_PATH"
@@ -409,31 +418,46 @@ run_stage() {
             rm -f "$APP_ZIP"
             ditto -c -k --keepParent "$APP_PATH" "$APP_ZIP"
             ;;
-        finalize)
+        build-cli)
+            build_cli
+            [[ -f "$CLI_BIN" ]] || fail "CLI binary not produced at $CLI_BIN"
+            ;;
+        sign-cli)
+            ensure_signing_context
+            ensure_keychain_unlocked
+            [[ -f "$CLI_BIN" ]] || fail "CLI binary not found at $CLI_BIN"
+            sign_cli_binary
+            ;;
+        notarize-cli)
+            ensure_signing_context
             [[ -f "$CLI_ZIP" ]] || fail "CLI archive not found at $CLI_ZIP"
+            notarize_file "$CLI_ZIP" "lookinside CLI archive"
+            if [[ "$SKIP_NOTARIZE" != "true" ]]; then
+                log "CLI binaries cannot be stapled; notarization ticket lives on the hosted zip"
+            fi
+            ;;
+        finalize)
             [[ -f "$APP_ZIP" ]] || fail "App archive not found at $APP_ZIP"
-            write_checksums "$CHECKSUM_FILE" \
-                "$(basename "$CLI_ZIP")" \
-                "$(basename "$APP_ZIP")"
+            local files=( "$(basename "$APP_ZIP")" )
+            [[ -f "$CLI_ZIP" ]] && files+=( "$(basename "$CLI_ZIP")" )
+            write_checksums "$CHECKSUM_FILE" "${files[@]}"
             log "Release artifacts ready"
-            log "CLI zip: $CLI_ZIP"
             log "App zip: $APP_ZIP"
+            [[ -f "$CLI_ZIP" ]] && log "CLI zip: $CLI_ZIP"
             log "Checksums: $CHECKSUM_FILE"
             ;;
         all)
-            STAGE="build-cli"
-            run_stage
-            STAGE="package-cli"
-            run_stage
             STAGE="archive-app"
-            run_stage
-            STAGE="sign-cli"
-            run_stage
-            STAGE="notarize-cli"
             run_stage
             STAGE="sign-app"
             run_stage
             STAGE="notarize-app"
+            run_stage
+            STAGE="build-cli"
+            run_stage
+            STAGE="sign-cli"
+            run_stage
+            STAGE="notarize-cli"
             run_stage
             STAGE="finalize"
             run_stage
