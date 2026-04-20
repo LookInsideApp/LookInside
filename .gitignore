@@ -45,3 +45,7 @@ LookInside/DerivedSource/*
 *.swo
 *~
 *.resolved
+
+# Internal planning docs
+superpowers/
+docs/superpowers/
