@@ -48,6 +48,7 @@ run_xcode_build() {
     run_command \
         "xcodebuild scheme=$scheme configuration=$configuration" \
         xcodebuild \
+        -skipMacroValidation \
         -project LookInside.xcodeproj \
         -scheme "$scheme" \
         -configuration "$configuration" \

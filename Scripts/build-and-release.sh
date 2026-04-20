@@ -215,6 +215,7 @@ create_archive() {
         --signing-identity "$identity"
 
     xcodebuild \
+        -skipMacroValidation \
         -project "$PROJECT_FILE" \
         -scheme "$SCHEME" \
         -configuration "$CONFIGURATION" \

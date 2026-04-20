@@ -1,6 +1,15 @@
 {
-  "originHash" : "d7874ad4af3244e162af52c5a67777bc71b99759e978f6f2c918894c457f0575",
+  "originHash" : "5583f0a13b7cb51bcd3bc0f7069181175880f916bf772fb831e3a7cd0bcb4b0f",
   "pins" : [
+    {
+      "identity" : "frameworktoolbox",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Mx-Iris/FrameworkToolbox",
+      "state" : {
+        "revision" : "342b9846c6333700be6f0603b1b827cc90df87c5",
+        "version" : "0.5.1"
+      }
+    },
     {
       "identity" : "swift-argument-parser",
       "kind" : "remoteSourceControl",
@@ -8,6 +17,24 @@
       "state" : {
         "revision" : "626b5b7b2f45e1b0b1c6f4a309296d1d21d7311b",
         "version" : "1.7.1"
+      }
+    },
+    {
+      "identity" : "swift-demangling",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MxIris-Reverse-Engineering/swift-demangling.git",
+      "state" : {
+        "revision" : "6b05bc6013eb695975ecdcdadea2e5b0ad6ca01e",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-syntax.git",
+      "state" : {
+        "revision" : "f99ae8aa18f0cf0d53481901f88a0991dc3bd4a2",
+        "version" : "601.0.1"
       }
     }
   ],

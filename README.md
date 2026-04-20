@@ -42,7 +42,7 @@ swift build -c debug --product lookinside
 
 ```bash
 bash Scripts/sync-derived-source.sh
-xcodebuild -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build
+xcodebuild -skipMacroValidation -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
 The sync step refreshes the app's mirrored shared sources from [`Sources/`](Sources/) into [`LookInside/DerivedSource`](LookInside/DerivedSource).

@@ -48,7 +48,7 @@ swift build -c debug --product lookinside
 ### App workspace
 
 ```bash
-xcodebuild -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build
+xcodebuild -skipMacroValidation -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
 ## Release Expectations
@@ -66,7 +66,7 @@ Before calling a release-ready change complete:
 1. Run `bash Scripts/sync-derived-source.sh`.
 2. Run `swift build`.
 3. Run `swift build -c debug --product lookinside`.
-4. Run `xcodebuild -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build`.
+4. Run `xcodebuild -skipMacroValidation -project LookInside.xcodeproj -scheme LookInside -configuration Debug -derivedDataPath /tmp/LookInsideDerivedData CODE_SIGNING_ALLOWED=NO build`.
 5. Confirm `bash Scripts/test.sh` matches the current workspace/scheme paths, then run it.
 6. Smoke-check that the app launches, opens a target, and exports a hierarchy archive.
 7. Confirm README and dependency declarations match the actual workspace state.

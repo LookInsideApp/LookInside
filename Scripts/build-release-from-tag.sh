@@ -276,6 +276,7 @@ archive_app_unsigned() {
 
     log "Archiving app without Xcode signing"
     xcodebuild \
+        -skipMacroValidation \
         -project "$PROJECT_FILE" \
         -scheme "$SCHEME" \
         -configuration "$CONFIGURATION" \

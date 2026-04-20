@@ -7,35 +7,17 @@
 //
 
 import Foundation
+import Demangling
 
 public class LKSwiftDemangler: NSObject {
     private static var simpleCache: [String: String] = [:]
     private static var completedCache: [String: String] = [:]
 
-    @_silgen_name("swift_demangle")
-    private static func runtimeDemangle(
-        _ mangledName: UnsafePointer<UInt8>?,
-        _ mangledNameLength: UInt,
-        _ outputBuffer: UnsafeMutablePointer<UInt8>?,
-        _ outputBufferSize: UnsafeMutablePointer<Int>?,
-        _ flags: UInt32
-    ) -> UnsafeMutablePointer<Int8>?
-
     private static func demangle(_ input: String) -> String? {
-        guard !input.isEmpty else {
+        guard input.isSwiftSymbol else {
             return nil
         }
-        return input.utf8CString.withUnsafeBufferPointer { buffer in
-            guard let baseAddress = buffer.baseAddress else {
-                return nil
-            }
-            let mangledName = UnsafeRawPointer(baseAddress).assumingMemoryBound(to: UInt8.self)
-            guard let demangled = runtimeDemangle(mangledName, UInt(buffer.count - 1), nil, nil, 0) else {
-                return nil
-            }
-            defer { free(demangled) }
-            return String(cString: demangled)
-        }
+        return try? demangleAsNode(input).print(using: .default)
     }
 
     private static func simplify(_ demangled: String) -> String {

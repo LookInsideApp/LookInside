@@ -10,6 +10,7 @@
 		50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1CAA3D22E471EC006D9285 /* Security.framework */; };
 		50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9517A22C3AECA00A5F958 /* Quartz.framework */; };
 		50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */; };
+		E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0C2F97B1B100600001 /* Demangling */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -618,6 +619,7 @@
 				50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */,
 				50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */,
 				50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */,
+				E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -668,6 +670,9 @@
 			dependencies = (
 			);
 			name = LookInside;
+			packageProductDependencies = (
+				E37B8D0C2F97B1B100600001 /* Demangling */,
+			);
 			productName = Lookin;
 			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
 			productType = "com.apple.product-type.application";
@@ -707,6 +712,7 @@
 			);
 			mainGroup = AA48F29221CC0CA50032EC2C;
 			packageReferences = (
+				E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */,
 			);
 			preferredProjectObjectVersion = 50;
 			productRefGroup = AA48F29C21CC0CA50032EC2C /* Products */;
@@ -1052,6 +1058,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MxIris-Reverse-Engineering/swift-demangling.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E37B8D0C2F97B1B100600001 /* Demangling */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */;
+			productName = Demangling;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AA48F29321CC0CA50032EC2C /* Project object */;
 }
