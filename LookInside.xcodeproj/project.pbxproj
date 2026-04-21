@@ -294,6 +294,7 @@
 				Static/Preview/LKPreviewView.m,
 				SwiftUISupport/LKSwiftUISupportGatekeeper.swift,
 				SwiftUISupport/LKSwiftUISupportInstaller.swift,
+				SwiftUISupport/LKSwiftUISupportLogger.swift,
 				Toolbar/LKMenuPopoverAppsListController.m,
 				Toolbar/LKMenuPopoverSettingController.m,
 				Toolbar/LKWindowToolbarAppButton.m,

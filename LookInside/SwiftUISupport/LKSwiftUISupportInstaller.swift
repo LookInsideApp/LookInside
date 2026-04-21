@@ -52,6 +52,7 @@ enum LKSwiftUISupportInstallerLayout {
 
     static let downloadURL = URL(string: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/lookinside-auth-server.app.zip")!
     static let checksumURL = URL(string: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/lookinside-auth-server.app.zip.sha256")!
+    static let versionURL = URL(string: "https://github.com/LookInsideApp/LookInsideExtra-Shim/releases/download/storage/lookinside-auth-server.app.zip.version")!
 
     static var installedAppURL: URL {
         FileManager.default.homeDirectoryForCurrentUser
@@ -74,26 +75,122 @@ enum LKSwiftUISupportInstallerLayout {
     static var isInstalled: Bool {
         FileManager.default.isExecutableFile(atPath: installedExecutableURL.path)
     }
+
+    static var installedInfoPlistURL: URL {
+        installedAppURL
+            .appendingPathComponent("Contents", isDirectory: true)
+            .appendingPathComponent("Info.plist", isDirectory: false)
+    }
 }
 
 final class LKSwiftUISupportInstaller {
     static let shared = LKSwiftUISupportInstaller()
 
     private let installLock = NSLock()
+    private let cacheLock = NSLock()
+    private var cachedPublishedVersion: String?
 
     func ensureInstalled(presentingWindow: NSWindow?) throws {
         if LKSwiftUISupportInstallerLayout.isInstalled {
+            let installed = installedHelperVersion()
+            let published = fetchPublishedVersion()
+            if let published, let installed, published != installed {
+                LKSwiftUISupportLogger.installer.notice(
+                    "installed helper is stale installed=\(installed, privacy: .public) published=\(published, privacy: .public) action=refresh"
+                )
+                invalidate()
+                try runInstallWithModal(presentingWindow: presentingWindow)
+                return
+            }
+            if published == nil {
+                LKSwiftUISupportLogger.installer.warning(
+                    "published version unavailable; keeping cached helper installed=\(installed ?? "unknown", privacy: .public)"
+                )
+            }
             try verifyTeamIdentifier(of: LKSwiftUISupportInstallerLayout.installedAppURL)
             return
         }
         try runInstallWithModal(presentingWindow: presentingWindow)
     }
 
+    func installedHelperVersion() -> String? {
+        let plistURL = LKSwiftUISupportInstallerLayout.installedInfoPlistURL
+        guard FileManager.default.fileExists(atPath: plistURL.path),
+              let data = try? Data(contentsOf: plistURL),
+              let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+              let value = plist["CFBundleShortVersionString"] as? String,
+              value.isEmpty == false else {
+            return nil
+        }
+        return value
+    }
+
+    func fetchPublishedVersion() -> String? {
+        if let cached = cacheLock.lkLock({ cachedPublishedVersion }) {
+            return cached
+        }
+        var capturedVersion: String?
+        let semaphore = DispatchSemaphore(value: 0)
+        var request = URLRequest(url: LKSwiftUISupportInstallerLayout.versionURL)
+        request.timeoutInterval = 5
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer { semaphore.signal() }
+            if let error {
+                LKSwiftUISupportLogger.installer.warning(
+                    "version fetch failed: \(error.localizedDescription, privacy: .public)"
+                )
+                return
+            }
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode),
+                  let data else {
+                let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+                LKSwiftUISupportLogger.installer.warning(
+                    "version fetch returned status=\(status)"
+                )
+                return
+            }
+            let trimmed = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            capturedVersion = (trimmed?.isEmpty == false) ? trimmed : nil
+        }
+        task.resume()
+        _ = semaphore.wait(timeout: .now() + 6)
+        if let capturedVersion {
+            cacheLock.lkLock { cachedPublishedVersion = capturedVersion }
+        }
+        return capturedVersion
+    }
+
+    func invalidatePublishedVersionCache() {
+        cacheLock.lkLock { cachedPublishedVersion = nil }
+    }
+
+    func invalidate() {
+        invalidatePublishedVersionCache()
+        let url = LKSwiftUISupportInstallerLayout.installedAppURL
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+                LKSwiftUISupportLogger.installer.info(
+                    "invalidated cached helper at \(url.path, privacy: .public)"
+                )
+            }
+        } catch {
+            LKSwiftUISupportLogger.installer.error(
+                "invalidate failed: \(error.localizedDescription, privacy: .public)"
+            )
+        }
+    }
+
     func verifyTeamIdentifier(of appURL: URL) throws {
         let helperTeamID = try Self.teamIdentifier(atPath: appURL.path)
         let hostTeamID = try? Self.teamIdentifier(atPath: Bundle.main.bundlePath)
         guard let hostTeamID, hostTeamID.isEmpty == false else {
-            NSLog("LookInside: host has no Team Identifier; skipping helper Team Identifier check (dev build).")
+            LKSwiftUISupportLogger.installer.info(
+                "host has no Team Identifier; skipping helper Team Identifier check (dev build)"
+            )
             return
         }
         guard hostTeamID == helperTeamID else {
