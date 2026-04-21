@@ -679,7 +679,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 2640;
-				LastUpgradeCheck = 2630;
+				LastUpgradeCheck = 2640;
 				ORGANIZATIONNAME = hughkli;
 				TargetAttributes = {
 					AA48F29A21CC0CA50032EC2C = {
@@ -875,6 +875,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				WARNING_CFLAGS = (
 					"$(inherited)",
@@ -888,7 +889,6 @@
 			baseConfigurationReferenceAnchor = 5011BBAE2F9754F0002DA475 /* Configuration */;
 			baseConfigurationReferenceRelativePath = Development.xcconfig;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = NO;
@@ -962,7 +962,6 @@
 			baseConfigurationReferenceAnchor = 5011BBAE2F9754F0002DA475 /* Configuration */;
 			baseConfigurationReferenceRelativePath = Release.xcconfig;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				AUTOMATION_APPLE_EVENTS = NO;
