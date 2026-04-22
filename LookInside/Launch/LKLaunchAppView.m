@@ -138,10 +138,13 @@
         
         if (app.serverVersionError.code == LookinErrCode_ServerVersionTooLow) {
             self.errorTitleLabel.stringValue = NSLocalizedString(@"The version of LookinServer linked with this iOS App is too low.", nil);
-            
+
         } else if (app.serverVersionError.code == LookinErrCode_ServerVersionTooHigh) {
             self.errorTitleLabel.stringValue = NSLocalizedString(@"Unable to inspect this iOS App. Current version of LookInside app is too low.", nil);
-            
+
+        } else if (app.serverVersionError.code == LookinErrCode_LicenseRequired) {
+            self.errorTitleLabel.stringValue = NSLocalizedString(@"LookInside license verification is required to inspect this app.", nil);
+
         } else {
             self.errorTitleLabel.stringValue = @"Unknown Error";
             NSAssert(NO, @"");
