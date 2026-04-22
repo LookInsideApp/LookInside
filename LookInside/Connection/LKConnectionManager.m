@@ -14,6 +14,7 @@
 #import "LookinAppInfo.h"
 #import "LKConnectionRequest.h"
 #import "LKServerVersionRequestor.h"
+#import "LookInside-Swift.h"
 
 static NSIndexSet * PushFrameTypeList(void) {
     static NSIndexSet *list;
@@ -30,6 +31,11 @@ static NSIndexSet * PushFrameTypeList(void) {
 /// 已经发送但尚未收到全部回复的请求
 @property(nonatomic, strong) NSMutableSet<LKConnectionRequest *> *activeRequests;
 
+/// YES once the license handshake has succeeded on this channel. Reset on
+/// channel end. Consulted by `requestWithType:data:channel:` before dispatching
+/// a non-exempt request.
+@property(nonatomic, assign) BOOL isLicenseVerified;
+
 @end
 
 @implementation Lookin_PTChannel (LKConnection)
@@ -40,6 +46,14 @@ static NSIndexSet * PushFrameTypeList(void) {
 
 - (NSMutableSet<LKConnectionRequest *> *)activeRequests {
     return [self lookin_getBindObjectForKey:@"activeRequest"];
+}
+
+- (void)setIsLicenseVerified:(BOOL)isLicenseVerified {
+    [self lookin_bindObject:@(isLicenseVerified) forKey:@"isLicenseVerified"];
+}
+
+- (BOOL)isLicenseVerified {
+    return [[self lookin_getBindObjectForKey:@"isLicenseVerified"] boolValue];
 }
 
 @end
@@ -326,8 +340,10 @@ static NSIndexSet * PushFrameTypeList(void) {
             if (versionErr) {
                 // LookinServer 版本有问题
                 [subscriber sendError:versionErr];
-            } else {
-                // 没问题，开始发真正请求
+                return;
+            }
+
+            void (^dispatchRealRequest)(void) = ^{
                 [self _requestWithType:requestType channel:channel data:requestData timeoutInterval:5 succ:^(id responseData) {
                     RACTuple *tupleResult = [RACTuple tupleWithObjects:responseData, channel, nil];
                     [subscriber sendNext:tupleResult];
@@ -336,15 +352,85 @@ static NSIndexSet * PushFrameTypeList(void) {
                 } completion:^{
                     [subscriber sendCompleted];
                 }];
+            };
+
+            if (channel.isLicenseVerified) {
+                dispatchRealRequest();
+                return;
             }
-            
+
+            [self _performLicenseHandshakeOnChannel:channel succ:^{
+                dispatchRealRequest();
+            } fail:^(NSError *error) {
+                [subscriber sendError:error];
+            }];
+
         } fail:^(NSError *error) {
             // ping 失败了
             [subscriber sendError:error];
-            
+
         } completion:nil];
         return nil;
     }];
+}
+
+- (void)_performLicenseHandshakeOnChannel:(Lookin_PTChannel *)channel
+                                     succ:(void (^)(void))succBlock
+                                     fail:(void (^)(NSError *error))failBlock {
+    [self _requestWithType:LookinRequestTypeLicenseChallenge channel:channel data:nil timeoutInterval:5 succ:^(LookinConnectionResponseAttachment *challengeAttachment) {
+        NSDictionary *challenge = [challengeAttachment.data isKindOfClass:[NSDictionary class]] ? (NSDictionary *)challengeAttachment.data : nil;
+        NSData *nonce = [challenge[@"nonce"] isKindOfClass:[NSData class]] ? challenge[@"nonce"] : nil;
+        NSString *serverID = [challenge[@"server_instance_id"] isKindOfClass:[NSString class]] ? challenge[@"server_instance_id"] : nil;
+        if (nonce.length != 32 || serverID.length == 0) {
+            if (failBlock) {
+                failBlock([NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Inner userInfo:@{NSLocalizedDescriptionKey:NSLocalizedString(@"License challenge payload is malformed.", nil)}]);
+            }
+            return;
+        }
+
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+            NSError *signError = nil;
+            NSData *signature = nil;
+            NSData *intermediateCertDER = nil;
+            NSString *udid = nil;
+            BOOL ok = [[LKSwiftUISupportGatekeeper sharedInstance]
+                signChallengeWithNonce:nonce
+                      serverInstanceID:serverID
+                             signature:&signature
+                   intermediateCertDER:&intermediateCertDER
+                                  udid:&udid
+                                 error:&signError];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (!ok || signature.length == 0 || intermediateCertDER.length == 0) {
+                    NSString *detail = signError.localizedDescription ?: NSLocalizedString(@"License signing failed.", nil);
+                    NSError *reportedError = [NSError errorWithDomain:LookinErrorDomain
+                                                                 code:LookinErrCode_LicenseRequired
+                                                             userInfo:@{
+                                                                 NSLocalizedDescriptionKey: NSLocalizedString(@"LookInside license verification failed.", nil),
+                                                                 NSLocalizedRecoverySuggestionErrorKey: detail,
+                                                             }];
+                    if (failBlock) failBlock(reportedError);
+                    return;
+                }
+
+                NSDictionary *verifyPayload = @{
+                    @"nonce":                 nonce,
+                    @"server_instance_id":    serverID,
+                    @"signature":             signature,
+                    @"intermediate_cert_der": intermediateCertDER,
+                    @"udid":                  udid ?: @"",
+                };
+                [self _requestWithType:LookinRequestTypeLicenseVerify channel:channel data:verifyPayload timeoutInterval:5 succ:^(id verifyResponse) {
+                    channel.isLicenseVerified = YES;
+                    if (succBlock) succBlock();
+                } fail:^(NSError *verifyError) {
+                    if (failBlock) failBlock(verifyError);
+                } completion:nil];
+            });
+        });
+    } fail:^(NSError *challengeError) {
+        if (failBlock) failBlock(challengeError);
+    } completion:nil];
 }
 
 - (NSError *)_checkServerVersionWithResponse:(LookinConnectionResponseAttachment *)pingResponse {

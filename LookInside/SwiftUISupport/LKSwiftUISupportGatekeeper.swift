@@ -52,6 +52,28 @@ private struct LKSwiftUISupportClientProcessPayload: Encodable {
     }
 }
 
+private struct LKSwiftUISupportSignChallengeRequestPayload: Encodable {
+    let nonce: String
+    let serverInstanceID: String
+
+    private enum CodingKeys: String, CodingKey {
+        case nonce
+        case serverInstanceID = "server_instance_id"
+    }
+}
+
+private struct LKSwiftUISupportSignChallengeResponsePayload: Decodable {
+    let signature: String
+    let intermediateCertDER: String
+    let udid: String
+
+    private enum CodingKeys: String, CodingKey {
+        case signature
+        case intermediateCertDER = "intermediate_cert_der"
+        case udid
+    }
+}
+
 private struct LKSwiftUISupportAuthServerRequestEnvelope<Payload: Encodable>: Encodable {
     let protocolVersion: Int
     let requestID: String
@@ -372,6 +394,31 @@ private final class LKSwiftUISupportAuthServerBridge {
         } catch {
             presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
         }
+    }
+
+    func signChallenge(
+        nonce: Data,
+        serverInstanceID: String
+    ) throws -> (signature: Data, intermediateCertDER: Data, udid: String) {
+        let installation = try ensureInstalledAndRunning(window: nil)
+        let nonceHex = nonce.map { String(format: "%02x", $0) }.joined()
+        let response = try sendRequest(
+            method: "license.sign_challenge",
+            payload: LKSwiftUISupportSignChallengeRequestPayload(
+                nonce: nonceHex,
+                serverInstanceID: serverInstanceID
+            ),
+            installation: installation,
+            responseType: LKSwiftUISupportSignChallengeResponsePayload.self
+        )
+        guard let payload = response.payload else {
+            throw LKSwiftUISupportAuthServerError.invalidResponse("Missing sign-challenge payload.")
+        }
+        guard let signature = Data(base64Encoded: payload.signature),
+              let intermediateDER = Data(base64Encoded: payload.intermediateCertDER) else {
+            throw LKSwiftUISupportAuthServerError.invalidResponse("Sign-challenge payload base64 decode failed.")
+        }
+        return (signature, intermediateDER, payload.udid)
     }
 
     func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
@@ -879,5 +926,28 @@ public final class LKSwiftUISupportGatekeeper: NSObject {
 
     @objc public func refreshActivationStateInBackground() {
         runtimeBridge.refreshActivationStateInBackground()
+    }
+
+    /// Requests a signature over `nonce || server_instance_id.utf8` from the
+    /// local Auth helper. On success writes the RSA-PKCS1v15-SHA256 signature
+    /// to `signatureOut`, the DER-encoded intermediate certificate to
+    /// `intermediateCertDEROut`, and the device UDID to `udidOut`. Returns
+    /// `NO` and populates `error` on any failure (no helper, socket error,
+    /// license not activated, signing failed, etc.).
+    @objc(signChallengeWithNonce:serverInstanceID:signature:intermediateCertDER:udid:error:)
+    public func signChallenge(
+        nonce: Data,
+        serverInstanceID: String,
+        signature signatureOut: AutoreleasingUnsafeMutablePointer<NSData?>,
+        intermediateCertDER intermediateCertDEROut: AutoreleasingUnsafeMutablePointer<NSData?>,
+        udid udidOut: AutoreleasingUnsafeMutablePointer<NSString?>
+    ) throws {
+        let result = try runtimeBridge.signChallenge(
+            nonce: nonce,
+            serverInstanceID: serverInstanceID
+        )
+        signatureOut.pointee = result.signature as NSData
+        intermediateCertDEROut.pointee = result.intermediateCertDER as NSData
+        udidOut.pointee = result.udid as NSString
     }
 }

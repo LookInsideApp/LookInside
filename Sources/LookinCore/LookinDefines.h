@@ -20,18 +20,18 @@
 #pragma mark - Version
 
 /// current connection protocol version of LookinServer
-static const int LOOKIN_SERVER_VERSION = 7;
+static const int LOOKIN_SERVER_VERSION = 8;
 
 /// current release version of LookinServer
-static NSString * const LOOKIN_SERVER_READABLE_VERSION = @"1.2.8";
+static NSString * const LOOKIN_SERVER_READABLE_VERSION = @"1.3.0";
 
 /// current connection protocol version of LookinClient
-static const int LOOKIN_CLIENT_VERSION = 7;
+static const int LOOKIN_CLIENT_VERSION = 8;
 
 /// the minimum connection protocol version supported by current LookinClient
-static const int LOOKIN_SUPPORTED_SERVER_MIN = 7;
+static const int LOOKIN_SUPPORTED_SERVER_MIN = 8;
 /// the maximum connection protocol version supported by current LookinClient
-static const int LOOKIN_SUPPORTED_SERVER_MAX = 7;
+static const int LOOKIN_SUPPORTED_SERVER_MAX = 8;
 
 #pragma mark - Connection
 
@@ -80,7 +80,12 @@ enum {
     
     /// 请求修改某个自定义 Attribute 的值
     LookinRequestTypeCustomAttrModification = 214,
-    
+
+    /// License 握手：Server → Host 发起 challenge（返回 nonce + server_instance_id）
+    LookinRequestTypeLicenseChallenge = 220,
+    /// License 握手：Host → Server 提交签名 + 中间证书供校验
+    LookinRequestTypeLicenseVerify = 221,
+
     /// 从 LookinServer 1.2.7 & Lookin 1.0.7 开始，该属性被废弃、不再使用
     LookinPush_BringForwardScreenshotTask = 303,
     
@@ -123,6 +128,9 @@ enum {
     LookinErrCode_ModifyValueTypeInvalid = -501,
     LookinErrCode_Exception = -502,
     
+    /// License 校验失败，Host 未激活 LookInside 许可证
+    LookinErrCode_LicenseRequired = -408,
+
     // LookinServer 版本过高，要升级 client
     LookinErrCode_ServerVersionTooHigh = -600,
     // LookinServer 版本过低，要升级 server

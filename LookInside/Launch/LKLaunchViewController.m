@@ -16,6 +16,7 @@
 #import "LKPreferenceManager.h"
 #import "LKTextControl.h"
 #import "LKPerformanceReporter.h"
+#import "LookInside-Swift.h"
 
 @interface LKLaunchViewController () <NSGestureRecognizerDelegate>
 
@@ -127,10 +128,12 @@
     if (view.app.serverVersionError) {
         if (view.app.serverVersionError.code == LookinErrCode_ServerVersionTooLow) {
             [LKHelper openLookinWebsiteWithPath:@"faq/server-version-too-low/"];
+        } else if (view.app.serverVersionError.code == LookinErrCode_LicenseRequired) {
+            [[LKSwiftUISupportGatekeeper sharedInstance] showLicenseWindow];
         } else {
             [LKHelper openLookinWebsiteWithPath:@"faq/server-version-too-high/"];
         }
-        
+
     } else {
         [self.bottomIndicatorView animateToProgress:.8 duration:1];
         
