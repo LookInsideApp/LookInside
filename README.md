@@ -1,49 +1,32 @@
 # LookInside
 
-A macOS UI inspector for debuggable macOS and iOS apps. Click a view, see its layer tree, frames, and resolved properties live.
+LookInside is a Mac app that lets you click through your iOS or macOS app UI and see every view, layer, frame, and property live.
 
 ![Preview](./Resources/SCR-20260502-svqx.jpeg)
 
-- Website · [lookinside-app.com](https://lookinside-app.com)
-- Swift Package · [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release)
+- Website: [lookinside-app.com](https://lookinside-app.com)
+- Server package: [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release)
 
-LookInside is a community continuation of [Lookin](https://lookin.work/).
+LookInside continues the work of [Lookin](https://lookin.work/), the original iOS view debugger.
 
----
+## Use it
 
-## How it works (at a glance)
+1. Download LookInside from the [Releases page](https://github.com/LookInsideApp/LookInside/releases).
+2. Add the server package to the app you want to inspect.
+3. Run your app.
+4. Open LookInside on your Mac and pick the running app.
 
-```
-┌────────────┐    Peertalk over TCP loopback / USB    ┌───────────────┐
-│ LookInside │ ◄────── 47164–47179 (per platform) ──► │  Your app     │
-│  (macOS)   │       NSKeyedArchiver framing          │ + LookinServer│
-└────────────┘                                        └───────────────┘
-```
+## What you can inspect
 
-1. You embed [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release) into the app you want to inspect (debug builds only).
-2. You launch LookInside on your Mac.
-3. LookInside auto-discovers running targets — macOS apps, iOS Simulator apps, USB-connected iOS devices.
-4. You click into the live view hierarchy.
+- UIKit, AppKit, and SwiftUI view trees
+- Frames, layers, screenshots, and resolved properties
+- SwiftUI modifiers and layout details
+- Live property changes while your app is running
 
----
+## Add the server package
 
-## Get started
-
-### 1. Install
-
-Grab a notarized build from the [Releases page](https://github.com/LookInsideApp/LookInside/releases).
-
-### 2. Embed the server in your app
-
-See [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release) for the SwiftPM / CocoaPods integration. It only links into debug configurations and is wire-compatible with upstream Lookin.
-
-### 3. Run and inspect
-
-Launch LookInside, run your debug build, pick the target from the sidebar.
-
----
+Use [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release) with Swift Package Manager or CocoaPods.
 
 ## License
 
-GPL-3.0 — see [`LICENSE`](LICENSE).
-
+GPL-3.0. See [`LICENSE`](LICENSE).

@@ -1,7 +1,7 @@
 # DerivedSource
 
-Do not edit files in this folder manually.
+This folder is generated.
 
-The `LookinCore` and `LookinServerBase` contents are overwritten by `Scripts/sync-derived-source.sh` before building the app target.
+`Scripts/sync-derived-source.sh` copies `LookinCore` and `LookinServerBase` here before the app builds.
 
-Make source changes in `/Sources` instead.
+Edit the source files under `/Sources`.
