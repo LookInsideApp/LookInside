@@ -17,6 +17,9 @@
 #import "NSString+Score.h"
 #import "LookinDashboardBlueprint.h"
 #import "LKPreferenceManager.h"
+#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
+#import "LookinLiveDocument.h"
 
 @interface AppDelegate ()
 
@@ -55,8 +58,58 @@
 
 #ifdef DEBUG
     [self _runTests];
+    [self _lk_installLiveDocDebugMenu];
 #endif
 }
+
+#ifdef DEBUG
+
+#pragma mark - Phase B Debug 后门
+
+/// Phase B 临时菜单:Debug > Open Live Doc for Inspecting App。
+/// 验收 LookinLiveDocument 能在不接连接流的前提下单独 spawn 一个窗口。
+/// Phase D 完成连接流改造后,本菜单连同 -[_lk_debugOpenLiveDoc:] 一起删掉。
+- (void)_lk_installLiveDocDebugMenu {
+    NSMenu *mainMenu = NSApp.mainMenu;
+    if (!mainMenu) {
+        return;
+    }
+    NSMenuItem *debugRoot = [[NSMenuItem alloc] init];
+    debugRoot.title = @"Debug";
+    NSMenu *debugMenu = [[NSMenu alloc] initWithTitle:@"Debug"];
+    debugRoot.submenu = debugMenu;
+    [mainMenu addItem:debugRoot];
+
+    NSMenuItem *openLiveDocItem = [[NSMenuItem alloc] initWithTitle:@"Open Live Doc for Inspecting App"
+                                                             action:@selector(_lk_debugOpenLiveDoc:)
+                                                      keyEquivalent:@""];
+    openLiveDocItem.target = self;
+    [debugMenu addItem:openLiveDocItem];
+}
+
+- (void)_lk_debugOpenLiveDoc:(id)sender {
+    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+    if (!app) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = @"No inspecting app";
+        alert.informativeText = @"Connect a target via the Launch window first, then try again.";
+        [alert runModal];
+        return;
+    }
+    NSError *error = nil;
+    LookinLiveDocument *doc = [[LookinLiveDocument alloc] initWithInspectableApp:app error:&error];
+    if (!doc) {
+        if (error) {
+            [NSApp presentError:error];
+        }
+        return;
+    }
+    [[NSDocumentController sharedDocumentController] addDocument:doc];
+    [doc makeWindowControllers];
+    [doc showWindows];
+}
+
+#endif
 
 - (void)_lk_installActivationStateObserverExample {
     LKSwiftUISupportGatekeeper *gatekeeper = [LKSwiftUISupportGatekeeper sharedInstance];

@@ -30,6 +30,11 @@
 /// 多 LookinLiveDocument 引入后该方法被废弃(Phase F 删除)。
 + (instancetype)singletonForLegacy;
 
+/// Phase B 引入:Live Doc 创建 windowController 时使用,在标准 -init 之上把
+/// inspectableApp 注入到本 controller 与其 asyncUpdateManager 上,这样后续
+/// 所有 RPC 调用都通过该 app(而不是回退到 LKAppsManager.inspectingApp)。
+- (instancetype)initWithInspectableApp:(LKInspectableApp *)app;
+
 - (void)popupAllInspectableAppsWithSource:(MenuPopoverAppsListControllerEventSource)source;
 
 @end

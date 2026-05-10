@@ -24,6 +24,16 @@
 			<key>NSDocumentClass</key>
 			<string>LookinDocument</string>
 		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>LookInside Live Inspection</string>
+			<key>CFBundleTypeRole</key>
+			<string>None</string>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSDocumentClass</key>
+			<string>LookinLiveDocument</string>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>

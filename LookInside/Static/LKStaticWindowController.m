@@ -56,6 +56,17 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
     return sLegacySingletonStaticWindowController;
 }
 
+- (instancetype)initWithInspectableApp:(LKInspectableApp *)app {
+    if (self = [self init]) {
+        // Phase B: 由 LookinLiveDocument 调用,把 app 注入到本 wc 与其 asyncUpdateManager,
+        // 这样所有 RPC 请求(reload、modify 等)都路由到该 app 的 channel,而不是回退
+        // 到 LKAppsManager.inspectingApp。Phase D 完成后,LKAppsManager.inspectingApp 会被废弃。
+        self.inspectableApp = app;
+        self.asyncUpdateManager.inspectableApp = app;
+    }
+    return self;
+}
+
 - (instancetype)init {
     NSSize screenSize = [NSScreen mainScreen].frame.size;
     LKWindow *window = [[LKWindow alloc] initWithContentRect:NSMakeRect(0, 0, screenSize.width * .7, screenSize.height * .7) styleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable|NSWindowStyleMaskFullSizeContentView backing:NSBackingStoreBuffered defer:YES];
