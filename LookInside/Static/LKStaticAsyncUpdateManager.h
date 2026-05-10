@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class LookinDisplayItem, LookinStaticDisplayItem;
+@class LookinDisplayItem, LookinStaticDisplayItem, LKStaticHierarchyDataSource, LKInspectableApp;
 
 @protocol LKStaticAsyncUpdateManagerDelegate <NSObject>
 
@@ -22,6 +22,17 @@
 @interface LKStaticAsyncUpdateManager : NSObject
 
 + (instancetype)sharedInstance;
+
+/// Phase A 引入的实例化构造方法。注入 owner 链上的 dataSource 与当前 inspectable app。
+/// `app` 在 Phase A 阶段允许传 nil(继续读 LKAppsManager.inspectingApp 兜底)。
+- (instancetype)initWithHierarchyDataSource:(LKStaticHierarchyDataSource *)dataSource
+                             inspectableApp:(LKInspectableApp *)app;
+
+/// 由 owner(window controller / live doc)注入的 hierarchy data source(weak,owner 持强引用)。
+@property(nonatomic, weak) LKStaticHierarchyDataSource *hierarchyDataSource;
+
+/// 由 owner 注入的 inspectable app(weak)。Phase A 阶段允许 nil,内部 fallback 到 LKAppsManager.inspectingApp。
+@property(nonatomic, weak) LKInspectableApp *inspectableApp;
 
 @property(nonatomic, weak) id<LKStaticAsyncUpdateManagerDelegate> delegate;
 

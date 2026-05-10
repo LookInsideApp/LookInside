@@ -40,9 +40,21 @@
 @property(nonatomic, assign) BOOL isFetchingHierarchy;
 @property(nonatomic, assign) BOOL isFetchingDetails;
 
+@property(nonatomic, strong, readwrite) LKStaticHierarchyDataSource *hierarchyDataSource;
+@property(nonatomic, strong, readwrite) LKStaticAsyncUpdateManager *asyncUpdateManager;
+
 @end
 
+/// Phase A 引入:跟踪当前唯一的 LKStaticWindowController 实例,
+/// 用于 LKStaticHierarchyDataSource / LKStaticAsyncUpdateManager 的 +sharedInstance fallback。
+/// __weak 避免成为持有环。
+static __weak LKStaticWindowController *sLegacySingletonStaticWindowController = nil;
+
 @implementation LKStaticWindowController
+
++ (instancetype)singletonForLegacy {
+    return sLegacySingletonStaticWindowController;
+}
 
 - (instancetype)init {
     NSSize screenSize = [NSScreen mainScreen].frame.size;
@@ -57,27 +69,38 @@
     [window setFrameUsingName:LKWindowSizeName_Static];
     
     if (self = [self initWithWindow:window]) {
+        // Phase A: 在创建 viewController 之前先 new 自己的 dataSource + updateManager,
+        // 并把当前实例登记为 legacy singleton,这样此后 +sharedInstance 调用都会拿到这套实例。
+        sLegacySingletonStaticWindowController = self;
+        _hierarchyDataSource = [[LKStaticHierarchyDataSource alloc] init];
+        _asyncUpdateManager = [[LKStaticAsyncUpdateManager alloc] initWithHierarchyDataSource:_hierarchyDataSource
+                                                                                inspectableApp:nil];
+        _hierarchyDataSource.asyncUpdateManager = _asyncUpdateManager;
+
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleInspectingAppDidEnd:) name:LKInspectingAppDidEndNotificationName object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(_handleSwiftUIModeDidChange:)
                                                      name:LKSwiftUIHierarchyDisplayModeDidChangeNotification
                                                    object:nil];
-        
+
         _viewController = [[LKStaticViewController alloc] init];
+        // Phase A: 在 viewController.view 第一次被访问之前注入 per-instance 引用,
+        // 这样 -setView: 内部对 hierarchyDataSource / asyncUpdateManager 的读取就能拿到正确的实例。
+        _viewController.hierarchyDataSource = _hierarchyDataSource;
+        _viewController.asyncUpdateManager = _asyncUpdateManager;
         window.contentView = self.viewController.view;
         self.contentViewController = self.viewController;
-        
+
         NSToolbar *toolbar = [[NSToolbar alloc] init];
         toolbar.displayMode = NSToolbarDisplayModeIconAndLabel;
         toolbar.sizeMode = NSToolbarSizeModeRegular;
         toolbar.delegate = self;
         window.toolbar = toolbar;
-        
+
         NSToolbarItem *reloadItem = self.toolbarItemsMap[LKToolBarIdentifier_Reload];
         @weakify(self);
-        LKStaticAsyncUpdateManager *updateManager = [LKStaticAsyncUpdateManager sharedInstance];
-        updateManager.delegate = self;
-        
+        self.asyncUpdateManager.delegate = self;
+
         [[[RACSignal combineLatest:@[RACObserve(self, isFetchingHierarchy),
                                      RACObserve(self, isFetchingDetails)]] distinctUntilChanged] subscribeNext:^(RACTuple * _Nullable x) {
             @strongify(self);
@@ -93,8 +116,8 @@
         [[RACObserve(self, isFetchingHierarchy) distinctUntilChanged] subscribeNext:^(NSNumber *x) {
             reloadItem.enabled = ![x boolValue];
         }];
-        
-        [RACObserve([LKStaticHierarchyDataSource sharedInstance], selectedItem) subscribeNext:^(id  _Nullable x) {
+
+        [RACObserve(self.hierarchyDataSource, selectedItem) subscribeNext:^(id  _Nullable x) {
             @strongify(self);
             NSButton *measureButton = (NSButton *)self.toolbarItemsMap[LKToolBarIdentifier_Measure].view;
             BOOL canMeasure = !!x;
@@ -260,10 +283,10 @@
 - (void)_handleReload {
     if (self.isFetchingDetails) {
         // 停止拉取
-        [[LKStaticAsyncUpdateManager sharedInstance] endUpdating];
+        [self.asyncUpdateManager endUpdating];
         return;
     }
-    
+
     LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
     if (!app) {
         [self popupAllInspectableAppsWithSource:MenuPopoverAppsListControllerEventSourceReloadButton];
@@ -282,9 +305,9 @@
     @weakify(self);
     [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
         [self.viewController.progressView finishWithCompletion:nil];
-        [[LKStaticHierarchyDataSource sharedInstance] reloadWithHierarchyInfo:info keepState:YES];
+        [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:YES];
         self.isFetchingHierarchy = NO;
-        
+
         [LKPerformanceReporter.sharedInstance didFetchHierarchy];
         
     } error:^(NSError * _Nullable error) {
@@ -427,13 +450,13 @@
     [manager.zInterspace setDoubleValue:newValue ignoreSubscriber:nil];
 }
 
-- (void)appMenuManagerDidSelectExpansionIndex:(NSUInteger)index {    
-    [[LKStaticHierarchyDataSource sharedInstance] adjustExpansionByIndex:index referenceDict:nil selectedItem:nil];
+- (void)appMenuManagerDidSelectExpansionIndex:(NSUInteger)index {
+    [self.hierarchyDataSource adjustExpansionByIndex:index referenceDict:nil selectedItem:nil];
 }
 
 - (void)appMenuManagerDidSelectExport {
     LKExportManager *exportManager = [LKExportManager sharedInstance];
-    LookinHierarchyInfo *hierarchyInfo = [LKStaticHierarchyDataSource sharedInstance].rawHierarchyInfo;
+    LookinHierarchyInfo *hierarchyInfo = self.hierarchyDataSource.rawHierarchyInfo;
     
     __block NSString *fileName;
     __block NSData *exportedData = nil;
@@ -471,7 +494,7 @@
 }
 
 - (void)appMenuManagerDidSelectOpenInNewWindow {
-    LookinHierarchyInfo *newHierarchyInfo = [LKStaticHierarchyDataSource sharedInstance].rawHierarchyInfo.copy;
+    LookinHierarchyInfo *newHierarchyInfo = self.hierarchyDataSource.rawHierarchyInfo.copy;
     LookinHierarchyFile *file = [LookinHierarchyFile new];
     file.serverVersion = newHierarchyInfo.serverVersion;
     file.hierarchyInfo = newHierarchyInfo;
@@ -536,7 +559,7 @@
 - (void)_applyHierarchyInfo:(LookinHierarchyInfo *)info forApp:(LKInspectableApp *)app keepState:(BOOL)keepState {
     [self.viewController.progressView finishWithCompletion:nil];
     [LKAppsManager sharedInstance].inspectingApp = app;
-    [[LKStaticHierarchyDataSource sharedInstance] reloadWithHierarchyInfo:info keepState:keepState];
+    [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:keepState];
 }
 
 - (void)_handleSwiftUIModeDidChange:(NSNotification *)note {
@@ -546,7 +569,7 @@
     }
 
     // Capture pre-fetch selection so we can restore (or migrate) after reload.
-    LookinDisplayItem *priorSelection = [LKStaticHierarchyDataSource sharedInstance].selectedItem;
+    LookinDisplayItem *priorSelection = self.hierarchyDataSource.selectedItem;
     NSString *priorSwiftUIID = priorSelection.customInfo.swiftUIDisplayItemID;
     BOOL priorWasSwiftUI = [priorSwiftUIID hasPrefix:@"swiftui:"];
 
@@ -574,7 +597,7 @@
         return;
     }
 
-    NSArray<LookinDisplayItem *> *flatItems = [LKStaticHierarchyDataSource sharedInstance].displayingFlatItems;
+    NSArray<LookinDisplayItem *> *flatItems = self.hierarchyDataSource.displayingFlatItems;
     LookinDisplayItem *(^findByID)(NSString *) = ^LookinDisplayItem *(NSString *targetID) {
         for (LookinDisplayItem *item in flatItems) {
             if ([item.customInfo.swiftUIDisplayItemID isEqualToString:targetID]) {
@@ -587,7 +610,7 @@
     LookinDisplayItem *match = findByID(priorSelectionID);
     if (match) {
         // ID preserved in new tree — restore exactly.
-        [LKStaticHierarchyDataSource sharedInstance].selectedItem = match;
+        self.hierarchyDataSource.selectedItem = match;
         return;
     }
 
@@ -612,7 +635,7 @@
         }
     }
     if (fallback) {
-        [LKStaticHierarchyDataSource sharedInstance].selectedItem = fallback;
+        self.hierarchyDataSource.selectedItem = fallback;
         [self _showSelectionMigratedToastForItem:fallback];
     }
 }

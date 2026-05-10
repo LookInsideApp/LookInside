@@ -8,13 +8,17 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class LKHierarchyDataSource, LKStaticHierarchyDataSource, LookinAttribute, LKReadHierarchyDataSource, LookinDisplayItem;
+@class LKHierarchyDataSource, LKStaticHierarchyDataSource, LookinAttribute, LKReadHierarchyDataSource, LookinDisplayItem, LKStaticAsyncUpdateManager;
 
 @interface LKDashboardViewController : LKBaseViewController
 
 - (instancetype)initWithStaticDataSource:(LKStaticHierarchyDataSource *)dataSource;
 
 - (instancetype)initWithReadDataSource:(LKReadHierarchyDataSource *)dataSource;
+
+/// Phase A 引入:由 owner(LKStaticViewController)注入的 per-instance update manager(weak)。
+/// Live workspace 触发 modification 时优先用本实例,nil 时回落 +sharedInstance。
+@property(nonatomic, weak) LKStaticAsyncUpdateManager *asyncUpdateManager;
 
 - (LKHierarchyDataSource *)currentDataSource;
 

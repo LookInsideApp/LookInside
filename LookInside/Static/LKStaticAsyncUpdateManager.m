@@ -23,6 +23,7 @@
 #import "LKReloadSingleItemUpdateTaskMaker.h"
 #import "LKReloadItemAndChildrenUpdateTaskMaker.h"
 #import "LookInside-Swift.h"
+#import "LKStaticWindowController.h"
 
 @interface LKDetailUpdateRequest : NSObject
 
@@ -102,24 +103,35 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 + (instancetype)sharedInstance {
+    // Phase A legacy fallback: prefer the update manager owned by the current
+    // LKStaticWindowController so all consumers converge to the same instance.
+    // If no window controller has been instantiated yet, fall back to a lazy
+    // singleton whose lifetime spans the process.
+    LKStaticAsyncUpdateManager *current = [LKStaticWindowController singletonForLegacy].asyncUpdateManager;
+    if (current) {
+        return current;
+    }
     static dispatch_once_t onceToken;
-    static LKStaticAsyncUpdateManager *instance = nil;
+    static LKStaticAsyncUpdateManager *fallbackInstance = nil;
     dispatch_once(&onceToken,^{
-        instance = [[super allocWithZone:NULL] init];
+        fallbackInstance = [[self alloc] init];
     });
-    return instance;
-}
-
-+ (id)allocWithZone:(struct _NSZone *)zone{
-    return [self sharedInstance];
+    return fallbackInstance;
 }
 
 - (instancetype)init {
+    return [self initWithHierarchyDataSource:nil inspectableApp:nil];
+}
+
+- (instancetype)initWithHierarchyDataSource:(LKStaticHierarchyDataSource *)dataSource
+                             inspectableApp:(LKInspectableApp *)app {
     if (self = [super init]) {
+        _hierarchyDataSource = dataSource;
+        _inspectableApp = app;
         self.succeededRequests = [NSMutableArray array];
         _modifyingUpdateProgressSignal = [RACSubject subject];
         _modifyingUpdateErrorSignal = [RACSubject subject];
-        
+
         @weakify(self);
         [[self dataSource].willReloadHierarchyInfo subscribeNext:^(id  _Nullable x) {
             @strongify(self);
@@ -131,8 +143,8 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 
 - (void)updateAll {
     NSAssert(!LKPreferenceManager.mainManager.fastMode.currentBOOLValue, @"");
-    
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+
+    LKInspectableApp *app = [self resolvedInspectableApp];
     if (!app || !self.dataSource.flatItems.count) {
         return;
     }
@@ -151,7 +163,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
     }
     NSLog(@"AsyncUpdate - endUpdating");
     // 这句会触发 sendTasks 方法里的 completed 事件，进而导致 delegate 被通知
-    [InspectingApp cancelHierarchyDetailFetching];
+    [[self resolvedInspectableApp] cancelHierarchyDetailFetching];
 }
 
 - (NSArray<LookinStaticAsyncUpdateTask *> *)makeMaximumTasks {
@@ -261,7 +273,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 - (void)updateAfterModifyingDisplayItem:(LookinDisplayItem *)displayItem {
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+    LKInspectableApp *app = [self resolvedInspectableApp];
     if (!app) {
         return;
     }
@@ -294,7 +306,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
     __block NSUInteger receivedScreenshotsCount = 0;
     [[app fetchModificationPatchWithTasks:tasks] subscribeNext:^(LookinDisplayItemDetail *detail) {
         @strongify(self);
-        [[LKStaticHierarchyDataSource sharedInstance] modifyWithDisplayItemDetail:detail];
+        [self.dataSource modifyWithDisplayItemDetail:detail];
         
         if (detail.groupScreenshot) {
             receivedScreenshotsCount++;
@@ -317,7 +329,11 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 - (LKStaticHierarchyDataSource *)dataSource {
-    return [LKStaticHierarchyDataSource sharedInstance];
+    return self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
+}
+
+- (LKInspectableApp *)resolvedInspectableApp {
+    return self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
 }
 
 - (NSArray<LookinStaticAsyncUpdateTask *> *)makeMinimumTasksForItems:(NSArray<LookinDisplayItem *> *)items {
@@ -373,11 +389,11 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 - (void)updateForDisplayingItems {
     NSAssert(LKPreferenceManager.mainManager.fastMode.currentValue, @"");
 
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+    LKInspectableApp *app = [self resolvedInspectableApp];
     if (!app) {
         return;
     }
-    NSArray *items = [LKStaticHierarchyDataSource sharedInstance].displayingFlatItems;
+    NSArray *items = self.dataSource.displayingFlatItems;
     if (items.count == 0) {
         return;
     }
@@ -389,7 +405,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 - (void)sendTasks:(NSArray<LookinStaticAsyncUpdateTask *> *)newTasks completion:(void (^)(void))completionBlock {
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+    LKInspectableApp *app = [self resolvedInspectableApp];
     if (!app || newTasks.count == 0) {
         return;
     }
@@ -411,7 +427,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
             if (detail.failureCode == -1) {
                 self.ongoingRequest.failedTasksCount += 1;
             } else {
-                [[LKStaticHierarchyDataSource sharedInstance] modifyWithDisplayItemDetail:detail];
+                [self.dataSource modifyWithDisplayItemDetail:detail];
             }
         }];
         self.ongoingRequest.finishedTasksCount += details.count;
@@ -473,7 +489,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 - (void)reloadSingleDisplayItem:(LookinDisplayItem *)item {
-    NSArray *tasks = [LKReloadSingleItemUpdateTaskMaker makeWithItem:item];
+    NSArray *tasks = [LKReloadSingleItemUpdateTaskMaker makeWithItem:item updateManager:self];
     if (tasks.count == 0) {
         return;
     }
@@ -482,7 +498,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 
 - (void)reloadDisplayItemAndChildren:(LookinDisplayItem *)rootItem {
     // 先更新 rootItem 的 basis + attr + subitems
-    NSArray *tasks = [LKReloadItemAndChildrenUpdateTaskMaker makeWithItem:rootItem];
+    NSArray *tasks = [LKReloadItemAndChildrenUpdateTaskMaker makeWithItem:rootItem updateManager:self];
     if (tasks.count == 0) {
         return;
     }

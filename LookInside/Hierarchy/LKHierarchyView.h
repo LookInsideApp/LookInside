@@ -9,7 +9,7 @@
 #import "LKBaseView.h"
 #import "LKHierarchyRowView.h"
 
-@class LKHierarchyView, LKTableView, LKHierarchyDataSource;
+@class LKHierarchyView, LKTableView, LKHierarchyDataSource, LKStaticAsyncUpdateManager;
 
 @protocol LKHierarchyViewDelegate <NSObject>
 
@@ -44,7 +44,11 @@
 @property(nonatomic, strong, readonly) LKTableView *tableView;
 
 @property(nonatomic, strong) LKHierarchyDataSource *dataSource;
-          
+
+/// Phase A 引入:由 owner(LKStaticHierarchyController / LKStaticViewController 链路)注入的 per-instance update manager(weak)。
+/// 若 nil 则 fallback 到 +sharedInstance,以保留 read-only / archive workspace 的 legacy 行为。
+@property(nonatomic, weak) LKStaticAsyncUpdateManager *asyncUpdateManager;
+
 @property(nonatomic, weak) id<LKHierarchyViewDelegate> delegate;
 
 - (void)scrollToMakeItemVisible:(LookinDisplayItem *)item;

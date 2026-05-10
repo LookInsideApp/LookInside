@@ -19,6 +19,7 @@
 #import "LKMessageManager.h"
 #import "LKAppsManager.h"
 #import "LKDanceUIAttrMaker.h"
+#import "LKStaticWindowController.h"
 
 @interface LKStaticHierarchyDataSource ()
 
@@ -30,16 +31,20 @@
 @implementation LKStaticHierarchyDataSource
 
 + (instancetype)sharedInstance {
+    // Phase A legacy fallback: prefer the data source owned by the current
+    // LKStaticWindowController so all consumers converge to the same instance.
+    // If no window controller has been instantiated yet (early launch path),
+    // fall back to a lazy singleton whose lifetime spans the process.
+    LKStaticHierarchyDataSource *current = [LKStaticWindowController singletonForLegacy].hierarchyDataSource;
+    if (current) {
+        return current;
+    }
     static dispatch_once_t onceToken;
-    static LKStaticHierarchyDataSource *instance = nil;
+    static LKStaticHierarchyDataSource *fallbackInstance = nil;
     dispatch_once(&onceToken,^{
-        instance = [[super allocWithZone:NULL] init];
+        fallbackInstance = [[self alloc] init];
     });
-    return instance;
-}
-
-+ (id)allocWithZone:(struct _NSZone *)zone{
-    return [self sharedInstance];
+    return fallbackInstance;
 }
 
 - (instancetype)init {
@@ -73,7 +78,7 @@
 
     BOOL shouldUpdateAll = (LKPreferenceManager.mainManager.fastMode.currentBOOLValue == NO);
     if (shouldUpdateAll) {
-        [[LKStaticAsyncUpdateManager sharedInstance] updateAll];        
+        [(self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance]) updateAll];
     }
 }
 
@@ -176,7 +181,7 @@
 - (void)buildDisplayingFlatItems {
     [super buildDisplayingFlatItems];
     if ([LKPreferenceManager mainManager].fastMode.currentBOOLValue && !self.shouldIgnoreFastModeAutoUpdate) {
-        [[LKStaticAsyncUpdateManager sharedInstance] updateForDisplayingItems];
+        [(self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance]) updateForDisplayingItems];
     }
 }
 

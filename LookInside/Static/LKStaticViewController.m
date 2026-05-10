@@ -66,15 +66,19 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
 
 - (void)setView:(NSView *)view {
     [super setView:view];
-    
+
     LKPreferenceManager *preferenceManager = [LKPreferenceManager mainManager];
     [preferenceManager.measureState subscribe:self action:@selector(_handleMeasureStateChange:) relatedObject:nil];
-    
-    LKStaticHierarchyDataSource *dataSource = [LKStaticHierarchyDataSource sharedInstance];
-    
+
+    // Phase A:优先使用 owner 注入的 per-instance dataSource;
+    // 若 owner 未注入(理论上不应发生),回退到 +sharedInstance 兜底。
+    LKStaticHierarchyDataSource *dataSource = self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
+
     self.hierarchyController = [[LKStaticHierarchyController alloc] initWithDataSource:dataSource];
     [self addChildViewController:self.hierarchyController];
     [self.mainSplitView addArrangedSubview:self.hierarchyController.view];
+    // Phase A:沿 owner 链向下传递 per-instance update manager。
+    self.hierarchyController.hierarchyView.asyncUpdateManager = self.asyncUpdateManager;
     
     self.rightSplitView = [LKSplitView new];
     self.rightSplitView.arrangesAllSubviews = YES;
@@ -88,10 +92,12 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
     
     _viewsPreviewController = [[LKPreviewController alloc] initWithDataSource:dataSource];
     self.viewsPreviewController.staticViewController = self;
+    self.viewsPreviewController.asyncUpdateManager = self.asyncUpdateManager;
     [self.splitTopView addSubview:self.viewsPreviewController.view];
     [self addChildViewController:self.viewsPreviewController];
     
     self.dashboardController = [[LKDashboardViewController alloc] initWithStaticDataSource:dataSource];
+    self.dashboardController.asyncUpdateManager = self.asyncUpdateManager;
     [self.splitTopView addSubview:self.dashboardController.view];
     [self addChildViewController:self.dashboardController];
     
@@ -196,7 +202,7 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
         }
     }];
     
-    LKStaticAsyncUpdateManager *updateMng = [LKStaticAsyncUpdateManager sharedInstance];
+    LKStaticAsyncUpdateManager *updateMng = self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance];
     [updateMng.modifyingUpdateProgressSignal subscribeNext:^(RACTwoTuple *x) {
         @strongify(self);
         NSUInteger received = ((NSNumber *)x.first).integerValue;
@@ -260,7 +266,8 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
     _showConsole = showConsole;
     if (showConsole) {
         if (!self.consoleController) {
-            self.consoleController = [[LKConsoleViewController alloc] initWithHierarchyDataSource:[LKStaticHierarchyDataSource sharedInstance]];
+            LKStaticHierarchyDataSource *dataSource = self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
+            self.consoleController = [[LKConsoleViewController alloc] initWithHierarchyDataSource:dataSource];
             [self addChildViewController:self.consoleController];
         }
         [self.rightSplitView addArrangedSubview:self.consoleController.view];

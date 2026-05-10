@@ -192,8 +192,12 @@
             [self _handleEnterAppFailWithError:LookinErr_Inner];
         } else {
             [LKAppsManager sharedInstance].inspectingApp = app;
-            [[LKStaticHierarchyDataSource sharedInstance] reloadWithHierarchyInfo:info keepState:NO];
-            
+            // Phase A:走 LKStaticWindowController.hierarchyDataSource 链路;
+            // 单 App 路径下 +sharedInstance 与该实例等价(由 singletonForLegacy 兜底)。
+            // Phase D 之后会改为 Live Doc 自有的 dataSource。
+            LKStaticHierarchyDataSource *dataSource = [LKNavigationManager sharedInstance].staticWindowController.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
+            [dataSource reloadWithHierarchyInfo:info keepState:NO];
+
             [self.bottomIndicatorView finishWithCompletion:^{
                 [[LKNavigationManager sharedInstance] showStaticWorkspace];
                 [[LKNavigationManager sharedInstance] closeLaunch];

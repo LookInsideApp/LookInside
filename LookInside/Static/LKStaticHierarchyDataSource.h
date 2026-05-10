@@ -9,13 +9,16 @@
 #import "LookinDefines.h"
 #import "LKHierarchyDataSource.h"
 
-@class LookinDisplayItemDetail, LookinStaticDisplayItem, LookinAppInfo;
+@class LookinDisplayItemDetail, LookinStaticDisplayItem, LookinAppInfo, LKStaticAsyncUpdateManager;
 
 @interface LKStaticHierarchyDataSource : LKHierarchyDataSource
 
 + (instancetype)sharedInstance;
 
 @property(nonatomic, strong, readonly) LookinAppInfo *appInfo;
+
+/// 反向引用 owner 链上的 update manager，用于 Phase A 解耦单例(weak,因为 owner 是 windowController)
+@property(nonatomic, weak) LKStaticAsyncUpdateManager *asyncUpdateManager;
 
 #pragma mark - Signal
 
