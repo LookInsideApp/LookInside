@@ -17,6 +17,7 @@
 #import "LKMenuPopoverSettingController.h"
 #import "LKPreviewView.h"
 #import "LKHierarchyView.h"
+#import "LookinArchiveDocument.h"
 
 @interface LKReadWindowController () <NSToolbarDelegate>
 
@@ -29,6 +30,10 @@
 @end
 
 @implementation LKReadWindowController
+
+- (instancetype)initWithDocument:(LookinArchiveDocument *)document {
+    return [self initWithFile:document.hierarchyFile];
+}
 
 - (instancetype)initWithFile:(LookinHierarchyFile *)file {
     NSSize screenSize = [NSScreen mainScreen].frame.size;

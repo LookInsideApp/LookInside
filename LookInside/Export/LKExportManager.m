@@ -11,7 +11,7 @@
 #import "LookinHierarchyFile.h"
 #import "LookinAppInfo.h"
 #import "LookinDisplayItem.h"
-#import "LookinDocument.h"
+#import "LookinArchiveDocument.h"
 #import "LKHelper.h"
 #import "LKNavigationManager.h"
 #import "LookinDisplayItem.h"
@@ -55,7 +55,7 @@
     file.soloScreenshots = soloScreenshots.copy;
     file.groupScreenshots = groupScreenshots.copy;
     
-    LookinDocument *document = [[LookinDocument alloc] init];
+    LookinArchiveDocument *document = [[LookinArchiveDocument alloc] init];
     document.hierarchyFile = file;
     NSError *error;
     NSData *exportedData = [document dataOfType:@"com.lookin.lookin" error:&error];

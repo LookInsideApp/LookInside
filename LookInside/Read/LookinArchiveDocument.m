@@ -1,21 +1,29 @@
 //
-//  LookinDocument.m
-//  Lookin
-//
-//  Created by Li Kai on 2019/6/26.
-//  https://lookin.work
+//  LookinArchiveDocument.m
+//  LookInside
 //
 
-#import "LookinDocument.h"
+#import "LookinArchiveDocument.h"
 #import "LookinHierarchyFile.h"
 #import "LKReadWindowController.h"
-#import "LKNavigationManager.h"
+#import "LookinDefines.h"
 
-// 点击 menu 里的 “打开文件” 会走到这里的一系列方法
-@implementation LookinDocument
+@implementation LookinArchiveDocument
+
++ (BOOL)autosavesInPlace {
+    return NO;
+}
+
++ (BOOL)preservesVersions {
+    return NO;
+}
+
++ (BOOL)usesUbiquitousStorage {
+    return NO;
+}
 
 - (void)makeWindowControllers {
-    LKReadWindowController *wc = [[LKReadWindowController alloc] initWithFile:self.hierarchyFile];
+    LKReadWindowController *wc = [[LKReadWindowController alloc] initWithDocument:self];
     [self addWindowController:wc];
 }
 
@@ -27,12 +35,12 @@
         }
         return nil;
     }
-    
+
     if ([typeName isEqualToString:@"com.lookin.lookin"]) {
         NSData *data = [NSKeyedArchiver archivedDataWithRootObject:self.hierarchyFile requiringSecureCoding:YES error:outError];
         return data;
     }
-    
+
     if (outError) {
         *outError = LookinErr_Inner;
     }
@@ -52,7 +60,7 @@
         }
         return NO;
     }
-    
+
     NSError *verifyError = [LookinHierarchyFile verifyHierarchyFile:hierarchyFile];
     if (verifyError) {
         if (outError) {

@@ -22,7 +22,7 @@
 				<string>com.lookin.lookin</string>
 			</array>
 			<key>NSDocumentClass</key>
-			<string>LookinDocument</string>
+			<string>LookinArchiveDocument</string>
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>

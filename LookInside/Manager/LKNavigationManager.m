@@ -21,6 +21,7 @@
 #import "LKAboutWindowController.h"
 #import "LKJSONAttributeWindowController.h"
 #import "LKJSONAttributeViewController.h"
+#import "LookinArchiveDocument.h"
 
 @interface LKNavigationManager ()
 
@@ -88,50 +89,35 @@
 }
 
 - (BOOL)showReaderWithFilePath:(NSString *)filePath error:(NSError **)error {
-    NSData *data = [NSData dataWithContentsOfFile:filePath options:0 error:error];
-    if (!data) {
-        return NO;
-    }
-    
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    // .lookin archives are non-secure NSKeyedArchiver payloads. Avoid the NSSecureCoding
-    // "[NSObject class] allowed list" runtime spam by staying on the legacy API.
-    id dataObj = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-#pragma clang diagnostic pop
-    if (!dataObj) {
-        // 比如拖了一个 pdf 格式的文件进来就会走到这里
-        if (error) {
-            *error = [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_UnsupportedFileType userInfo:@{NSLocalizedDescriptionKey:NSLocalizedString(@"Failed to open the document.", nil), NSLocalizedRecoverySuggestionErrorKey:NSLocalizedString(@"The file type is not supported.", nil)}];
+    // Phase C: route through NSDocumentController so .lookin archives integrate with
+    // Recent Documents, Open Recent, proxy icon dragging, and de-duplication of
+    // already-open files. Errors are surfaced asynchronously via -presentError:.
+    NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+    [[NSDocumentController sharedDocumentController] openDocumentWithContentsOfURL:fileURL
+                                                                            display:YES
+                                                                  completionHandler:^(NSDocument *_Nullable document,
+                                                                                      BOOL alreadyOpen,
+                                                                                      NSError *_Nullable openError) {
+        if (!document && openError) {
+            [NSApp presentError:openError];
         }
-        return NO;
-    }
-    
-    NSError *verifyError = [LookinHierarchyFile verifyHierarchyFile:dataObj];
-    if (verifyError) {
-        // 有问题，无法打开
-        if (error) {
-            *error = verifyError;
-        }
-        return NO;
-    }
-    
-    // 文件校验无误
-    NSString *title = [[NSFileManager defaultManager] displayNameAtPath:filePath];
-    [self showReaderWithHierarchyFile:dataObj title:title];
+    }];
     return YES;
 }
 
 - (void)showReaderWithHierarchyFile:(LookinHierarchyFile *)file title:(NSString *)title {
-    LKReadWindowController *wc = [[LKReadWindowController alloc] initWithFile:file];
-    wc.window.title = title ? : @"";
-    wc.window.delegate = self;
-    [wc showWindow:self];
-    
-    if (!self.readWindowControllers) {
-        self.readWindowControllers = [NSMutableArray array];
+    // Phase C: in-memory hierarchy is wrapped in an untitled LookinArchiveDocument so
+    // it gets the same NSDocument lifecycle (Save As, Versions, Recent on save) as
+    // a file-backed archive.
+    LookinArchiveDocument *document = [[LookinArchiveDocument alloc] init];
+    document.hierarchyFile = file;
+    [[NSDocumentController sharedDocumentController] addDocument:document];
+    [document makeWindowControllers];
+    [document showWindows];
+
+    if (title.length) {
+        document.windowControllers.firstObject.window.title = title;
     }
-    [self.readWindowControllers addObject:wc];
 }
 
 
@@ -164,13 +150,9 @@
         
     } else if (closingWindow == self.aboutWindowController.window) {
         self.aboutWindowController = nil;
-        
-    } else {
-        LKReadWindowController *wc = [self.readWindowControllers lookin_firstFiltered:^BOOL(LKReadWindowController *obj) {
-            return obj.window == closingWindow;
-        }];
-        [self.readWindowControllers removeObject:wc];
     }
+    // Phase C: reader windows are owned by NSDocumentController via LookinArchiveDocument,
+    // no manual cleanup needed here.
 }
 
 @end

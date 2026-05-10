@@ -12,7 +12,7 @@
 #import "LKPreferenceManager.h"
 #import "LKAppMenuManager.h"
 #import "LKLaunchWindowController.h"
-#import "LookinDocument.h"
+#import "LookinArchiveDocument.h"
 #import "LookInside-Swift.h"
 #import "NSString+Score.h"
 #import "LookinDashboardBlueprint.h"
@@ -50,7 +50,10 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [LKConnectionManager sharedInstance];
-    if (!self.launchedToOpenFile) {
+    // Phase C: launch window only appears when no document has been opened by the
+    // OS (Finder double-click / Open With) before this point.
+    NSDocumentController *documentController = [NSDocumentController sharedDocumentController];
+    if (!self.launchedToOpenFile && documentController.documents.count == 0) {
         [[LKNavigationManager sharedInstance] showLaunch];
     }
 
@@ -138,11 +141,23 @@
     return YES;
 }
 
-- (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
+- (void)application:(NSApplication *)application openURLs:(NSArray<NSURL *> *)urls {
+    // Phase C: replaces the legacy -application:openFile:. Routing flows through
+    // NSDocumentController so .lookin archives integrate with Recent Documents,
+    // proxy icon dragging, Save As, and de-duplication of already-open files.
     self.launchedToOpenFile = YES;
-    NSError *error;
-    BOOL isSuccessful = [[LKNavigationManager sharedInstance] showReaderWithFilePath:filename error:&error];    
-    return isSuccessful;
+    NSDocumentController *documentController = [NSDocumentController sharedDocumentController];
+    for (NSURL *url in urls) {
+        [documentController openDocumentWithContentsOfURL:url
+                                                   display:YES
+                                         completionHandler:^(NSDocument *_Nullable document,
+                                                             BOOL alreadyOpen,
+                                                             NSError *_Nullable error) {
+            if (!document && error) {
+                [NSApp presentError:error];
+            }
+        }];
+    }
 }
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
