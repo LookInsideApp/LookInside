@@ -30,23 +30,6 @@
 
 @implementation LKStaticHierarchyDataSource
 
-+ (instancetype)sharedInstance {
-    // Phase A legacy fallback: prefer the data source owned by the current
-    // LKStaticWindowController so all consumers converge to the same instance.
-    // If no window controller has been instantiated yet (early launch path),
-    // fall back to a lazy singleton whose lifetime spans the process.
-    LKStaticHierarchyDataSource *current = [LKStaticWindowController singletonForLegacy].hierarchyDataSource;
-    if (current) {
-        return current;
-    }
-    static dispatch_once_t onceToken;
-    static LKStaticHierarchyDataSource *fallbackInstance = nil;
-    dispatch_once(&onceToken,^{
-        fallbackInstance = [[self alloc] init];
-    });
-    return fallbackInstance;
-}
-
 - (instancetype)init {
     if (self = [super init]) {
         _itemsDidChangeFrame = [RACSubject subject];
@@ -78,7 +61,7 @@
 
     BOOL shouldUpdateAll = (LKPreferenceManager.mainManager.fastMode.currentBOOLValue == NO);
     if (shouldUpdateAll) {
-        [(self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance]) updateAll];
+        [self.asyncUpdateManager updateAll];
     }
 }
 
@@ -181,7 +164,7 @@
 - (void)buildDisplayingFlatItems {
     [super buildDisplayingFlatItems];
     if ([LKPreferenceManager mainManager].fastMode.currentBOOLValue && !self.shouldIgnoreFastModeAutoUpdate) {
-        [(self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance]) updateForDisplayingItems];
+        [self.asyncUpdateManager updateForDisplayingItems];
     }
 }
 

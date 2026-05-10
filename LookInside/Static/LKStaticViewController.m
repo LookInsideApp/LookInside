@@ -71,9 +71,7 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
     LKPreferenceManager *preferenceManager = [LKPreferenceManager mainManager];
     [preferenceManager.measureState subscribe:self action:@selector(_handleMeasureStateChange:) relatedObject:nil];
 
-    // Phase A:优先使用 owner 注入的 per-instance dataSource;
-    // 若 owner 未注入(理论上不应发生),回退到 +sharedInstance 兜底。
-    LKStaticHierarchyDataSource *dataSource = self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
+    LKStaticHierarchyDataSource *dataSource = self.hierarchyDataSource;
 
     self.hierarchyController = [[LKStaticHierarchyController alloc] initWithDataSource:dataSource];
     [self addChildViewController:self.hierarchyController];
@@ -219,7 +217,7 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
         }
     }];
 
-    LKStaticAsyncUpdateManager *updateMng = self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance];
+    LKStaticAsyncUpdateManager *updateMng = self.asyncUpdateManager;
     [updateMng.modifyingUpdateProgressSignal subscribeNext:^(RACTwoTuple *x) {
         @strongify(self);
         NSUInteger received = ((NSNumber *)x.first).integerValue;
@@ -283,8 +281,7 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
     _showConsole = showConsole;
     if (showConsole) {
         if (!self.consoleController) {
-            LKStaticHierarchyDataSource *dataSource = self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
-            self.consoleController = [[LKConsoleViewController alloc] initWithHierarchyDataSource:dataSource];
+            self.consoleController = [[LKConsoleViewController alloc] initWithHierarchyDataSource:self.hierarchyDataSource];
             // Phase F: console is created lazily, so it inherits the
             // live doc binding from the current window at the moment of
             // first show.

@@ -17,14 +17,11 @@
 
 + (NSArray<LookinStaticAsyncUpdateTask *> *)makeWithItem:(LookinDisplayItem *)item
                                             updateManager:(LKStaticAsyncUpdateManager *)updateManager {
-    LKStaticAsyncUpdateManager *resolvedManager = updateManager ?: [LKStaticAsyncUpdateManager sharedInstance];
-    if (!item || resolvedManager.isUpdating) {
+    if (!item || updateManager.isUpdating) {
         NSAssert(NO, @"");
         return nil;
     }
-    // Phase F: read the per-doc inspectable app via the update manager
-    // owner chain instead of the deprecated single-slot global.
-    LookinAppInfo *currentAppInfo = resolvedManager.inspectableApp.appInfo;
+    LookinAppInfo *currentAppInfo = updateManager.inspectableApp.appInfo;
     NSString *serverVersion = currentAppInfo.serverReadableVersion;
     BOOL supported = [LKVersionComparer compareWithExpectedVersion:@"1.2.7" realVersion:serverVersion];
     if (!supported) {

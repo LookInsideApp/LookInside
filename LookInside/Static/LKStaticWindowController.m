@@ -49,16 +49,7 @@
 
 @end
 
-/// Phase A 引入:跟踪当前唯一的 LKStaticWindowController 实例,
-/// 用于 LKStaticHierarchyDataSource / LKStaticAsyncUpdateManager 的 +sharedInstance fallback。
-/// __weak 避免成为持有环。
-static __weak LKStaticWindowController *sLegacySingletonStaticWindowController = nil;
-
 @implementation LKStaticWindowController
-
-+ (instancetype)singletonForLegacy {
-    return sLegacySingletonStaticWindowController;
-}
 
 - (instancetype)initWithInspectableApp:(LKInspectableApp *)app {
     if (self = [self init]) {
@@ -88,9 +79,7 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
         // `LKNavigationManager.windowWillClose:` save path went away
         // with `staticWindowController`, so saving moves here.
         self.windowFrameAutosaveName = LKWindowSizeName_Static;
-        // Phase A: 在创建 viewController 之前先 new 自己的 dataSource + updateManager,
-        // 并把当前实例登记为 legacy singleton,这样此后 +sharedInstance 调用都会拿到这套实例。
-        sLegacySingletonStaticWindowController = self;
+        // 创建 viewController 之前先 new 自己的 dataSource + updateManager。
         _hierarchyDataSource = [[LKStaticHierarchyDataSource alloc] init];
         _asyncUpdateManager = [[LKStaticAsyncUpdateManager alloc] initWithHierarchyDataSource:_hierarchyDataSource
                                                                                 inspectableApp:nil];

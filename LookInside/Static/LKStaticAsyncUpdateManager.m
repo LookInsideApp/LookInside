@@ -102,23 +102,6 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
     return containsSwiftUI;
 }
 
-+ (instancetype)sharedInstance {
-    // Phase A legacy fallback: prefer the update manager owned by the current
-    // LKStaticWindowController so all consumers converge to the same instance.
-    // If no window controller has been instantiated yet, fall back to a lazy
-    // singleton whose lifetime spans the process.
-    LKStaticAsyncUpdateManager *current = [LKStaticWindowController singletonForLegacy].asyncUpdateManager;
-    if (current) {
-        return current;
-    }
-    static dispatch_once_t onceToken;
-    static LKStaticAsyncUpdateManager *fallbackInstance = nil;
-    dispatch_once(&onceToken,^{
-        fallbackInstance = [[self alloc] init];
-    });
-    return fallbackInstance;
-}
-
 - (instancetype)init {
     return [self initWithHierarchyDataSource:nil inspectableApp:nil];
 }
@@ -329,7 +312,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 - (LKStaticHierarchyDataSource *)dataSource {
-    return self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
+    return self.hierarchyDataSource;
 }
 
 - (LKInspectableApp *)resolvedInspectableApp {

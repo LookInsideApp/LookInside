@@ -321,7 +321,7 @@
                 LKDashboardTextControlEditingFlag.sharedInstance.shouldIgnoreTextEditingChangeEvent = NO;
                 
                 if ([LookinDashboardBlueprint needPatchAfterModificationWithAttrID:attribute.identifier]) {
-                    [(self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance]) updateAfterModifyingDisplayItem:(LookinStaticDisplayItem *)modifyingItem];
+                    [self.asyncUpdateManager updateAfterModifyingDisplayItem:(LookinStaticDisplayItem *)modifyingItem];
                 }
                 
             } else {

@@ -21,10 +21,8 @@
 
 @interface LKStaticAsyncUpdateManager : NSObject
 
-+ (instancetype)sharedInstance;
-
-/// Phase A 引入的实例化构造方法。注入 owner 链上的 dataSource 与当前 inspectable app。
-/// Phase F 起 `app` 必须由 owner 提供;不再回退到任何全局单例。
+/// Designated initializer. Owner provides the hierarchy data source and the
+/// inspectable app this manager dispatches RPCs against.
 - (instancetype)initWithHierarchyDataSource:(LKStaticHierarchyDataSource *)dataSource
                              inspectableApp:(LKInspectableApp *)app;
 
