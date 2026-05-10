@@ -12,6 +12,7 @@
 #import "LKPreferenceManager.h"
 #import "LKAppMenuManager.h"
 #import "LKLaunchWindowController.h"
+#import "LKWindowController.h"
 #import "LookinArchiveDocument.h"
 #import "LookInside-Swift.h"
 #import "NSString+Score.h"
@@ -59,10 +60,46 @@
 
     [self _lk_installActivationStateObserverExample];
 
+    // Phase E: when the last document closes, bring Launch back (Q2=A) so the
+    // app never sits without any visible UI.
+    [NSNotificationCenter.defaultCenter
+        addObserver:self
+           selector:@selector(_lk_handleWindowWillClose:)
+               name:NSWindowWillCloseNotification
+             object:nil];
+
 #ifdef DEBUG
     [self _runTests];
     [self _lk_installLiveDocDebugMenu];
 #endif
+}
+
+- (void)_lk_handleWindowWillClose:(NSNotification *)note {
+    NSWindow *closingWindow = note.object;
+    if (![closingWindow.windowController isKindOfClass:[LKWindowController class]]) {
+        return;
+    }
+    // Closing the Launch window itself shouldn't re-spawn Launch; only Doc
+    // (Live / Archive) windows trigger the "no docs left" reopen.
+    LKLaunchWindowController *launchWC = [LKNavigationManager sharedInstance].launchWindowController;
+    if (closingWindow == launchWC.window) {
+        return;
+    }
+    // Defer one tick so NSDocumentController has finished removing the doc.
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self _lk_showLaunchIfNoDocuments];
+    });
+}
+
+- (void)_lk_showLaunchIfNoDocuments {
+    if ([NSDocumentController sharedDocumentController].documents.count > 0) {
+        return;
+    }
+    LKLaunchWindowController *launchWC = [LKNavigationManager sharedInstance].launchWindowController;
+    if (launchWC.window.isVisible) {
+        return;
+    }
+    [[LKNavigationManager sharedInstance] showLaunch];
 }
 
 #ifdef DEBUG
@@ -91,7 +128,13 @@
 }
 
 - (void)_lk_debugOpenLiveDoc:(id)sender {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // Debug-only bridge: reads the deprecated single-app slot to spawn a Live
+    // Doc against whatever the legacy launch flow connected to. Removed in Phase F
+    // along with the slot itself.
     LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+#pragma clang diagnostic pop
     if (!app) {
         NSAlert *alert = [[NSAlert alloc] init];
         alert.messageText = @"No inspecting app";
@@ -138,6 +181,28 @@
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+    // Phase E (Q2=A): keep the app alive after the last window closes so we can
+    // bring the Launch window back instead of quitting. Quit goes through the
+    // standard Cmd-Q path.
+    return NO;
+}
+
+- (BOOL)applicationShouldOpenUntitledFile:(NSApplication *)sender {
+    // Phase E: there is no meaningful "untitled" document in this app. New
+    // Inspection / Open are explicit user actions; suppress the macOS default
+    // behavior that would create one on activation.
+    return NO;
+}
+
+- (BOOL)applicationOpenUntitledFile:(NSApplication *)sender {
+    return NO;
+}
+
+- (BOOL)applicationShouldHandleReopen:(NSApplication *)sender hasVisibleWindows:(BOOL)flag {
+    // Dock-icon click after closing all windows: bring Launch back.
+    if (!flag) {
+        [self _lk_showLaunchIfNoDocuments];
+    }
     return YES;
 }
 

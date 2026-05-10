@@ -36,6 +36,7 @@ static NSUInteger const kTag_Expansion = 27;
 static NSUInteger const kTag_Filter = 28;
 static NSUInteger const kTag_OpenInNewWindow = 31;
 static NSUInteger const kTag_Export = 32;
+static NSUInteger const kTag_NewInspection = 33;
 
 static NSUInteger const kTag_GitHub = 57;
 static NSUInteger const kTag_Acknowledgements = 72;
@@ -134,6 +135,13 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 
 - (NSMenu *)_buildFileMenu {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@"File"];
+
+    // Phase E: New Inspection… brings up the Launch window's app picker so a
+    // fresh Live Doc can be created from any state (no Doc, Live Doc, or Archive
+    // Doc focused).
+    [menu addItem:LKMenuItem(@"New Inspection…", nil, @"n", NSEventModifierFlagCommand, kTag_NewInspection)];
+    [menu addItem:[NSMenuItem separatorItem]];
+
     [menu addItem:LKMenuItem(@"Open…", @selector(openDocument:), @"o", NSEventModifierFlagCommand, 0)];
 
     self.recentDocumentsMenu = [[NSMenu alloc] initWithTitle:@"Open Recent"];
@@ -141,6 +149,13 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     self.recentDocumentsMenu.delegate = self;
     [self _reloadRecentDocumentsMenu];
     [menu addItem:LKSubmenuItem(@"Open Recent", self.recentDocumentsMenu, 0)];
+
+    [menu addItem:[NSMenuItem separatorItem]];
+    // Phase E: standard NSDocument actions; -performClose: targets the key
+    // window, -saveDocumentAs: is auto-validated by NSDocument against
+    // -writableTypesForSaveOperation:.
+    [menu addItem:LKMenuItem(@"Close", @selector(performClose:), @"w", NSEventModifierFlagCommand, 0)];
+    [menu addItem:LKMenuItem(@"Save As…", @selector(saveDocumentAs:), @"s", NSEventModifierFlagCommand | NSEventModifierFlagShift, 0)];
 
     [menu addItem:[NSMenuItem separatorItem]];
     [menu addItem:LKMenuItem(@"Copy to New Window…", nil, @"", 0, kTag_OpenInNewWindow)];
@@ -238,7 +253,8 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 
 - (NSMenu *)_buildWindowMenu {
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Window"];
-    [menu addItem:LKMenuItem(@"Close", @selector(performClose:), @"w", NSEventModifierFlagCommand, 0)];
+    // Phase E: ⌘W lives in File menu (NSDocument convention); Window menu keeps
+    // standard window manipulators.
     [menu addItem:LKMenuItem(@"Minimize", @selector(performMiniaturize:), @"m", NSEventModifierFlagCommand, 0)];
     [menu addItem:LKMenuItem(@"Zoom", @selector(performZoom:), @"", 0, 0)];
     return menu;
@@ -311,6 +327,10 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     menu_file.autoenablesItems = NO;
     menu_file.delegate = self;
 
+    NSMenuItem *menuItem_newInspection = [menu_file itemWithTag:kTag_NewInspection];
+    menuItem_newInspection.target = self;
+    menuItem_newInspection.action = @selector(_handleNewInspection);
+
     NSMenu *menu_view = [menu itemAtIndex:3].submenu;
     menu_view.autoenablesItems = NO;
     menu_view.delegate = self;
@@ -375,9 +395,19 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
         if (selString) {
             SEL delegateSel = NSSelectorFromString(selString);
             obj.enabled = [wc respondsToSelector:delegateSel];
-        } else {
-            obj.enabled = YES;
+            return;
         }
+        // Phase E: NSDocument-aware validation for standard responder actions.
+        if (obj.action == @selector(saveDocumentAs:)) {
+            NSDocument *doc = [[NSDocumentController sharedDocumentController] documentForWindow:NSApp.keyWindow];
+            obj.enabled = doc != nil && [doc writableTypesForSaveOperation:NSSaveAsOperation].count > 0;
+            return;
+        }
+        if (obj.action == @selector(performClose:)) {
+            obj.enabled = NSApp.keyWindow != nil;
+            return;
+        }
+        obj.enabled = YES;
     }];
 }
 
@@ -472,6 +502,12 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 
 - (void)_handleAcknowledgements {
     [LKHelper openProjectREADME];
+}
+
+- (void)_handleNewInspection {
+    // Phase E: File > New Inspection… reuses the Launch window's app picker
+    // so a fresh Live Doc can be created from any state.
+    [[LKNavigationManager sharedInstance] showLaunch];
 }
 
 @end

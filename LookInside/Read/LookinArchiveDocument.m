@@ -22,6 +22,11 @@
     return NO;
 }
 
+- (NSArray<NSString *> *)writableTypesForSaveOperation:(NSSaveOperationType)saveOperation {
+    // Phase E: archives are read-only snapshots; suppress Save / Save As / Duplicate.
+    return @[];
+}
+
 - (void)makeWindowControllers {
     LKReadWindowController *wc = [[LKReadWindowController alloc] initWithDocument:self];
     [self addWindowController:wc];
