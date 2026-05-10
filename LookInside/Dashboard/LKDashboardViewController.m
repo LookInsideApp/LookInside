@@ -25,6 +25,7 @@
 #import "LKDashboardSearchMethodsDataSource.h"
 #import "LookinCustomAttrModification.h"
 #import "LKDashboardTextControlEditingFlag.h"
+#import "LookInside-Swift.h"
 
 @interface LKDashboardViewController () <LKDashboardCardViewDelegate, LKDashboardHeaderViewDelegate, LKDashboardSearchPropViewDelegate, LKDashboardSearchMethodsViewDelegate>
 
@@ -103,13 +104,13 @@
     if (self.staticDataSource) {
         [[[RACSignal merge:@[RACObserve(self.staticDataSource, selectedItem)]] deliverOnMainThread] subscribeNext:^(id x) {
             @strongify(self);
-            [self reloadWithGroupList:[self.staticDataSource.selectedItem queryAllAttrGroupList]];
+            [self reloadWithGroupList:[self _groupListForDisplayItem:self.staticDataSource.selectedItem]];
         }];
 
         [[self.staticDataSource.itemDidChangeAttrGroup deliverOnMainThread] subscribeNext:^(LookinDisplayItem *displayItem) {
             @strongify(self);
             if (self.staticDataSource.selectedItem == displayItem) {
-                [self reloadWithGroupList:[displayItem queryAllAttrGroupList]];
+                [self reloadWithGroupList:[self _groupListForDisplayItem:displayItem]];
             }
         }];
 
@@ -128,13 +129,13 @@
     } else if (self.readDataSource) {
         [[[RACSignal merge:@[RACObserve(self.readDataSource, selectedItem)]] deliverOnMainThread] subscribeNext:^(id x) {
             @strongify(self);
-            [self reloadWithGroupList:[self.readDataSource.selectedItem queryAllAttrGroupList]];
+            [self reloadWithGroupList:[self _groupListForDisplayItem:self.readDataSource.selectedItem]];
         }];
     }
 
     [[NSNotificationCenter defaultCenter] addObserverForName:NotificationName_DidChangeSectionShowing object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
         @strongify(self);
-        [self reloadWithGroupList:[[self currentDataSource].selectedItem queryAllAttrGroupList]];
+        [self reloadWithGroupList:[self _groupListForDisplayItem:[self currentDataSource].selectedItem]];
     }];
 }
 
@@ -186,6 +187,13 @@
     }
 }
 
+- (NSArray<LookinAttributesGroup *> *)_groupListForDisplayItem:(LookinDisplayItem *)item {
+    if (!item) {
+        return @[];
+    }
+    return [[LKPrivateDiscriminatorStore shared] appendingPrivateDiscriminatorGroupToGroups:[item queryAllAttrGroupList] forDisplayItem:item];
+}
+
 - (void)reloadWithGroupList:(NSArray<LookinAttributesGroup *> *)list {
     self.groupList = list;
     
@@ -220,6 +228,10 @@
     }];
 
     [self.view setNeedsLayout:YES];
+}
+
+- (void)reloadCurrentDisplayItem {
+    [self reloadWithGroupList:[self _groupListForDisplayItem:[self currentDataSource].selectedItem]];
 }
 
 - (RACSignal *)modifyAttribute:(LookinAttribute *)attribute newValue:(id)newValue {
@@ -377,7 +389,7 @@
     // 以下是在渲染 attrs
     
     NSMutableArray<LookinAttribute *> *resultAttrs = [NSMutableArray array];
-    [[self.currentDataSource.selectedItem queryAllAttrGroupList]  enumerateObjectsUsingBlock:^(LookinAttributesGroup * _Nonnull group, NSUInteger idx, BOOL * _Nonnull stop) {
+    [[self _groupListForDisplayItem:self.currentDataSource.selectedItem] enumerateObjectsUsingBlock:^(LookinAttributesGroup * _Nonnull group, NSUInteger idx, BOOL * _Nonnull stop) {
         [group.attrSections enumerateObjectsUsingBlock:^(LookinAttributesSection * _Nonnull section, NSUInteger idx, BOOL * _Nonnull stop) {
             [section.attributes enumerateObjectsUsingBlock:^(LookinAttribute * _Nonnull attr, NSUInteger idx, BOOL * _Nonnull stop) {
                 NSString *title;
@@ -503,7 +515,7 @@
     __block LookinAttributesGroup *targetGroup = nil;
     __block LookinAttributesSection *targetSection = nil;
     
-    [[self.currentDataSource.selectedItem queryAllAttrGroupList] enumerateObjectsUsingBlock:^(LookinAttributesGroup * _Nonnull group, NSUInteger idx, BOOL * _Nonnull stop0) {
+    [[self _groupListForDisplayItem:self.currentDataSource.selectedItem] enumerateObjectsUsingBlock:^(LookinAttributesGroup * _Nonnull group, NSUInteger idx, BOOL * _Nonnull stop0) {
         [group.attrSections enumerateObjectsUsingBlock:^(LookinAttributesSection * _Nonnull section, NSUInteger idx, BOOL * _Nonnull stop1) {
             [section.attributes enumerateObjectsUsingBlock:^(LookinAttribute * _Nonnull attr, NSUInteger idx, BOOL * _Nonnull stop2) {
                 if (attr == clickedAttr) {

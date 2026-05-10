@@ -4,6 +4,16 @@
     "" : {
 
     },
+    "%@ %@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ %2$@: %3$@"
+          }
+        }
+      }
+    },
     "%@ active apps were found" : {
       "localizations" : {
         "en" : {
@@ -134,6 +144,9 @@
         }
       }
     },
+    "Allow future LookInside AI-generated rows to use autosaved module CSVs." : {
+
+    },
     "And no inspectable app was found" : {
       "localizations" : {
         "en" : {
@@ -198,6 +211,9 @@
           }
         }
       }
+    },
+    "Autosave" : {
+
     },
     "Cancel" : {
       "localizations" : {
@@ -668,6 +684,9 @@
           }
         }
       }
+    },
+    "Enable" : {
+
     },
     "Executable not found at %@" : {
       "localizations" : {
@@ -1261,6 +1280,9 @@
         }
       }
     },
+    "Import Module" : {
+
+    },
     "Inherits from" : {
       "localizations" : {
         "en" : {
@@ -1327,6 +1349,9 @@
           }
         }
       }
+    },
+    "Invalid CSV Diagnostics" : {
+
     },
     "Invalid Size" : {
       "localizations" : {
@@ -2026,6 +2051,9 @@
         }
       }
     },
+    "No modules imported yet." : {
+
+    },
     "No object was returned yet" : {
       "localizations" : {
         "en" : {
@@ -2356,6 +2384,9 @@
         }
       }
     },
+    "Private Discriminator" : {
+
+    },
     "properties or methods" : {
       "localizations" : {
         "en" : {
@@ -2403,6 +2434,9 @@
           }
         }
       }
+    },
+    "Reimport from saved source folder" : {
+
     },
     "Reload" : {
       "localizations" : {
@@ -2455,6 +2489,9 @@
     "Remember expansion state per app" : {
 
     },
+    "Remove module CSVs" : {
+
+    },
     "Request timeout" : {
       "localizations" : {
         "en" : {
@@ -2503,6 +2540,12 @@
         }
       }
     },
+    "Resolve Swift private-discriminator hashes from imported module CSVs. Disabled by default." : {
+
+    },
+    "Reveal CSV" : {
+
+    },
     "Reveal in panel…" : {
       "localizations" : {
         "en" : {
@@ -2518,6 +2561,9 @@
           }
         }
       }
+    },
+    "Reveal Storage" : {
+
     },
     "Searching for inspectable apps" : {
       "localizations" : {

@@ -18,6 +18,7 @@
 #import "LookinAttributesGroup.h"
 #import "LKHelper.h"
 #import "LKTableViewHorizontalScrollWidthManager.h"
+#import "LookInside-Swift.h"
 
 // Wire-compat fallback for v8 servers (no isSwiftUI flag yet). SwiftUI nodes
 // always get at least one custom attr group whose userCustomTitle starts with
@@ -319,7 +320,8 @@ static BOOL LKDisplayItemLooksLikeSwiftUI(LookinDisplayItem *item) {
 
 - (void)_updateLabelsFonts {
     BOOL noImage = self.displayItem.inNoPreviewHierarchy || self.displayItem.inHiddenHierarchy;
-    if (!self.displayItem.isUserCustom && noImage) {
+    BOOL isPrivate = [[LKPrivateDiscriminatorStore shared] isPrivateDisplayItem:self.displayItem];
+    if (!self.displayItem.isUserCustom && (noImage || isPrivate)) {
         self.titleLabel.font = [LKHelper italicFontOfSize:13];
         self.subtitleLabel.font = [LKHelper italicFontOfSize:12];
     } else {

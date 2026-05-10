@@ -26,6 +26,7 @@
 #import "LKPreferenceManager.h"
 #import "LKDashboardAttributeOpenImageView.h"
 #import "LKDashboardAttributeJsonView.h"
+#import "LKDashboardAttributePrivateDiscriminatorView.h"
 
 @interface LKDashboardSectionView ()
 
@@ -284,7 +285,9 @@
         case LookinAttrTypeJson:
             return [LKDashboardAttributeJsonView class];
         case LookinAttrTypeCustomObj:
-            if ([identifier isEqualToString:LookinAttr_UITableView_RowsNumber_Number]) {
+            if ([identifier isEqualToString:@"lookinside.private_discriminator.field"]) {
+                return [LKDashboardAttributePrivateDiscriminatorView class];
+            } else if ([identifier isEqualToString:LookinAttr_UITableView_RowsNumber_Number]) {
                 return [LKDashboardAttributeRowsCountView class];
             } else if ([identifier isEqualToString:LookinAttr_Class_Class_Class]) {
                 return [LKDashboardAttributeClassView class];
