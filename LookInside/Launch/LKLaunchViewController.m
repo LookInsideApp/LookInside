@@ -196,12 +196,11 @@
             return;
         }
 
-        // Phase D: a successful Launch-screen pick now creates a Live Doc
-        // (which owns its own hierarchy data source + async update manager)
-        // instead of mutating the global `LKAppsManager.inspectingApp` and
-        // sharing the static workspace singleton. The hierarchy info we just
-        // fetched is fed into the new doc so it appears immediately without
-        // a redundant round-trip.
+        // Phase D: a successful Launch-screen pick creates a Live Doc
+        // (which owns its own hierarchy data source + async update
+        // manager). The hierarchy info we just fetched is fed into the
+        // new doc so it appears immediately without a redundant round-
+        // trip.
         [self.bottomIndicatorView finishWithCompletion:^{
             @strongify(self);
             [[LookinLiveDocumentController sharedInstance]

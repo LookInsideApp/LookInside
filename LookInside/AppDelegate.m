@@ -18,13 +18,8 @@
 #import "NSString+Score.h"
 #import "LookinDashboardBlueprint.h"
 #import "LKPreferenceManager.h"
-#import "LKAppsManager.h"
-#import "LKInspectableApp.h"
-#import "LookinLiveDocument.h"
 
 @interface AppDelegate ()
-
-@property(nonatomic, assign) BOOL launchedToOpenFile;
 
 @end
 
@@ -51,10 +46,12 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [LKConnectionManager sharedInstance];
-    // Phase C: launch window only appears when no document has been opened by the
-    // OS (Finder double-click / Open With) before this point.
+    // Phase F: any documents opened during launch (Finder double-click,
+    // Open With…) are already registered with NSDocumentController by the
+    // time we reach here, so the simple "no docs ⇒ show Launch" check
+    // covers both cold-start cases without needing a separate flag.
     NSDocumentController *documentController = [NSDocumentController sharedDocumentController];
-    if (!self.launchedToOpenFile && documentController.documents.count == 0) {
+    if (documentController.documents.count == 0) {
         [[LKNavigationManager sharedInstance] showLaunch];
     }
 
@@ -70,7 +67,6 @@
 
 #ifdef DEBUG
     [self _runTests];
-    [self _lk_installLiveDocDebugMenu];
 #endif
 }
 
@@ -101,61 +97,6 @@
     }
     [[LKNavigationManager sharedInstance] showLaunch];
 }
-
-#ifdef DEBUG
-
-#pragma mark - Phase B Debug 后门
-
-/// Phase B 临时菜单:Debug > Open Live Doc for Inspecting App。
-/// 验收 LookinLiveDocument 能在不接连接流的前提下单独 spawn 一个窗口。
-/// Phase D 完成连接流改造后,本菜单连同 -[_lk_debugOpenLiveDoc:] 一起删掉。
-- (void)_lk_installLiveDocDebugMenu {
-    NSMenu *mainMenu = NSApp.mainMenu;
-    if (!mainMenu) {
-        return;
-    }
-    NSMenuItem *debugRoot = [[NSMenuItem alloc] init];
-    debugRoot.title = @"Debug";
-    NSMenu *debugMenu = [[NSMenu alloc] initWithTitle:@"Debug"];
-    debugRoot.submenu = debugMenu;
-    [mainMenu addItem:debugRoot];
-
-    NSMenuItem *openLiveDocItem = [[NSMenuItem alloc] initWithTitle:@"Open Live Doc for Inspecting App"
-                                                             action:@selector(_lk_debugOpenLiveDoc:)
-                                                      keyEquivalent:@""];
-    openLiveDocItem.target = self;
-    [debugMenu addItem:openLiveDocItem];
-}
-
-- (void)_lk_debugOpenLiveDoc:(id)sender {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    // Debug-only bridge: reads the deprecated single-app slot to spawn a Live
-    // Doc against whatever the legacy launch flow connected to. Removed in Phase F
-    // along with the slot itself.
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
-#pragma clang diagnostic pop
-    if (!app) {
-        NSAlert *alert = [[NSAlert alloc] init];
-        alert.messageText = @"No inspecting app";
-        alert.informativeText = @"Connect a target via the Launch window first, then try again.";
-        [alert runModal];
-        return;
-    }
-    NSError *error = nil;
-    LookinLiveDocument *doc = [[LookinLiveDocument alloc] initWithInspectableApp:app error:&error];
-    if (!doc) {
-        if (error) {
-            [NSApp presentError:error];
-        }
-        return;
-    }
-    [[NSDocumentController sharedDocumentController] addDocument:doc];
-    [doc makeWindowControllers];
-    [doc showWindows];
-}
-
-#endif
 
 - (void)_lk_installActivationStateObserverExample {
     LKSwiftUISupportGatekeeper *gatekeeper = [LKSwiftUISupportGatekeeper sharedInstance];
@@ -210,7 +151,6 @@
     // Phase C: replaces the legacy -application:openFile:. Routing flows through
     // NSDocumentController so .lookin archives integrate with Recent Documents,
     // proxy icon dragging, Save As, and de-duplication of already-open files.
-    self.launchedToOpenFile = YES;
     NSDocumentController *documentController = [NSDocumentController sharedDocumentController];
     for (NSURL *url in urls) {
         [documentController openDocumentWithContentsOfURL:url

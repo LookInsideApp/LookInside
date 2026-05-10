@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class LKHierarchyDataSource, LKStaticHierarchyDataSource, LookinAttribute, LKReadHierarchyDataSource, LookinDisplayItem, LKStaticAsyncUpdateManager;
+@class LKHierarchyDataSource, LKStaticHierarchyDataSource, LookinAttribute, LKReadHierarchyDataSource, LookinDisplayItem, LKStaticAsyncUpdateManager, LookinLiveDocument;
 
 @interface LKDashboardViewController : LKBaseViewController
 
@@ -17,8 +17,14 @@
 - (instancetype)initWithReadDataSource:(LKReadHierarchyDataSource *)dataSource;
 
 /// Phase A 引入:由 owner(LKStaticViewController)注入的 per-instance update manager(weak)。
-/// Live workspace 触发 modification 时优先用本实例,nil 时回落 +sharedInstance。
+/// Live workspace 触发 modification 时优先用本实例。
 @property(nonatomic, weak) LKStaticAsyncUpdateManager *asyncUpdateManager;
+
+/// Phase F: Live Doc that owns this dashboard. Static-mode RPC paths
+/// (modifyCustomAttribute, modifyInbuiltAttribute, search-method invoke)
+/// route through `liveDocument.inspectableApp` instead of the deprecated
+/// single-slot global. Read-mode dashboards leave this nil.
+@property(nonatomic, weak) LookinLiveDocument *liveDocument;
 
 - (LKHierarchyDataSource *)currentDataSource;
 

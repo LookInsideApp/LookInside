@@ -9,7 +9,6 @@
 #import "LKWindowToolbarHelper.h"
 #import "LKPreferenceManager.h"
 #import "LKMenuPopoverSettingController.h"
-#import "LKAppsManager.h"
 #import "LKNavigationManager.h"
 #import "LKPreviewView.h"
 #import "LKWindowToolbarScaleView.h"
@@ -178,10 +177,9 @@ static NSString * const Key_BindingAppInfo = @"AppInfo";
         NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:LKToolBarIdentifier_App];
         item.label = NSLocalizedString(@"Select App", nil);
         item.view = button;
-
-        [[RACObserve([LKAppsManager sharedInstance], inspectingApp) takeUntil:item.rac_willDeallocSignal] subscribeNext:^(LKInspectableApp *app) {
-            button.appInfo = app.appInfo;
-        }];
+        // Phase F: the App icon is bound to the owning Live Doc's
+        // `inspectableApp` by `LKStaticWindowController` (which has
+        // direct access to its own per-instance state).
         return item;
     }
 

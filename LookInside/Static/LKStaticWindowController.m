@@ -13,11 +13,13 @@
 #import "LKNavigationManager.h"
 #import "LKPreferenceManager.h"
 #import "LKAppsManager.h"
+#import "LKInspectableApp.h"
 #import "LKMenuPopoverAppsListController.h"
 #import "LKProgressIndicatorView.h"
 #import "LookinDisplayItem.h"
 #import "LookinObject.h"
 #import "LKWindowToolbarHelper.h"
+#import "LKWindowToolbarAppButton.h"
 #import "LKExportManager.h"
 #import "LookinHierarchyInfo.h"
 #import "LKExportAccessoryView.h"
@@ -60,9 +62,8 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
 
 - (instancetype)initWithInspectableApp:(LKInspectableApp *)app {
     if (self = [self init]) {
-        // Phase B: 由 LookinLiveDocument 调用,把 app 注入到本 wc 与其 asyncUpdateManager,
-        // 这样所有 RPC 请求(reload、modify 等)都路由到该 app 的 channel,而不是回退
-        // 到 LKAppsManager.inspectingApp。Phase D 完成后,LKAppsManager.inspectingApp 会被废弃。
+        // 由 LookinLiveDocument 调用,把 app 注入到本 wc 与其 asyncUpdateManager,
+        // 这样所有 RPC 请求(reload、modify 等)都路由到该 app 的 channel。
         self.inspectableApp = app;
         self.asyncUpdateManager.inspectableApp = app;
     }
@@ -82,6 +83,11 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
     [window setFrameUsingName:LKWindowSizeName_Static];
     
     if (self = [self initWithWindow:window]) {
+        // Phase F: persist this window's frame across launches using
+        // AppKit's window-controller autosave hook. The previous
+        // `LKNavigationManager.windowWillClose:` save path went away
+        // with `staticWindowController`, so saving moves here.
+        self.windowFrameAutosaveName = LKWindowSizeName_Static;
         // Phase A: 在创建 viewController 之前先 new 自己的 dataSource + updateManager,
         // 并把当前实例登记为 legacy singleton,这样此后 +sharedInstance 调用都会拿到这套实例。
         sLegacySingletonStaticWindowController = self;
@@ -90,7 +96,6 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
                                                                                 inspectableApp:nil];
         _hierarchyDataSource.asyncUpdateManager = _asyncUpdateManager;
 
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleInspectingAppDidEnd:) name:LKInspectingAppDidEndNotificationName object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(_handleSwiftUIModeDidChange:)
                                                      name:LKSwiftUIHierarchyDisplayModeDidChangeNotification
@@ -173,12 +178,9 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
             return;
         }
 
-        // Phase D: per-window inspectableApp drives this comparison; falling
-        // back to LKAppsManager.inspectingApp is the Phase A read-side
-        // compatibility hook for code paths that haven't been wired through
-        // a doc yet. Either is fine because the auto-connect path still
-        // owns its window controller.
-        LKInspectableApp *currentApp = self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
+        // Phase F: per-window inspectableApp is now the only source of
+        // truth — the deprecated single-slot global fallback is gone.
+        LKInspectableApp *currentApp = self.inspectableApp;
         BOOL isTheSameApp = currentApp && [currentApp.appInfo isEqualToAppInfo:targetApp.appInfo];
         [[targetApp fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
             [self _applyHierarchyInfo:info forApp:targetApp keepState:isTheSameApp];
@@ -281,6 +283,15 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
         } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_App]) {
             item.target = self;
             item.action = @selector(_handleApp);
+            // Phase F: bind this window's App icon to the owning Live
+            // Doc's inspectable app. KVO covers Phase D auto-reconnect
+            // because `LookinLiveDocument` swaps `inspectableApp` in
+            // place when the channel comes back.
+            LKWindowToolbarAppButton *appButton = (LKWindowToolbarAppButton *)item.view;
+            [[RACObserve(self, inspectableApp) takeUntil:item.rac_willDeallocSignal]
+                subscribeNext:^(LKInspectableApp *app) {
+                appButton.appInfo = app.appInfo;
+            }];
         } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_Rotation]) {
             item.target = self;
             item.action = @selector(_handleFreeRotation);
@@ -309,11 +320,6 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
 
 #pragma mark - Event Handler
 
-- (void)_handleInspectingAppDidEnd:(id)obj {
-    self.isFetchingHierarchy = NO;
-    self.isFetchingDetails = NO;
-}
-
 - (void)_handleReload {
     if (self.isFetchingDetails) {
         // 停止拉取
@@ -321,9 +327,8 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
         return;
     }
 
-    // Phase D: prefer this window's bound app; fall back to the legacy
-    // single-slot only for pre-Live-Doc paths still in flight.
-    LKInspectableApp *app = self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
+    // Phase F: this window's bound app is the only source of truth.
+    LKInspectableApp *app = self.inspectableApp;
     if (!app) {
         [self popupAllInspectableAppsWithSource:MenuPopoverAppsListControllerEventSourceReloadButton];
         return;
@@ -594,20 +599,19 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
 
 - (void)_applyHierarchyInfo:(LookinHierarchyInfo *)info forApp:(LKInspectableApp *)app keepState:(BOOL)keepState {
     [self.viewController.progressView finishWithCompletion:nil];
-    // Phase D: bind the app to this window's owned state instead of mutating
-    // the global `LKAppsManager.inspectingApp`. Same-window reload paths
-    // (auto-connect, toolbar-same-app, SwiftUI mode toggle) all flow through
-    // here, so this is the single point that owns wiring `app` into the per-
-    // instance graph (`asyncUpdateManager` is what dispatches RPCs).
+    // Phase D: bind the app to this window's owned state. Same-window
+    // reload paths (auto-connect, toolbar-same-app, SwiftUI mode toggle)
+    // all flow through here, so this is the single point that owns
+    // wiring `app` into the per-instance graph (`asyncUpdateManager` is
+    // what dispatches RPCs).
     self.inspectableApp = app;
     self.asyncUpdateManager.inspectableApp = app;
     [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:keepState];
 }
 
 - (void)_handleSwiftUIModeDidChange:(NSNotification *)note {
-    // Phase D: per-doc app first; legacy global slot is the migration bridge
-    // (Phase A fallback style — Phase F removes the right-hand side).
-    LKInspectableApp *app = self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
+    // Phase F: per-doc app is now the only source of truth.
+    LKInspectableApp *app = self.inspectableApp;
     if (!app) {
         return;
     }

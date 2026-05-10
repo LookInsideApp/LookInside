@@ -45,6 +45,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable instancetype)initWithInspectableApp:(LKInspectableApp *)app
                                            error:(NSError *_Nullable *_Nullable)outError;
 
+/// Returns the Live Doc whose window hosts `window`, or nil if `window`
+/// is not bound to a Live Doc. Used by views and per-window utilities
+/// that need to resolve "the inspectable app for this window" without
+/// holding a direct doc reference.
++ (nullable instancetype)documentInWindow:(nullable NSWindow *)window;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -10,7 +10,8 @@
 #import "LKStaticHierarchyDataSource.h"
 #import "LKDashboardCardView.h"
 #import "LookinDefines.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
+#import "LookinLiveDocument.h"
 #import "LKPreferenceManager.h"
 #import "LKStaticAsyncUpdateManager.h"
 #import "LKReadHierarchyDataSource.h"
@@ -113,6 +114,12 @@
         }];
 
         self.methodsDataSource = [LKDashboardSearchMethodsDataSource new];
+        // Phase F: forward the owning Live Doc once injected, so dashboard
+        // method searches route through the per-doc inspectable app.
+        [RACObserve(self, liveDocument) subscribeNext:^(LookinLiveDocument *doc) {
+            @strongify(self);
+            self.methodsDataSource.liveDocument = doc;
+        }];
         [self.staticDataSource.didReloadHierarchyInfo subscribeNext:^(id  _Nullable x) {
             @strongify(self);
             [self.methodsDataSource clearAllCache];
@@ -247,14 +254,16 @@
             return nil;
         }
         
-        if (![LKAppsManager sharedInstance].inspectingApp) {
+        // Phase F: Live Doc inspectable app drives custom-attr modifications.
+        LKInspectableApp *inspectableApp = self.liveDocument.inspectableApp;
+        if (!inspectableApp) {
             AlertError(LookinErr_NoConnect, self.view.window);
             [subscriber sendError:LookinErr_NoConnect];
             return nil;
         }
-        
+
         @weakify(self);
-        [[[LKAppsManager sharedInstance].inspectingApp submitCustomModification:modification] subscribeNext:^(id ret) {
+        [[inspectableApp submitCustomModification:modification] subscribeNext:^(id ret) {
             NSLog(@"custom modification - succ");
             attribute.value = newValue;
             [subscriber sendNext:nil];
@@ -294,13 +303,15 @@
             [subscriber sendError:LookinErr_Inner];
         }
         
-        if (![LKAppsManager sharedInstance].inspectingApp) {
+        // Phase F: Live Doc inspectable app drives inbuilt-attr modifications.
+        LKInspectableApp *inbuiltInspectableApp = self.liveDocument.inspectableApp;
+        if (!inbuiltInspectableApp) {
             AlertError(LookinErr_NoConnect, self.view.window);
             [subscriber sendError:LookinErr_NoConnect];
         }
-        
+
         @weakify(self);
-        [[[LKAppsManager sharedInstance].inspectingApp submitInbuiltModification:modification] subscribeNext:^(LookinDisplayItemDetail *detail) {
+        [[inbuiltInspectableApp submitInbuiltModification:modification] subscribeNext:^(LookinDisplayItemDetail *detail) {
             NSLog(@"modification - succ");
             @strongify(self);
             if (self.staticDataSource) {
@@ -457,13 +468,16 @@
 #pragma mark - <LKDashboardSearchMethodsViewDelegate>
 
 - (void)dashboardSearchMethodsView:(LKDashboardSearchMethodsView *)view requestToInvokeMethod:(NSString *)method oid:(unsigned long)oid {
+    // Phase F: Live Doc inspectable app drives method invocations from the
+    // dashboard search panel.
+    LKInspectableApp *inspectableApp = self.liveDocument.inspectableApp;
     RACSignal *signal;
     if (oid == 0 || method.length == 0) {
         signal = [RACSignal error:LookinErr_Inner];
-    } else if (![LKAppsManager sharedInstance].inspectingApp) {
+    } else if (!inspectableApp) {
         signal = [RACSignal error:LookinErr_NoConnect];
     } else {
-        signal = [[LKAppsManager sharedInstance].inspectingApp invokeMethodWithOid:oid text:method];
+        signal = [inspectableApp invokeMethodWithOid:oid text:method];
     }
     
     [signal subscribeNext:^(NSDictionary *value) {

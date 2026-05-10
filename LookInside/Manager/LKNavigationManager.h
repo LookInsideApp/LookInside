@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class LKLaunchWindowController, LKStaticWindowController, LKDynamicWindowController, LKWindowController, LKReadWindowController, LookinHierarchyInfo, LookinHierarchyFile;
+@class LKLaunchWindowController, LKDynamicWindowController, LKWindowController, LKReadWindowController, LookinHierarchyInfo, LookinHierarchyFile;
 
 @interface LKNavigationManager : NSObject <NSWindowDelegate>
 
@@ -17,8 +17,6 @@
 - (void)showLaunch;
 
 - (void)closeLaunch;
-
-- (void)showStaticWorkspace;
 
 - (void)showPreference;
 
@@ -35,7 +33,6 @@
 - (void)showReaderWithHierarchyFile:(LookinHierarchyFile *)file title:(NSString *)title;
 
 @property(nonatomic, strong, readonly) LKLaunchWindowController *launchWindowController;
-@property(nonatomic, strong, readonly) LKStaticWindowController *staticWindowController;
 
 - (LKWindowController *)currentKeyWindowController;
 

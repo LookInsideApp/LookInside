@@ -8,7 +8,7 @@
 
 #import "LKStaticAsyncUpdateManager.h"
 #import "LookinDisplayItem.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
 #import "LKStaticHierarchyDataSource.h"
 #import "LookinDisplayItemDetail.h"
 #import "LKPreferenceManager.h"
@@ -333,7 +333,10 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
 }
 
 - (LKInspectableApp *)resolvedInspectableApp {
-    return self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
+    // Phase F: every update manager is owned by exactly one Live Doc /
+    // window controller; the deprecated single-slot global fallback is
+    // gone, so this collapses to the directly injected reference.
+    return self.inspectableApp;
 }
 
 - (NSArray<LookinStaticAsyncUpdateTask *> *)makeMinimumTasksForItems:(NSArray<LookinDisplayItem *> *)items {

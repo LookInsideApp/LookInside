@@ -17,7 +17,7 @@
 #import "LKWindowController.h"
 #import "LKStaticWindowController.h"
 #import "LKTipsView.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
 #import "LKStaticAsyncUpdateManager.h"
 #import "LKNavigationManager.h"
 #import "LKConsoleViewController.h"
@@ -25,6 +25,7 @@
 #import "LKPreferenceManager.h"
 #import "LKMeasureController.h"
 #import "LKHelper.h"
+#import "LookinLiveDocument.h"
 
 NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificationName";
 
@@ -100,6 +101,17 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
     self.dashboardController.asyncUpdateManager = self.asyncUpdateManager;
     [self.splitTopView addSubview:self.dashboardController.view];
     [self addChildViewController:self.dashboardController];
+
+    // Phase F: as soon as the host window has a Live Doc attached, push
+    // it down to children that issue per-doc RPCs (dashboard / console).
+    @weakify(self);
+    [[[[NSNotificationCenter defaultCenter] rac_addObserverForName:NSWindowDidBecomeMainNotification
+                                                            object:nil] startWith:nil] subscribeNext:^(id _) {
+        @strongify(self);
+        LookinLiveDocument *doc = [LookinLiveDocument documentInWindow:self.view.window];
+        self.dashboardController.liveDocument = doc;
+        self.consoleController.liveDocument = doc;
+    }];
     
     self.measureController = [[LKMeasureController alloc] initWithDataSource:dataSource];
     self.measureController.view.hidden = YES;
@@ -163,8 +175,7 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
     
     self.progressView = [LKProgressIndicatorView new];
     [self.view addSubview:self.progressView];
-    
-    @weakify(self);
+
     [RACObserve(dataSource, selectedItem) subscribeNext:^(LookinDisplayItem *item) {
         @strongify(self);
         [self handleSelectItemDidChange];
@@ -195,13 +206,19 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
         [self.view setNeedsLayout:YES];
     }];
     
-    [RACObserve([LKAppsManager sharedInstance], inspectingApp) subscribeNext:^(LKInspectableApp *app) {
+    // Phase F: image-sync tip's icon follows the owning Live Doc's
+    // inspectable app instead of the deprecated single-slot global.
+    // Re-evaluating on NSWindowDidBecomeMainNotification covers both the
+    // initial window↔doc bind and Phase D auto-reconnect swaps.
+    [[[[NSNotificationCenter defaultCenter] rac_addObserverForName:NSWindowDidBecomeMainNotification
+                                                            object:nil] startWith:nil] subscribeNext:^(id _) {
         @strongify(self);
-        if (app) {
-            [self.imageSyncTipsView setImageByAppInfo:app.appInfo];
+        LookinLiveDocument *doc = [LookinLiveDocument documentInWindow:self.view.window];
+        if (doc.inspectableApp) {
+            [self.imageSyncTipsView setImageByAppInfo:doc.inspectableApp.appInfo];
         }
     }];
-    
+
     LKStaticAsyncUpdateManager *updateMng = self.asyncUpdateManager ?: [LKStaticAsyncUpdateManager sharedInstance];
     [updateMng.modifyingUpdateProgressSignal subscribeNext:^(RACTwoTuple *x) {
         @strongify(self);
@@ -268,6 +285,10 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
         if (!self.consoleController) {
             LKStaticHierarchyDataSource *dataSource = self.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
             self.consoleController = [[LKConsoleViewController alloc] initWithHierarchyDataSource:dataSource];
+            // Phase F: console is created lazily, so it inherits the
+            // live doc binding from the current window at the moment of
+            // first show.
+            self.consoleController.liveDocument = [LookinLiveDocument documentInWindow:self.view.window];
             [self addChildViewController:self.consoleController];
         }
         [self.rightSplitView addArrangedSubview:self.consoleController.view];

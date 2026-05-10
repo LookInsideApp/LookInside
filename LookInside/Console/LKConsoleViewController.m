@@ -8,6 +8,7 @@
 
 #import "LKConsoleViewController.h"
 #import "LKConsoleDataSource.h"
+#import "LookinLiveDocument.h"
 #import "LKConsoleDataSourceRowItem.h"
 #import "LKTableView.h"
 #import "LKConsoleSubmitRowView.h"
@@ -130,6 +131,11 @@
     } error:^(NSError * _Nullable error) {
         NSLog(@"Submit error: %@", error);
     }];
+}
+
+- (void)setLiveDocument:(LookinLiveDocument *)liveDocument {
+    _liveDocument = liveDocument;
+    self.dataSource.liveDocument = liveDocument;
 }
 
 #pragma mark - LKTableView

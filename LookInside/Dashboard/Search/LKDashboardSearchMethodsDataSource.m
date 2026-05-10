@@ -7,7 +7,8 @@
 //
 
 #import "LKDashboardSearchMethodsDataSource.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
+#import "LookinLiveDocument.h"
 
 @interface LKDashboardSearchMethodsDataSource ()
 
@@ -35,15 +36,16 @@
     if (!className.length) {
         return [RACSignal error:LookinErr_Inner];
     }
-    if (![LKAppsManager sharedInstance].inspectingApp) {
+    LKInspectableApp *inspectableApp = self.liveDocument.inspectableApp;
+    if (!inspectableApp) {
         return [RACSignal error:LookinErr_NoConnect];
     }
     if ([self.classesToSelsDict objectForKey:className]) {
         return [RACSignal return:self.classesToSelsDict[className]];
     }
-    
+
     @weakify(self);
-    return [[[LKAppsManager sharedInstance].inspectingApp fetchSelectorNamesWithClass:className hasArg:NO] doNext:^(NSArray<NSString *> *sels) {
+    return [[inspectableApp fetchSelectorNamesWithClass:className hasArg:NO] doNext:^(NSArray<NSString *> *sels) {
         @strongify(self);
         self.classesToSelsDict[className] = sels;
     }];

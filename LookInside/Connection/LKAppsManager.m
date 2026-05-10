@@ -14,14 +14,6 @@
 #import "LookinHierarchyInfo.h"
 #import "LookinConnectionResponseAttachment.h"
 
-NSString *const LKInspectingAppDidEndNotificationName = @"LKInspectingAppDidEndNotificationName";
-
-@interface LKAppsManager ()
-
-@property(nonatomic, strong) RACSubject *willConnectToApp;
-
-@end
-
 @implementation LKAppsManager
 
 + (instancetype)sharedInstance {
@@ -37,57 +29,28 @@ NSString *const LKInspectingAppDidEndNotificationName = @"LKInspectingAppDidEndN
     return [self sharedInstance];
 }
 
-- (instancetype)init {
-    if (self = [super init]) {
-        // Phase D: subjects survive only so deprecated readers (and the
-        // dead-code `setInspectingApp:` below) don't crash on nil. Phase F
-        // removes them outright.
-        _willConnectToApp = [RACSubject subject];
-        _didAutoReconnectSucc = [RACSubject subject];
-        // Phase D: the global `channelWillEnd` auto-reconnect pipeline used
-        // to live here. It was tied to the single `self.inspectingApp` slot
-        // and is incompatible with multiple Live Docs each owning their own
-        // channel. Reconnect responsibility now lives in
-        // `LookinLiveDocument._lk_subscribeChannelLifecycle`, which scopes
-        // each subscription to one doc's channel.
-    }
-    return self;
-}
-
-- (void)setInspectingApp:(LKInspectableApp *)inspectingApp {
-    BOOL shouldPostNotification = (_inspectingApp && !inspectingApp);
-    
-    _inspectingApp = inspectingApp;
-    if (inspectingApp) {
-        [self.willConnectToApp sendNext:inspectingApp];
-    }
-    
-    if (shouldPostNotification) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:LKInspectingAppDidEndNotificationName object:self];
-    }
-}
-
-// Phase D: `_fetchInspectableAppWithSimilarInfo:` was the helper used by the
-// deleted global auto-reconnect pipeline. The equivalent logic now lives in
-// `LookinLiveDocument._lk_fetchInspectableAppMatchingLastKnown`.
+// Phase F: `LKAppsManager` is now a stateless scanner only. The legacy
+// single-slot "currently inspected app" property and its auto-reconnect
+// pipeline have moved per-doc; see
+// `LookinLiveDocument._lk_subscribeChannelLifecycle`.
 
 - (RACSignal *)fetchAppInfosWithImage:(BOOL)needImages localInfos:(NSArray<LookinAppInfo *> *)localInfos {
     NSArray<LookinAppInfo *> *validAppInfos = [localInfos lookin_filter:^BOOL(LookinAppInfo *info) {
         /// 超过 8 秒则认为过期
         return [[NSDate date] timeIntervalSince1970] - info.cachedTimestamp <= 8;
     }];
-    
+
     NSArray<NSNumber *> *localInfoIdentifiers = [validAppInfos lookin_map:^id(NSUInteger idx, LookinAppInfo *value) {
         return @(value.appInfoIdentifier);
     }] ? : @[];
     NSDictionary *params = @{@"needImages":@(needImages), @"local":localInfoIdentifiers};
-    
+
     return [[[[LKConnectionManager sharedInstance] tryToConnectAllPorts] flattenMap:^__kindof RACSignal * _Nullable(NSArray<Lookin_PTChannel *> *connectedChannels) {
         if (!connectedChannels.count) {
             // 没有任何 channel
             return [RACSignal return:nil];
         }
-        
+
         NSArray<RACSignal *> *signals = [connectedChannels lookin_map:^id(NSUInteger idx, Lookin_PTChannel *channel) {
             return [[[LKConnectionManager sharedInstance] requestWithType:LookinRequestTypeApp data:params channel:channel] catch:^RACSignal * _Nonnull(NSError * _Nonnull error) {
                 if (error.code == LookinErrCode_ServerVersionTooHigh ||
@@ -101,21 +64,21 @@ NSString *const LKInspectingAppDidEndNotificationName = @"LKInspectingAppDidEndN
             }];
         }];
         return [RACSignal zip:signals];
-    
+
     }] map:^id _Nullable(RACTuple * _Nullable x) {
         NSArray<LKInspectableApp *> *apps = [x.allObjects lookin_map:^id(NSUInteger idx, id value) {
             if (value == [NSNull null]) {
                 // 位于后台无法执行代码的 app
                 return nil;
             }
-            
+
             if ([value isKindOfClass:[NSError class]]) {
                 // Lookin 版本不匹配的 app
                 LKInspectableApp *app = [[LKInspectableApp alloc] init];
                 app.serverVersionError = value;
                 return app;
             }
-            
+
             if ([value isKindOfClass:[RACTuple class]]) {
                 RACTupleUnpack(LookinConnectionResponseAttachment *response, Lookin_PTChannel *relatedChannel) = value;
                 if (response.error) {
@@ -142,14 +105,14 @@ NSString *const LKInspectingAppDidEndNotificationName = @"LKInspectingAppDidEndN
                             receivedInfo = localInfo;
                         }
                     }
-                    
+
                     LKInspectableApp *app = [[LKInspectableApp alloc] init];
                     app.appInfo = receivedInfo;
                     app.channel = relatedChannel;
                     return app;
                 }
             }
-            
+
             NSAssert(NO, @"");
             return nil;
         }];

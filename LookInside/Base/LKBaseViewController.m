@@ -9,9 +9,10 @@
 #import "LKBaseViewController.h"
 #import "LKWindowController.h"
 #import "LKTipsView.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
 #import "LKNavigationManager.h"
 #import "LKStaticWindowController.h"
+#import "LookinLiveDocument.h"
 
 @interface LKBaseViewController ()
 
@@ -51,26 +52,53 @@
         self.connectionTipsView.buttonText = NSLocalizedString(@"Change App", nil);
         self.connectionTipsView.target = self;
         self.connectionTipsView.clickAction = @selector(_handleClickReconnectTips);
-        
-        @weakify(self);
-        [RACObserve([LKAppsManager sharedInstance], inspectingApp) subscribeNext:^(LKInspectableApp *app) {
-            @strongify(self);
-            if (app) {
-                [self.connectionTipsView endAnimation];
-                self.connectionTipsView.hidden = YES;
-                [self.connectionTipsView setImageByAppInfo:app.appInfo];
-                
-            } else {
-                if (!self.connectionTipsView.superview) {
-                    [view addSubview:self.connectionTipsView];
-                }
-                self.connectionTipsView.hidden = NO;
-                [self.connectionTipsView startAnimation];
-                
-                [self.view setNeedsLayout:YES];
-            }
-        }];
     }
+}
+
+- (void)viewWillAppear {
+    [super viewWillAppear];
+    if (!self.shouldShowConnectionTips || self.connectionTipsView == nil) {
+        return;
+    }
+    // Phase F: drive the per-window banner from the host Live Doc's
+    // `connectionLossBannerMessage` (set when the channel dies, cleared
+    // when Phase D auto-reconnect succeeds). The lookup happens once
+    // here because the window↔doc binding is fixed for this controller's
+    // lifetime once the doc has called `-makeWindowControllers`.
+    LookinLiveDocument *doc = [LookinLiveDocument documentInWindow:self.view.window];
+    if (!doc) {
+        return;
+    }
+    LKInspectableApp *initialApp = doc.inspectableApp;
+    if (initialApp) {
+        [self.connectionTipsView setImageByAppInfo:initialApp.appInfo];
+    }
+    @weakify(self);
+    [[RACObserve(doc, connectionLossBannerMessage) takeUntil:self.rac_willDeallocSignal]
+        subscribeNext:^(NSString *message) {
+        @strongify(self);
+        NSView *containerView = self.view;
+        if (message.length == 0) {
+            [self.connectionTipsView endAnimation];
+            self.connectionTipsView.hidden = YES;
+        } else {
+            if (!self.connectionTipsView.superview) {
+                [containerView addSubview:self.connectionTipsView];
+            }
+            self.connectionTipsView.hidden = NO;
+            [self.connectionTipsView startAnimation];
+            [containerView setNeedsLayout:YES];
+        }
+    }];
+    // Track inspectableApp swaps (Phase D auto-reconnect) so the banner
+    // image stays in sync with the currently-bound app.
+    [[RACObserve(doc, inspectableApp) takeUntil:self.rac_willDeallocSignal]
+        subscribeNext:^(LKInspectableApp *app) {
+        @strongify(self);
+        if (app) {
+            [self.connectionTipsView setImageByAppInfo:app.appInfo];
+        }
+    }];
 }
 
 - (void)viewDidLayout {
@@ -82,18 +110,13 @@
 }
 
 - (void)_handleClickReconnectTips {
+    // Phase F: each Live Doc owns its own banner now, so clicking the
+    // "Change App" pill on this window's banner pops up the picker on
+    // *this* window (rather than routing through a global Static
+    // workspace singleton).
     NSWindowController *wc = self.view.window.windowController;
-    LKStaticWindowController *staticWc = [LKNavigationManager sharedInstance].staticWindowController;
-    
-    if (wc == staticWc) {
-        [staticWc popupAllInspectableAppsWithSource:MenuPopoverAppsListControllerEventSourceNoConnectionTips];
-
-    } else if (staticWc) {
-        [staticWc showWindow:self];
-        [staticWc popupAllInspectableAppsWithSource:MenuPopoverAppsListControllerEventSourceNoConnectionTips];
-        
-    } else {
-        NSAssert(NO, @"");
+    if ([wc isKindOfClass:[LKStaticWindowController class]]) {
+        [(LKStaticWindowController *)wc popupAllInspectableAppsWithSource:MenuPopoverAppsListControllerEventSourceNoConnectionTips];
     }
 }
 

@@ -8,13 +8,17 @@
 
 #import "LKBaseViewController.h"
 
-@class LookinObject, LKHierarchyDataSource;
+@class LookinObject, LKHierarchyDataSource, LookinLiveDocument;
 
 @interface LKConsoleViewController : LKBaseViewController
 
 - (instancetype)initWithHierarchyDataSource:(LKHierarchyDataSource *)dataSource;
 
 @property(nonatomic, assign) BOOL isControllerShowing;
+
+/// Phase F: forwarded onto the controller's `LKConsoleDataSource` so RPC
+/// invocations route through the owning Live Doc's inspectable app.
+@property(nonatomic, weak) LookinLiveDocument *liveDocument;
 
 - (void)submitWithObj:(LookinObject *)obj text:(NSString *)text;
 

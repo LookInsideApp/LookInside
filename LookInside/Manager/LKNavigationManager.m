@@ -8,9 +8,7 @@
 
 #import "LKNavigationManager.h"
 #import "LKLaunchWindowController.h"
-#import "LKStaticWindowController.h"
 #import "LKPreferenceWindowController.h"
-#import "LKStaticViewController.h"
 #import "LKPreviewController.h"
 #import "LKPreviewController.h"
 #import "LKAppsManager.h"
@@ -49,14 +47,6 @@
 - (void)showLaunch {
     _launchWindowController = [[LKLaunchWindowController alloc] init];
     [self.launchWindowController showWindow:self];
-}
-
-- (void)showStaticWorkspace {
-    if (!self.staticWindowController) {
-        _staticWindowController = [[LKStaticWindowController alloc] init];
-        self.staticWindowController.window.delegate = self;
-    }
-    [self.staticWindowController showWindow:self];
 }
 
 - (void)closeLaunch {
@@ -132,27 +122,19 @@
 
 #pragma mark - <NSWindowDelegate>
 
-
-/**
- staticWindowController 关闭时不要直接释放，因为点击某些窗口的“连接已断开” tips 可能需要唤起 static 窗口来切换 App
- */
 - (void)windowWillClose:(NSNotification *)notification {
     NSWindow *closingWindow = notification.object;
-    
+
     if (closingWindow == self.preferenceWindowController.window) {
         _preferenceWindowController = nil;
-        
-    } else if (closingWindow == self.preferenceWindowController.window) {
-        self.preferenceWindowController = nil;
-        
-    } else if (closingWindow == self.staticWindowController.window) {
-        [closingWindow saveFrameUsingName:LKWindowSizeName_Static];
-        
+
     } else if (closingWindow == self.aboutWindowController.window) {
         self.aboutWindowController = nil;
     }
-    // Phase C: reader windows are owned by NSDocumentController via LookinArchiveDocument,
-    // no manual cleanup needed here.
+    // Phase F: Live Doc and Archive Doc windows are both owned by
+    // NSDocumentController, and Live Doc windows persist their frame
+    // (`LKWindowSizeName_Static`) themselves, so no manual cleanup runs
+    // here for inspection windows.
 }
 
 @end

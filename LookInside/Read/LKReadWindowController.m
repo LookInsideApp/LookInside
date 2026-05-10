@@ -32,10 +32,7 @@
 @implementation LKReadWindowController
 
 - (instancetype)initWithDocument:(LookinArchiveDocument *)document {
-    return [self initWithFile:document.hierarchyFile];
-}
-
-- (instancetype)initWithFile:(LookinHierarchyFile *)file {
+    LookinHierarchyFile *file = document.hierarchyFile;
     NSSize screenSize = [NSScreen mainScreen].frame.size;
     LKWindow *window = [[LKWindow alloc] initWithContentRect:NSMakeRect(0, 0, screenSize.width * .7, screenSize.height * .7) styleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable|NSWindowStyleMaskFullSizeContentView backing:NSBackingStoreBuffered defer:YES];
     window.tabbingMode = NSWindowTabbingModeDisallowed;

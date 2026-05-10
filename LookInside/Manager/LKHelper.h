@@ -9,7 +9,11 @@
 #import <Cocoa/Cocoa.h>
 #import "LookinDefines.h"
 
-#define InspectingApp [LKAppsManager sharedInstance].inspectingApp
+// Phase F: the legacy `InspectingApp` shorthand for
+// `[LKAppsManager sharedInstance].inspectingApp` has been removed along
+// with the single-slot global it pointed at. Call sites now resolve the
+// inspectable app via the owning `LookinLiveDocument` (e.g. via
+// `+[LookinLiveDocument documentInWindow:]` on a per-window lookup).
 #define CurrentTime [[NSDate date] timeIntervalSince1970]
 #define CurrentKeyWindow [NSApplication sharedApplication].keyWindow
 

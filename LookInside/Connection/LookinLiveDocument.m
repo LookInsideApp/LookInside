@@ -61,6 +61,17 @@
     return self;
 }
 
++ (instancetype)documentInWindow:(NSWindow *)window {
+    if (!window) {
+        return nil;
+    }
+    NSDocument *doc = [[NSDocumentController sharedDocumentController] documentForWindow:window];
+    if ([doc isKindOfClass:[LookinLiveDocument class]]) {
+        return (LookinLiveDocument *)doc;
+    }
+    return nil;
+}
+
 - (LKStaticHierarchyDataSource *)hierarchyDataSource {
     LKStaticWindowController *wc = (LKStaticWindowController *)self.windowControllers.firstObject;
     if ([wc isKindOfClass:[LKStaticWindowController class]]) {

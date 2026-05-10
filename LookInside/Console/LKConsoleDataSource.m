@@ -10,7 +10,8 @@
 #import "LKConsoleDataSourceRowItem.h"
 #import "LKStaticHierarchyDataSource.h"
 #import "LookinDisplayItem.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
+#import "LookinLiveDocument.h"
 #import "LKPreferenceManager.h"
 
 @interface LKConsoleDataSource ()
@@ -67,7 +68,8 @@
     if (!text.length) {
         return [RACSignal error:LookinErrorMake(NSLocalizedString(@"Content is empty.", nil), @"")];
     }
-    if (![LKAppsManager sharedInstance].inspectingApp) {
+    LKInspectableApp *inspectableApp = self.liveDocument.inspectableApp;
+    if (!inspectableApp) {
         return [RACSignal error:LookinErr_NoConnect];
     }
     if ([text containsString:@":"]) {
@@ -80,7 +82,7 @@
         return [RACSignal error:LookinErrorMake(NSLocalizedString(@"LookInside doesn't support this syntax yet. Please input a method or property name.", nil), @"")];
     }
     @weakify(self);
-    return [[[LKAppsManager sharedInstance].inspectingApp invokeMethodWithOid:obj.oid text:text] doNext:^(NSDictionary *dict) {
+    return [[inspectableApp invokeMethodWithOid:obj.oid text:text] doNext:^(NSDictionary *dict) {
         NSString *returnDescription = dict[@"description"];
         LookinObject *returnObject = dict[@"object"];
 
@@ -115,7 +117,8 @@
     if (!className.length) {
         return [RACSignal error:LookinErr_Inner];
     }
-    if (![LKAppsManager sharedInstance].inspectingApp) {
+    LKInspectableApp *inspectableApp = self.liveDocument.inspectableApp;
+    if (!inspectableApp) {
         return [RACSignal error:LookinErr_NoConnect];
     }
     if ([self.classesToSelsDict objectForKey:className]) {
@@ -124,7 +127,7 @@
     }
     
     @weakify(self);
-    return [[[LKAppsManager sharedInstance].inspectingApp fetchSelectorNamesWithClass:obj.rawClassName hasArg:YES] doNext:^(NSArray<NSString *> *sels) {
+    return [[inspectableApp fetchSelectorNamesWithClass:obj.rawClassName hasArg:YES] doNext:^(NSArray<NSString *> *sels) {
         @strongify(self);
         self.classesToSelsDict[className] = sels;
         self.currentObject = obj;

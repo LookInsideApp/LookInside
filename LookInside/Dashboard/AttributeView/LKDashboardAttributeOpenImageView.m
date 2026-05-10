@@ -9,7 +9,8 @@
 #import "LKDashboardAttributeOpenImageView.h"
 #import "LKNumberInputView.h"
 #import "LKDashboardViewController.h"
-#import "LKAppsManager.h"
+#import "LKInspectableApp.h"
+#import "LookinLiveDocument.h"
 
 @interface LKDashboardAttributeOpenImageView ()
 
@@ -64,13 +65,16 @@
         return;
     }
 
-    if (!InspectingApp) {
+    // Phase F: resolve the inspectable app via the Live Doc that owns this
+    // view's window instead of the deprecated single-slot global.
+    LKInspectableApp *inspectableApp = [LookinLiveDocument documentInWindow:self.window].inspectableApp;
+    if (!inspectableApp) {
         AlertError(LookinErr_NoConnect, self.window);
         return;
     }
-    
+
     @weakify(self);
-    [[InspectingApp fetchImageWithImageViewOid:imageViewOid] subscribeNext:^(NSData *imageData) {
+    [[inspectableApp fetchImageWithImageViewOid:imageViewOid] subscribeNext:^(NSData *imageData) {
         @strongify(self);
         if (!imageData) {
             AlertErrorText(NSLocalizedString(@"Operation failed. The image property value of selected UIImageView is nil.", nil), @"", self.window);

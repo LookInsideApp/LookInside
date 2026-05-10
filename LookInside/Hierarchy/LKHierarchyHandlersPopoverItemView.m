@@ -10,9 +10,8 @@
 #import "LookinEventHandler.h"
 #import "LKTextsMenuView.h"
 #import "LookinIvarTrace.h"
-#import "LKAppsManager.h"
-#import "LKNavigationManager.h"
-#import "LKStaticWindowController.h"
+#import "LKInspectableApp.h"
+#import "LookinLiveDocument.h"
 
 @interface LKHierarchyHandlersPopoverItemView ()
 
@@ -174,9 +173,12 @@
 }
 
 - (void)_handleGestureButton:(NSButton *)button {
-    NSWindow *mainWindow = [LKNavigationManager sharedInstance].staticWindowController.window;
-    
-    if (!InspectingApp) {
+    // Phase F: a popover item lives on top of the Live Doc that hosts it,
+    // so the inspectable app and the alert host both flow from `self.window`.
+    NSWindow *mainWindow = self.window;
+    LKInspectableApp *inspectableApp = [LookinLiveDocument documentInWindow:mainWindow].inspectableApp;
+
+    if (!inspectableApp) {
         AlertError(LookinErr_NoConnect, mainWindow);
         [self _renderRecognizerEnabledButton];
         return;
@@ -188,12 +190,12 @@
         shouldEnableRecognizer = NO;
     }
     @weakify(self);
-    [[InspectingApp modifyGestureRecognizer:self.eventHandler.recognizerOid toBeEnabled:shouldEnableRecognizer] subscribeNext:^(NSNumber *enabled_number) {
+    [[inspectableApp modifyGestureRecognizer:self.eventHandler.recognizerOid toBeEnabled:shouldEnableRecognizer] subscribeNext:^(NSNumber *enabled_number) {
         @strongify(self);
         BOOL isEnabled = [enabled_number boolValue];
         self.eventHandler.gestureRecognizerIsEnabled = isEnabled;
         [self _renderRecognizerEnabledButton];
-        
+
     } error:^(NSError * _Nullable error) {
         @strongify(self);
         AlertError(error, mainWindow);

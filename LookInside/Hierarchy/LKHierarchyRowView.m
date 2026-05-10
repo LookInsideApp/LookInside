@@ -11,8 +11,7 @@
 #import "LookinIvarTrace.h"
 #import "LookinDisplayItem.h"
 #import "LKHierarchyHandlersPopoverController.h"
-#import "LKNavigationManager.h"
-#import "LKStaticWindowController.h"
+#import "LookinLiveDocument.h"
 #import "LKHierarchyDataSource.h"
 #import "LookinDisplayItem+LookinClient.h"
 #import "LookinCustomDisplayItemInfo.h"
@@ -166,11 +165,10 @@ static BOOL LKDisplayItemLooksLikeSwiftUI(LookinDisplayItem *item) {
 
 - (void)_handleClickEventHandlerButton:(NSButton *)button {
     NSPopover *popover = [[NSPopover alloc] init];
-    
-    BOOL editable = NO;
-    if (self.window == [LKNavigationManager sharedInstance].staticWindowController.window) {
-        editable = YES;
-    }
+
+    // Phase F: a row hosted inside a Live Doc's window is editable; rows
+    // hosted in a read-only Archive Doc / launch window are not.
+    BOOL editable = ([LookinLiveDocument documentInWindow:self.window] != nil);
     
     LKHierarchyHandlersPopoverController *vc = [[LKHierarchyHandlersPopoverController alloc] initWithDisplayItem:self.displayItem editable:editable];
     popover.animates = NO;

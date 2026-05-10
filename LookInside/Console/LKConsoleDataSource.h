@@ -8,11 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-@class LKConsoleDataSourceRowItem, LookinObject, LKHierarchyDataSource;
+@class LKConsoleDataSourceRowItem, LookinObject, LKHierarchyDataSource, LookinLiveDocument;
 
 @interface LKConsoleDataSource : NSObject
 
 - (instancetype)initWithHierarchyDataSource:(LKHierarchyDataSource *)hierarchyDataSource;
+
+/// Phase F: Live Doc that owns this console session. Read-only invocations
+/// (`-submit:` / `-makeObjectAsCurrent:`) route their RPCs through
+/// `liveDocument.inspectableApp`. Owners (LKStaticViewController) inject
+/// the doc immediately after creating the data source.
+@property(nonatomic, weak) LookinLiveDocument *liveDocument;
 
 @property(nonatomic, copy) NSArray<LKConsoleDataSourceRowItem *> *rowItems;
 
