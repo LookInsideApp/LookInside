@@ -207,41 +207,58 @@
             }
 
             // Phase D (Q1=X): a different App means "open in a new window"
-            // rather than swapping this window's target. The current doc keeps
-            // its identity (its `inspectableApp` and channel are untouched),
-            // and `LookinLiveDocumentController` handles channel-level
-            // de-duplication (Q3=P) so picking the *same* second App while it
-            // is already open just refocuses that other window.
+            // rather than swapping this window's target. The current window
+            // keeps its identity (its `inspectableApp` and channel are
+            // untouched), and `LookinLiveDocumentController` handles
+            // channel-level de-duplication (Q3=P) so picking the *same*
+            // second App while it is already open just refocuses that other
+            // window.
             LookinAppInfo *currentInfo = self.inspectableApp.appInfo;
             BOOL isTheSameApp = currentInfo && [currentInfo isEqualToAppInfo:app.appInfo];
 
             if (!isTheSameApp) {
-                // Mirror the Launch flow: fetch hierarchy on the picker's
-                // window so the user sees progress in this controller's
-                // progress bar, then hand the populated info off to the new
-                // Live Doc. Without the priming reload the new window opens
-                // with an empty data source.
-                [self.viewController.progressView animateToProgress:0.7 duration:0.5];
-                [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
-                    [self.viewController.progressView finishWithCompletion:nil];
-                    if (!info) {
-                        AlertError(LookinErr_Inner, self.window);
+                // Open the new window first (empty state), then run the
+                // hierarchy fetch on *that* window's progress bar. This
+                // matches the Q1=X intent: the picker's window stays put
+                // and a fresh window animates its own progress while the
+                // tree streams in. Errors (including the 15s hierarchy
+                // timeout) surface as a sheet on the new window so the
+                // current window's session is never disturbed.
+                [[LookinLiveDocumentController sharedInstance]
+                    openLiveDocumentForInspectableApp:app
+                                           completion:^(LookinLiveDocument *doc,
+                                                        BOOL alreadyOpen,
+                                                        NSError *openError) {
+                    if (!doc) {
+                        // Local — `AlertError` is an unparenthesised macro,
+                        // so passing `openError ?: LookinErr_Inner` binds
+                        // `.code` to the macro arg before the elvis runs and
+                        // mistypes the operands.
+                        NSError *errToShow = openError ? openError : LookinErr_Inner;
+                        AlertError(errToShow, self.window);
                         return;
                     }
-                    [[LookinLiveDocumentController sharedInstance]
-                        openLiveDocumentForInspectableApp:app
-                                               completion:^(LookinLiveDocument *doc,
-                                                            BOOL alreadyOpen,
-                                                            NSError *openError) {
-                        if (doc && !alreadyOpen) {
-                            [doc.hierarchyDataSource reloadWithHierarchyInfo:info keepState:NO];
-                        } else if (openError) {
-                            AlertError(openError, self.window);
+                    if (alreadyOpen) {
+                        // Q3=P: existing doc was just brought forward —
+                        // do not re-fetch, do not animate.
+                        return;
+                    }
+                    LKStaticWindowController *newWC = (LKStaticWindowController *)doc.windowControllers.firstObject;
+                    if (![newWC isKindOfClass:[LKStaticWindowController class]]) {
+                        return;
+                    }
+                    [newWC.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
+                    [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
+                        [newWC.viewController.progressView finishWithCompletion:nil];
+                        if (!info) {
+                            AlertError(LookinErr_Inner, newWC.window);
+                            return;
                         }
+                        [newWC.hierarchyDataSource reloadWithHierarchyInfo:info keepState:NO];
+                    } error:^(NSError *fetchErr) {
+                        [newWC.viewController.progressView resetToZero];
+                        AlertError(fetchErr, newWC.window);
                     }];
-                } error:^(NSError *fetchErr) {
-                    [self.viewController.progressView resetToZero];
-                    AlertError(fetchErr, self.window);
                 }];
                 return;
             }
