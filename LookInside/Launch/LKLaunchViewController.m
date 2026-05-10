@@ -14,6 +14,8 @@
 #import "LookinHierarchyInfo.h"
 #import "LKNavigationManager.h"
 #import "LKStaticWindowController.h"
+#import "LookinLiveDocument.h"
+#import "LookinLiveDocumentController.h"
 #import "LKPreferenceManager.h"
 #import "LKTextControl.h"
 #import "LKPerformanceReporter.h"
@@ -187,27 +189,42 @@
     @weakify(self);
     [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
         @strongify(self);
-        
+
         if (!info) {
             [self _handleEnterAppFailWithError:LookinErr_Inner];
-        } else {
-            [LKAppsManager sharedInstance].inspectingApp = app;
-            // Phase A:走 LKStaticWindowController.hierarchyDataSource 链路;
-            // 单 App 路径下 +sharedInstance 与该实例等价(由 singletonForLegacy 兜底)。
-            // Phase D 之后会改为 Live Doc 自有的 dataSource。
-            LKStaticHierarchyDataSource *dataSource = [LKNavigationManager sharedInstance].staticWindowController.hierarchyDataSource ?: [LKStaticHierarchyDataSource sharedInstance];
-            [dataSource reloadWithHierarchyInfo:info keepState:NO];
-
-            [self.bottomIndicatorView finishWithCompletion:^{
-                [[LKNavigationManager sharedInstance] showStaticWorkspace];
-                [[LKNavigationManager sharedInstance] closeLaunch];
-                NSWindow *staticWindow = [LKNavigationManager sharedInstance].staticWindowController.window;
-                [[LKSwiftUISupportGatekeeper sharedInstance] promptForPendingDetectedSwiftUISupportIfNeededForWindow:staticWindow];
-            }];
+            [LKPerformanceReporter.sharedInstance didFetchHierarchy];
+            return;
         }
-        
+
+        // Phase D: a successful Launch-screen pick now creates a Live Doc
+        // (which owns its own hierarchy data source + async update manager)
+        // instead of mutating the global `LKAppsManager.inspectingApp` and
+        // sharing the static workspace singleton. The hierarchy info we just
+        // fetched is fed into the new doc so it appears immediately without
+        // a redundant round-trip.
+        [self.bottomIndicatorView finishWithCompletion:^{
+            @strongify(self);
+            [[LookinLiveDocumentController sharedInstance]
+                openLiveDocumentForInspectableApp:app
+                                       completion:^(LookinLiveDocument *doc, BOOL alreadyOpen, NSError *err) {
+                if (err && !doc) {
+                    [self _handleEnterAppFailWithError:err];
+                    return;
+                }
+                if (!alreadyOpen) {
+                    // Brand new doc: prime its data source with the hierarchy
+                    // we already pulled, so the window opens populated.
+                    [doc.hierarchyDataSource reloadWithHierarchyInfo:info keepState:NO];
+                }
+                [[LKNavigationManager sharedInstance] closeLaunch];
+                NSWindow *liveWindow = doc.windowControllers.firstObject.window;
+                [[LKSwiftUISupportGatekeeper sharedInstance] promptForPendingDetectedSwiftUISupportIfNeededForWindow:liveWindow];
+                self.isEnteringApp = NO;
+            }];
+        }];
+
         [LKPerformanceReporter.sharedInstance didFetchHierarchy];
-        
+
     } error:^(NSError * _Nullable error) {
         @strongify(self);
         [self _handleEnterAppFailWithError:error];

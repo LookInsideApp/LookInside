@@ -24,6 +24,8 @@
 #import "LKWindow.h"
 #import "LKStaticAsyncUpdateManager.h"
 #import "LookinHierarchyFile.h"
+#import "LookinLiveDocument.h"
+#import "LookinLiveDocumentController.h"
 #import "LKPreviewView.h"
 #import "LKHierarchyView.h"
 #import "LKPerformanceReporter.h"
@@ -171,7 +173,13 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
             return;
         }
 
-        BOOL isTheSameApp = [[LKAppsManager sharedInstance].inspectingApp.appInfo isEqualToAppInfo:targetApp.appInfo];
+        // Phase D: per-window inspectableApp drives this comparison; falling
+        // back to LKAppsManager.inspectingApp is the Phase A read-side
+        // compatibility hook for code paths that haven't been wired through
+        // a doc yet. Either is fine because the auto-connect path still
+        // owns its window controller.
+        LKInspectableApp *currentApp = self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
+        BOOL isTheSameApp = currentApp && [currentApp.appInfo isEqualToAppInfo:targetApp.appInfo];
         [[targetApp fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
             [self _applyHierarchyInfo:info forApp:targetApp keepState:isTheSameApp];
         } error:^(NSError * _Nullable error) {
@@ -186,7 +194,7 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
 
 - (void)popupAllInspectableAppsWithSource:(MenuPopoverAppsListControllerEventSource)source {
     NSView *appItemView = [self.toolbarItemsMap objectForKey:LKToolBarIdentifier_App].view;
-    
+
     @weakify(self);
     [[[[LKAppsManager sharedInstance] fetchAppInfosWithImage:YES localInfos:nil] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
         @strongify(self);
@@ -194,36 +202,51 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
         NSPopover *popover = [[NSPopover alloc] init];
         @weakify(popover);
         vc.didSelectApp = ^(LKInspectableApp *app) {
+            @strongify(self);
             @strongify(popover);
             [popover close];
-            
+
             if (app.serverVersionError) {
                 if (app.serverVersionError.code == LookinErrCode_ServerVersionTooLow) {
                     [LKHelper openLookinWebsiteWithPath:@"faq/server-version-too-low/"];
                 } else {
                     [LKHelper openLookinWebsiteWithPath:@"faq/server-version-too-high/"];
                 }
-                
-            } else {
-                [self.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
-                
-                BOOL isTheSameApp = [[LKAppsManager sharedInstance].inspectingApp.appInfo isEqualToAppInfo:app.appInfo];
-                
-                [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
-                    [self _applyHierarchyInfo:info forApp:app keepState:isTheSameApp];
-                } error:^(NSError * _Nullable error) {
-                    AlertError(error, self.window);
-                    [self.viewController.progressView resetToZero];
-                }];
+                return;
             }
+
+            // Phase D (Q1=X): a different App means "open in a new window"
+            // rather than swapping this window's target. The current doc keeps
+            // its identity (its `inspectableApp` and channel are untouched),
+            // and `LookinLiveDocumentController` handles channel-level
+            // de-duplication (Q3=P) so picking the *same* second App while it
+            // is already open just refocuses that other window.
+            LookinAppInfo *currentInfo = self.inspectableApp.appInfo;
+            BOOL isTheSameApp = currentInfo && [currentInfo isEqualToAppInfo:app.appInfo];
+
+            if (!isTheSameApp) {
+                [[LookinLiveDocumentController sharedInstance]
+                    openLiveDocumentForInspectableApp:app
+                                           completion:nil];
+                return;
+            }
+
+            // Same app — keep the historic in-place reload behavior.
+            [self.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
+            [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
+                [self _applyHierarchyInfo:info forApp:app keepState:YES];
+            } error:^(NSError * _Nullable error) {
+                AlertError(error, self.window);
+                [self.viewController.progressView resetToZero];
+            }];
         };
-        
+
         popover.behavior = NSPopoverBehaviorTransient;
         popover.animates = NO;
         popover.contentSize = vc.bestSize;
         popover.contentViewController = vc;
         [popover showRelativeToRect:NSMakeRect(0, 0, appItemView.bounds.size.width, appItemView.bounds.size.height) ofView:appItemView preferredEdge:NSRectEdgeMaxY];
-        
+
     } error:^(NSError * _Nullable error) {
         NSAssert(NO, @"该方法不应该 sendError");
     }];
@@ -298,7 +321,9 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
         return;
     }
 
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+    // Phase D: prefer this window's bound app; fall back to the legacy
+    // single-slot only for pre-Live-Doc paths still in flight.
+    LKInspectableApp *app = self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
     if (!app) {
         [self popupAllInspectableAppsWithSource:MenuPopoverAppsListControllerEventSourceReloadButton];
         return;
@@ -569,12 +594,20 @@ static __weak LKStaticWindowController *sLegacySingletonStaticWindowController =
 
 - (void)_applyHierarchyInfo:(LookinHierarchyInfo *)info forApp:(LKInspectableApp *)app keepState:(BOOL)keepState {
     [self.viewController.progressView finishWithCompletion:nil];
-    [LKAppsManager sharedInstance].inspectingApp = app;
+    // Phase D: bind the app to this window's owned state instead of mutating
+    // the global `LKAppsManager.inspectingApp`. Same-window reload paths
+    // (auto-connect, toolbar-same-app, SwiftUI mode toggle) all flow through
+    // here, so this is the single point that owns wiring `app` into the per-
+    // instance graph (`asyncUpdateManager` is what dispatches RPCs).
+    self.inspectableApp = app;
+    self.asyncUpdateManager.inspectableApp = app;
     [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:keepState];
 }
 
 - (void)_handleSwiftUIModeDidChange:(NSNotification *)note {
-    LKInspectableApp *app = [LKAppsManager sharedInstance].inspectingApp;
+    // Phase D: per-doc app first; legacy global slot is the migration bridge
+    // (Phase A fallback style — Phase F removes the right-hand side).
+    LKInspectableApp *app = self.inspectableApp ?: [LKAppsManager sharedInstance].inspectingApp;
     if (!app) {
         return;
     }

@@ -16,10 +16,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface LookinLiveDocument : NSDocument
 
-/// The inspectable app this document represents. Fixed for the document's
-/// lifetime; reconnect logic (Phase D) replaces the channel underneath but
-/// keeps the LKInspectableApp identity stable.
+/// The inspectable app this document represents. Stable for callers in the
+/// sense that the document keeps its identity, but Phase D reconnect logic
+/// will swap the underlying `LKInspectableApp` (new channel + new
+/// LookinAppInfo) when the previous channel goes away and a matching app
+/// reappears. Public surface remains readonly; internal class extension
+/// declares the readwrite override.
 @property(nonatomic, strong, readonly) LKInspectableApp *inspectableApp;
+
+/// Phase D: human-readable reason for the current connection loss, or nil
+/// when the doc is connected. Phase E will surface this as a banner in
+/// the window controller; Phase D leaves it as a side-channel for that
+/// upcoming UI work and for debugging in the meantime.
+@property(nonatomic, copy, readonly, nullable) NSString *connectionLossBannerMessage;
 
 /// Convenience accessor that returns the per-doc hierarchy data source owned
 /// by this document's window controller. Returns nil before

@@ -39,46 +39,17 @@ NSString *const LKInspectingAppDidEndNotificationName = @"LKInspectingAppDidEndN
 
 - (instancetype)init {
     if (self = [super init]) {
+        // Phase D: subjects survive only so deprecated readers (and the
+        // dead-code `setInspectingApp:` below) don't crash on nil. Phase F
+        // removes them outright.
         _willConnectToApp = [RACSubject subject];
         _didAutoReconnectSucc = [RACSubject subject];
-        
-        @weakify(self);
-        [[[[LKConnectionManager sharedInstance].channelWillEnd filter:^BOOL(Lookin_PTChannel *channel) {
-            @strongify(self);
-            return channel == self.inspectingApp.channel;
-            
-        }] flattenMap:^__kindof RACSignal * _Nullable(Lookin_PTChannel *channel) {
-            @strongify(self);
-            
-            NSLog(@"current connection end");
-            
-            LookinAppInfo *targetAppInfo = self.inspectingApp.appInfo;
-            self.inspectingApp = nil;
-            
-            RACSignal *signal = [[[RACSignal interval:3 onScheduler:[RACScheduler scheduler]] takeUntil:self.willConnectToApp] flattenMap:^__kindof RACSignal * _Nullable(NSDate * _Nullable value) {
-                return [self _fetchInspectableAppWithSimilarInfo:targetAppInfo];
-            }];
-            return signal;
-            
-        }] subscribeNext:^(LKInspectableApp *newApp) {
-            @strongify(self);
-            if (newApp) {
-                NSLog(@"Reconnected successfully.");
-                self.inspectingApp = newApp;
-                [self.didAutoReconnectSucc sendNext:newApp];
-            } else {
-//                NSLog(@"Failed to reconnect.");
-            }
-        }];
-        
-//        [[LKConnectionManager sharedInstance].didReceivePush subscribeNext:^(RACTuple *x) {
-//            @strongify(self);
-//            RACTupleUnpack(Lookin_PTChannel *channel, NSNumber *type, NSObject *data) = x;
-//            if (channel != self.inspectingApp.channel) {
-//                return;
-//            }
-//        }];
-        
+        // Phase D: the global `channelWillEnd` auto-reconnect pipeline used
+        // to live here. It was tied to the single `self.inspectingApp` slot
+        // and is incompatible with multiple Live Docs each owning their own
+        // channel. Reconnect responsibility now lives in
+        // `LookinLiveDocument._lk_subscribeChannelLifecycle`, which scopes
+        // each subscription to one doc's channel.
     }
     return self;
 }
@@ -96,18 +67,9 @@ NSString *const LKInspectingAppDidEndNotificationName = @"LKInspectingAppDidEndN
     }
 }
 
-- (RACSignal *)_fetchInspectableAppWithSimilarInfo:(LookinAppInfo *)appInfo {
-    return [[[self fetchAppInfosWithImage:NO localInfos:nil] map:^id _Nullable(NSArray<LKInspectableApp *> *allApps) {
-//        NSLog(@"Reconnecting… ...");
-        LKInspectableApp *targetApp = [allApps lookin_firstFiltered:^BOOL(LKInspectableApp *obj) {
-            return [appInfo isEqualToAppInfo:obj.appInfo];
-        }];
-        targetApp.appInfo.appIcon = appInfo.appIcon;
-        return targetApp;
-    }] catch:^RACSignal * _Nonnull(NSError * _Nonnull error) {
-        return [RACSignal return:nil];
-    }];
-}
+// Phase D: `_fetchInspectableAppWithSimilarInfo:` was the helper used by the
+// deleted global auto-reconnect pipeline. The equivalent logic now lives in
+// `LookinLiveDocument._lk_fetchInspectableAppMatchingLastKnown`.
 
 - (RACSignal *)fetchAppInfosWithImage:(BOOL)needImages localInfos:(NSArray<LookinAppInfo *> *)localInfos {
     NSArray<LookinAppInfo *> *validAppInfos = [localInfos lookin_filter:^BOOL(LookinAppInfo *info) {
