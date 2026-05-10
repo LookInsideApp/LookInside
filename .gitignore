@@ -47,3 +47,4 @@ LookInside/DerivedSource/*
 *.swo
 *~
 *.resolved
+.omc
