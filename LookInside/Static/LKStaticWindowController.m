@@ -216,9 +216,33 @@
             BOOL isTheSameApp = currentInfo && [currentInfo isEqualToAppInfo:app.appInfo];
 
             if (!isTheSameApp) {
-                [[LookinLiveDocumentController sharedInstance]
-                    openLiveDocumentForInspectableApp:app
-                                           completion:nil];
+                // Mirror the Launch flow: fetch hierarchy on the picker's
+                // window so the user sees progress in this controller's
+                // progress bar, then hand the populated info off to the new
+                // Live Doc. Without the priming reload the new window opens
+                // with an empty data source.
+                [self.viewController.progressView animateToProgress:0.7 duration:0.5];
+                [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
+                    [self.viewController.progressView finishWithCompletion:nil];
+                    if (!info) {
+                        AlertError(LookinErr_Inner, self.window);
+                        return;
+                    }
+                    [[LookinLiveDocumentController sharedInstance]
+                        openLiveDocumentForInspectableApp:app
+                                               completion:^(LookinLiveDocument *doc,
+                                                            BOOL alreadyOpen,
+                                                            NSError *openError) {
+                        if (doc && !alreadyOpen) {
+                            [doc.hierarchyDataSource reloadWithHierarchyInfo:info keepState:NO];
+                        } else if (openError) {
+                            AlertError(openError, self.window);
+                        }
+                    }];
+                } error:^(NSError *fetchErr) {
+                    [self.viewController.progressView resetToZero];
+                    AlertError(fetchErr, self.window);
+                }];
                 return;
             }
 
