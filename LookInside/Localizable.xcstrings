@@ -359,6 +359,22 @@
         }
       }
     },
+    "Click to copy" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to copy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击复制"
+          }
+        }
+      }
+    },
     "Click to invoke methods below and get the return value." : {
       "localizations" : {
         "en" : {
@@ -489,6 +505,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "内容为空。"
+          }
+        }
+      }
+    },
+    "Copied %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已复制 %@。"
           }
         }
       }
@@ -992,6 +1024,38 @@
         }
       }
     },
+    "File.swift" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File.swift"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File.swift"
+          }
+        }
+      }
+    },
+    "Filename" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filename"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名"
+          }
+        }
+      }
+    },
     "Filter" : {
       "localizations" : {
         "en" : {
@@ -1100,6 +1164,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自由旋转"
+          }
+        }
+      }
+    },
+    "Guess by swift-pd-guess" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guess by swift-pd-guess"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用 swift-pd-guess 猜测"
           }
         }
       }
@@ -1232,6 +1312,22 @@
         }
       }
     },
+    "ID" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ID"
+          }
+        }
+      }
+    },
     "Image contrast" : {
       "localizations" : {
         "en" : {
@@ -1280,8 +1376,37 @@
         }
       }
     },
+    "Import from your codebase" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import from your codebase"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从你的代码库导入"
+          }
+        }
+      }
+    },
     "Import Module" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Module"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入模块"
+          }
+        }
+      }
     },
     "Inherits from" : {
       "localizations" : {
@@ -1923,6 +2048,22 @@
         }
       }
     },
+    "Matched from %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matched from %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已从 %@ 命中。"
+          }
+        }
+      }
+    },
     "Measure" : {
       "localizations" : {
         "en" : {
@@ -1951,6 +2092,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "中"
+          }
+        }
+      }
+    },
+    "Module" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Module"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模块"
+          }
+        }
+      }
+    },
+    "ModuleName" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ModuleName"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ModuleName"
           }
         }
       }
@@ -2385,7 +2558,36 @@
       }
     },
     "Private Discriminator" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Discriminator"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Discriminator"
+          }
+        }
+      }
+    },
+    "Private Field" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private Field"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "私有字段"
+          }
+        }
+      }
     },
     "properties or methods" : {
       "localizations" : {
@@ -2564,6 +2766,22 @@
     },
     "Reveal Storage" : {
 
+    },
+    "Saved." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存。"
+          }
+        }
+      }
     },
     "Searching for inspectable apps" : {
       "localizations" : {
@@ -3273,8 +3491,56 @@
         }
       }
     },
+    "Value" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Value"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "值"
+          }
+        }
+      }
+    },
     "Verbose" : {
 
+    },
+    "Verification failed." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verification failed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证失败。"
+          }
+        }
+      }
+    },
+    "Verified from %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verified from %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已从 %@ 验证。"
+          }
+        }
+      }
     },
     "Verifying code signature…" : {
       "localizations" : {

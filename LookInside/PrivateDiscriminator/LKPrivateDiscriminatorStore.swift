@@ -682,7 +682,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
     private func makeDashboardGroup(for item: LookinDisplayItem, descriptor: DashboardDescriptor) -> LookinAttributesGroup {
         let attribute = LookinAttribute()
         attribute.identifier = Self.dashboardAttributeIdentifier
-        attribute.displayTitle = "Private Field"
+        attribute.displayTitle = NSLocalizedString("Private Field", comment: "")
         attribute.attrType = .customObj
         attribute.value = LKPrivateDiscriminatorDashboardPayload(descriptor: descriptor)
         attribute.targetDisplayItem = item
@@ -1036,7 +1036,9 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         timestampFormatter.string(from: date)
     }
 
-    private static let dashboardTitle = "Private Discriminator"
+    private static var dashboardTitle: String {
+        NSLocalizedString("Private Discriminator", comment: "")
+    }
     private static let dashboardAttributeIdentifier = "lookinside.private_discriminator.field"
     private static let dashboardStateDidChangeNotification = Notification.Name("LKPrivateDiscriminatorDashboardStateDidChange")
 
