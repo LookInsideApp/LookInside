@@ -52,6 +52,22 @@ NSString *const LKAppShowConsoleNotificationName = @"LKAppShowConsoleNotificatio
 
 @implementation LKStaticViewController
 
+- (instancetype)initWithHierarchyDataSource:(LKStaticHierarchyDataSource *)dataSource
+                          asyncUpdateManager:(LKStaticAsyncUpdateManager *)updateManager {
+    NSAssert(dataSource && updateManager,
+             @"LKStaticViewController requires non-nil per-doc data source and update manager");
+    // LKBaseViewController.-initWithContainerView: synchronously assigns
+    // self.view (and therefore runs -setView:) before -init returns. The
+    // setView body subscribes to the data source's signals, so the weak
+    // ivars must be wired before super-init starts. self is already
+    // zero-allocated by +alloc and NSViewController's init does not return
+    // a different instance, so writing to the weak backing ivars at this
+    // point is safe.
+    _hierarchyDataSource = dataSource;
+    _asyncUpdateManager = updateManager;
+    return [super init];
+}
+
 - (NSView *)makeContainerView {
     self.mainSplitView = [LKSplitView new];
     self.mainSplitView.didFinishFirstLayout = ^(LKSplitView *view) {

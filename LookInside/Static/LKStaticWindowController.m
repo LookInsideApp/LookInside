@@ -90,11 +90,11 @@
                                                      name:LKSwiftUIHierarchyDisplayModeDidChangeNotification
                                                    object:nil];
 
-        _viewController = [[LKStaticViewController alloc] init];
-        // Phase A: 在 viewController.view 第一次被访问之前注入 per-instance 引用,
-        // 这样 -setView: 内部对 hierarchyDataSource / asyncUpdateManager 的读取就能拿到正确的实例。
-        _viewController.hierarchyDataSource = _hierarchyDataSource;
-        _viewController.asyncUpdateManager = _asyncUpdateManager;
+        // LKStaticViewController's -setView: runs synchronously inside its
+        // designated init, so the per-doc data source / update manager are
+        // passed in up-front rather than via post-init property writes.
+        _viewController = [[LKStaticViewController alloc] initWithHierarchyDataSource:_hierarchyDataSource
+                                                                    asyncUpdateManager:_asyncUpdateManager];
         window.contentView = self.viewController.view;
         self.contentViewController = self.viewController;
 

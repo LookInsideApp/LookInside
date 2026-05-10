@@ -18,12 +18,19 @@
 
 @property(nonatomic, assign) BOOL showConsole;
 
-/// Phase A 引入:由 owner(LKStaticWindowController)注入的 per-instance data source(weak)。
-/// 必须在 -setView: 触发前(即 self.view 第一次访问前)注入。
-@property(nonatomic, weak) LKStaticHierarchyDataSource *hierarchyDataSource;
+/// Per-doc data source. Owner (LKStaticWindowController) supplies it through
+/// -initWithHierarchyDataSource:asyncUpdateManager: so it is non-nil during
+/// the -setView: path that subscribes to its signals.
+@property(nonatomic, weak, readonly) LKStaticHierarchyDataSource *hierarchyDataSource;
 
-/// Phase A 引入:由 owner 注入的 per-instance async update manager(weak)。
-@property(nonatomic, weak) LKStaticAsyncUpdateManager *asyncUpdateManager;
+/// Per-doc async update manager. Same lifetime guarantee as `hierarchyDataSource`.
+@property(nonatomic, weak, readonly) LKStaticAsyncUpdateManager *asyncUpdateManager;
+
+/// Designated initializer. Both arguments must be non-nil; LKBaseViewController
+/// triggers -setView: synchronously during -init, and -setView: subscribes to
+/// the data source's signals, so they need to be wired before super-init runs.
+- (instancetype)initWithHierarchyDataSource:(LKStaticHierarchyDataSource *)dataSource
+                          asyncUpdateManager:(LKStaticAsyncUpdateManager *)updateManager;
 
 /// 获取当前的 hierarchyView
 - (LKHierarchyView *)currentHierarchyView;
