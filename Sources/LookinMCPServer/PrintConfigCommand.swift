@@ -23,8 +23,13 @@ enum PrintConfigCommand {
             """
         case "claude-code":
             snippet = """
-            # Run once:
-            claude mcp add lookinside \(binary) serve
+            # Run once. Use --env KEY=VALUE before `--` to pass environment variables.
+            claude mcp add lookinside -- \(binary) serve
+            """
+        case "codex":
+            snippet = """
+            # Run once. Use --env KEY=VALUE before `--` to pass environment variables.
+            codex mcp add lookinside -- \(binary) serve
             """
         case "cursor":
             snippet = """
@@ -53,7 +58,7 @@ enum PrintConfigCommand {
             }
             """
         default:
-            FileHandle.standardError.write(Data("Unknown client: \(client). Try one of: claude-desktop, claude-code, cursor, windsurf, vscode.\n".utf8))
+            FileHandle.standardError.write(Data("Unknown client: \(client). Try one of: claude-desktop, claude-code, codex, cursor, windsurf, vscode.\n".utf8))
             return 2
         }
         print(snippet)

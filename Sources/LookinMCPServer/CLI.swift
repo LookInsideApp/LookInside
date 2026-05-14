@@ -40,7 +40,7 @@ enum CLI {
               Print connection status and exit nonzero if no Debug build is reachable.
           lookinside-mcp print-config <client>
               Print a ready-to-paste config snippet for one of:
-              claude-desktop | claude-code | cursor | windsurf | vscode
+              claude-desktop | claude-code | codex | cursor | windsurf | vscode
 
         FLAGS
           --version, -V        Print version and exit.
