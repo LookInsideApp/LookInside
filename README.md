@@ -27,6 +27,20 @@ LookInside continues the work of [Lookin](https://lookin.work/), the original iO
 
 Use [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release) with Swift Package Manager or CocoaPods.
 
+## MCP integration (Debug)
+
+LookInside ships an optional MCP server, `lookinside-mcp`, so AI coding agents (Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, …) can inspect the running Debug build directly — hierarchy, screenshots, element search, highlight, layout/accessibility diagnostics, and a one-shot bug report.
+
+Build and try it:
+
+```sh
+./Scripts/build-mcp-server.sh
+./build/lookinside-mcp health
+./build/lookinside-mcp print-config claude-desktop
+```
+
+See [docs/mcp.md](docs/mcp.md) for the full feature set, [docs/mcp-client-configs.md](docs/mcp-client-configs.md) for client setup, and [docs/mcp-troubleshooting.md](docs/mcp-troubleshooting.md) if something looks off.
+
 ## License
 
 GPL-3.0. See [`LICENSE`](LICENSE).
