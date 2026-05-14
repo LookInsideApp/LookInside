@@ -523,6 +523,7 @@
 
 - (void)appMenuManagerDidSelectExpansionIndex:(NSUInteger)index {
     [self.hierarchyDataSource adjustExpansionByIndex:index referenceDict:nil selectedItem:nil];
+    [self.hierarchyDataSource persistExpansionStateToPreferences];
 }
 
 - (void)appMenuManagerDidSelectExport {

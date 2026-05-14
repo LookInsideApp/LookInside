@@ -79,13 +79,15 @@ typedef NS_ENUM(NSInteger, LookinMeasureState) {
 /// 关闭后已存储的折叠状态保留在磁盘上，仅停止读取和写入。
 @property(nonatomic, assign) BOOL rememberExpansionState;
 
-/// 读取某 bundle id 下记录的展开路径集合，未命中返回空集。
-- (NSSet<NSString *> *)expandedPathsForBundleIdentifier:(NSString *)bundleIdentifier;
+/// 读取某 bundle id 下记录的展开/折叠状态。key 为结构路径，value 为 @(YES) 表示展开、@(NO) 表示折叠。
+/// 未命中返回空字典。为兼容早期仅记录 expanded paths 的存档（NSArray<NSString *>），
+/// 读到旧格式时会自动转换为 dict 形式（全部视为 @(YES)）。
+- (NSDictionary<NSString *, NSNumber *> *)expansionStateForBundleIdentifier:(NSString *)bundleIdentifier;
 
-/// 写入某 bundle id 下记录的展开路径集合，并将该 bundle id 提升到 LRU 队首。
-/// 当 LRU 超过容量上限时，最旧的 bundle id 会被静默移除（其对应的展开路径键也会被清理）。
+/// 写入某 bundle id 下记录的展开/折叠状态，并将该 bundle id 提升到 LRU 队首。
+/// 当 LRU 超过容量上限时，最旧的 bundle id 会被静默移除（其对应的展开状态键也会被清理）。
 /// 若 rememberExpansionState 为 NO 或 bundleIdentifier 为空，则不做任何操作。
-- (void)setExpandedPaths:(NSSet<NSString *> *)paths forBundleIdentifier:(NSString *)bundleIdentifier;
+- (void)setExpansionState:(NSDictionary<NSString *, NSNumber *> *)expansionState forBundleIdentifier:(NSString *)bundleIdentifier;
 
 /// 将一个已记录的 bundle id 提升到 LRU 队首。若该 bundle id 未被记录则不做任何操作。
 /// 当 rememberExpansionState 为 NO 或 bundleIdentifier 为空时同样不做任何操作。

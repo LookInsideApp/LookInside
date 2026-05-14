@@ -253,24 +253,43 @@ static const NSUInteger MaxRememberedExpansionStateBundles = 20;
     return lru;
 }
 
-- (NSSet<NSString *> *)expandedPathsForBundleIdentifier:(NSString *)bundleIdentifier {
+- (NSDictionary<NSString *, NSNumber *> *)expansionStateForBundleIdentifier:(NSString *)bundleIdentifier {
     if (bundleIdentifier.length == 0) {
-        return [NSSet set];
+        return @{};
     }
-    NSArray *stored = [[NSUserDefaults standardUserDefaults] objectForKey:[self _expansionStateKeyForBundleIdentifier:bundleIdentifier]];
-    if (![stored isKindOfClass:[NSArray class]] || stored.count == 0) {
-        return [NSSet set];
-    }
-    NSMutableSet<NSString *> *paths = [NSMutableSet setWithCapacity:stored.count];
-    for (id entry in stored) {
-        if ([entry isKindOfClass:[NSString class]] && [(NSString *)entry length] > 0) {
-            [paths addObject:entry];
+    id stored = [[NSUserDefaults standardUserDefaults] objectForKey:[self _expansionStateKeyForBundleIdentifier:bundleIdentifier]];
+    if ([stored isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *storedDict = (NSDictionary *)stored;
+        if (storedDict.count == 0) {
+            return @{};
         }
+        NSMutableDictionary<NSString *, NSNumber *> *result = [NSMutableDictionary dictionaryWithCapacity:storedDict.count];
+        [storedDict enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
+            if ([key isKindOfClass:[NSString class]] && [(NSString *)key length] > 0 && [value isKindOfClass:[NSNumber class]]) {
+                result[key] = @([(NSNumber *)value boolValue]);
+            }
+        }];
+        return result.copy;
     }
-    return paths.copy;
+    // Legacy format: NSArray<NSString *> recorded only the expanded paths. Treat
+    // every entry as expanded; absent paths fall through to expansionIndex defaults.
+    if ([stored isKindOfClass:[NSArray class]]) {
+        NSArray *storedArray = (NSArray *)stored;
+        if (storedArray.count == 0) {
+            return @{};
+        }
+        NSMutableDictionary<NSString *, NSNumber *> *result = [NSMutableDictionary dictionaryWithCapacity:storedArray.count];
+        for (id entry in storedArray) {
+            if ([entry isKindOfClass:[NSString class]] && [(NSString *)entry length] > 0) {
+                result[entry] = @(YES);
+            }
+        }
+        return result.copy;
+    }
+    return @{};
 }
 
-- (void)setExpandedPaths:(NSSet<NSString *> *)paths forBundleIdentifier:(NSString *)bundleIdentifier {
+- (void)setExpansionState:(NSDictionary<NSString *, NSNumber *> *)expansionState forBundleIdentifier:(NSString *)bundleIdentifier {
     if (bundleIdentifier.length == 0) {
         return;
     }
@@ -294,9 +313,8 @@ static const NSUInteger MaxRememberedExpansionStateBundles = 20;
         [lru removeObjectsInRange:evictedRange];
     }
 
-    // Sorted so plist diffs stay stable across runs when debugging.
-    NSArray<NSString *> *sortedPaths = [paths.allObjects sortedArrayUsingSelector:@selector(compare:)];
-    [userDefaults setObject:sortedPaths forKey:[self _expansionStateKeyForBundleIdentifier:bundleIdentifier]];
+    NSDictionary<NSString *, NSNumber *> *sanitized = expansionState ?: @{};
+    [userDefaults setObject:sanitized forKey:[self _expansionStateKeyForBundleIdentifier:bundleIdentifier]];
     [userDefaults setObject:lru.copy forKey:Key_ExpansionStateBundleLRU];
 }
 
@@ -314,7 +332,7 @@ static const NSUInteger MaxRememberedExpansionStateBundles = 20;
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     NSArray *rawLRU = [userDefaults objectForKey:Key_ExpansionStateBundleLRU];
     if (![rawLRU isKindOfClass:[NSArray class]] || ![rawLRU containsObject:bundleIdentifier]) {
-        // Absent → the first setExpandedPaths:... call will record it.
+        // Absent → the first setExpansionState:... call will record it.
         return;
     }
     if ([rawLRU.firstObject isEqualToString:bundleIdentifier]) {

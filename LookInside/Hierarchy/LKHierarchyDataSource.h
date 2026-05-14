@@ -54,10 +54,12 @@ typedef NS_ENUM(NSUInteger, LKHierarchyDataSourceState) {
 + (NSString *)pathIdentifierForItem:(LookinDisplayItem *)item
                         inRootItems:(NSArray<LookinDisplayItem *> *)rootItems;
 
-/// Persists the set of currently-expanded paths to LKPreferenceManager,
-/// keyed by the current target app's bundle identifier. No-ops when the
-/// rememberExpansionState toggle is OFF or the bundle identifier is empty.
-- (void)persistExpandedPathsToPreferences;
+/// Persists every expandable item's current expand/collapse state to LKPreferenceManager,
+/// keyed by the current target app's bundle identifier. Records both YES (expanded) and
+/// NO (collapsed) entries so cold reloads can restore user-driven collapses, not just
+/// expansions. No-ops when the rememberExpansionState toggle is OFF or the bundle
+/// identifier is empty.
+- (void)persistExpansionStateToPreferences;
 
 /// 当前应该被显示的 rows 行数
 - (NSInteger)numberOfRows;

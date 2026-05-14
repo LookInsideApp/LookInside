@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "%@ active apps were found" : {
       "localizations" : {
         "en" : {
@@ -66,6 +69,7 @@
       }
     },
     "Activate" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -82,6 +86,7 @@
       }
     },
     "Activate LookInside Pro?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -436,6 +441,9 @@
           }
         }
       }
+    },
+    "Connection to %@ lost. Trying to reconnect…" : {
+
     },
     "Console" : {
       "localizations" : {
@@ -1269,6 +1277,9 @@
         }
       }
     },
+    "Inspected app" : {
+
+    },
     "Installation was cancelled." : {
       "localizations" : {
         "en" : {
@@ -1440,6 +1451,7 @@
       }
     },
     "Later" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2440,6 +2452,9 @@
         }
       }
     },
+    "Remember expansion state per app" : {
+
+    },
     "Request timeout" : {
       "localizations" : {
         "en" : {
@@ -2671,6 +2686,7 @@
 
     },
     "SwiftUI Support · Activated" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2815,6 +2831,7 @@
       }
     },
     "The file type is not supported." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3039,6 +3056,7 @@
       }
     },
     "This target app includes SwiftUI views. Activate LookInside Pro to inspect SwiftUI view details." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3259,6 +3277,9 @@
           }
         }
       }
+    },
+    "When on, the hierarchy expand/collapse state is restored per target-app bundle id across host and target-app restarts. The 20 most recently inspected apps are kept; toggling off preserves existing data but stops reading or writing it." : {
+
     },
     "You can click \"Pause\" button near the bottom-left corner in Xcode to pause your iOS app, and input in Xcode console like the contents below:\nexpr [((%@ *)%@) %@]" : {
       "localizations" : {

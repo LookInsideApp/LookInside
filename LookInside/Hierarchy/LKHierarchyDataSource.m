@@ -283,29 +283,19 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     if (keepState) {
         referenceDict = prevExpansionMap;
     } else {
-        // Cold reload: seed the reference dict from the persisted set for this bundle id so
-        // adjustExpansionByIndex: restores the matching items. Paths not in the set keep
-        // the index-driven preset behavior unchanged.
+        // Cold reload: seed the reference dict from the persisted state for this bundle id
+        // so adjustExpansionByIndex: restores the matching items (both expanded and
+        // user-collapsed). Paths not in the dict keep the index-driven preset behavior.
         LKPreferenceManager *prefs = self.preferenceManager;
         NSString *bundleId = info.appInfo.appBundleIdentifier;
         if (prefs.rememberExpansionState && bundleId.length > 0) {
-            NSSet<NSString *> *storedPaths = [prefs expandedPathsForBundleIdentifier:bundleId];
-            if (storedPaths.count > 0) {
-                NSMutableDictionary<NSString *, NSNumber *> *persistedDict = [NSMutableDictionary dictionaryWithCapacity:storedPaths.count];
-                for (NSString *storedPath in storedPaths) {
-                    persistedDict[storedPath] = @(YES);
-                }
-                referenceDict = persistedDict;
+            NSDictionary<NSString *, NSNumber *> *storedState = [prefs expansionStateForBundleIdentifier:bundleId];
+            if (storedState.count > 0) {
+                referenceDict = storedState;
             }
         }
     }
     [self adjustExpansionByIndex:expansionIndex referenceDict:referenceDict selectedItem:(shouldSelectedItem ? nil : &shouldSelectedItem)];
-    
-    if (self.flatItems.count > 20 && self.displayingFlatItems.count < 10 && expansionIndex > 1) {
-        // 被展开的图层太少了，所以忽略 referDict 重新调整。通常是由于 iOS App 重新编译或者界面改变了导致之前被展开的图层都被释放掉了
-        NSLog(@"adjust expansion again");
-        [self adjustExpansionByIndex:expansionIndex referenceDict:nil selectedItem:nil];
-    }
     
     if (!shouldSelectedItem) {
         shouldSelectedItem = self.flatItems.firstObject;
@@ -800,6 +790,7 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     }
     item.isExpanded = NO;
     [self buildDisplayingFlatItems];
+    [self persistExpansionStateToPreferences];
 }
 
 - (void)expandItem:(LookinDisplayItem *)item {
@@ -811,16 +802,22 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     }
     item.isExpanded = YES;
     [self buildDisplayingFlatItems];
+    [self persistExpansionStateToPreferences];
 }
 
 - (void)expandToShowItem:(LookinDisplayItem *)item {
+    __block BOOL didChange = NO;
     [item enumerateAncestors:^(LookinDisplayItem *targetItem, BOOL *stop) {
         if (!targetItem.isExpanded) {
             targetItem.isExpanded = YES;
+            didChange = YES;
         }
     }];
-    
+
     [self buildDisplayingFlatItems];
+    if (didChange) {
+        [self persistExpansionStateToPreferences];
+    }
 }
 
 - (void)expandItemsRootedByItem:(LookinDisplayItem *)item {
@@ -837,8 +834,9 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
             }
         }];
     }
-    
+
     [self buildDisplayingFlatItems];
+    [self persistExpansionStateToPreferences];
 }
 
 - (void)collapseAllChildrenOfItem:(LookinDisplayItem *)item {
@@ -855,6 +853,7 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
         enumeratedItem.isExpanded = NO;
     }];
     [self buildDisplayingFlatItems];
+    [self persistExpansionStateToPreferences];
 }
 
 #pragma mark - Search
@@ -1202,26 +1201,26 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     return path.copy;
 }
 
-- (NSSet<NSString *> *)_collectExpandedPathIdentifiers {
+- (NSDictionary<NSString *, NSNumber *> *)_collectExpansionStateMap {
     NSArray<LookinDisplayItem *> *rootItems = self.rawHierarchyInfo.displayItems;
     if (rootItems.count == 0) {
-        return [NSSet set];
+        return @{};
     }
 
-    NSMutableSet<NSString *> *paths = [NSMutableSet set];
+    NSMutableDictionary<NSString *, NSNumber *> *expansionState = [NSMutableDictionary dictionary];
     [self.flatItems enumerateObjectsUsingBlock:^(LookinDisplayItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if (!obj.isExpandable || !obj.isExpanded) {
+        if (!obj.isExpandable) {
             return;
         }
         NSString *path = [LKHierarchyDataSource pathIdentifierForItem:obj inRootItems:rootItems];
         if (path) {
-            [paths addObject:path];
+            expansionState[path] = @(obj.isExpanded);
         }
     }];
-    return paths.copy;
+    return expansionState.copy;
 }
 
-- (void)persistExpandedPathsToPreferences {
+- (void)persistExpansionStateToPreferences {
     LKPreferenceManager *prefs = self.preferenceManager;
     if (!prefs.rememberExpansionState) {
         return;
@@ -1230,8 +1229,8 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     if (bundleId.length == 0) {
         return;
     }
-    NSSet<NSString *> *paths = [self _collectExpandedPathIdentifiers];
-    [prefs setExpandedPaths:paths forBundleIdentifier:bundleId];
+    NSDictionary<NSString *, NSNumber *> *expansionState = [self _collectExpansionStateMap];
+    [prefs setExpansionState:expansionState forBundleIdentifier:bundleId];
 }
 
 #pragma mark - Others
