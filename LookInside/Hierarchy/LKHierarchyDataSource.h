@@ -40,10 +40,24 @@ typedef NS_ENUM(NSUInteger, LKHierarchyDataSourceState) {
 
 /**
  index 范围：0 ~ 4
- referenceDict 的 key 为 layerOid，value 为 @(YES)/@(NO) 即是否展开，它记录了一组 displayItem 的展开状态
+ referenceDict 的 key 为结构路径（参见 +pathIdentifierForItem:inRootItems:），value 为 @(YES)/@(NO) 即是否展开，它记录了一组 displayItem 的展开状态
  在调整一个 item 的 expansion 时，如果 referenceDict 中存在这个 item 的记录则会采用 referenceDict 里的数据，否则会重新根据 index 来调整
  */
-- (void)adjustExpansionByIndex:(NSInteger)index referenceDict:(NSDictionary<NSNumber *, NSNumber *> *)referenceDict selectedItem:(LookinDisplayItem **)selectedItem;
+- (void)adjustExpansionByIndex:(NSInteger)index referenceDict:(NSDictionary<NSString *, NSNumber *> *)referenceDict selectedItem:(LookinDisplayItem **)selectedItem;
+
+/**
+ Computes a structural path identifier for `item` using its superItem chain.
+ Format: "<rootIndex>/<class>:<siblingIndex>/<class>:<siblingIndex>/..." (left-to-right root → leaf).
+ Returns nil if any chain segment lacks a class (typically UserCustom-only nodes), if the
+ sibling index is unresolvable, or if `rootItems` is empty.
+ */
++ (NSString *)pathIdentifierForItem:(LookinDisplayItem *)item
+                        inRootItems:(NSArray<LookinDisplayItem *> *)rootItems;
+
+/// Persists the set of currently-expanded paths to LKPreferenceManager,
+/// keyed by the current target app's bundle identifier. No-ops when the
+/// rememberExpansionState toggle is OFF or the bundle identifier is empty.
+- (void)persistExpandedPathsToPreferences;
 
 /// 当前应该被显示的 rows 行数
 - (NSInteger)numberOfRows;

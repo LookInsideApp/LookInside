@@ -8,6 +8,7 @@
 
 #import "LKHierarchyDataSource.h"
 #import "LookinHierarchyInfo.h"
+#import "LookinAppInfo.h"
 #import "LookinDisplayItem.h"
 #import "LookinAttribute.h"
 #import "LKPreferenceManager.h"
@@ -99,6 +100,19 @@ static BOOL LKRectsAlmostEqual(CGRect lhs, CGRect rhs) {
            fabs(lhs.size.height - rhs.size.height) <= tolerance;
 }
 
+/// Returns the item's leaf class name using the view → layer → window priority order shared
+/// with `LookinDisplayItem.title`; returns nil for UserCustom-only nodes (no classChainList).
+static NSString *LKDisplayItemPrimaryClassName(LookinDisplayItem *item) {
+    NSArray<NSString *> *chain = item.viewObject.classChainList;
+    if (chain.count == 0) {
+        chain = item.layerObject.classChainList;
+    }
+    if (chain.count == 0) {
+        chain = item.windowObject.classChainList;
+    }
+    return chain.firstObject;
+}
+
 static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSString *> *sourceTypes) {
     if (sourceTypes.count == 0) {
         return YES;
@@ -162,8 +176,13 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
 }
 
 - (void)reloadWithHierarchyInfo:(LookinHierarchyInfo *)info keepState:(BOOL)keepState {
+    // Snapshot the previous root items before overwriting rawHierarchyInfo so that path
+    // identifiers built from the OLD flatItems' superItem chains still resolve their root
+    // index against the OLD displayItems array.
+    NSArray<LookinDisplayItem *> *prevRootItems = self.rawHierarchyInfo.displayItems;
+
     self.rawHierarchyInfo = info;
-    
+
     [self.willReloadHierarchyInfo sendNext:nil];
 
     if (info.colorAlias.count) {
@@ -174,16 +193,16 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     }
     
     unsigned long prevSelectedOid = 0;
-    NSMutableDictionary *prevExpansionMap = nil;
+    NSMutableDictionary<NSString *, NSNumber *> *prevExpansionMap = nil;
     BOOL prefersViewOID = [LKHelper appInfoLooksLikeMacTarget:info.appInfo];
     if (keepState) {
         prevSelectedOid = [self.selectedItem bestObjectOidPreferView:prefersViewOID];
-        
+
         prevExpansionMap = [NSMutableDictionary dictionary];
         [self.flatItems enumerateObjectsUsingBlock:^(LookinDisplayItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            unsigned long oid = [obj bestObjectOidPreferView:prefersViewOID];
-            if (oid) {
-                prevExpansionMap[@(oid)] = @(obj.isExpanded);
+            NSString *path = [LKHierarchyDataSource pathIdentifierForItem:obj inRootItems:prevRootItems];
+            if (path) {
+                prevExpansionMap[path] = @(obj.isExpanded);
             }
         }];
     }
@@ -259,7 +278,28 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
             expansionIndex = 2;
         }
     }
-    [self adjustExpansionByIndex:expansionIndex referenceDict:(keepState ? prevExpansionMap : nil) selectedItem:(shouldSelectedItem ? nil : &shouldSelectedItem)];
+
+    NSDictionary<NSString *, NSNumber *> *referenceDict = nil;
+    if (keepState) {
+        referenceDict = prevExpansionMap;
+    } else {
+        // Cold reload: seed the reference dict from the persisted set for this bundle id so
+        // adjustExpansionByIndex: restores the matching items. Paths not in the set keep
+        // the index-driven preset behavior unchanged.
+        LKPreferenceManager *prefs = self.preferenceManager;
+        NSString *bundleId = info.appInfo.appBundleIdentifier;
+        if (prefs.rememberExpansionState && bundleId.length > 0) {
+            NSSet<NSString *> *storedPaths = [prefs expandedPathsForBundleIdentifier:bundleId];
+            if (storedPaths.count > 0) {
+                NSMutableDictionary<NSString *, NSNumber *> *persistedDict = [NSMutableDictionary dictionaryWithCapacity:storedPaths.count];
+                for (NSString *storedPath in storedPaths) {
+                    persistedDict[storedPath] = @(YES);
+                }
+                referenceDict = persistedDict;
+            }
+        }
+    }
+    [self adjustExpansionByIndex:expansionIndex referenceDict:referenceDict selectedItem:(shouldSelectedItem ? nil : &shouldSelectedItem)];
     
     if (self.flatItems.count > 20 && self.displayingFlatItems.count < 10 && expansionIndex > 1) {
         // 被展开的图层太少了，所以忽略 referDict 重新调整。通常是由于 iOS App 重新编译或者界面改变了导致之前被展开的图层都被释放掉了
@@ -331,14 +371,16 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
     [_hoveredItem notifyHoverChangeToDelegates];
 }
 
-- (void)adjustExpansionByIndex:(NSInteger)index referenceDict:(NSDictionary<NSNumber *, NSNumber *> *)referenceDict selectedItem:(LookinDisplayItem **)selectedItem {
+- (void)adjustExpansionByIndex:(NSInteger)index referenceDict:(NSDictionary<NSString *, NSNumber *> *)referenceDict selectedItem:(LookinDisplayItem **)selectedItem {
     if (index < 0 || index > 4) {
         NSAssert(NO, @"adjustExpansionByIndex, index 为 %@", @(index));
         index = MAX(MIN(index, 4), 0);
     }
-    
+
     self.preferenceManager.expansionIndex = index;
-    
+
+    NSArray<LookinDisplayItem *> *rootItems = self.rawHierarchyInfo.displayItems;
+
     __block NSUInteger expandedCount = self.flatItems.count;
     [self.flatItems enumerateObjectsUsingBlock:^(LookinDisplayItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         obj.hasDeterminedExpansion = NO;
@@ -348,10 +390,10 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
             expandedCount--;
             return;
         }
-        
+
         if (referenceDict) {
-            BOOL prefersViewOID = [LKHelper appInfoLooksLikeMacTarget:self.rawHierarchyInfo.appInfo];
-            NSNumber *prevState = referenceDict[@([obj bestObjectOidPreferView:prefersViewOID])];
+            NSString *path = [LKHierarchyDataSource pathIdentifierForItem:obj inRootItems:rootItems];
+            NSNumber *prevState = path ? referenceDict[path] : nil;
             if (prevState != nil) {
                 // 旧的对象，直接维持之前的状态
                 obj.isExpanded = [prevState boolValue];
@@ -1120,6 +1162,76 @@ static BOOL LKSwiftUIItemMatchesSourceTypes(LookinDisplayItem *item, NSArray<NSS
 
 - (NSInteger)toggleColorFormatMenuItemTag {
     return 11;
+}
+
+#pragma mark - Path Identity
+
++ (NSString *)pathIdentifierForItem:(LookinDisplayItem *)item
+                        inRootItems:(NSArray<LookinDisplayItem *> *)rootItems {
+    if (!item || rootItems.count == 0) {
+        return nil;
+    }
+
+    // Walk up to root, recording (class, siblingIndex) segments leaf-first.
+    NSMutableArray<NSString *> *segments = [NSMutableArray array];
+    LookinDisplayItem *cursor = item;
+    while (cursor.superItem) {
+        LookinDisplayItem *parent = cursor.superItem;
+        NSUInteger siblingIndex = [parent.subitems indexOfObject:cursor];
+        if (siblingIndex == NSNotFound) {
+            return nil;
+        }
+        NSString *className = LKDisplayItemPrimaryClassName(cursor);
+        if (className.length == 0) {
+            return nil;
+        }
+        [segments addObject:[NSString stringWithFormat:@"%@:%lu", className, (unsigned long)siblingIndex]];
+        cursor = parent;
+    }
+
+    NSUInteger rootIndex = [rootItems indexOfObject:cursor];
+    if (rootIndex == NSNotFound) {
+        return nil;
+    }
+
+    NSMutableString *path = [NSMutableString stringWithFormat:@"%lu", (unsigned long)rootIndex];
+    // segments was filled leaf-first; emit root → leaf order.
+    [segments enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(NSString * _Nonnull segment, NSUInteger idx, BOOL * _Nonnull stop) {
+        [path appendFormat:@"/%@", segment];
+    }];
+    return path.copy;
+}
+
+- (NSSet<NSString *> *)_collectExpandedPathIdentifiers {
+    NSArray<LookinDisplayItem *> *rootItems = self.rawHierarchyInfo.displayItems;
+    if (rootItems.count == 0) {
+        return [NSSet set];
+    }
+
+    NSMutableSet<NSString *> *paths = [NSMutableSet set];
+    [self.flatItems enumerateObjectsUsingBlock:^(LookinDisplayItem * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if (!obj.isExpandable || !obj.isExpanded) {
+            return;
+        }
+        NSString *path = [LKHierarchyDataSource pathIdentifierForItem:obj inRootItems:rootItems];
+        if (path) {
+            [paths addObject:path];
+        }
+    }];
+    return paths.copy;
+}
+
+- (void)persistExpandedPathsToPreferences {
+    LKPreferenceManager *prefs = self.preferenceManager;
+    if (!prefs.rememberExpansionState) {
+        return;
+    }
+    NSString *bundleId = self.rawHierarchyInfo.appInfo.appBundleIdentifier;
+    if (bundleId.length == 0) {
+        return;
+    }
+    NSSet<NSString *> *paths = [self _collectExpandedPathIdentifiers];
+    [prefs setExpandedPaths:paths forBundleIdentifier:bundleId];
 }
 
 #pragma mark - Others

@@ -36,9 +36,11 @@
         case 123: { // left
             if (currentItem.isExpandable && currentItem.isExpanded) {
                 [self collapseItem:currentItem];
+                [self persistExpandedPathsToPreferences];
                 return true;
             } else if (currentItem.superItem && [self.displayingFlatItems indexOfObject:currentItem.superItem] != NSNotFound) {
                 [self collapseItem:currentItem.superItem];
+                [self persistExpandedPathsToPreferences];
                 self.selectedItem = currentItem.superItem;
                 return true;
             }
@@ -46,6 +48,7 @@
         case 124: { // right
             if (currentItem.isExpandable && !currentItem.isExpanded) {
                 [self expandItem:self.selectedItem];
+                [self persistExpandedPathsToPreferences];
                 return true;
             } else {
                 NSArray<LookinDisplayItem *> *displayItems = self.displayingFlatItems.copy;

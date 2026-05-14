@@ -75,6 +75,22 @@ typedef NS_ENUM(NSInteger, LookinMeasureState) {
 /// 是否自动将选中的 UIView/CALayer 作为控制台的目标对象
 @property(nonatomic, assign) BOOL syncConsoleTarget;
 
+/// 是否按目标 App bundle id 持久化层级折叠状态。默认 YES。
+/// 关闭后已存储的折叠状态保留在磁盘上，仅停止读取和写入。
+@property(nonatomic, assign) BOOL rememberExpansionState;
+
+/// 读取某 bundle id 下记录的展开路径集合，未命中返回空集。
+- (NSSet<NSString *> *)expandedPathsForBundleIdentifier:(NSString *)bundleIdentifier;
+
+/// 写入某 bundle id 下记录的展开路径集合，并将该 bundle id 提升到 LRU 队首。
+/// 当 LRU 超过容量上限时，最旧的 bundle id 会被静默移除（其对应的展开路径键也会被清理）。
+/// 若 rememberExpansionState 为 NO 或 bundleIdentifier 为空，则不做任何操作。
+- (void)setExpandedPaths:(NSSet<NSString *> *)paths forBundleIdentifier:(NSString *)bundleIdentifier;
+
+/// 将一个已记录的 bundle id 提升到 LRU 队首。若该 bundle id 未被记录则不做任何操作。
+/// 当 rememberExpansionState 为 NO 或 bundleIdentifier 为空时同样不做任何操作。
+- (void)bumpExpansionStateBundleIdentifierToMostRecent:(NSString *)bundleIdentifier;
+
 // 被折叠的 AttrGroup
 @property(nonatomic, copy) NSArray<LookinAttrGroupIdentifier> *collapsedAttrGroups;
 

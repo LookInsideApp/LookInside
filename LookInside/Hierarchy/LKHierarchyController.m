@@ -75,10 +75,11 @@
         } else {
             [self.dataSource expandItem:item];
         }
+        [self.dataSource persistExpandedPathsToPreferences];
 
     } else if (behavior == LookinDoubleClickBehaviorFocus) {
         [self.dataSource focusDisplayItem:item];
-        
+
     } else {
         NSAssert(NO, @"");
     }
@@ -91,10 +92,12 @@
 
 - (void)hierarchyView:(LKHierarchyView *)view needToCollapseItem:(LookinDisplayItem *)item {
     [self.dataSource collapseItem:item];
+    [self.dataSource persistExpandedPathsToPreferences];
 }
 
 - (void)hierarchyView:(LKHierarchyView *)view needToCollapseChildrenOfItem:(LookinDisplayItem *)item {
     [self.dataSource collapseAllChildrenOfItem:item];
+    [self.dataSource persistExpandedPathsToPreferences];
 }
 
 - (void)hierarchyView:(LKHierarchyView *)view needToExpandItem:(LookinDisplayItem *)item recursively:(BOOL)recursively {
@@ -103,6 +106,7 @@
     } else {
         [self.dataSource expandItem:item];
     }
+    [self.dataSource persistExpandedPathsToPreferences];
 }
 
 - (void)hierarchyView:(LKHierarchyView *)view didInputSearchString:(NSString *)string {

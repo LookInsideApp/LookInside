@@ -637,6 +637,10 @@
     self.inspectableApp = app;
     self.asyncUpdateManager.inspectableApp = app;
     [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:keepState];
+
+    // Bump this bundle id to the front of the expansion-state LRU so that actively-inspected
+    // apps don't get evicted just because the user hasn't toggled anything yet in this session.
+    [[LKPreferenceManager mainManager] bumpExpansionStateBundleIdentifierToMostRecent:info.appInfo.appBundleIdentifier];
 }
 
 - (void)_handleSwiftUIModeDidChange:(NSNotification *)note {

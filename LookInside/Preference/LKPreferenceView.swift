@@ -78,6 +78,17 @@ private struct LKPreferenceRootView: View {
                     PreferenceDivider()
 
                     PreferenceRow(
+                        title: "Remember expansion state per app",
+                        message: "When on, the hierarchy expand/collapse state is restored per target-app bundle id across host and target-app restarts. The 20 most recently inspected apps are kept; toggling off preserves existing data but stops reading or writing it.",
+                        controlWidth: 80
+                    ) {
+                        Toggle("Remember expansion state per app", isOn: model.rememberExpansionStateBinding)
+                            .toggleStyle(.switch)
+                    }
+
+                    PreferenceDivider()
+
+                    PreferenceRow(
                         title: "Hierarchy Timeout",
                         message: "Timeout for hierarchy and hierarchy-details requests, in seconds. Default: 15s.",
                         controlWidth: 168
@@ -206,6 +217,7 @@ private final class LKPreferenceViewModel: ObservableObject {
     @Published private var colorFormat: Int
     @Published private var imageContrast: Int
     @Published private var doubleClickBehavior: Int
+    @Published private var rememberExpansionState: Bool
     @Published private var hierarchyTimeout: Double
 
     #if DEBUG
@@ -220,6 +232,7 @@ private final class LKPreferenceViewModel: ObservableObject {
         colorFormat = manager.rgbaFormat ? 0 : 1
         imageContrast = manager.imageContrastLevel
         doubleClickBehavior = manager.doubleClickBehavior.rawValue
+        rememberExpansionState = manager.rememberExpansionState
         hierarchyTimeout = manager.hierarchyRequestTimeoutInterval
         #if DEBUG
             licenseTimeout = manager.licenseHandshakeTimeoutInterval
@@ -254,6 +267,13 @@ private final class LKPreferenceViewModel: ObservableObject {
         )
     }
 
+    var rememberExpansionStateBinding: Binding<Bool> {
+        Binding(
+            get: { self.rememberExpansionState },
+            set: { self.setRememberExpansionState($0) }
+        )
+    }
+
     var hierarchyTimeoutBinding: Binding<Double> {
         Binding(
             get: { self.hierarchyTimeout },
@@ -282,6 +302,7 @@ private final class LKPreferenceViewModel: ObservableObject {
         colorFormat = manager.rgbaFormat ? 0 : 1
         imageContrast = manager.imageContrastLevel
         doubleClickBehavior = manager.doubleClickBehavior.rawValue
+        rememberExpansionState = manager.rememberExpansionState
         hierarchyTimeout = manager.hierarchyRequestTimeoutInterval
         #if DEBUG
             licenseTimeout = manager.licenseHandshakeTimeoutInterval
@@ -293,6 +314,7 @@ private final class LKPreferenceViewModel: ObservableObject {
         setColorFormat(0)
         setImageContrast(0)
         setDoubleClickBehavior(LookinDoubleClickBehavior.collapse.rawValue)
+        setRememberExpansionState(true)
         setHierarchyTimeout(LKDefaultHierarchyRequestTimeoutInterval)
         setLicenseTimeoutIfAvailable(LKDefaultLicenseHandshakeTimeoutInterval)
 
@@ -328,6 +350,11 @@ private final class LKPreferenceViewModel: ObservableObject {
         }
         doubleClickBehavior = rawValue
         manager.doubleClickBehavior = behavior
+    }
+
+    private func setRememberExpansionState(_ newValue: Bool) {
+        rememberExpansionState = newValue
+        manager.rememberExpansionState = newValue
     }
 
     private func setHierarchyTimeout(_ value: Double) {

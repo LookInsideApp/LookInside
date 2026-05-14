@@ -39,6 +39,10 @@ static NSString * const Key_FreeRotation = @"FreeRotation";
 static NSString * const Key_FastMode = @"fastMode";
 static NSString * const Key_ReceivingConfigTime_Color = @"ConfigTime_Color";
 static NSString * const Key_ReceivingConfigTime_Class = @"ConfigTime_Class";
+static NSString * const Key_RememberExpansionState = @"rememberExpansionState";
+static NSString * const Key_ExpansionStateBundleLRU = @"ExpansionStateBundleLRU";
+static NSString * const KeyPrefix_ExpansionStateForBundle = @"ExpansionState.";
+static const NSUInteger MaxRememberedExpansionStateBundles = 20;
 
 @interface LKPreferenceManager ()
 
@@ -206,8 +210,119 @@ static NSString * const Key_ReceivingConfigTime_Class = @"ConfigTime_Class";
         
         _receivingConfigTime_Color = [userDefaults doubleForKey:Key_ReceivingConfigTime_Color];
         _receivingConfigTime_Class = [userDefaults doubleForKey:Key_ReceivingConfigTime_Class];
+
+        NSNumber *obj_rememberExpansionState = [userDefaults objectForKey:Key_RememberExpansionState];
+        if (obj_rememberExpansionState != nil) {
+            _rememberExpansionState = [obj_rememberExpansionState boolValue];
+        } else {
+            _rememberExpansionState = YES;
+            [userDefaults setObject:@(_rememberExpansionState) forKey:Key_RememberExpansionState];
+        }
     }
     return self;
+}
+
+- (void)setRememberExpansionState:(BOOL)rememberExpansionState {
+    if (_rememberExpansionState == rememberExpansionState) {
+        return;
+    }
+    _rememberExpansionState = rememberExpansionState;
+    if (self.shouldStoreToLocal) {
+        [[NSUserDefaults standardUserDefaults] setObject:@(rememberExpansionState) forKey:Key_RememberExpansionState];
+    }
+}
+
+- (NSString *)_expansionStateKeyForBundleIdentifier:(NSString *)bundleIdentifier {
+    return [KeyPrefix_ExpansionStateForBundle stringByAppendingString:bundleIdentifier];
+}
+
+/// Rebuilds the LRU array with `bundleIdentifier` at index 0, dropping any prior entry
+/// for the same id and skipping malformed (non-string, empty) entries left over by
+/// a corrupted plist.
+- (NSMutableArray<NSString *> *)_lruArrayWithBundleIdentifier:(NSString *)bundleIdentifier
+                                              movedToFrontOf:(id)rawLRU {
+    NSMutableArray<NSString *> *lru = [NSMutableArray array];
+    if ([rawLRU isKindOfClass:[NSArray class]]) {
+        for (id entry in (NSArray *)rawLRU) {
+            if ([entry isKindOfClass:[NSString class]] && [(NSString *)entry length] > 0 && ![entry isEqualToString:bundleIdentifier]) {
+                [lru addObject:entry];
+            }
+        }
+    }
+    [lru insertObject:bundleIdentifier atIndex:0];
+    return lru;
+}
+
+- (NSSet<NSString *> *)expandedPathsForBundleIdentifier:(NSString *)bundleIdentifier {
+    if (bundleIdentifier.length == 0) {
+        return [NSSet set];
+    }
+    NSArray *stored = [[NSUserDefaults standardUserDefaults] objectForKey:[self _expansionStateKeyForBundleIdentifier:bundleIdentifier]];
+    if (![stored isKindOfClass:[NSArray class]] || stored.count == 0) {
+        return [NSSet set];
+    }
+    NSMutableSet<NSString *> *paths = [NSMutableSet setWithCapacity:stored.count];
+    for (id entry in stored) {
+        if ([entry isKindOfClass:[NSString class]] && [(NSString *)entry length] > 0) {
+            [paths addObject:entry];
+        }
+    }
+    return paths.copy;
+}
+
+- (void)setExpandedPaths:(NSSet<NSString *> *)paths forBundleIdentifier:(NSString *)bundleIdentifier {
+    if (bundleIdentifier.length == 0) {
+        return;
+    }
+    if (!self.rememberExpansionState) {
+        return;
+    }
+    if (!self.shouldStoreToLocal) {
+        return;
+    }
+
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+
+    NSMutableArray<NSString *> *lru = [self _lruArrayWithBundleIdentifier:bundleIdentifier
+                                                          movedToFrontOf:[userDefaults objectForKey:Key_ExpansionStateBundleLRU]];
+
+    if (lru.count > MaxRememberedExpansionStateBundles) {
+        NSRange evictedRange = NSMakeRange(MaxRememberedExpansionStateBundles, lru.count - MaxRememberedExpansionStateBundles);
+        for (NSString *evictedBundleId in [lru subarrayWithRange:evictedRange]) {
+            [userDefaults removeObjectForKey:[self _expansionStateKeyForBundleIdentifier:evictedBundleId]];
+        }
+        [lru removeObjectsInRange:evictedRange];
+    }
+
+    // Sorted so plist diffs stay stable across runs when debugging.
+    NSArray<NSString *> *sortedPaths = [paths.allObjects sortedArrayUsingSelector:@selector(compare:)];
+    [userDefaults setObject:sortedPaths forKey:[self _expansionStateKeyForBundleIdentifier:bundleIdentifier]];
+    [userDefaults setObject:lru.copy forKey:Key_ExpansionStateBundleLRU];
+}
+
+- (void)bumpExpansionStateBundleIdentifierToMostRecent:(NSString *)bundleIdentifier {
+    if (bundleIdentifier.length == 0) {
+        return;
+    }
+    if (!self.rememberExpansionState) {
+        return;
+    }
+    if (!self.shouldStoreToLocal) {
+        return;
+    }
+
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSArray *rawLRU = [userDefaults objectForKey:Key_ExpansionStateBundleLRU];
+    if (![rawLRU isKindOfClass:[NSArray class]] || ![rawLRU containsObject:bundleIdentifier]) {
+        // Absent → the first setExpandedPaths:... call will record it.
+        return;
+    }
+    if ([rawLRU.firstObject isEqualToString:bundleIdentifier]) {
+        return;
+    }
+
+    NSMutableArray<NSString *> *lru = [self _lruArrayWithBundleIdentifier:bundleIdentifier movedToFrontOf:rawLRU];
+    [userDefaults setObject:lru.copy forKey:Key_ExpansionStateBundleLRU];
 }
 
 - (void)_handleShowOutlineDidChange:(LookinMsgActionParams *)param {
