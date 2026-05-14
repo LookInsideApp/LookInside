@@ -22,8 +22,22 @@ Restart Claude Desktop. The 🔌 indicator should show `lookinside` connected.
 ## Claude Code
 
 ```sh
-claude mcp add lookinside /absolute/path/to/lookinside-mcp serve
+claude mcp add lookinside -- /absolute/path/to/lookinside-mcp serve
 ```
+
+Pass environment variables with `--env KEY=VALUE` before the `--`:
+
+```sh
+claude mcp add lookinside --env LOOKIN_LOG=debug -- /absolute/path/to/lookinside-mcp serve
+```
+
+## Codex CLI
+
+```sh
+codex mcp add lookinside -- /absolute/path/to/lookinside-mcp serve
+```
+
+Same `--env KEY=VALUE` flag is supported before `--`.
 
 ## Cursor
 
