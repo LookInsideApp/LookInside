@@ -727,7 +727,7 @@
 			packageReferences = (
 				E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */,
 				E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */,
-				E37B8D202F97B1B100600001 /* XCLocalSwiftPackageReference "../LookInsidePrivateDiscriminator" */,
+				E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */,
 			);
 			preferredProjectObjectVersion = 50;
 			productRefGroup = AA48F29C21CC0CA50032EC2C /* Products */;
@@ -1098,14 +1098,15 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		E37B8D202F97B1B100600001 /* XCLocalSwiftPackageReference "../LookInsidePrivateDiscriminator" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../LookInsidePrivateDiscriminator;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
+		E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LookInsideApp/LookInsidePrivateDiscriminator.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.0.1;
+			};
+		};
 		E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/MxIris-Reverse-Engineering/swift-demangling.git";
@@ -1137,7 +1138,7 @@
 		};
 		E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E37B8D202F97B1B100600001 /* XCLocalSwiftPackageReference "../LookInsidePrivateDiscriminator" */;
+			package = E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */;
 			productName = LookInsidePrivateDiscriminator;
 		};
 /* End XCSwiftPackageProductDependency section */

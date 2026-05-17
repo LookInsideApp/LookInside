@@ -702,6 +702,38 @@
         }
       }
     },
+    "Default Library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default Library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认库"
+          }
+        }
+      }
+    },
+    "Default library is already up to date." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default library is already up to date."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认库已是最新。"
+          }
+        }
+      }
+    },
     "Double click" : {
       "localizations" : {
         "en" : {
@@ -714,6 +746,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "双击"
+          }
+        }
+      }
+    },
+    "Download SwiftUI and SwiftUICore indexes from GitHub into local imported CSVs." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download SwiftUI and SwiftUICore indexes from GitHub into local imported CSVs."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 GitHub 下载 SwiftUI 和 SwiftUICore 索引到本地 imported CSV。"
           }
         }
       }
@@ -893,6 +941,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载 LookInside 授权服务器失败。\n%@"
+          }
+        }
+      }
+    },
+    "Failed to download %@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to download %1$@: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载 %1$@ 失败：%2$@"
           }
         }
       }
@@ -3476,6 +3540,22 @@
         }
       }
     },
+    "Unable to decode CSV as UTF-8." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to decode CSV as UTF-8."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法按 UTF-8 解码 CSV。"
+          }
+        }
+      }
+    },
     "Unable to read the code signature of LookInside Auth Server.\n%@" : {
       "localizations" : {
         "en" : {
@@ -3488,6 +3568,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法读取 LookInside 授权服务器的代码签名。\n%@"
+          }
+        }
+      }
+    },
+    "Update Default Library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Default Library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新默认库"
+          }
+        }
+      }
+    },
+    "Updated default library: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updated default library: %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已更新默认库：%@。"
+          }
+        }
+      }
+    },
+    "Updating default library…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating default library…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新默认库…"
+          }
+        }
+      }
+    },
+    "Updating…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新…"
           }
         }
       }

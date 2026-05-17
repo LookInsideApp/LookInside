@@ -55,6 +55,8 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
     @Published private(set) var moduleStatuses: [LKPrivateDiscriminatorModuleStatus] = []
     @Published private(set) var invalidDiagnostics: [LKPrivateDiscriminatorInvalidDiagnostic] = []
     @Published private(set) var lastSettingsError: String?
+    @Published private(set) var isUpdatingDefaultLibrary = false
+    @Published private(set) var lastDefaultLibraryUpdateMessage: String?
 
     @objc var isFeatureEnabled: Bool { featureEnabled }
 
@@ -102,6 +104,50 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
     func setAutosaveEnabled(_ enabled: Bool) {
         configuration.autosaveEnabled = enabled
         persistConfigurationAndReload()
+    }
+
+    func updateDefaultLibrary() {
+        guard !isUpdatingDefaultLibrary else {
+            return
+        }
+
+        isUpdatingDefaultLibrary = true
+        lastDefaultLibraryUpdateMessage = NSLocalizedString("Updating default library…", comment: "")
+        lastSettingsError = nil
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else {
+                return
+            }
+
+            do {
+                let results = try self.downloadDefaultLibraryIndexes()
+                DispatchQueue.main.async {
+                    self.isUpdatingDefaultLibrary = false
+                    if results.contains(where: { $0.didChange }) {
+                        let summary = results
+                            .map { "\($0.module): \($0.recordCount)" }
+                            .joined(separator: ", ")
+                        self.lastDefaultLibraryUpdateMessage = String(
+                            format: NSLocalizedString("Updated default library: %@.", comment: ""),
+                            summary
+                        )
+                    } else {
+                        self.lastDefaultLibraryUpdateMessage = NSLocalizedString(
+                            "Default library is already up to date.",
+                            comment: ""
+                        )
+                    }
+                    self.reloadFromDisk()
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.isUpdatingDefaultLibrary = false
+                    self.lastDefaultLibraryUpdateMessage = nil
+                    self.lastSettingsError = error.localizedDescription
+                }
+            }
+        }
     }
 
     func setModule(_ module: String, enabled: Bool) {
@@ -466,6 +512,98 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         }
     }
 
+    private func downloadDefaultLibraryIndexes() throws -> [DefaultLibraryUpdateResult] {
+        let downloads = try Self.defaultLibraryModules.map { module -> DefaultLibraryDownload in
+            let csvText = try downloadCSVText(for: module)
+            let index = try PrivateDiscriminatorModuleIndex.read(moduleName: module.name, csvText: csvText)
+            let normalizedCSVText = try PrivateDiscriminatorCSV.write(index.records)
+            return DefaultLibraryDownload(
+                module: module.name,
+                recordCount: index.records.count,
+                csvText: normalizedCSVText
+            )
+        }
+
+        try ensureStorageDirectories()
+
+        return try downloads.map { download in
+            let destinationURL = importedCSVURL(for: download.module)
+            let existingText = try? String(contentsOf: destinationURL, encoding: .utf8)
+            guard existingText != download.csvText else {
+                return DefaultLibraryUpdateResult(
+                    module: download.module,
+                    recordCount: download.recordCount,
+                    didChange: false
+                )
+            }
+
+            try download.csvText.write(to: destinationURL, atomically: true, encoding: .utf8)
+            return DefaultLibraryUpdateResult(
+                module: download.module,
+                recordCount: download.recordCount,
+                didChange: true
+            )
+        }
+    }
+
+    private func downloadCSVText(for module: DefaultLibraryModule) throws -> String {
+        var capturedData: Data?
+        var capturedError: Error?
+        let semaphore = DispatchSemaphore(value: 0)
+
+        let task = URLSession.shared.dataTask(with: module.url) { data, response, error in
+            defer { semaphore.signal() }
+
+            if let error {
+                capturedError = LKPrivateDiscriminatorStoreError.defaultLibraryDownloadFailed(
+                    module.name,
+                    error.localizedDescription
+                )
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                capturedError = LKPrivateDiscriminatorStoreError.defaultLibraryDownloadFailed(
+                    module.name,
+                    NSLocalizedString("No response received.", comment: "")
+                )
+                return
+            }
+
+            guard (200 ... 299).contains(httpResponse.statusCode) else {
+                capturedError = LKPrivateDiscriminatorStoreError.defaultLibraryDownloadFailed(
+                    module.name,
+                    "HTTP \(httpResponse.statusCode)"
+                )
+                return
+            }
+
+            guard let data, !data.isEmpty else {
+                capturedError = LKPrivateDiscriminatorStoreError.defaultLibraryDownloadFailed(
+                    module.name,
+                    NSLocalizedString("Empty download payload.", comment: "")
+                )
+                return
+            }
+
+            capturedData = data
+        }
+        task.resume()
+        semaphore.wait()
+
+        if let capturedError {
+            throw capturedError
+        }
+
+        guard let capturedData, let text = String(data: capturedData, encoding: .utf8) else {
+            throw LKPrivateDiscriminatorStoreError.defaultLibraryDownloadFailed(
+                module.name,
+                NSLocalizedString("Unable to decode CSV as UTF-8.", comment: "")
+            )
+        }
+        return text
+    }
+
     private func importedCSVURL(for module: String) -> URL {
         importedDirectoryURL.appendingPathComponent(module + ".csv", isDirectory: false)
     }
@@ -820,6 +958,11 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         PrivateDiscriminatorVerificationCache.privateDiscriminatorID(module: module, filename: filename)
     }
 
+    private static let defaultLibraryModules = [
+        DefaultLibraryModule(name: "SwiftUI"),
+        DefaultLibraryModule(name: "SwiftUICore"),
+    ]
+
     private func promptForModuleName(defaultModule: String?, window: NSWindow?) -> String? {
         let alert = NSAlert()
         alert.messageText = "Import Private Discriminator Module"
@@ -1083,6 +1226,26 @@ private struct LoadedModuleIndex {
     let index: PrivateDiscriminatorModuleIndex
 }
 
+private struct DefaultLibraryModule {
+    let name: String
+
+    var url: URL {
+        URL(string: "https://raw.githubusercontent.com/LookInsideApp/LookInsidePrivateDiscriminator/main/Resources/PrivateDiscriminator/\(name).csv")!
+    }
+}
+
+private struct DefaultLibraryDownload {
+    let module: String
+    let recordCount: Int
+    let csvText: String
+}
+
+private struct DefaultLibraryUpdateResult {
+    let module: String
+    let recordCount: Int
+    let didChange: Bool
+}
+
 private struct ParsedDiscriminator {
     let id: String
     let moduleHint: String?
@@ -1191,6 +1354,7 @@ private enum LKPrivateDiscriminatorStoreError: LocalizedError {
     case missingImportSource(String)
     case missingPrivateDiscriminator
     case verificationFailed(String)
+    case defaultLibraryDownloadFailed(String, String)
 
     var errorDescription: String? {
         switch self {
@@ -1204,6 +1368,12 @@ private enum LKPrivateDiscriminatorStoreError: LocalizedError {
             return "No private discriminator ID found for this item."
         case let .verificationFailed(message):
             return message
+        case let .defaultLibraryDownloadFailed(module, message):
+            return String(
+                format: NSLocalizedString("Failed to download %@: %@", comment: ""),
+                module,
+                message
+            )
         }
     }
 }

@@ -61,6 +61,41 @@ private struct LKPrivateDiscriminatorSettingsRootView: View {
                         .toggleStyle(.switch)
                     }
 
+                    SettingsDivider()
+
+                    SettingsRow(
+                        title: "Default Library",
+                        message: "Download SwiftUI and SwiftUICore indexes from GitHub into local imported CSVs.",
+                        controlWidth: 190
+                    ) {
+                        Button {
+                            importError = nil
+                            store.updateDefaultLibrary()
+                        } label: {
+                            if store.isUpdatingDefaultLibrary {
+                                Label("Updating…", systemImage: "arrow.down.circle")
+                            } else {
+                                Label("Update Default Library", systemImage: "arrow.down.circle")
+                            }
+                        }
+                        .disabled(store.isUpdatingDefaultLibrary)
+                    }
+
+                    if let message = store.lastDefaultLibraryUpdateMessage {
+                        HStack(spacing: 8) {
+                            if store.isUpdatingDefaultLibrary {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
+                            Text(message)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.top, -5)
+                        .padding(.bottom, 13)
+                    }
+
                     if store.featureEnabled {
                         SettingsDivider()
 
