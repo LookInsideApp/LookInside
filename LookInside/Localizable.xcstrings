@@ -2606,18 +2606,18 @@
         }
       }
     },
-    "Private Field" : {
+    "Discriminator Details" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Private Field"
+            "value" : "Discriminator Details"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "私有字段"
+            "value" : "判别信息"
           }
         }
       }
