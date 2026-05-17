@@ -136,8 +136,8 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
                 filename: filename,
                 created_at: existing?.created_at ?? now,
                 updated_at: now,
-                created_by: existing?.created_by ?? PrivateDiscriminatorRecord.userAuthor,
-                updated_by: PrivateDiscriminatorRecord.userAuthor
+                created_by: existing?.created_by ?? .imported,
+                updated_by: .imported
             )
         }
 
@@ -233,7 +233,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
                 id: parsed.id,
                 module: trimmedModule,
                 filename: trimmedFilename,
-                author: PrivateDiscriminatorRecord.userAuthor
+                author: .user
             )
             return true
         } catch let caughtError as NSError {
@@ -514,7 +514,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         return try PrivateDiscriminatorCSV.read(text)
     }
 
-    private func saveRecord(id: String, module: String, filename: String, author: String) throws {
+    private func saveRecord(id: String, module: String, filename: String, author: PrivateDiscriminatorRecordAuthor) throws {
         try ensureStorageDirectories()
 
         var records = try existingAutosavedRecords(for: module)
@@ -988,7 +988,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
                 id: id,
                 module: module,
                 filename: rawMatch,
-                author: PrivateDiscriminatorRecord.lookInsideAIAuthor
+                author: .imported
             )
             guessStatesByID[id] = .succeeded("Success: \(rawMatch)")
         } catch {

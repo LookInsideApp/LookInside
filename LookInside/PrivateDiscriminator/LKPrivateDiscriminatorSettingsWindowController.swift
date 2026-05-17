@@ -66,7 +66,7 @@ private struct LKPrivateDiscriminatorSettingsRootView: View {
 
                         SettingsRow(
                             title: "Autosave",
-                            message: "Allow future LookInside AI-generated rows to use autosaved module CSVs.",
+                            message: "Allow future guessed rows to use autosaved module CSVs.",
                             controlWidth: 84
                         ) {
                             Toggle(
