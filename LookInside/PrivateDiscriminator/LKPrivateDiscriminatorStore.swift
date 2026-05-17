@@ -126,7 +126,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
 
         try ensureStorageDirectories()
         let filenames = try swiftFilenames(in: folderURL)
-        let now = Self.timestampString(from: Date())
+        let now = Date()
         let existingRecords = existingImportedRecordsByFilename(for: trimmedModule)
 
         let records = filenames.map { filename -> PrivateDiscriminatorRecord in
@@ -518,7 +518,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         try ensureStorageDirectories()
 
         var records = try existingAutosavedRecords(for: module)
-        let now = Self.timestampString(from: Date())
+        let now = Date()
         let existing = records.first { $0.id == id || $0.filename == filename }
         records.removeAll { $0.id == id || $0.filename == filename }
         records.append(
@@ -1032,24 +1032,11 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         NotificationCenter.default.post(name: Self.dashboardStateDidChangeNotification, object: self)
     }
 
-    private static func timestampString(from date: Date) -> String {
-        timestampFormatter.string(from: date)
-    }
-
     private static var dashboardTitle: String {
         NSLocalizedString("Private Discriminator", comment: "")
     }
     private static let dashboardAttributeIdentifier = "lookinside.private_discriminator.field"
     private static let dashboardStateDidChangeNotification = Notification.Name("LKPrivateDiscriminatorDashboardStateDidChange")
-
-    private static let timestampFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
-        return formatter
-    }()
 
     private static let privateIDRegex = try! NSRegularExpression(pattern: #"\$?([0-9A-Fa-f]{32})"#)
     private static let modulePrefixRegex = try! NSRegularExpression(pattern: #"\b([A-Za-z_][A-Za-z0-9_]*)\."#)
