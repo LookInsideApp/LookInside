@@ -11,6 +11,7 @@
 #import "LookinAttributesGroup.h"
 #import "LookinAttributesSection.h"
 #import "LookinAttribute.h"
+#import "LookInside-Swift.h"
 #include <stdint.h>
 
 enum {
@@ -213,19 +214,19 @@ static void LKAddUniqueObject(NSMutableArray *array, id object) {
 }
 
 - (NSString *)title {
+    NSString *baseTitle = nil;
     if (self.customInfo) {
-        return self.customInfo.title;
+        baseTitle = self.customInfo.title;
     } else if (self.customDisplayTitle.length > 0) {
-        return self.customDisplayTitle;
+        baseTitle = self.customDisplayTitle;
     } else if (self.viewObject) {
-        return self.viewObject.lk_simpleDemangledClassName;
+        baseTitle = self.viewObject.lk_simpleDemangledClassName;
     } else if (self.layerObject) {
-        return self.layerObject.lk_simpleDemangledClassName;
+        baseTitle = self.layerObject.lk_simpleDemangledClassName;
     } else if (self.windowObject) {
-        return self.windowObject.lk_simpleDemangledClassName;
-    } else {
-        return nil;
+        baseTitle = self.windowObject.lk_simpleDemangledClassName;
     }
+    return [[LKPrivateDiscriminatorStore shared] displayTitleForDisplayItem:self fallback:baseTitle];
 }
 
 - (NSString *)subtitle {

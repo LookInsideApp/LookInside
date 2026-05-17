@@ -12,6 +12,7 @@
 		50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */; };
 		E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0C2F97B1B100600001 /* Demangling */; };
 		E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0F1F97B1B100600001 /* Sparkle */; };
+		E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -111,6 +112,8 @@
 				Dashboard/AttributeView/LKDashboardAttributeNumberInputView.m,
 				Dashboard/AttributeView/LKDashboardAttributeOpenImageView.m,
 				Dashboard/AttributeView/LKDashboardAttributePointView.m,
+				Dashboard/AttributeView/LKDashboardAttributePrivateDiscriminatorView.h,
+				Dashboard/AttributeView/LKDashboardAttributePrivateDiscriminatorView.m,
 				Dashboard/AttributeView/LKDashboardAttributeRectView.m,
 				Dashboard/AttributeView/LKDashboardAttributeRelationView.m,
 				Dashboard/AttributeView/LKDashboardAttributeRowsCountView.m,
@@ -196,6 +199,8 @@
 				Preference/LKPreferenceView.swift,
 				Preference/LKPreferenceViewController.m,
 				Preference/LKPreferenceWindowController.m,
+				PrivateDiscriminator/LKPrivateDiscriminatorSettingsWindowController.swift,
+				PrivateDiscriminator/LKPrivateDiscriminatorStore.swift,
 				ReactiveObjC/extobjc/RACEXTRuntimeExtensions.m,
 				"ReactiveObjC/NSArray+RACSequenceAdditions.m",
 				"ReactiveObjC/NSControl+RACCommandSupport.m",
@@ -624,6 +629,7 @@
 				50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */,
 				E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */,
 				E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */,
+				E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -678,6 +684,7 @@
 			packageProductDependencies = (
 				E37B8D0C2F97B1B100600001 /* Demangling */,
 				E37B8D0F1F97B1B100600001 /* Sparkle */,
+				E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */,
 			);
 			productName = Lookin;
 			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
@@ -720,6 +727,7 @@
 			packageReferences = (
 				E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */,
 				E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */,
 			);
 			preferredProjectObjectVersion = 50;
 			productRefGroup = AA48F29C21CC0CA50032EC2C /* Products */;
@@ -1091,6 +1099,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LookInsideApp/LookInsidePrivateDiscriminator.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.0.2;
+			};
+		};
 		E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/MxIris-Reverse-Engineering/swift-demangling.git";
@@ -1119,6 +1135,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */;
+			productName = LookInsidePrivateDiscriminator;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

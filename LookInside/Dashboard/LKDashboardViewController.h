@@ -30,6 +30,8 @@
 
 - (RACSignal *)modifyAttribute:(LookinAttribute *)attribute newValue:(id)newValue;
 
+- (void)reloadCurrentDisplayItem;
+
 /// 如果为 YES 则表示当前使用的是 StaticDataSource 而非 ReadDataSource
 @property(nonatomic, assign, readonly) BOOL isStaticMode;
 

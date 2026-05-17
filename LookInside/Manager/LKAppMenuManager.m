@@ -16,6 +16,7 @@
 static NSUInteger const kTag_About = 11;
 static NSUInteger const kTag_Preferences = 12;
 static NSUInteger const kTag_CheckUpdates = 13;
+static NSUInteger const kTag_PrivateDiscriminatorSettings = 20;
 static NSUInteger const kTag_ActivateSwiftUISupport = 14;
 static NSUInteger const kTag_SwiftUISupportLicense = 15;
 static NSUInteger const kTag_RefreshSwiftUISupportLicense = 16;
@@ -96,6 +97,7 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     [menu addItem:LKMenuItem([NSString stringWithFormat:@"About %@", appName], nil, @"", 0, kTag_About)];
     [menu addItem:[NSMenuItem separatorItem]];
     [menu addItem:LKMenuItem(@"Preferences…", nil, @",", NSEventModifierFlagCommand, kTag_Preferences)];
+    [menu addItem:LKMenuItem(@"Private Discriminator Settings…", nil, @"", 0, kTag_PrivateDiscriminatorSettings)];
     [menu addItem:[NSMenuItem separatorItem]];
     [menu addItem:LKMenuItem(@"Check for Updates…", nil, @"", 0, kTag_CheckUpdates)];
     [menu addItem:[NSMenuItem separatorItem]];
@@ -319,6 +321,10 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     menuItem_preferences.target = self;
     menuItem_preferences.action = @selector(_handlePreferences);
 
+    NSMenuItem *menuItem_privateDiscriminatorSettings = [menu_lookin itemWithTag:kTag_PrivateDiscriminatorSettings];
+    menuItem_privateDiscriminatorSettings.target = self;
+    menuItem_privateDiscriminatorSettings.action = @selector(_handlePrivateDiscriminatorSettings);
+
     NSMenuItem *menuItem_checkUpdates = [menu_lookin itemWithTag:kTag_CheckUpdates];
     menuItem_checkUpdates.target = self;
     menuItem_checkUpdates.action = @selector(_handleCheckUpdates);
@@ -413,6 +419,10 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 
 - (void)_handlePreferences {
     [[LKNavigationManager sharedInstance] showPreference];
+}
+
+- (void)_handlePrivateDiscriminatorSettings {
+    [LKPrivateDiscriminatorSettingsWindowController showSettingsWindow];
 }
 
 - (void)_handleOpenRecentDocument:(NSMenuItem *)item {
