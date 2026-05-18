@@ -8,10 +8,20 @@
 #import "LookinAttribute.h"
 #import "LookinDisplayItem.h"
 #import "LookInside-Swift.h"
+#import "NSButton+LookinClient.h"
 
 static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification = @"LKPrivateDiscriminatorDashboardStateDidChange";
 
-@interface LKPrivateDiscriminatorCopyLabel : NSTextField
+static const CGFloat kPDRowTitleWidth = 64;
+static const CGFloat kPDCardPaddingLeft = 8;
+static const CGFloat kPDCardPaddingRight = 4;
+static const CGFloat kPDCardInnerSpacing = 6;
+static const CGFloat kPDCardVerticalPadding = 4;
+static const CGFloat kPDCopySize = 20;
+static const CGFloat kPDRowMinHeight = 24;
+static const CGFloat kPDButtonHeight = 24;
+
+@interface LKPrivateDiscriminatorCopyLabel : LKLabel
 
 @property(nonatomic, copy) NSString *fieldName;
 
@@ -21,12 +31,8 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
     if (self = [super initWithFrame:frameRect]) {
-        self.bezeled = NO;
-        self.drawsBackground = NO;
-        self.editable = NO;
-        self.selectable = NO;
-        self.font = [NSFont systemFontOfSize:12];
-        self.textColor = NSColor.labelColor;
+        self.font = NSFontMake(12);
+        self.textColor = [NSColor colorNamed:@"DashboardCardValueColor"];
         self.lineBreakMode = NSLineBreakByCharWrapping;
         self.maximumNumberOfLines = 0;
         self.toolTip = NSLocalizedString(@"Click to copy", nil);
@@ -53,27 +59,32 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 
 @interface LKDashboardAttributePrivateDiscriminatorView ()
 
-@property(nonatomic, strong) NSTextField *idTitleLabel;
+@property(nonatomic, strong) LKBaseView *idCard;
+@property(nonatomic, strong) LKLabel *idTitleLabel;
 @property(nonatomic, strong) LKPrivateDiscriminatorCopyLabel *idValueLabel;
 @property(nonatomic, strong) NSButton *idCopyButton;
-@property(nonatomic, strong) NSTextField *moduleTitleLabel;
+
+@property(nonatomic, strong) LKBaseView *moduleCard;
+@property(nonatomic, strong) LKLabel *moduleTitleLabel;
 @property(nonatomic, strong) NSTextField *moduleField;
 @property(nonatomic, strong) LKPrivateDiscriminatorCopyLabel *moduleValueLabel;
 @property(nonatomic, strong) NSButton *moduleCopyButton;
-@property(nonatomic, strong) NSTextField *filenameTitleLabel;
+
+@property(nonatomic, strong) LKBaseView *filenameCard;
+@property(nonatomic, strong) LKLabel *filenameTitleLabel;
 @property(nonatomic, strong) NSTextField *filenameField;
 @property(nonatomic, strong) LKPrivateDiscriminatorCopyLabel *filenameValueLabel;
 @property(nonatomic, strong) NSButton *filenameCopyButton;
-@property(nonatomic, strong) NSTextField *sourceLabel;
-@property(nonatomic, strong) NSTextField *messageLabel;
+
+@property(nonatomic, strong) LKLabel *sourceLabel;
+@property(nonatomic, strong) LKLabel *messageLabel;
+
 @property(nonatomic, strong) NSButton *importButton;
 @property(nonatomic, strong) NSButton *guessButton;
 @property(nonatomic, strong) NSButton *cancelButton;
-@property(nonatomic, strong) LKBaseView *idSeparator;
-@property(nonatomic, strong) LKBaseView *moduleSeparator;
-@property(nonatomic, strong) LKBaseView *filenameSeparator;
+
 @property(nonatomic, strong) LKBaseView *toastView;
-@property(nonatomic, strong) NSTextField *toastLabel;
+@property(nonatomic, strong) LKLabel *toastLabel;
 
 @property(nonatomic, strong) LKPrivateDiscriminatorDashboardPayload *payload;
 @property(nonatomic, copy) NSString *localMessage;
@@ -85,73 +96,71 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 
 - (instancetype)initWithFrame:(NSRect)frameRect {
     if (self = [super initWithFrame:frameRect]) {
-        self.layer.cornerRadius = 7;
-        self.layer.borderWidth = 1;
-        self.backgroundColorName = @"DashboardCardValueBGColor";
-
+        self.idCard = [self _makeCard];
         self.idTitleLabel = [self _makeTitleLabel:NSLocalizedString(@"ID", nil)];
         self.idValueLabel = [self _makeCopyLabelNamed:NSLocalizedString(@"ID", nil)];
-        self.idValueLabel.font = [NSFont monospacedSystemFontOfSize:12.5 weight:NSFontWeightRegular];
+        self.idValueLabel.font = [NSFont monospacedSystemFontOfSize:12 weight:NSFontWeightRegular];
         self.idCopyButton = [self _makeCopyButton];
+        [self.idCard addSubview:self.idTitleLabel];
+        [self.idCard addSubview:self.idValueLabel];
+        [self.idCard addSubview:self.idCopyButton];
 
+        self.moduleCard = [self _makeCard];
         self.moduleTitleLabel = [self _makeTitleLabel:NSLocalizedString(@"Module", nil)];
         self.moduleField = [self _makeTextFieldWithPlaceholder:NSLocalizedString(@"ModuleName", nil)];
         self.moduleValueLabel = [self _makeCopyLabelNamed:NSLocalizedString(@"Module", nil)];
-        self.moduleValueLabel.font = [NSFont systemFontOfSize:13];
         self.moduleCopyButton = [self _makeCopyButton];
+        [self.moduleCard addSubview:self.moduleTitleLabel];
+        [self.moduleCard addSubview:self.moduleField];
+        [self.moduleCard addSubview:self.moduleValueLabel];
+        [self.moduleCard addSubview:self.moduleCopyButton];
+
+        self.filenameCard = [self _makeCard];
         self.filenameTitleLabel = [self _makeTitleLabel:NSLocalizedString(@"Filename", nil)];
         self.filenameField = [self _makeTextFieldWithPlaceholder:NSLocalizedString(@"File.swift", nil)];
         self.filenameValueLabel = [self _makeCopyLabelNamed:NSLocalizedString(@"Filename", nil)];
-        self.filenameValueLabel.font = [NSFont systemFontOfSize:13];
         self.filenameCopyButton = [self _makeCopyButton];
+        [self.filenameCard addSubview:self.filenameTitleLabel];
+        [self.filenameCard addSubview:self.filenameField];
+        [self.filenameCard addSubview:self.filenameValueLabel];
+        [self.filenameCard addSubview:self.filenameCopyButton];
 
-        self.sourceLabel = [self _makeValueLabel:@""];
-        self.sourceLabel.font = [NSFont systemFontOfSize:11];
-        self.sourceLabel.textColor = NSColor.secondaryLabelColor;
+        self.sourceLabel = [LKLabel new];
+        self.sourceLabel.font = NSFontMake(11);
+        self.sourceLabel.textColor = [NSColor colorNamed:@"DashboardInputAccessoryColor"];
+        self.sourceLabel.maximumNumberOfLines = 0;
+        self.sourceLabel.lineBreakMode = NSLineBreakByWordWrapping;
 
-        self.messageLabel = [self _makeValueLabel:@""];
-        self.messageLabel.font = [NSFont systemFontOfSize:11];
+        self.messageLabel = [LKLabel new];
+        self.messageLabel.font = NSFontMake(11);
         self.messageLabel.maximumNumberOfLines = 0;
+        self.messageLabel.lineBreakMode = NSLineBreakByWordWrapping;
 
-        self.importButton = [NSButton buttonWithTitle:NSLocalizedString(@"Import from your codebase", nil) target:self action:@selector(_handleImportButton:)];
-        self.importButton.bezelStyle = NSBezelStyleRounded;
+        self.importButton = [NSButton lk_normalButtonWithTitle:NSLocalizedString(@"Import from your codebase", nil) target:self action:@selector(_handleImportButton:)];
+        self.importButton.font = NSFontMake(12);
 
-        self.guessButton = [NSButton buttonWithTitle:NSLocalizedString(@"Guess by swift-pd-guess", nil) target:self action:@selector(_handleGuessButton:)];
-        self.guessButton.bezelStyle = NSBezelStyleRounded;
+        self.guessButton = [NSButton lk_normalButtonWithTitle:NSLocalizedString(@"Guess by swift-pd-guess", nil) target:self action:@selector(_handleGuessButton:)];
+        self.guessButton.font = NSFontMake(12);
 
-        self.cancelButton = [NSButton buttonWithTitle:NSLocalizedString(@"Cancel", nil) target:self action:@selector(_handleCancelButton:)];
-        self.cancelButton.bezelStyle = NSBezelStyleRounded;
-
-        self.idSeparator = [self _makeSeparator];
-        self.moduleSeparator = [self _makeSeparator];
-        self.filenameSeparator = [self _makeSeparator];
+        self.cancelButton = [NSButton lk_normalButtonWithTitle:NSLocalizedString(@"Cancel", nil) target:self action:@selector(_handleCancelButton:)];
+        self.cancelButton.font = NSFontMake(12);
 
         self.toastView = [LKBaseView new];
-        self.toastView.layer.cornerRadius = 10;
+        self.toastView.layer.cornerRadius = DashboardCardControlCornerRadius;
         self.toastView.hidden = YES;
         self.toastView.alphaValue = 0;
 
-        self.toastLabel = [NSTextField labelWithString:NSLocalizedString(@"Copied", nil)];
+        self.toastLabel = [LKLabel new];
+        self.toastLabel.stringValue = NSLocalizedString(@"Copied", nil);
         self.toastLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightSemibold];
         self.toastLabel.textColor = NSColor.whiteColor;
         self.toastLabel.alignment = NSTextAlignmentCenter;
         [self.toastView addSubview:self.toastLabel];
 
         NSArray<NSView *> *subviews = @[
-            self.idTitleLabel,
-            self.idValueLabel,
-            self.idCopyButton,
-            self.idSeparator,
-            self.moduleTitleLabel,
-            self.moduleField,
-            self.moduleValueLabel,
-            self.moduleCopyButton,
-            self.moduleSeparator,
-            self.filenameTitleLabel,
-            self.filenameField,
-            self.filenameValueLabel,
-            self.filenameCopyButton,
-            self.filenameSeparator,
+            self.idCard,
+            self.moduleCard,
+            self.filenameCard,
             self.sourceLabel,
             self.messageLabel,
             self.importButton,
@@ -222,90 +231,97 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
     [self setNeedsLayout:YES];
 }
 
+#pragma mark - Layout
+
+- (CGFloat)_valueWidthForCardWidth:(CGFloat)cardWidth copyHidden:(BOOL)copyHidden {
+    CGFloat width = cardWidth - kPDCardPaddingLeft - kPDRowTitleWidth - kPDCardInnerSpacing;
+    if (copyHidden) {
+        width -= kPDCardPaddingLeft;
+    } else {
+        width -= kPDCopySize + kPDCardInnerSpacing + kPDCardPaddingRight;
+    }
+    return MAX(width, 1);
+}
+
+- (CGFloat)_cardHeightForLabel:(LKPrivateDiscriminatorCopyLabel *)label
+                     cardWidth:(CGFloat)cardWidth
+                    copyHidden:(BOOL)copyHidden {
+    CGFloat valueWidth = [self _valueWidthForCardWidth:cardWidth copyHidden:copyHidden];
+    CGFloat valueHeight = MAX(18, [label sizeThatFits:NSMakeSize(valueWidth, CGFLOAT_MAX)].height);
+    return MAX(valueHeight + kPDCardVerticalPadding * 2, kPDRowMinHeight);
+}
+
+- (CGFloat)_moduleCardHeightForCardWidth:(CGFloat)cardWidth {
+    if (self.moduleField.hidden) {
+        return [self _cardHeightForLabel:self.moduleValueLabel cardWidth:cardWidth copyHidden:self.moduleCopyButton.hidden];
+    }
+    return kPDRowMinHeight;
+}
+
+- (CGFloat)_filenameCardHeightForCardWidth:(CGFloat)cardWidth {
+    if (self.filenameField.hidden) {
+        return [self _cardHeightForLabel:self.filenameValueLabel cardWidth:cardWidth copyHidden:self.filenameCopyButton.hidden];
+    }
+    return kPDRowMinHeight;
+}
+
 - (void)layout {
     [super layout];
 
-    CGFloat x = 8;
-    CGFloat y = 10;
-    CGFloat width = MAX(self.$width - 16, 1);
-    CGFloat titleWidth = 72;
-    CGFloat fieldX = x + titleWidth + 8;
-    CGFloat copySize = 20;
-    CGFloat copyGap = 6;
-    CGFloat fieldWidth = MAX(width - titleWidth - 8, 1);
-    CGFloat rowHeight = 24;
-    CGFloat visibleIDCopyWidth = self.idCopyButton.hidden ? 0 : (copySize + copyGap);
-    CGFloat visibleModuleCopyWidth = self.moduleCopyButton.hidden ? 0 : (copySize + copyGap);
-    CGFloat visibleFilenameCopyWidth = self.filenameCopyButton.hidden ? 0 : (copySize + copyGap);
+    CGFloat width = MAX(self.$width, 1);
+    CGFloat verSpacing = DashboardAttrItemVerInterspace;
 
-    $(self.idTitleLabel).x(x).y(y + 3).width(titleWidth).height(18);
-    CGFloat idValueWidth = MAX(fieldWidth - visibleIDCopyWidth, 1);
-    CGFloat idHeight = MAX(18, [self.idValueLabel sizeThatFits:NSMakeSize(idValueWidth, CGFLOAT_MAX)].height);
-    $(self.idValueLabel).x(fieldX).y(y).width(idValueWidth).height(idHeight);
-    if (!self.idCopyButton.hidden) {
-        $(self.idCopyButton).x(self.idValueLabel.$maxX + copyGap).y(y - 1).width(copySize).height(copySize);
-    }
-    y = MAX(self.idTitleLabel.$maxY, self.idValueLabel.$maxY) + 8;
-    [self _layoutSeparator:self.idSeparator x:x y:y - 4 width:width];
-    y += 4;
+    CGFloat y = 0;
 
-    $(self.moduleTitleLabel).x(x).y(y + 4).width(titleWidth).height(18);
-    if (self.moduleField.hidden) {
-        CGFloat moduleValueWidth = MAX(fieldWidth - visibleModuleCopyWidth, 1);
-        CGFloat moduleHeight = MAX(18, [self.moduleValueLabel sizeThatFits:NSMakeSize(moduleValueWidth, CGFLOAT_MAX)].height);
-        $(self.moduleValueLabel).x(fieldX).y(y + 3).width(moduleValueWidth).height(moduleHeight);
-        if (!self.moduleCopyButton.hidden) {
-            $(self.moduleCopyButton).x(self.moduleValueLabel.$maxX + copyGap).y(y + 2).width(copySize).height(copySize);
-        }
-        y = MAX(self.moduleTitleLabel.$maxY, self.moduleValueLabel.$maxY) + 8;
-    } else {
-        $(self.moduleField).x(fieldX).y(y).width(fieldWidth).height(rowHeight);
-        y = self.moduleField.$maxY + 8;
-    }
-    [self _layoutSeparator:self.moduleSeparator x:x y:y - 4 width:width];
-    y += 4;
+    CGFloat idHeight = [self _cardHeightForLabel:self.idValueLabel cardWidth:width copyHidden:self.idCopyButton.hidden];
+    $(self.idCard).x(0).y(y).width(width).height(idHeight);
+    [self _layoutCard:self.idCard
+           titleLabel:self.idTitleLabel
+                field:nil
+           valueLabel:self.idValueLabel
+           copyButton:self.idCopyButton];
+    y += idHeight + verSpacing;
 
-    $(self.filenameTitleLabel).x(x).y(y + 4).width(titleWidth).height(18);
-    if (self.filenameField.hidden) {
-        CGFloat filenameValueWidth = MAX(fieldWidth - visibleFilenameCopyWidth, 1);
-        CGFloat filenameHeight = MAX(18, [self.filenameValueLabel sizeThatFits:NSMakeSize(filenameValueWidth, CGFLOAT_MAX)].height);
-        $(self.filenameValueLabel).x(fieldX).y(y + 3).width(filenameValueWidth).height(filenameHeight);
-        if (!self.filenameCopyButton.hidden) {
-            $(self.filenameCopyButton).x(self.filenameValueLabel.$maxX + copyGap).y(y + 2).width(copySize).height(copySize);
-        }
-        y = MAX(self.filenameTitleLabel.$maxY, self.filenameValueLabel.$maxY) + 8;
-    } else {
-        $(self.filenameField).x(fieldX).y(y).width(fieldWidth).height(rowHeight);
-        y = self.filenameField.$maxY + 8;
-    }
-    self.filenameSeparator.hidden = self.sourceLabel.hidden && self.messageLabel.hidden && self.importButton.hidden && self.guessButton.hidden && self.cancelButton.hidden;
-    if (!self.filenameSeparator.hidden) {
-        [self _layoutSeparator:self.filenameSeparator x:x y:y - 4 width:width];
-        y += 4;
-    }
+    CGFloat moduleHeight = [self _moduleCardHeightForCardWidth:width];
+    $(self.moduleCard).x(0).y(y).width(width).height(moduleHeight);
+    [self _layoutCard:self.moduleCard
+           titleLabel:self.moduleTitleLabel
+                field:self.moduleField
+           valueLabel:self.moduleValueLabel
+           copyButton:self.moduleCopyButton];
+    y += moduleHeight + verSpacing;
+
+    CGFloat filenameHeight = [self _filenameCardHeightForCardWidth:width];
+    $(self.filenameCard).x(0).y(y).width(width).height(filenameHeight);
+    [self _layoutCard:self.filenameCard
+           titleLabel:self.filenameTitleLabel
+                field:self.filenameField
+           valueLabel:self.filenameValueLabel
+           copyButton:self.filenameCopyButton];
+    y += filenameHeight + verSpacing;
 
     if (!self.sourceLabel.hidden) {
-        $(self.sourceLabel).x(x).y(y).width(width).heightToFit;
-        y = self.sourceLabel.$maxY + 8;
+        $(self.sourceLabel).x(kPDCardPaddingLeft).y(y).width(MAX(width - kPDCardPaddingLeft * 2, 1)).heightToFit;
+        y = self.sourceLabel.$maxY + verSpacing;
     }
 
     if (!self.messageLabel.hidden) {
-        $(self.messageLabel).x(x).y(y).width(width).heightToFit;
-        y = self.messageLabel.$maxY + 8;
+        $(self.messageLabel).x(kPDCardPaddingLeft).y(y).width(MAX(width - kPDCardPaddingLeft * 2, 1)).heightToFit;
+        y = self.messageLabel.$maxY + verSpacing;
     }
 
     if (!self.importButton.hidden) {
-        $(self.importButton).x(x).y(y).height(rowHeight).width(width);
+        $(self.importButton).x(0).y(y).width(width).height(kPDButtonHeight);
         y = self.importButton.$maxY + 6;
     }
 
     if (!self.guessButton.hidden) {
-        $(self.guessButton).x(x).y(y).height(rowHeight).width(width);
+        $(self.guessButton).x(0).y(y).width(width).height(kPDButtonHeight);
         y = self.guessButton.$maxY + 2;
     }
 
     if (!self.cancelButton.hidden) {
-        $(self.cancelButton).x(x).y(y).height(rowHeight).width(86);
+        $(self.cancelButton).x(0).y(y).width(86).height(kPDButtonHeight);
     }
 
     if (!self.toastView.hidden) {
@@ -313,35 +329,81 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
     }
 }
 
+- (void)_layoutCard:(LKBaseView *)card
+         titleLabel:(LKLabel *)titleLabel
+              field:(NSTextField *)field
+         valueLabel:(LKPrivateDiscriminatorCopyLabel *)valueLabel
+         copyButton:(NSButton *)copyButton {
+    CGFloat cardWidth = card.$width;
+    CGFloat cardHeight = card.$height;
+    BOOL fieldVisible = field && !field.hidden;
+    BOOL copyVisible = copyButton && !copyButton.hidden;
+
+    CGFloat titleHeight = MAX(14, [titleLabel sizeThatFits:NSMakeSize(kPDRowTitleWidth, CGFLOAT_MAX)].height);
+    $(titleLabel).x(kPDCardPaddingLeft).y(MAX(0, (cardHeight - titleHeight) / 2.0)).width(kPDRowTitleWidth).height(titleHeight);
+
+    CGFloat contentX = kPDCardPaddingLeft + kPDRowTitleWidth + kPDCardInnerSpacing;
+    CGFloat contentRightX = copyVisible ? cardWidth - kPDCardPaddingRight - kPDCopySize - kPDCardInnerSpacing : cardWidth - kPDCardPaddingLeft;
+    CGFloat contentWidth = MAX(contentRightX - contentX, 1);
+
+    if (fieldVisible) {
+        valueLabel.hidden = YES;
+        CGFloat fieldHeight = MAX(18, [field intrinsicContentSize].height);
+        $(field).x(contentX - 3).y(MAX(0, (cardHeight - fieldHeight) / 2.0)).width(contentWidth + 6).height(fieldHeight);
+    } else if (field) {
+        // 即便 fieldVisible 是 NO 也保持 hidden 状态由 renderWithAttribute 控制
+    }
+
+    if (!fieldVisible) {
+        CGFloat valueHeight = MAX(18, [valueLabel sizeThatFits:NSMakeSize(contentWidth, CGFLOAT_MAX)].height);
+        $(valueLabel).x(contentX).y(MAX(0, (cardHeight - valueHeight) / 2.0)).width(contentWidth).height(valueHeight);
+    }
+
+    if (copyVisible) {
+        CGFloat copyY = MAX(0, (cardHeight - kPDCopySize) / 2.0);
+        $(copyButton).x(cardWidth - kPDCardPaddingRight - kPDCopySize).y(copyY).width(kPDCopySize).height(kPDCopySize);
+    }
+}
+
 - (NSSize)sizeThatFits:(NSSize)limitedSize {
     CGFloat width = MAX(limitedSize.width, 1);
-    CGFloat contentWidth = MAX(width - 16, 1);
-    CGFloat fieldWidth = MAX(contentWidth - 72 - 8, 1);
-    CGFloat copyWidth = 26;
-    CGFloat idHeight = MAX(18, [self.idValueLabel sizeThatFits:NSMakeSize(MAX(fieldWidth - copyWidth, 1), CGFLOAT_MAX)].height);
-    CGFloat moduleHeight = self.moduleField.hidden
-        ? MAX(18, [self.moduleValueLabel sizeThatFits:NSMakeSize(MAX(fieldWidth - (self.moduleCopyButton.hidden ? 0 : copyWidth), 1), CGFLOAT_MAX)].height)
-        : 24;
-    CGFloat filenameHeight = self.filenameField.hidden
-        ? MAX(18, [self.filenameValueLabel sizeThatFits:NSMakeSize(MAX(fieldWidth - (self.filenameCopyButton.hidden ? 0 : copyWidth), 1), CGFLOAT_MAX)].height)
-        : 24;
+    CGFloat verSpacing = DashboardAttrItemVerInterspace;
 
-    CGFloat height = 10 + idHeight + 12 + moduleHeight + 12 + filenameHeight + 10;
+    CGFloat height = 0;
+    height += [self _cardHeightForLabel:self.idValueLabel cardWidth:width copyHidden:self.idCopyButton.hidden];
+    height += verSpacing;
+    height += [self _moduleCardHeightForCardWidth:width];
+    height += verSpacing;
+    height += [self _filenameCardHeightForCardWidth:width];
+
+    CGFloat sideTextWidth = MAX(width - kPDCardPaddingLeft * 2, 1);
+
     if (!self.sourceLabel.hidden) {
-        height += [self.sourceLabel sizeThatFits:NSMakeSize(width - 16, CGFLOAT_MAX)].height + 8;
+        height += verSpacing;
+        height += [self.sourceLabel sizeThatFits:NSMakeSize(sideTextWidth, CGFLOAT_MAX)].height;
     }
     if (!self.messageLabel.hidden) {
-        height += [self.messageLabel sizeThatFits:NSMakeSize(width - 16, CGFLOAT_MAX)].height + 8;
+        height += verSpacing;
+        height += [self.messageLabel sizeThatFits:NSMakeSize(sideTextWidth, CGFLOAT_MAX)].height;
     }
+
     if (!self.importButton.hidden) {
-        height += 30;
+        height += verSpacing;
+        height += kPDButtonHeight;
     }
     if (!self.guessButton.hidden) {
-        height += 26;
+        height += self.importButton.hidden ? verSpacing : 6;
+        height += kPDButtonHeight;
     }
     if (!self.cancelButton.hidden) {
-        height += 26;
+        if (self.importButton.hidden && self.guessButton.hidden) {
+            height += verSpacing;
+        } else {
+            height += 2;
+        }
+        height += kPDButtonHeight;
     }
+
     limitedSize.height = height;
     return limitedSize;
 }
@@ -429,17 +491,18 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 
 #pragma mark - Views
 
-- (NSTextField *)_makeTitleLabel:(NSString *)title {
-    NSTextField *label = [NSTextField labelWithString:title];
-    label.font = [NSFont systemFontOfSize:12 weight:NSFontWeightSemibold];
-    label.textColor = NSColor.secondaryLabelColor;
-    return label;
+- (LKBaseView *)_makeCard {
+    LKBaseView *card = [LKBaseView new];
+    card.layer.cornerRadius = DashboardCardControlCornerRadius;
+    card.backgroundColorName = @"DashboardCardValueBGColor";
+    return card;
 }
 
-- (NSTextField *)_makeValueLabel:(NSString *)value {
-    NSTextField *label = [NSTextField wrappingLabelWithString:value];
-    label.font = [NSFont systemFontOfSize:13];
-    label.textColor = NSColor.labelColor;
+- (LKLabel *)_makeTitleLabel:(NSString *)title {
+    LKLabel *label = [LKLabel new];
+    label.stringValue = title;
+    label.font = NSFontMake(11);
+    label.textColor = [NSColor colorNamed:@"DashboardInputAccessoryColor"];
     return label;
 }
 
@@ -453,9 +516,7 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 
 - (NSButton *)_makeCopyButton {
     NSImage *image = [NSImage imageWithSystemSymbolName:@"doc.on.doc" accessibilityDescription:NSLocalizedString(@"Copy", nil)];
-    NSButton *button = [NSButton buttonWithImage:image ?: NSImage.new target:self action:@selector(_handleCopyButton:)];
-    button.bezelStyle = NSBezelStyleRoundRect;
-    button.bordered = NO;
+    NSButton *button = [NSButton lk_buttonWithImage:image ?: NSImage.new target:self action:@selector(_handleCopyButton:)];
     button.imagePosition = NSImageOnly;
     button.toolTip = NSLocalizedString(@"Copy", nil);
     if (image) {
@@ -464,23 +525,17 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
     return button;
 }
 
-- (LKBaseView *)_makeSeparator {
-    LKBaseView *separator = [LKBaseView new];
-    return separator;
-}
-
 - (NSTextField *)_makeTextFieldWithPlaceholder:(NSString *)placeholder {
     NSTextField *field = [NSTextField new];
     field.placeholderString = placeholder;
-    field.font = [NSFont systemFontOfSize:12];
+    field.font = NSFontMake(12);
+    field.bezeled = NO;
+    field.drawsBackground = NO;
+    field.textColor = [NSColor colorNamed:@"DashboardCardValueColor"];
+    field.focusRingType = NSFocusRingTypeNone;
     field.target = self;
     field.action = @selector(_submitManualValue:);
     return field;
-}
-
-- (void)_layoutSeparator:(LKBaseView *)separator x:(CGFloat)x y:(CGFloat)y width:(CGFloat)width {
-    separator.hidden = NO;
-    $(separator).x(x).y(y).width(width).height(1);
 }
 
 - (void)_copyString:(NSString *)value sourceView:(NSView *)sourceView {
@@ -499,7 +554,7 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 
     CGFloat toastWidth = ceil(self.toastLabel.$width) + 18;
     CGFloat toastHeight = 22;
-    NSRect sourceFrame = sourceView.frame;
+    NSRect sourceFrame = [sourceView convertRect:sourceView.bounds toView:self];
     CGFloat toastX = NSMidX(sourceFrame) - toastWidth / 2.0;
     toastX = MIN(MAX(toastX, 6), MAX(self.$width - toastWidth - 6, 6));
     CGFloat toastY = NSMinY(sourceFrame) - toastHeight - 4;
@@ -519,18 +574,11 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
 - (void)updateColors {
     [super updateColors];
 
-    NSColor *borderColor = [NSColor.separatorColor colorWithAlphaComponent:self.isDarkMode ? 0.55 : 0.65];
-    self.layer.borderColor = borderColor.CGColor;
-    NSColor *separatorColor = [NSColor.separatorColor colorWithAlphaComponent:self.isDarkMode ? 0.45 : 0.5];
-    NSArray<LKBaseView *> *separators = @[self.idSeparator ?: LKBaseView.new, self.moduleSeparator ?: LKBaseView.new, self.filenameSeparator ?: LKBaseView.new];
-    for (LKBaseView *separator in separators) {
-        separator.backgroundColor = separatorColor;
-    }
     NSColor *iconColor = self.isDarkMode ? NSColor.secondaryLabelColor : NSColor.tertiaryLabelColor;
     self.idCopyButton.contentTintColor = iconColor;
     self.moduleCopyButton.contentTintColor = iconColor;
     self.filenameCopyButton.contentTintColor = iconColor;
-    self.toastView.backgroundColor = [NSColor.controlAccentColor colorWithAlphaComponent:self.isDarkMode ? 0.92 : 0.88];
+    self.toastView.backgroundColor = [NSColor.controlAccentColor colorWithAlphaComponent:self.isDarkMode ? 0.9 : 0.85];
 }
 
 - (void)_renderMessage {
@@ -546,7 +594,7 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
     }
 
     self.messageLabel.stringValue = message ?: @"";
-    self.messageLabel.textColor = isError ? NSColor.systemRedColor : NSColor.secondaryLabelColor;
+    self.messageLabel.textColor = isError ? NSColor.systemRedColor : [NSColor colorNamed:@"DashboardInputAccessoryColor"];
     self.messageLabel.hidden = (message.length == 0);
 }
 
