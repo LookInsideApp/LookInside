@@ -45,7 +45,11 @@
 }
 
 - (void)showLaunch {
-    _launchWindowController = [[LKLaunchWindowController alloc] init];
+    [self showLaunchAllowingAutoEnter:NO];
+}
+
+- (void)showLaunchAllowingAutoEnter:(BOOL)allowAutoEnter {
+    _launchWindowController = [[LKLaunchWindowController alloc] initWithAutoEnterOnInitialReload:allowAutoEnter];
     [self.launchWindowController showWindow:self];
 }
 

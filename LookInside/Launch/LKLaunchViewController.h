@@ -12,4 +12,6 @@
 
 - (instancetype)initWithWindow:(NSWindow *)window;
 
+- (instancetype)initWithWindow:(NSWindow *)window autoEnterOnInitialReload:(BOOL)autoEnterOnInitialReload;
+
 @end

@@ -4,6 +4,23 @@
     "" : {
 
     },
+    " / " : {
+      "comment" : "Separator between imported/autosaved CSV sources",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " / "
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " / "
+          }
+        }
+      }
+    },
     "%@ %@: %@" : {
       "localizations" : {
         "en" : {
@@ -101,6 +118,22 @@
         }
       }
     },
+    "Activate LookInside Pro from the LookInside Pro menu before using this feature." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate LookInside Pro from the LookInside Pro menu before using this feature."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用此功能前，请从 LookInside Pro 菜单激活 LookInside Pro。"
+          }
+        }
+      }
+    },
     "Activate LookInside Pro?" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -114,22 +147,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "激活 LookInside Pro？"
-          }
-        }
-      }
-    },
-    "Activate LookInside Pro from the LookInside Pro menu before using this feature." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activate LookInside Pro from the LookInside Pro menu before using this feature."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用此功能前，请从 LookInside Pro 菜单激活 LookInside Pro。"
           }
         }
       }
@@ -246,6 +263,38 @@
         }
       }
     },
+    "Auth Server state file is not a JSON object." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auth Server state file is not a JSON object."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auth Server 状态文件不是 JSON 对象。"
+          }
+        }
+      }
+    },
+    "Background Auth Server install is waiting after a recent failure." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Auth Server install is waiting after a recent failure."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后台授权服务器安装在最近失败后等待重试。"
+          }
+        }
+      }
+    },
     "Automatic update checks are disabled in this community build." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -295,6 +344,38 @@
         }
       }
     },
+    "autosaved" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "autosaved"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已自动保存"
+          }
+        }
+      }
+    },
+    "autosaved %ld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "autosaved %ld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已自动保存 %ld 条"
+          }
+        }
+      }
+    },
     "Cancel" : {
       "localizations" : {
         "en" : {
@@ -323,6 +404,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "松开按键后取消测量。"
+          }
+        }
+      }
+    },
+    "Cancelled." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消。"
           }
         }
       }
@@ -375,22 +472,6 @@
         }
       }
     },
-    "Customer Support…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Customer Support…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "客户支持…"
-          }
-        }
-      }
-    },
     "Checking for updates…" : {
       "localizations" : {
         "en" : {
@@ -423,18 +504,18 @@
         }
       }
     },
-    "Auth Server state file is not a JSON object." : {
+    "Choose the local Swift source folder for %@." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auth Server state file is not a JSON object."
+            "value" : "Choose the local Swift source folder for %@."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Auth Server 状态文件不是 JSON 对象。"
+            "value" : "选择 %@ 的本地 Swift 源码文件夹。"
           }
         }
       }
@@ -647,6 +728,22 @@
         }
       }
     },
+    "Continue" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        }
+      }
+    },
     "Copied" : {
       "localizations" : {
         "en" : {
@@ -744,6 +841,22 @@
         }
       }
     },
+    "Customer Support…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customer Support…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户支持…"
+          }
+        }
+      }
+    },
     "Dark Mode" : {
       "localizations" : {
         "en" : {
@@ -760,6 +873,38 @@
         }
       }
     },
+    "Default Library" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default Library"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认库"
+          }
+        }
+      }
+    },
+    "Default library is already up to date." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default library is already up to date."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认库已是最新。"
+          }
+        }
+      }
+    },
     "Details" : {
       "localizations" : {
         "en" : {
@@ -772,6 +917,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "详情"
+          }
+        }
+      }
+    },
+    "Discriminator Details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discriminator Details"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "判别信息"
           }
         }
       }
@@ -840,38 +1001,6 @@
         }
       }
     },
-    "Default Library" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default Library"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "默认库"
-          }
-        }
-      }
-    },
-    "Default library is already up to date." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default library is already up to date."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "默认库已是最新。"
-          }
-        }
-      }
-    },
     "Double click" : {
       "localizations" : {
         "en" : {
@@ -900,6 +1029,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "从 GitHub 下载 SwiftUI 和 SwiftUICore 索引到本地 imported CSV。"
+          }
+        }
+      }
+    },
+    "Download the GitHub release binary and place it at /usr/local/bin/swift-pd-guess. You may need administrator permission and chmod +x." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download the GitHub release binary and place it at /usr/local/bin/swift-pd-guess. You may need administrator permission and chmod +x."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载 GitHub Release 中的二进制文件，并放到 /usr/local/bin/swift-pd-guess。你可能需要管理员权限并执行 chmod +x。"
           }
         }
       }
@@ -948,6 +1093,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用"
+          }
+        }
+      }
+    },
+    "Enter a module name, comma-separated candidate words, and a maximum word count." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a module name, comma-separated candidate words, and a maximum word count."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入模块名、以逗号分隔的候选词，以及最大词数。"
+          }
+        }
+      }
+    },
+    "Enter the Swift module name for this source folder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter the Swift module name for this source folder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入此源码文件夹对应的 Swift 模块名。"
           }
         }
       }
@@ -1080,22 +1257,6 @@
         }
       }
     },
-    "Failed to download LookInside Auth Server.\n%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to download LookInside Auth Server.\n%@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下载 LookInside 授权服务器失败。\n%@"
-          }
-        }
-      }
-    },
     "Failed to download %@: %@" : {
       "localizations" : {
         "en" : {
@@ -1108,6 +1269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载 %1$@ 失败：%2$@"
+          }
+        }
+      }
+    },
+    "Failed to download LookInside Auth Server.\n%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to download LookInside Auth Server.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载 LookInside 授权服务器失败。\n%@"
           }
         }
       }
@@ -1160,6 +1337,22 @@
         }
       }
     },
+    "Failed to launch swift-pd-guess: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to launch swift-pd-guess: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动 swift-pd-guess 失败：%@"
+          }
+        }
+      }
+    },
     "Failed to open the document." : {
       "localizations" : {
         "en" : {
@@ -1204,6 +1397,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "验证 LookInside 授权服务器下载失败。\n%@"
+          }
+        }
+      }
+    },
+    "Failed: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败：%@"
+          }
+        }
+      }
+    },
+    "fallback" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fallback"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回退"
           }
         }
       }
@@ -1400,6 +1625,22 @@
         }
       }
     },
+    "Found %@, but save failed: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found %@, but save failed: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已找到 %@，但保存失败：%@"
+          }
+        }
+      }
+    },
     "Free Rotation" : {
       "localizations" : {
         "en" : {
@@ -1428,6 +1669,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用 swift-pd-guess 猜测"
+          }
+        }
+      }
+    },
+    "Guess with swift-pd-guess" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guess with swift-pd-guess"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 swift-pd-guess 猜测"
           }
         }
       }
@@ -1624,6 +1881,22 @@
         }
       }
     },
+    "Import" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入"
+          }
+        }
+      }
+    },
     "Import from your codebase" : {
       "localizations" : {
         "en" : {
@@ -1652,6 +1925,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导入模块"
+          }
+        }
+      }
+    },
+    "Import Private Discriminator Module" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Private Discriminator Module"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入 Private Discriminator 模块"
+          }
+        }
+      }
+    },
+    "imported" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "imported"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已导入"
+          }
+        }
+      }
+    },
+    "imported %ld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "imported %ld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已导入 %ld 条"
           }
         }
       }
@@ -1736,6 +2057,22 @@
         }
       }
     },
+    "Invalid basename-only filename." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid basename-only filename."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件名无效，请仅填写基本文件名。"
+          }
+        }
+      }
+    },
     "Invalid CSV Diagnostics" : {
       "localizations" : {
         "en" : {
@@ -1748,6 +2085,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无效 CSV 诊断"
+          }
+        }
+      }
+    },
+    "Invalid module name: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid module name: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模块名无效：%@"
+          }
+        }
+      }
+    },
+    "Invalid module name." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid module name."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模块名无效。"
+          }
+        }
+      }
+    },
+    "Invalid private discriminator ID." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid private discriminator ID."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private discriminator ID 无效。"
           }
         }
       }
@@ -2170,6 +2555,38 @@
         }
       }
     },
+    "LookInside Auth Server Updating" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Auth Server Updating"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 授权服务器正在更新"
+          }
+        }
+      }
+    },
+    "LookInside is preparing the local Auth Server. Try the action again after the update finishes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside is preparing the local Auth Server. Try the action again after the update finishes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 正在准备本地授权服务器。更新完成后再试一次。"
+          }
+        }
+      }
+    },
     "LookInside Auth Server is signed by a different team.\nExpected: %1$@\nFound: %2$@" : {
       "localizations" : {
         "en" : {
@@ -2330,22 +2747,6 @@
         }
       }
     },
-    "LookInside Pro · Activated" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside Pro · Activated"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside Pro · 已激活"
-          }
-        }
-      }
-    },
     "LookInside Pro" : {
       "localizations" : {
         "en" : {
@@ -2358,6 +2759,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LookInside Pro"
+          }
+        }
+      }
+    },
+    "LookInside Pro · Activated" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Pro · Activated"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Pro · 已激活"
           }
         }
       }
@@ -2390,6 +2807,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已从 %@ 命中。"
+          }
+        }
+      }
+    },
+    "Max Count" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Count"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最大词数"
           }
         }
       }
@@ -2442,6 +2875,22 @@
         }
       }
     },
+    "Module name is required." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Module name is required."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模块名不能为空。"
+          }
+        }
+      }
+    },
     "ModuleName" : {
       "localizations" : {
         "en" : {
@@ -2490,6 +2939,22 @@
         }
       }
     },
+    "no CSV" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no CSV"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无 CSV"
+          }
+        }
+      }
+    },
     "No Filter Results" : {
       "localizations" : {
         "en" : {
@@ -2518,6 +2983,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未找到可检查的 App"
+          }
+        }
+      }
+    },
+    "No local LookInside Pro license is stored on this Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No local LookInside Pro license is stored on this Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本机尚未保存 LookInside Pro 许可证。"
+          }
+        }
+      }
+    },
+    "No match found." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No match found."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到匹配项。"
           }
         }
       }
@@ -2586,6 +3083,22 @@
         }
       }
     },
+    "No private discriminator ID found for this item." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No private discriminator ID found for this item."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到此项目的 private discriminator ID。"
+          }
+        }
+      }
+    },
     "No response received." : {
       "localizations" : {
         "en" : {
@@ -2602,18 +3115,18 @@
         }
       }
     },
-    "No local LookInside Pro license is stored on this Mac." : {
+    "No saved source folder for %@. Import it once before reimporting." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No local LookInside Pro license is stored on this Mac."
+            "value" : "No saved source folder for %@. Import it once before reimporting."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本机尚未保存 LookInside Pro 许可证。"
+            "value" : "没有保存 %@ 的源码文件夹。请先导入一次，再重新导入。"
           }
         }
       }
@@ -2710,6 +3223,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用“预览”打开图像…"
+          }
+        }
+      }
+    },
+    "Open Releases" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Releases"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Releases"
           }
         }
       }
@@ -2906,22 +3435,6 @@
         }
       }
     },
-    "Purchase…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Purchase…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "购买…"
-          }
-        }
-      }
-    },
     "Preparing…" : {
       "localizations" : {
         "en" : {
@@ -2970,18 +3483,18 @@
         }
       }
     },
-    "Discriminator Details" : {
+    "Private Discriminator Settings" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discriminator Details"
+            "value" : "Private Discriminator Settings"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "判别信息"
+            "value" : "Private Discriminator 设置"
           }
         }
       }
@@ -2998,6 +3511,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "属性或方法"
+          }
+        }
+      }
+    },
+    "Purchase…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchase…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "购买…"
           }
         }
       }
@@ -3034,6 +3563,22 @@
         }
       }
     },
+    "Refresh License Status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh License Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新许可证状态"
+          }
+        }
+      }
+    },
     "Reimport from saved source folder" : {
       "localizations" : {
         "en" : {
@@ -3062,22 +3607,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新加载"
-          }
-        }
-      }
-    },
-    "Refresh License Status" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Refresh License Status"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刷新许可证状态"
           }
         }
       }
@@ -3126,6 +3655,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按 App 记住展开状态"
+          }
+        }
+      }
+    },
+    "Remove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除"
+          }
+        }
+      }
+    },
+    "Remove %@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除 %@？"
           }
         }
       }
@@ -3254,6 +3815,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "显示存储位置"
+          }
+        }
+      }
+    },
+    "Run" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行"
+          }
+        }
+      }
+    },
+    "Running swift-pd-guess…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running swift-pd-guess…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "swift-pd-guess 正在运行…"
           }
         }
       }
@@ -3447,6 +4040,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "部分图层数据传输失败。"
+          }
+        }
+      }
+    },
+    "Success: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Success: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成功：%@"
+          }
+        }
+      }
+    },
+    "swift-pd-guess failed." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "swift-pd-guess failed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "swift-pd-guess 失败。"
+          }
+        }
+      }
+    },
+    "swift-pd-guess is not installed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "swift-pd-guess is not installed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装 swift-pd-guess"
           }
         }
       }
@@ -3837,6 +4478,22 @@
         }
       }
     },
+    "This removes imported and autosaved CSVs for the module." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This removes imported and autosaved CSVs for the module."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这会移除该模块已导入和自动保存的 CSV。"
+          }
+        }
+      }
+    },
     "This target app includes SwiftUI views. Activate LookInside Pro to inspect SwiftUI view details." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3935,6 +4592,22 @@
         }
       }
     },
+    "Unable to decode CSV as UTF-8." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to decode CSV as UTF-8."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法按 UTF-8 解码 CSV。"
+          }
+        }
+      }
+    },
     "Unable to inspect this app." : {
       "localizations" : {
         "en" : {
@@ -3967,18 +4640,18 @@
         }
       }
     },
-    "Unable to decode CSV as UTF-8." : {
+    "Unable to read Swift files in %@." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unable to decode CSV as UTF-8."
+            "value" : "Unable to read Swift files in %@."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无法按 UTF-8 解码 CSV。"
+            "value" : "无法读取 %@ 中的 Swift 文件。"
           }
         }
       }
@@ -3995,6 +4668,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法读取 LookInside 授权服务器的代码签名。\n%@"
+          }
+        }
+      }
+    },
+    "Unknown download failure." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown download failure."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知的下载失败。"
           }
         }
       }
@@ -4047,38 +4736,6 @@
         }
       }
     },
-    "Updating…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updating…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在更新…"
-          }
-        }
-      }
-    },
-    "Unknown download failure." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unknown download failure."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未知的下载失败。"
-          }
-        }
-      }
-    },
     "Updating screenshots… %@ / %@" : {
       "localizations" : {
         "en" : {
@@ -4091,6 +4748,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在更新截图… %1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "Updating…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在更新…"
           }
         }
       }
@@ -4128,6 +4801,22 @@
         }
       }
     },
+    "Verification failed: module + filename does not produce this ID." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verification failed: module + filename does not produce this ID."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证失败：模块名和文件名无法生成此 ID。"
+          }
+        }
+      }
+    },
     "Verification failed." : {
       "localizations" : {
         "en" : {
@@ -4156,6 +4845,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已从 %@ 验证。"
+          }
+        }
+      }
+    },
+    "Verified." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verified."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已验证。"
           }
         }
       }
@@ -4224,6 +4929,22 @@
         }
       }
     },
+    "Words" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Words"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "词"
+          }
+        }
+      }
+    },
     "You can click \"Pause\" button near the bottom-left corner in Xcode to pause your iOS app, and input in Xcode console like the contents below:\nexpr [((%@ *)%@) %@]" : {
       "localizations" : {
         "en" : {
@@ -4284,678 +5005,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "缩放"
-          }
-        }
-      }
-    },
-    "Private Discriminator Settings" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Private Discriminator Settings"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Private Discriminator 设置"
-          }
-        }
-      }
-    },
-    "Choose the local Swift source folder for %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the local Swift source folder for %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选择 %@ 的本地 Swift 源码文件夹。"
-          }
-        }
-      }
-    },
-    "Import" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入"
-          }
-        }
-      }
-    },
-    "Import Private Discriminator Module" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Import Private Discriminator Module"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "导入 Private Discriminator 模块"
-          }
-        }
-      }
-    },
-    "Enter the Swift module name for this source folder." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter the Swift module name for this source folder."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入此源码文件夹对应的 Swift 模块名。"
-          }
-        }
-      }
-    },
-    "Continue" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continue"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "继续"
-          }
-        }
-      }
-    },
-    "Module name is required." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Module name is required."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模块名不能为空。"
-          }
-        }
-      }
-    },
-    "Remove %@?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove %@?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除 %@？"
-          }
-        }
-      }
-    },
-    "This removes imported and autosaved CSVs for the module." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This removes imported and autosaved CSVs for the module."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这会移除该模块已导入和自动保存的 CSV。"
-          }
-        }
-      }
-    },
-    "Remove" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remove"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "移除"
-          }
-        }
-      }
-    },
-    "imported %ld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "imported %ld"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已导入 %ld 条"
-          }
-        }
-      }
-    },
-    "imported" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "imported"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已导入"
-          }
-        }
-      }
-    },
-    "autosaved %ld" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "autosaved %ld"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已自动保存 %ld 条"
-          }
-        }
-      }
-    },
-    "autosaved" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "autosaved"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已自动保存"
-          }
-        }
-      }
-    },
-    "no CSV" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "no CSV"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无 CSV"
-          }
-        }
-      }
-    },
-    " / " : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " / "
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : " / "
-          }
-        }
-      }
-    },
-    "Failed to launch swift-pd-guess: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to launch swift-pd-guess: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启动 swift-pd-guess 失败：%@"
-          }
-        }
-      }
-    },
-    "Guess with swift-pd-guess" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guess with swift-pd-guess"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 swift-pd-guess 猜测"
-          }
-        }
-      }
-    },
-    "Enter a module name, comma-separated candidate words, and a maximum word count." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enter a module name, comma-separated candidate words, and a maximum word count."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入模块名、以逗号分隔的候选词，以及最大词数。"
-          }
-        }
-      }
-    },
-    "Run" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Run"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "运行"
-          }
-        }
-      }
-    },
-    "Words" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Words"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "词"
-          }
-        }
-      }
-    },
-    "Max Count" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max Count"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最大词数"
-          }
-        }
-      }
-    },
-    "swift-pd-guess is not installed" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "swift-pd-guess is not installed"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未安装 swift-pd-guess"
-          }
-        }
-      }
-    },
-    "Download the GitHub release binary and place it at /usr/local/bin/swift-pd-guess. You may need administrator permission and chmod +x." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download the GitHub release binary and place it at /usr/local/bin/swift-pd-guess. You may need administrator permission and chmod +x."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "下载 GitHub Release 中的二进制文件，并放到 /usr/local/bin/swift-pd-guess。你可能需要管理员权限并执行 chmod +x。"
-          }
-        }
-      }
-    },
-    "Open Releases" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Releases"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 Releases"
-          }
-        }
-      }
-    },
-    "swift-pd-guess failed." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "swift-pd-guess failed."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "swift-pd-guess 失败。"
-          }
-        }
-      }
-    },
-    "No match found." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No match found."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未找到匹配项。"
-          }
-        }
-      }
-    },
-    "Success: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Success: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "成功：%@"
-          }
-        }
-      }
-    },
-    "Found %@, but save failed: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Found %@, but save failed: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已找到 %@，但保存失败：%@"
-          }
-        }
-      }
-    },
-    "Invalid private discriminator ID." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid private discriminator ID."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Private discriminator ID 无效。"
-          }
-        }
-      }
-    },
-    "Invalid module name." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid module name."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模块名无效。"
-          }
-        }
-      }
-    },
-    "Invalid basename-only filename." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid basename-only filename."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件名无效，请仅填写基本文件名。"
-          }
-        }
-      }
-    },
-    "Verification failed: module + filename does not produce this ID." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verification failed: module + filename does not produce this ID."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "验证失败：模块名和文件名无法生成此 ID。"
-          }
-        }
-      }
-    },
-    "Verified." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verified."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已验证。"
-          }
-        }
-      }
-    },
-    "fallback" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "fallback"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "回退"
-          }
-        }
-      }
-    },
-    "Running swift-pd-guess…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Running swift-pd-guess…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "swift-pd-guess 正在运行…"
-          }
-        }
-      }
-    },
-    "Failed: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "失败：%@"
-          }
-        }
-      }
-    },
-    "Cancelled." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancelled."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已取消。"
-          }
-        }
-      }
-    },
-    "Invalid module name: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid module name: %@"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "模块名无效：%@"
-          }
-        }
-      }
-    },
-    "Unable to read Swift files in %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unable to read Swift files in %@."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法读取 %@ 中的 Swift 文件。"
-          }
-        }
-      }
-    },
-    "No saved source folder for %@. Import it once before reimporting." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No saved source folder for %@. Import it once before reimporting."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有保存 %@ 的源码文件夹。请先导入一次，再重新导入。"
-          }
-        }
-      }
-    },
-    "No private discriminator ID found for this item." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No private discriminator ID found for this item."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未找到此项目的 private discriminator ID。"
           }
         }
       }

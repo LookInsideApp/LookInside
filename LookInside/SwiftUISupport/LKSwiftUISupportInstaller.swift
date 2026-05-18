@@ -230,7 +230,9 @@ final class LKSwiftUISupportInstaller {
     private let cacheLock = NSLock()
     private var cachedPublishedVersion: String?
     private var lastFailedFetchAt: Date?
+    private var lastFailedBackgroundInstallAt: Date?
     private static let failedFetchCooldown: TimeInterval = 30
+    private static let failedBackgroundInstallCooldown: TimeInterval = 300
     #if DEBUG
         private var debugLocalInstallPrepared = false
     #endif
@@ -263,6 +265,28 @@ final class LKSwiftUISupportInstaller {
             return
         }
         try runInstallWithModal(presentingWindow: presentingWindow)
+    }
+
+    func ensureInstalledWithoutUserInteraction() throws {
+        #if DEBUG
+            if LKSwiftUISupportInstallerLayout.debugLocalAuthRepositoryURL != nil {
+                try ensureDebugLocalInstall()
+                return
+            }
+        #endif
+
+        try enforceBackgroundInstallCooldown()
+        do {
+            try ensureInstalledForBackgroundRefresh()
+            cacheLock.lkLock {
+                lastFailedBackgroundInstallAt = nil
+            }
+        } catch {
+            cacheLock.lkLock {
+                lastFailedBackgroundInstallAt = Date()
+            }
+            throw error
+        }
     }
 
     #if DEBUG
@@ -448,7 +472,9 @@ final class LKSwiftUISupportInstaller {
 
         let cancellation = LKSwiftUISupportInstallerCancellation()
         let controller = LKSwiftUISupportInstallerWindowController()
+        var cancelledByUser = false
         controller.onCancel = {
+            cancelledByUser = true
             cancellation.cancel()
             NSApp.stopModal()
         }
@@ -474,12 +500,65 @@ final class LKSwiftUISupportInstaller {
         }
 
         NSApp.runModal(for: controller.window!)
-        cancellation.cancel()
-        _ = semaphore.wait(timeout: .now() + 1)
+        let waitResult = semaphore.wait(timeout: .now() + 5)
         controller.close()
 
+        if cancelledByUser {
+            throw LKSwiftUISupportInstallerError.cancelled
+        }
+        if waitResult == .timedOut {
+            cancellation.cancel()
+            throw LKSwiftUISupportInstallerError.cancelled
+        }
         if let capturedError {
             throw capturedError
+        }
+    }
+
+    private func enforceBackgroundInstallCooldown() throws {
+        let cooldownActive: Bool = cacheLock.lkLock {
+            guard let lastFailedBackgroundInstallAt else {
+                return false
+            }
+            return Date().timeIntervalSince(lastFailedBackgroundInstallAt) < Self.failedBackgroundInstallCooldown
+        }
+        guard cooldownActive == false else {
+            throw LKSwiftUISupportInstallerError.installFailed(
+                NSLocalizedString("Background Auth Server install is waiting after a recent failure.", comment: "")
+            )
+        }
+    }
+
+    private func ensureInstalledForBackgroundRefresh() throws {
+        precondition(Thread.isMainThread == false, "Background Auth Server install must run off the main thread.")
+
+        installLock.lock()
+        defer { installLock.unlock() }
+
+        if LKSwiftUISupportInstallerLayout.isInstalled {
+            let installed = installedHelperVersion()
+            let published = fetchPublishedVersion()
+            if let published, let installed, published != installed {
+                LKSwiftUISupportLogger.installer.notice(
+                    "installed helper is stale installed=\(installed, privacy: .public) published=\(published, privacy: .public) action=background-refresh"
+                )
+                invalidate()
+            } else {
+                if published == nil {
+                    LKSwiftUISupportLogger.installer.warning(
+                        "published version unavailable; keeping cached helper installed=\(installed ?? "unknown", privacy: .public)"
+                    )
+                }
+                try verifyTeamIdentifier(of: LKSwiftUISupportInstallerLayout.installedAppURL)
+                return
+            }
+        }
+
+        let cancellation = LKSwiftUISupportInstallerCancellation()
+        try performInstall(cancellation: cancellation) { stage in
+            LKSwiftUISupportLogger.installer.info(
+                "background install stage=\(stage.rawValue, privacy: .public)"
+            )
         }
     }
 
@@ -552,7 +631,10 @@ final class LKSwiftUISupportInstaller {
         var capturedTempURL: URL?
         let semaphore = DispatchSemaphore(value: 0)
 
-        let task = URLSession.shared.downloadTask(with: url) { tempURL, response, error in
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 30
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        let task = URLSession.shared.downloadTask(with: request) { tempURL, response, error in
             defer { semaphore.signal() }
             if let error {
                 if cancellation.isCancelled || (error as NSError).code == NSURLErrorCancelled {

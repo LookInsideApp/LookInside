@@ -33,6 +33,7 @@
 @property(nonatomic, assign) BOOL isEnteringApp;
 
 @property(nonatomic, copy) NSArray<LookinAppInfo *> *appInfos;
+@property(nonatomic, assign) BOOL autoEnterOnInitialReload;
 
 @end
 
@@ -43,7 +44,12 @@
 }
 
 - (instancetype)initWithWindow:(NSWindow *)window {
+    return [self initWithWindow:window autoEnterOnInitialReload:NO];
+}
+
+- (instancetype)initWithWindow:(NSWindow *)window autoEnterOnInitialReload:(BOOL)autoEnterOnInitialReload {
     self.window = window;
+    self.autoEnterOnInitialReload = autoEnterOnInitialReload;
     return [self init];
 }
 
@@ -65,7 +71,9 @@
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         // 延时一下，因为如果有 USB 设备被连接，则需要一定时间来使 ConnectionManager 检测到，这个时间实际实验大概 0.1 秒，这里稍微宽裕一点给个 0.2 秒
-        [self _reloadWithAutoEntering:YES];
+        BOOL autoEnter = self.autoEnterOnInitialReload;
+        self.autoEnterOnInitialReload = NO;
+        [self _reloadWithAutoEntering:autoEnter];
     });
     
     return containerView;

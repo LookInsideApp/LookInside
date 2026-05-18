@@ -23,6 +23,11 @@ private enum LKSwiftUISupportHelperPresence {
     case spawned
 }
 
+private enum LKSwiftUISupportAuthServerInstallMode {
+    case userInitiated
+    case backgroundRefresh
+}
+
 @objc public enum LKSwiftUISupportActivationState: Int {
     case unknown
     case notActivated
@@ -305,7 +310,10 @@ private final class LKSwiftUISupportAuthServerBridge {
             do {
                 switch LKSwiftUISupportActivationStateRefreshPolicy.startupAction {
                 case .installAndLaunch:
-                    installation = try self.ensureInstalledAndRunning(window: nil)
+                    installation = try self.ensureInstalledAndRunning(
+                        window: nil,
+                        installMode: .backgroundRefresh
+                    )
                 case .launchInstalledHelper:
                     installation = try self.ensureServerAvailable(
                         using: self.resolveInstallation()
@@ -530,18 +538,7 @@ private final class LKSwiftUISupportAuthServerBridge {
             return false
         }
         do {
-            let payload: LKSwiftUISupportAuthServerAccessDecisionPayload = try runWithAutoRefresh(window: window) { installation in
-                let response = try self.sendRequest(
-                    method: "license.check_access",
-                    payload: LKSwiftUISupportEmptyPayload(),
-                    installation: installation,
-                    responseType: LKSwiftUISupportAuthServerAccessDecisionPayload.self
-                )
-                guard let payload = response.payload else {
-                    throw LKSwiftUISupportAuthServerError.invalidResponse("Missing access decision payload.")
-                }
-                return payload
-            }
+            let payload = try checkProtectedFeatureAccess(window: window)
 
             recordAccessDecision(payload)
 
@@ -559,9 +556,43 @@ private final class LKSwiftUISupportAuthServerBridge {
             if handleInstallerCancellation(error) {
                 return false
             }
+            if Thread.isMainThread, shouldTriggerRefresh(for: error) {
+                LKSwiftUISupportLogger.authServer.notice(
+                    "protected feature access scheduled background auth server refresh after error=\(error.localizedDescription, privacy: .public)"
+                )
+                refreshActivationStateInBackground()
+                presentLocalAlert(
+                    title: NSLocalizedString("LookInside Auth Server Updating", comment: ""),
+                    detail: NSLocalizedString("LookInside is preparing the local Auth Server. Try the action again after the update finishes.", comment: ""),
+                    window: window
+                )
+                return false
+            }
             presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
             return false
         }
+    }
+
+    private func checkProtectedFeatureAccess(window: NSWindow?) throws -> LKSwiftUISupportAuthServerAccessDecisionPayload {
+        let operation: (LKSwiftUISupportAuthServerInstallation) throws -> LKSwiftUISupportAuthServerAccessDecisionPayload = { installation in
+            let response = try self.sendRequest(
+                method: "license.check_access",
+                payload: LKSwiftUISupportEmptyPayload(),
+                installation: installation,
+                responseType: LKSwiftUISupportAuthServerAccessDecisionPayload.self
+            )
+            guard let payload = response.payload else {
+                throw LKSwiftUISupportAuthServerError.invalidResponse("Missing access decision payload.")
+            }
+            return payload
+        }
+
+        if Thread.isMainThread {
+            let installation = try ensureServerAvailable(using: resolveInstallation())
+            return try operation(installation)
+        }
+
+        return try runWithAutoRefresh(window: window, operation)
     }
 
     private func performVoidRequest(method: String, from window: NSWindow?) {
@@ -627,8 +658,16 @@ private final class LKSwiftUISupportAuthServerBridge {
         }
     }
 
-    private func ensureInstalledAndRunning(window: NSWindow?) throws -> LKSwiftUISupportAuthServerInstallation {
-        try LKSwiftUISupportInstaller.shared.ensureInstalled(presentingWindow: window)
+    private func ensureInstalledAndRunning(
+        window: NSWindow?,
+        installMode: LKSwiftUISupportAuthServerInstallMode = .userInitiated
+    ) throws -> LKSwiftUISupportAuthServerInstallation {
+        switch installMode {
+        case .userInitiated:
+            try LKSwiftUISupportInstaller.shared.ensureInstalled(presentingWindow: window)
+        case .backgroundRefresh:
+            try LKSwiftUISupportInstaller.shared.ensureInstalledWithoutUserInteraction()
+        }
         let installation = try resolveInstallation()
         return try ensureServerAvailable(using: installation)
     }
@@ -886,6 +925,21 @@ private final class LKSwiftUISupportAuthServerBridge {
 
     private func presentAccessAlert(title: String, detail: String, window: NSWindow?) {
         presentAlert(title: title, detail: detail, window: window, deduplicate: false)
+    }
+
+    private func presentLocalAlert(title: String, detail: String, window: NSWindow?) {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = title
+            alert.informativeText = detail
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+            if let window {
+                alert.beginSheetModal(for: window, completionHandler: nil)
+            } else {
+                alert.runModal()
+            }
+        }
     }
 
     private func presentAlert(title: String, detail: String, window _: NSWindow?, deduplicate: Bool) {

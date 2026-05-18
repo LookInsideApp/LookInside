@@ -16,6 +16,8 @@
 
 - (void)showLaunch;
 
+- (void)showLaunchAllowingAutoEnter:(BOOL)allowAutoEnter;
+
 - (void)closeLaunch;
 
 - (void)showPreference;

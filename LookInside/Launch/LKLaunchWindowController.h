@@ -12,6 +12,8 @@
 
 @interface LKLaunchWindowController : LKWindowController
 
+- (instancetype)initWithAutoEnterOnInitialReload:(BOOL)autoEnterOnInitialReload;
+
 @property(nonatomic, strong, readonly) LKLaunchViewController *launchViewController;
 
 @end

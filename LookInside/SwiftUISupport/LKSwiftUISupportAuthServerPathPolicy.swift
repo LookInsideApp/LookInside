@@ -48,10 +48,6 @@ enum LKSwiftUISupportActivationStateRefreshStartupAction: Equatable {
 
 enum LKSwiftUISupportActivationStateRefreshPolicy {
     static var startupAction: LKSwiftUISupportActivationStateRefreshStartupAction {
-        #if DEBUG
-            return .installAndLaunch
-        #else
-            return .launchInstalledHelper
-        #endif
+        return .installAndLaunch
     }
 }

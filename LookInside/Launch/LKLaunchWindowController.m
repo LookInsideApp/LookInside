@@ -17,6 +17,10 @@
 @implementation LKLaunchWindowController
 
 - (instancetype)init {
+    return [self initWithAutoEnterOnInitialReload:NO];
+}
+
+- (instancetype)initWithAutoEnterOnInitialReload:(BOOL)autoEnterOnInitialReload {
     LKWindow *window = [[LKWindow alloc] initWithContentRect:NSMakeRect(0, 0, 252, 400) styleMask:NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskFullSizeContentView backing:NSBackingStoreBuffered defer:YES];
     window.backgroundColor = [NSColor clearColor];
     window.titlebarAppearsTransparent = YES;
@@ -24,7 +28,8 @@
     [window center];
 
     if (self = [self initWithWindow:window]) {
-        _launchViewController = [[LKLaunchViewController alloc] initWithWindow:window];
+        _launchViewController = [[LKLaunchViewController alloc] initWithWindow:window
+                                                       autoEnterOnInitialReload:autoEnterOnInitialReload];
         window.contentView = self.launchViewController.view;
         self.contentViewController = self.launchViewController;
     }

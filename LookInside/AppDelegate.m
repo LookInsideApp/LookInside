@@ -52,7 +52,7 @@
     // covers both cold-start cases without needing a separate flag.
     NSDocumentController *documentController = [NSDocumentController sharedDocumentController];
     if (documentController.documents.count == 0) {
-        [[LKNavigationManager sharedInstance] showLaunch];
+        [[LKNavigationManager sharedInstance] showLaunchAllowingAutoEnter:YES];
     }
 
     [self _lk_installActivationStateObserverExample];

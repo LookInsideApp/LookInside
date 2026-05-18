@@ -43,8 +43,8 @@ struct LKSwiftUISupportAuthServerPathPolicyTests {
             expect(launchEnvironment["LOOKINSIDE_AUTH_SERVER_PATH"] == nil, "release strips helper path")
             expect(launchEnvironment["LOOKINSIDE_AUTH_SERVER_VERSION"] == nil, "release strips helper version")
             expect(
-                LKSwiftUISupportActivationStateRefreshPolicy.startupAction == .launchInstalledHelper,
-                "release activation refresh launches installed helper"
+                LKSwiftUISupportActivationStateRefreshPolicy.startupAction == .installAndLaunch,
+                "release activation refresh installs and launches helper"
             )
         #endif
 
