@@ -303,6 +303,7 @@
 				SwiftUISupport/LKSwiftUISupportAuthServerPathPolicy.swift,
 				SwiftUISupport/LKSwiftUISupportGatekeeper.swift,
 				SwiftUISupport/LKSwiftUISupportInstaller.swift,
+				SwiftUISupport/LKSwiftUISupportLocalLicenseProbe.swift,
 				SwiftUISupport/LKSwiftUISupportLogger.swift,
 				Toolbar/LKMenuPopoverAppsListController.m,
 				Toolbar/LKMenuPopoverSettingController.m,

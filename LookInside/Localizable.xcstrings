@@ -112,6 +112,54 @@
         }
       }
     },
+    "Activate LookInside Pro from the LookInside Pro menu before using this feature." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate LookInside Pro from the LookInside Pro menu before using this feature."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用此功能前，请从 LookInside Pro 菜单激活 LookInside Pro。"
+          }
+        }
+      }
+    },
+    "Activate LookInside Pro…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate LookInside Pro…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "激活 LookInside Pro…"
+          }
+        }
+      }
+    },
+    "Activation Required" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activation Required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要激活"
+          }
+        }
+      }
+    },
     "Adjust this option to use a deeper layer selection color." : {
       "localizations" : {
         "en" : {
@@ -295,6 +343,22 @@
         }
       }
     },
+    "Customer Support…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customer Support…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "客户支持…"
+          }
+        }
+      }
+    },
     "Checking for updates…" : {
       "localizations" : {
         "en" : {
@@ -323,6 +387,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在检查 LookInside 授权服务器"
+          }
+        }
+      }
+    },
+    "Auth Server state file is not a JSON object." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auth Server state file is not a JSON object."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auth Server 状态文件不是 JSON 对象。"
           }
         }
       }
@@ -2145,6 +2225,38 @@
         }
       }
     },
+    "LookInside Pro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Pro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Pro"
+          }
+        }
+      }
+    },
+    "LookInside Pro License…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Pro License…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Pro 许可证…"
+          }
+        }
+      }
+    },
     "Matched from %@." : {
       "localizations" : {
         "en" : {
@@ -2352,6 +2464,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未收到响应。"
+          }
+        }
+      }
+    },
+    "No local LookInside Pro license is stored on this Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No local LookInside Pro license is stored on this Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本机尚未保存 LookInside Pro 许可证。"
           }
         }
       }
@@ -2606,6 +2734,22 @@
         }
       }
     },
+    "Plugins" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugins"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "插件"
+          }
+        }
+      }
+    },
     "Preferences" : {
       "localizations" : {
         "en" : {
@@ -2618,6 +2762,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "偏好设置"
+          }
+        }
+      }
+    },
+    "Purchase…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchase…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "购买…"
           }
         }
       }
@@ -2749,6 +2909,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新加载"
+          }
+        }
+      }
+    },
+    "Refresh License Status" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh License Status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新许可证状态"
           }
         }
       }

@@ -3,6 +3,14 @@ import CryptoKit
 import Foundation
 import Security
 
+private extension NSLock {
+    func withLock<T>(_ work: () throws -> T) rethrows -> T {
+        lock()
+        defer { unlock() }
+        return try work()
+    }
+}
+
 enum LKSwiftUISupportInstallerError: LocalizedError {
     case downloadFailed(String)
     case unzipFailed(String)
@@ -60,6 +68,58 @@ enum LKSwiftUISupportInstallerStage: String {
             return NSLocalizedString("Installing…", comment: "")
         case .finishing:
             return NSLocalizedString("Finalizing…", comment: "")
+        }
+    }
+}
+
+final class LKSwiftUISupportInstallerCancellation {
+    private let lock = NSLock()
+    private var cancelled = false
+    private weak var downloadTask: URLSessionDownloadTask?
+    private weak var unzipProcess: Process?
+
+    var isCancelled: Bool {
+        lock.withLock { cancelled }
+    }
+
+    func cancel() {
+        let task: URLSessionDownloadTask?
+        let process: Process?
+        lock.lock()
+        cancelled = true
+        task = downloadTask
+        process = unzipProcess
+        lock.unlock()
+
+        task?.cancel()
+        if process?.isRunning == true {
+            process?.terminate()
+        }
+    }
+
+    func register(downloadTask task: URLSessionDownloadTask?) {
+        let shouldCancel = lock.withLock {
+            downloadTask = task
+            return cancelled
+        }
+        if shouldCancel {
+            task?.cancel()
+        }
+    }
+
+    func register(unzipProcess process: Process?) {
+        let shouldCancel = lock.withLock {
+            unzipProcess = process
+            return cancelled
+        }
+        if shouldCancel, process?.isRunning == true {
+            process?.terminate()
+        }
+    }
+
+    func checkCancellation() throws {
+        if isCancelled {
+            throw LKSwiftUISupportInstallerError.cancelled
         }
     }
 }
@@ -386,7 +446,12 @@ final class LKSwiftUISupportInstaller {
             return
         }
 
+        let cancellation = LKSwiftUISupportInstallerCancellation()
         let controller = LKSwiftUISupportInstallerWindowController()
+        controller.onCancel = {
+            cancellation.cancel()
+            NSApp.stopModal()
+        }
         controller.showWindow(self)
 
         var capturedError: Error?
@@ -394,7 +459,7 @@ final class LKSwiftUISupportInstaller {
 
         Thread.detachNewThread {
             do {
-                try self.performInstall { stage in
+                try self.performInstall(cancellation: cancellation) { stage in
                     DispatchQueue.main.async {
                         controller.updateStage(stage)
                     }
@@ -409,6 +474,7 @@ final class LKSwiftUISupportInstaller {
         }
 
         NSApp.runModal(for: controller.window!)
+        cancellation.cancel()
         _ = semaphore.wait(timeout: .now() + 1)
         controller.close()
 
@@ -417,7 +483,11 @@ final class LKSwiftUISupportInstaller {
         }
     }
 
-    private func performInstall(onStage: @escaping (LKSwiftUISupportInstallerStage) -> Void) throws {
+    private func performInstall(
+        cancellation: LKSwiftUISupportInstallerCancellation,
+        onStage: @escaping (LKSwiftUISupportInstallerStage) -> Void
+    ) throws {
+        try cancellation.checkCancellation()
         onStage(.preparing)
         let fileManager = FileManager.default
         let stagingRoot = fileManager.temporaryDirectory
@@ -427,25 +497,30 @@ final class LKSwiftUISupportInstaller {
             try? fileManager.removeItem(at: stagingRoot)
         }
 
+        try cancellation.checkCancellation()
         onStage(.downloading)
         let zipURL = stagingRoot.appendingPathComponent("helper.zip", isDirectory: false)
         let checksumURL = stagingRoot.appendingPathComponent("helper.zip.sha256", isDirectory: false)
-        try downloadSynchronously(from: LKSwiftUISupportInstallerLayout.downloadURL, to: zipURL)
-        try downloadSynchronously(from: LKSwiftUISupportInstallerLayout.checksumURL, to: checksumURL)
+        try downloadSynchronously(from: LKSwiftUISupportInstallerLayout.downloadURL, to: zipURL, cancellation: cancellation)
+        try downloadSynchronously(from: LKSwiftUISupportInstallerLayout.checksumURL, to: checksumURL, cancellation: cancellation)
 
+        try cancellation.checkCancellation()
         onStage(.verifying)
         try Self.verifyChecksum(of: zipURL, using: checksumURL)
 
+        try cancellation.checkCancellation()
         onStage(.extracting)
         let extractDir = stagingRoot.appendingPathComponent("extracted", isDirectory: true)
         try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
-        try unzip(zipURL, into: extractDir)
+        try unzip(zipURL, into: extractDir, cancellation: cancellation)
 
+        try cancellation.checkCancellation()
         let stagedApp = try Self.findAppBundle(in: extractDir)
 
         onStage(.verifying)
         try verifyTeamIdentifier(of: stagedApp)
 
+        try cancellation.checkCancellation()
         onStage(.installing)
         let destination = LKSwiftUISupportInstallerLayout.installedAppURL
         try fileManager.createDirectory(
@@ -461,12 +536,18 @@ final class LKSwiftUISupportInstaller {
             throw LKSwiftUISupportInstallerError.installFailed(error.localizedDescription)
         }
 
+        try cancellation.checkCancellation()
         onStage(.finishing)
         try Self.ensureExecutableBit(at: LKSwiftUISupportInstallerLayout.installedExecutableURL)
         try verifyTeamIdentifier(of: destination)
     }
 
-    private func downloadSynchronously(from url: URL, to destination: URL) throws {
+    private func downloadSynchronously(
+        from url: URL,
+        to destination: URL,
+        cancellation: LKSwiftUISupportInstallerCancellation
+    ) throws {
+        try cancellation.checkCancellation()
         var capturedError: Error?
         var capturedTempURL: URL?
         let semaphore = DispatchSemaphore(value: 0)
@@ -474,7 +555,15 @@ final class LKSwiftUISupportInstaller {
         let task = URLSession.shared.downloadTask(with: url) { tempURL, response, error in
             defer { semaphore.signal() }
             if let error {
-                capturedError = LKSwiftUISupportInstallerError.downloadFailed(error.localizedDescription)
+                if cancellation.isCancelled || (error as NSError).code == NSURLErrorCancelled {
+                    capturedError = LKSwiftUISupportInstallerError.cancelled
+                } else {
+                    capturedError = LKSwiftUISupportInstallerError.downloadFailed(error.localizedDescription)
+                }
+                return
+            }
+            guard cancellation.isCancelled == false else {
+                capturedError = LKSwiftUISupportInstallerError.cancelled
                 return
             }
             guard let httpResponse = response as? HTTPURLResponse else {
@@ -503,9 +592,12 @@ final class LKSwiftUISupportInstaller {
                 capturedError = LKSwiftUISupportInstallerError.downloadFailed(error.localizedDescription)
             }
         }
+        cancellation.register(downloadTask: task)
         task.resume()
         semaphore.wait()
+        cancellation.register(downloadTask: nil)
 
+        try cancellation.checkCancellation()
         if let capturedError {
             throw capturedError
         }
@@ -516,7 +608,12 @@ final class LKSwiftUISupportInstaller {
         }
     }
 
-    private func unzip(_ zipURL: URL, into destination: URL) throws {
+    private func unzip(
+        _ zipURL: URL,
+        into destination: URL,
+        cancellation: LKSwiftUISupportInstallerCancellation
+    ) throws {
+        try cancellation.checkCancellation()
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
         process.arguments = ["-x", "-k", zipURL.path, destination.path]
@@ -528,7 +625,10 @@ final class LKSwiftUISupportInstaller {
         } catch {
             throw LKSwiftUISupportInstallerError.unzipFailed(error.localizedDescription)
         }
+        cancellation.register(unzipProcess: process)
         process.waitUntilExit()
+        cancellation.register(unzipProcess: nil)
+        try cancellation.checkCancellation()
         if process.terminationStatus != 0 {
             let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
             let message = String(data: data, encoding: .utf8)
@@ -642,9 +742,10 @@ final class LKSwiftUISupportInstaller {
     }
 }
 
-final class LKSwiftUISupportInstallerWindowController: NSWindowController {
+final class LKSwiftUISupportInstallerWindowController: NSWindowController, NSWindowDelegate {
     private let statusLabel = NSTextField(labelWithString: LKSwiftUISupportInstallerStage.preparing.localizedDescription)
     private let progressIndicator = NSProgressIndicator()
+    var onCancel: (() -> Void)?
 
     convenience init() {
         self.init(title: NSLocalizedString("Installing LookInside Auth Server", comment: ""))
@@ -654,7 +755,7 @@ final class LKSwiftUISupportInstallerWindowController: NSWindowController {
         let contentRect = NSRect(x: 0, y: 0, width: 360, height: 140)
         let window = NSWindow(
             contentRect: contentRect,
-            styleMask: [.titled],
+            styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
@@ -664,6 +765,7 @@ final class LKSwiftUISupportInstallerWindowController: NSWindowController {
         window.level = .modalPanel
 
         super.init(window: window)
+        window.delegate = self
 
         let titleLabel = NSTextField(labelWithString: title)
         titleLabel.font = NSFont.boldSystemFont(ofSize: 13)
@@ -716,5 +818,10 @@ final class LKSwiftUISupportInstallerWindowController: NSWindowController {
 
     func updateStage(_ stage: LKSwiftUISupportInstallerStage) {
         statusLabel.stringValue = stage.localizedDescription
+    }
+
+    func windowShouldClose(_: NSWindow) -> Bool {
+        onCancel?()
+        return true
     }
 }

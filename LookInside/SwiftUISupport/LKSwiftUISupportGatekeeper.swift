@@ -145,6 +145,15 @@ private struct LKSwiftUISupportAuthServerAccessDecisionPayload: Decodable {
         case message
         case statusSummary = "status_summary"
     }
+
+    static var activationRequired: LKSwiftUISupportAuthServerAccessDecisionPayload {
+        LKSwiftUISupportAuthServerAccessDecisionPayload(
+            decision: .block,
+            title: NSLocalizedString("Activation Required", comment: ""),
+            message: NSLocalizedString("Activate LookInside Pro from the LookInside Pro menu before using this feature.", comment: ""),
+            statusSummary: NSLocalizedString("No local LookInside Pro license is stored on this Mac.", comment: "")
+        )
+    }
 }
 
 private enum LKSwiftUISupportAuthServerError: LocalizedError {
@@ -231,6 +240,22 @@ private final class LKSwiftUISupportAuthServerBridge {
         }
     }
 
+    private func recordLocalActivationRequired(_ probeResult: LKSwiftUISupportLocalLicenseProbeResult) {
+        LKSwiftUISupportLogger.authServer.info(
+            "local license probe result=\(probeResult.debugDescription, privacy: .public) action=notActivated"
+        )
+        recordAccessDecision(.activationRequired)
+    }
+
+    private func hasPersistedLocalLicenseMaterial() -> Bool {
+        let probeResult = LKSwiftUISupportLocalLicenseProbe.probe()
+        guard probeResult.hasPersistedLicenseMaterial else {
+            recordLocalActivationRequired(probeResult)
+            return false
+        }
+        return true
+    }
+
     func startActivationStatePolling() {
         let shouldStart: Bool = lock.withLock {
             guard !activationStatePollingStarted else { return false }
@@ -273,6 +298,9 @@ private final class LKSwiftUISupportAuthServerBridge {
                 self?.lock.withLock { self?.activationStateRefreshInFlight = false }
             }
             guard let self else { return }
+            guard self.hasPersistedLocalLicenseMaterial() else {
+                return
+            }
             let installation: LKSwiftUISupportAuthServerInstallation
             do {
                 switch LKSwiftUISupportActivationStateRefreshPolicy.startupAction {
@@ -397,6 +425,9 @@ private final class LKSwiftUISupportAuthServerBridge {
     }
 
     func showActivationPrompt(from window: NSWindow?) {
+        guard hasPersistedLocalLicenseMaterial() else {
+            return
+        }
         performVoidRequest(
             method: "ui.show_activation_prompt",
             payload: LKSwiftUISupportClientProcessPayload(
@@ -411,6 +442,14 @@ private final class LKSwiftUISupportAuthServerBridge {
     }
 
     func refreshLicenseStatus(from window: NSWindow?) {
+        guard hasPersistedLocalLicenseMaterial() else {
+            presentAccessAlert(
+                title: LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired.title,
+                detail: LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired.message,
+                window: window
+            )
+            return
+        }
         let shouldStart: Bool = lock.withLock {
             guard !licenseStatusRefreshInFlight else {
                 return false
@@ -446,6 +485,9 @@ private final class LKSwiftUISupportAuthServerBridge {
                 self.recordAccessDecision(payload)
                 self.presentAccessAlert(title: payload.title, detail: payload.message, window: nil)
             } catch {
+                if self.handleInstallerCancellation(error) {
+                    return
+                }
                 self.presentRuntimeAlert(
                     title: NSLocalizedString("LookInside Auth Server Required", comment: ""),
                     detail: error.localizedDescription,
@@ -482,6 +524,11 @@ private final class LKSwiftUISupportAuthServerBridge {
     }
 
     func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
+        guard hasPersistedLocalLicenseMaterial() else {
+            let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
+            presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+            return false
+        }
         do {
             let payload: LKSwiftUISupportAuthServerAccessDecisionPayload = try runWithAutoRefresh(window: window) { installation in
                 let response = try self.sendRequest(
@@ -509,6 +556,9 @@ private final class LKSwiftUISupportAuthServerBridge {
                 return false
             }
         } catch {
+            if handleInstallerCancellation(error) {
+                return false
+            }
             presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
             return false
         }
@@ -537,8 +587,23 @@ private final class LKSwiftUISupportAuthServerBridge {
                 )
             }
         } catch {
+            if handleInstallerCancellation(error) {
+                return
+            }
             presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
         }
+    }
+
+    private func handleInstallerCancellation(_ error: Error) -> Bool {
+        guard let installerError = error as? LKSwiftUISupportInstallerError,
+              case .cancelled = installerError
+        else {
+            return false
+        }
+        terminateHelperProcess()
+        recordAccessDecision(.activationRequired)
+        LKSwiftUISupportLogger.authServer.info("auth server install cancelled action=notActivated")
+        return true
     }
 
     private func runWithAutoRefresh<T>(

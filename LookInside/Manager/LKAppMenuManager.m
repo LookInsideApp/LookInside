@@ -212,14 +212,14 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     LKSwiftUISupportActivationState state = [LKSwiftUISupportGatekeeper sharedInstance].activationState;
 
     if (state == LKSwiftUISupportActivationStateActivated) {
-        [menu addItem:LKMenuItem(@"LookInside Pro License…", nil, @"", 0, kTag_SwiftUISupportLicense)];
-        [menu addItem:LKMenuItem(@"Refresh License Status", nil, @"", 0, kTag_RefreshSwiftUISupportLicense)];
+        [menu addItem:LKMenuItem(NSLocalizedString(@"LookInside Pro License…", nil), nil, @"", 0, kTag_SwiftUISupportLicense)];
+        [menu addItem:LKMenuItem(NSLocalizedString(@"Refresh License Status", nil), nil, @"", 0, kTag_RefreshSwiftUISupportLicense)];
         [menu addItem:[NSMenuItem separatorItem]];
-        [menu addItem:LKMenuItem(@"Customer Support…", nil, @"", 0, kTag_SwiftUISupportCustomerSupport)];
+        [menu addItem:LKMenuItem(NSLocalizedString(@"Customer Support…", nil), nil, @"", 0, kTag_SwiftUISupportCustomerSupport)];
     } else {
-        [menu addItem:LKMenuItem(@"Activate LookInside Pro…", nil, @"", 0, kTag_ActivateSwiftUISupport)];
+        [menu addItem:LKMenuItem(NSLocalizedString(@"Activate LookInside Pro…", nil), nil, @"", 0, kTag_ActivateSwiftUISupport)];
         [menu addItem:[NSMenuItem separatorItem]];
-        [menu addItem:LKMenuItem(@"Purchase…", nil, @"", 0, kTag_PurchaseSwiftUISupport)];
+        [menu addItem:LKMenuItem(NSLocalizedString(@"Purchase…", nil), nil, @"", 0, kTag_PurchaseSwiftUISupport)];
     }
 
     [self _wireSwiftUIPluginSubmenuActions:menu];
@@ -248,8 +248,8 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 }
 
 - (NSMenu *)_buildPluginsMenu {
-    NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Plugins"];
-    [menu addItem:LKSubmenuItem(@"LookInside Pro", [self _buildSwiftUIPluginSubmenu], kTag_SwiftUISupportSubmenu)];
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:NSLocalizedString(@"Plugins", nil)];
+    [menu addItem:LKSubmenuItem(NSLocalizedString(@"LookInside Pro", nil), [self _buildSwiftUIPluginSubmenu], kTag_SwiftUISupportSubmenu)];
     return menu;
 }
 
