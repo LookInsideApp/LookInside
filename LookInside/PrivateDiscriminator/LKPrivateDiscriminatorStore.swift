@@ -732,7 +732,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
             isVerified: false,
             warning: nil,
             className: parsed.className,
-            guessState: guessStatesByID[parsed.id]
+            guessState: dashboardGuessState(for: parsed.id, isMatched: false)
         )
     }
 
@@ -752,8 +752,21 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
             isVerified: verification.isMatch,
             warning: verification.isMatch ? nil : Self.message(for: verification),
             className: parsed.className,
-            guessState: guessStatesByID[parsed.id]
+            guessState: dashboardGuessState(for: parsed.id, isMatched: true)
         )
+    }
+
+    private func dashboardGuessState(for id: String, isMatched: Bool) -> GuessState? {
+        guard let guessState = guessStatesByID[id] else {
+            return nil
+        }
+        guard isMatched else {
+            return guessState
+        }
+        if case .succeeded = guessState {
+            return guessState
+        }
+        return nil
     }
 
     private func parsedPrivateDiscriminator(for item: LookinDisplayItem) -> ParsedDiscriminator? {
