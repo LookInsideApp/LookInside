@@ -19,22 +19,33 @@ struct LKPrivateDiscriminatorModuleStatus: Identifiable, Hashable {
         var parts: [String] = []
         if importedCSVPath != nil {
             if let importedRecordCount {
-                parts.append("imported \(importedRecordCount)")
+                parts.append(
+                    String(
+                        format: NSLocalizedString("imported %ld", comment: ""),
+                        importedRecordCount
+                    )
+                )
             } else {
-                parts.append("imported")
+                parts.append(NSLocalizedString("imported", comment: ""))
             }
         }
         if autosavedCSVPath != nil {
             if let autosavedRecordCount {
-                parts.append("autosaved \(autosavedRecordCount)")
+                parts.append(
+                    String(
+                        format: NSLocalizedString("autosaved %ld", comment: ""),
+                        autosavedRecordCount
+                    )
+                )
             } else {
-                parts.append("autosaved")
+                parts.append(NSLocalizedString("autosaved", comment: ""))
             }
         }
         if parts.isEmpty {
-            return "no CSV"
+            return NSLocalizedString("no CSV", comment: "")
         }
-        return parts.joined(separator: " / ")
+        let separator = NSLocalizedString(" / ", comment: "Separator between imported/autosaved CSV sources")
+        return parts.joined(separator: separator)
     }
 }
 
@@ -302,8 +313,11 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
             panel.canChooseDirectories = true
             panel.canChooseFiles = false
             panel.allowsMultipleSelection = false
-            panel.prompt = "Import"
-            panel.message = "Choose the local Swift source folder for \(module)."
+            panel.prompt = NSLocalizedString("Import", comment: "")
+            panel.message = String(
+                format: NSLocalizedString("Choose the local Swift source folder for %@.", comment: ""),
+                module
+            )
 
             let response = panel.runModal()
             window?.makeKey()
@@ -376,7 +390,12 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
             try task.run()
         } catch {
             activeGuessTasksByID.removeValue(forKey: parsed.id)
-            guessStatesByID[parsed.id] = .failed("Failed to launch swift-pd-guess: \(error.localizedDescription)")
+            guessStatesByID[parsed.id] = .failed(
+                String(
+                    format: NSLocalizedString("Failed to launch swift-pd-guess: %@", comment: ""),
+                    error.localizedDescription
+                )
+            )
             postDashboardStateDidChange()
         }
     }
@@ -965,13 +984,13 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
 
     private func promptForModuleName(defaultModule: String?, window: NSWindow?) -> String? {
         let alert = NSAlert()
-        alert.messageText = "Import Private Discriminator Module"
-        alert.informativeText = "Enter the Swift module name for this source folder."
-        alert.addButton(withTitle: "Continue")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = NSLocalizedString("Import Private Discriminator Module", comment: "")
+        alert.informativeText = NSLocalizedString("Enter the Swift module name for this source folder.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Continue", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
 
         let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-        textField.placeholderString = "ModuleName"
+        textField.placeholderString = NSLocalizedString("ModuleName", comment: "")
         textField.stringValue = defaultModule ?? ""
         alert.accessoryView = textField
 
@@ -987,13 +1006,16 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         let defaultWords = Self.defaultGuessWords(for: parsed)
 
         let alert = NSAlert()
-        alert.messageText = "Guess with swift-pd-guess"
-        alert.informativeText = "Enter a module name, comma-separated candidate words, and a maximum word count."
-        alert.addButton(withTitle: "Run")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = NSLocalizedString("Guess with swift-pd-guess", comment: "")
+        alert.informativeText = NSLocalizedString(
+            "Enter a module name, comma-separated candidate words, and a maximum word count.",
+            comment: ""
+        )
+        alert.addButton(withTitle: NSLocalizedString("Run", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
 
         let moduleField = NSTextField(frame: .zero)
-        moduleField.placeholderString = "ModuleName"
+        moduleField.placeholderString = NSLocalizedString("ModuleName", comment: "")
         moduleField.stringValue = parsed.moduleHint ?? ""
 
         let wordsField = NSTextField(frame: .zero)
@@ -1006,9 +1028,15 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         stackView.orientation = .vertical
         stackView.spacing = 8
         stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.addArrangedSubview(Self.labeledField(title: "Module", field: moduleField))
-        stackView.addArrangedSubview(Self.labeledField(title: "Words", field: wordsField))
-        stackView.addArrangedSubview(Self.labeledField(title: "Max Count", field: maxCountField))
+        stackView.addArrangedSubview(
+            Self.labeledField(title: NSLocalizedString("Module", comment: ""), field: moduleField)
+        )
+        stackView.addArrangedSubview(
+            Self.labeledField(title: NSLocalizedString("Words", comment: ""), field: wordsField)
+        )
+        stackView.addArrangedSubview(
+            Self.labeledField(title: NSLocalizedString("Max Count", comment: ""), field: maxCountField)
+        )
         stackView.frame = NSRect(x: 0, y: 0, width: 360, height: 108)
         alert.accessoryView = stackView
 
@@ -1088,12 +1116,13 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
 
     private func presentSwiftPDGuessInstallAlert(window: NSWindow?) {
         let alert = NSAlert()
-        alert.messageText = "swift-pd-guess is not installed"
-        alert.informativeText = """
-        Download the GitHub release binary and place it at /usr/local/bin/swift-pd-guess. You may need administrator permission and chmod +x.
-        """
-        alert.addButton(withTitle: "Open Releases")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = NSLocalizedString("swift-pd-guess is not installed", comment: "")
+        alert.informativeText = NSLocalizedString(
+            "Download the GitHub release binary and place it at /usr/local/bin/swift-pd-guess. You may need administrator permission and chmod +x.",
+            comment: ""
+        )
+        alert.addButton(withTitle: NSLocalizedString("Open Releases", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
         if alert.runModal() == .alertFirstButtonReturn {
             NSWorkspace.shared.open(URL(string: "https://github.com/OpenSwiftUIProject/swift-pd-guess/releases")!)
         }
@@ -1108,13 +1137,17 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         }
 
         guard process.terminationStatus == 0 else {
-            guessStatesByID[id] = .failed(stderr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "swift-pd-guess failed." : stderr)
+            guessStatesByID[id] = .failed(
+                stderr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    ? NSLocalizedString("swift-pd-guess failed.", comment: "")
+                    : stderr
+            )
             postDashboardStateDidChange()
             return
         }
 
         guard let rawMatch = Self.parseSwiftPDGuessMatch(from: stdout, module: module) else {
-            guessStatesByID[id] = .failed("No match found.")
+            guessStatesByID[id] = .failed(NSLocalizedString("No match found.", comment: ""))
             postDashboardStateDidChange()
             return
         }
@@ -1133,9 +1166,17 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
                 filename: rawMatch,
                 author: .imported
             )
-            guessStatesByID[id] = .succeeded("Success: \(rawMatch)")
+            guessStatesByID[id] = .succeeded(
+                String(format: NSLocalizedString("Success: %@", comment: ""), rawMatch)
+            )
         } catch {
-            guessStatesByID[id] = .failed("Found \(rawMatch), but save failed: \(error.localizedDescription)")
+            guessStatesByID[id] = .failed(
+                String(
+                    format: NSLocalizedString("Found %@, but save failed: %@", comment: ""),
+                    rawMatch,
+                    error.localizedDescription
+                )
+            )
         }
         postDashboardStateDidChange()
     }
@@ -1159,15 +1200,15 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
     private static func message(for verification: PrivateDiscriminatorVerificationResult) -> String {
         switch verification.failureReason {
         case .invalidID:
-            return "Invalid private discriminator ID."
+            return NSLocalizedString("Invalid private discriminator ID.", comment: "")
         case .invalidModuleName:
-            return "Invalid module name."
+            return NSLocalizedString("Invalid module name.", comment: "")
         case .invalidFilename:
-            return "Invalid basename-only filename."
+            return NSLocalizedString("Invalid basename-only filename.", comment: "")
         case .mismatch:
-            return "Verification failed: module + filename does not produce this ID."
+            return NSLocalizedString("Verification failed: module + filename does not produce this ID.", comment: "")
         case nil:
-            return "Verified."
+            return NSLocalizedString("Verified.", comment: "")
         }
     }
 
@@ -1220,6 +1261,17 @@ private struct LoadedModuleIndex {
         case imported
         case autosaved
         case fallback
+
+        var localizedDisplayName: String {
+            switch self {
+            case .imported:
+                return NSLocalizedString("imported", comment: "")
+            case .autosaved:
+                return NSLocalizedString("autosaved", comment: "")
+            case .fallback:
+                return NSLocalizedString("fallback", comment: "")
+            }
+        }
     }
 
     let source: Source
@@ -1279,14 +1331,21 @@ private enum GuessState {
     var statusText: String {
         switch self {
         case .running:
-            return "Running swift-pd-guess..."
+            return NSLocalizedString("Running swift-pd-guess…", comment: "")
         case let .succeeded(message):
             return message
         case let .failed(message):
-            return "Failed: \(message)"
+            return String(format: NSLocalizedString("Failed: %@", comment: ""), message)
         case .cancelled:
-            return "Cancelled."
+            return NSLocalizedString("Cancelled.", comment: "")
         }
+    }
+
+    var isFailed: Bool {
+        if case .failed = self {
+            return true
+        }
+        return false
     }
 
     var isRunning: Bool {
@@ -1309,18 +1368,20 @@ final class LKPrivateDiscriminatorDashboardPayload: NSObject {
     @objc let warningText: String?
     @objc let guessStatusText: String?
     @objc let isGuessRunning: Bool
+    @objc let isGuessFailed: Bool
 
     fileprivate init(descriptor: DashboardDescriptor) {
         discriminatorID = descriptor.id
         module = descriptor.module
         filename = descriptor.filename
-        source = descriptor.source?.rawValue ?? ""
+        source = descriptor.source?.localizedDisplayName ?? ""
         displayClassName = descriptor.className ?? ""
         isMatched = descriptor.isMatched
         isVerified = descriptor.isVerified
         warningText = descriptor.warning
         guessStatusText = descriptor.guessState?.statusText
         isGuessRunning = descriptor.guessState?.isRunning ?? false
+        isGuessFailed = descriptor.guessState?.isFailed ?? false
         super.init()
     }
 }
@@ -1359,13 +1420,16 @@ private enum LKPrivateDiscriminatorStoreError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case let .invalidModuleName(module):
-            return "Invalid module name: \(module)"
+            return String(format: NSLocalizedString("Invalid module name: %@", comment: ""), module)
         case let .unreadableFolder(path):
-            return "Unable to read Swift files in \(path)."
+            return String(format: NSLocalizedString("Unable to read Swift files in %@.", comment: ""), path)
         case let .missingImportSource(module):
-            return "No saved source folder for \(module). Import it once before reimporting."
+            return String(
+                format: NSLocalizedString("No saved source folder for %@. Import it once before reimporting.", comment: ""),
+                module
+            )
         case .missingPrivateDiscriminator:
-            return "No private discriminator ID found for this item."
+            return NSLocalizedString("No private discriminator ID found for this item.", comment: "")
         case let .verificationFailed(message):
             return message
         case let .defaultLibraryDownloadFailed(module, message):

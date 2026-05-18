@@ -542,7 +542,7 @@ static NSString *const LKPrivateDiscriminatorDashboardStateDidChangeNotification
         isError = YES;
     } else if (self.payload.guessStatusText.length) {
         message = self.payload.guessStatusText;
-        isError = [self.payload.guessStatusText hasPrefix:@"Failed"];
+        isError = self.payload.isGuessFailed;
     }
 
     self.messageLabel.stringValue = message ?: @"";

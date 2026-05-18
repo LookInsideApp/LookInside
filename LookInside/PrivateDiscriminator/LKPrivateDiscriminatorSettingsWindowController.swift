@@ -19,7 +19,7 @@ final class LKPrivateDiscriminatorSettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Private Discriminator Settings"
+        window.title = NSLocalizedString("Private Discriminator Settings", comment: "")
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 640, height: 520)
@@ -221,8 +221,11 @@ private struct LKPrivateDiscriminatorSettingsRootView: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "Import"
-        panel.message = "Choose the local Swift source folder for \(module)."
+        panel.prompt = NSLocalizedString("Import", comment: "")
+        panel.message = String(
+            format: NSLocalizedString("Choose the local Swift source folder for %@.", comment: ""),
+            module
+        )
 
         guard panel.runModal() == .OK, let url = panel.url else {
             return
@@ -237,13 +240,13 @@ private struct LKPrivateDiscriminatorSettingsRootView: View {
 
     private func promptForModuleName() -> String? {
         let alert = NSAlert()
-        alert.messageText = "Import Private Discriminator Module"
-        alert.informativeText = "Enter the Swift module name for this source folder."
-        alert.addButton(withTitle: "Continue")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = NSLocalizedString("Import Private Discriminator Module", comment: "")
+        alert.informativeText = NSLocalizedString("Enter the Swift module name for this source folder.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Continue", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
 
         let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-        textField.placeholderString = "ModuleName"
+        textField.placeholderString = NSLocalizedString("ModuleName", comment: "")
         alert.accessoryView = textField
 
         guard alert.runModal() == .alertFirstButtonReturn else {
@@ -252,7 +255,7 @@ private struct LKPrivateDiscriminatorSettingsRootView: View {
 
         let module = textField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         if module.isEmpty {
-            importError = "Module name is required."
+            importError = NSLocalizedString("Module name is required.", comment: "")
             return nil
         }
         return module
@@ -368,10 +371,13 @@ private struct ModuleStatusRow: View {
 
     private func remove() {
         let alert = NSAlert()
-        alert.messageText = "Remove \(status.module)?"
-        alert.informativeText = "This removes imported and autosaved CSVs for the module."
-        alert.addButton(withTitle: "Remove")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = String(
+            format: NSLocalizedString("Remove %@?", comment: ""),
+            status.module
+        )
+        alert.informativeText = NSLocalizedString("This removes imported and autosaved CSVs for the module.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Remove", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
         alert.alertStyle = .warning
 
         guard alert.runModal() == .alertFirstButtonReturn else {
