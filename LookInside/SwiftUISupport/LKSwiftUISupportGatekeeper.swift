@@ -546,7 +546,7 @@ private final class LKSwiftUISupportAuthServerBridge {
             case .allow:
                 return true
             case .allowWithWarning:
-                presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                presentAccessAlert(title: payload.title, detail: payload.message, window: window, deduplicate: true)
                 return true
             case .block:
                 presentAccessAlert(title: payload.title, detail: payload.message, window: window)
@@ -772,7 +772,13 @@ private final class LKSwiftUISupportAuthServerBridge {
             }
         #endif
 
-        guard let published = LKSwiftUISupportInstaller.shared.fetchPublishedVersion() else {
+        let published: String?
+        if Thread.isMainThread {
+            published = LKSwiftUISupportInstaller.shared.publishedVersionFromCache()
+        } else {
+            published = LKSwiftUISupportInstaller.shared.fetchPublishedVersion()
+        }
+        guard let published else {
             return
         }
         guard published == payload.serverVersion else {
@@ -923,8 +929,8 @@ private final class LKSwiftUISupportAuthServerBridge {
         presentAlert(title: title, detail: detail, window: window, deduplicate: true)
     }
 
-    private func presentAccessAlert(title: String, detail: String, window: NSWindow?) {
-        presentAlert(title: title, detail: detail, window: window, deduplicate: false)
+    private func presentAccessAlert(title: String, detail: String, window: NSWindow?, deduplicate: Bool = false) {
+        presentAlert(title: title, detail: detail, window: window, deduplicate: deduplicate)
     }
 
     private func presentLocalAlert(title: String, detail: String, window: NSWindow?) {

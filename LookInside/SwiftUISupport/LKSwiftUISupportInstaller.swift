@@ -348,6 +348,10 @@ final class LKSwiftUISupportInstaller {
         return fetchPublishedVersionFromNetwork()
     }
 
+    func publishedVersionFromCache() -> String? {
+        cacheLock.lkLock { cachedPublishedVersion }
+    }
+
     private func fetchPublishedVersionPresentingProgress() -> String? {
         let controller = LKSwiftUISupportInstallerWindowController(
             title: NSLocalizedString("Checking LookInside Auth Server", comment: "")
