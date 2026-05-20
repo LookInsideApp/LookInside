@@ -24,6 +24,16 @@ struct LKSwiftUISupportInstallerCancellationTests {
             usleep(50_000)
         }
         expect(process.isRunning == false, "cancel terminates unzip process")
+
+        let installer = LKSwiftUISupportInstaller.shared
+        installer.invalidatePublishedVersionCache()
+        let start = Date()
+        let foregroundPublishedVersion = installer.publishedVersionForInstalledHelperCheck()
+        expect(foregroundPublishedVersion == nil, "foreground installed-helper check uses cache only")
+        expect(
+            Date().timeIntervalSince(start) < 0.5,
+            "foreground installed-helper check returns without network wait"
+        )
     }
 
     private static func expect(_ condition: Bool, _ message: String) {

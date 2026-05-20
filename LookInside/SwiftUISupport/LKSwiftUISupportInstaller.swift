@@ -247,7 +247,7 @@ final class LKSwiftUISupportInstaller {
 
         if LKSwiftUISupportInstallerLayout.isInstalled {
             let installed = installedHelperVersion()
-            let published = fetchPublishedVersion()
+            let published = publishedVersionForInstalledHelperCheck()
             if let published, let installed, published != installed {
                 LKSwiftUISupportLogger.installer.notice(
                     "installed helper is stale installed=\(installed, privacy: .public) published=\(published, privacy: .public) action=refresh"
@@ -350,6 +350,17 @@ final class LKSwiftUISupportInstaller {
 
     func publishedVersionFromCache() -> String? {
         cacheLock.lkLock { cachedPublishedVersion }
+    }
+
+    func publishedVersionForInstalledHelperCheck() -> String? {
+        if Thread.isMainThread {
+            LKSwiftUISupportLogger.installer.info(
+                "foreground install check is keeping installed helper; update check will run in background"
+            )
+            return nil
+        }
+
+        return fetchPublishedVersion()
     }
 
     private func fetchPublishedVersionPresentingProgress() -> String? {

@@ -433,7 +433,16 @@ private final class LKSwiftUISupportAuthServerBridge {
     }
 
     func showActivationPrompt(from window: NSWindow?) {
-        guard hasPersistedLocalLicenseMaterial() else {
+        let probeResult = LKSwiftUISupportLocalLicenseProbe.probe()
+        guard probeResult.hasPersistedLicenseMaterial else {
+            recordLocalActivationRequired(probeResult)
+            return
+        }
+        if currentActivationState == .unknown {
+            LKSwiftUISupportLogger.authServer.info(
+                "activation prompt skipped while local license material is present and state is unknown; refreshing in background"
+            )
+            refreshActivationStateInBackground()
             return
         }
         performVoidRequest(
@@ -532,6 +541,12 @@ private final class LKSwiftUISupportAuthServerBridge {
     }
 
     func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
+        if Thread.isMainThread,
+           let mainThreadDecision = mainThreadProtectedFeatureAccessDecision(window: window)
+        {
+            return mainThreadDecision
+        }
+
         guard hasPersistedLocalLicenseMaterial() else {
             let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
             presentAccessAlert(title: payload.title, detail: payload.message, window: window)
@@ -570,6 +585,35 @@ private final class LKSwiftUISupportAuthServerBridge {
             }
             presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
             return false
+        }
+    }
+
+    private func mainThreadProtectedFeatureAccessDecision(window: NSWindow?) -> Bool? {
+        switch currentActivationState {
+        case .activated:
+            return true
+        case .notActivated:
+            guard hasPersistedLocalLicenseMaterial() else {
+                let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
+                presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                return false
+            }
+            LKSwiftUISupportLogger.authServer.info(
+                "protected feature denied from cached notActivated state on main thread; refreshing auth state in background"
+            )
+            refreshActivationStateInBackground()
+            return false
+        case .unknown:
+            guard hasPersistedLocalLicenseMaterial() else {
+                let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
+                presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                return false
+            }
+            LKSwiftUISupportLogger.authServer.info(
+                "protected feature allowed from main thread using persisted local license material; refreshing auth state in background"
+            )
+            refreshActivationStateInBackground()
+            return true
         }
     }
 
@@ -772,12 +816,12 @@ private final class LKSwiftUISupportAuthServerBridge {
             }
         #endif
 
-        let published: String?
-        if Thread.isMainThread {
-            published = LKSwiftUISupportInstaller.shared.publishedVersionFromCache()
-        } else {
-            published = LKSwiftUISupportInstaller.shared.fetchPublishedVersion()
+        guard Thread.isMainThread == false else {
+            return
         }
+
+        let published: String?
+        published = LKSwiftUISupportInstaller.shared.fetchPublishedVersion()
         guard let published else {
             return
         }
