@@ -241,6 +241,20 @@
         // by the caller (toolbar reload, window controller, etc.) the next time
         // a fetch is triggered, so we deliberately do not force a refetch here.
         self.inspectableApp = newApp;
+        // The window controller and its async update manager hold
+        // `inspectableApp` weakly under the assumption that this doc is
+        // the strong owner. Overwriting that strong reference would let the
+        // old `LKInspectableApp` deallocate, nilling both weak slots and
+        // silently breaking the picker / reload / RPC paths. Republish
+        // the new app so the per-window graph stays consistent.
+        for (NSWindowController *windowController in self.windowControllers) {
+            if (![windowController isKindOfClass:[LKStaticWindowController class]]) {
+                continue;
+            }
+            LKStaticWindowController *staticController = (LKStaticWindowController *)windowController;
+            staticController.inspectableApp = newApp;
+            staticController.asyncUpdateManager.inspectableApp = newApp;
+        }
         self.connectionLossBannerMessage = nil;
         [self.reconnectAttemptDisposable dispose];
         self.reconnectAttemptDisposable = nil;

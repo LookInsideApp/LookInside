@@ -238,26 +238,29 @@
                         AlertError(errToShow, self.window);
                         return;
                     }
-                    if (alreadyOpen) {
-                        // Q3=P: existing doc was just brought forward —
-                        // do not re-fetch, do not animate.
+                    LKStaticWindowController *targetWC = (LKStaticWindowController *)doc.windowControllers.firstObject;
+                    if (![targetWC isKindOfClass:[LKStaticWindowController class]]) {
                         return;
                     }
-                    LKStaticWindowController *newWC = (LKStaticWindowController *)doc.windowControllers.firstObject;
-                    if (![newWC isKindOfClass:[LKStaticWindowController class]]) {
-                        return;
-                    }
-                    [newWC.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
+                    // Q3=P originally returned silently when `alreadyOpen`
+                    // was YES on the theory that the user was just refocusing
+                    // an existing window. A picker click always means
+                    // "inspect now", though, so always fetch into the target
+                    // doc's window. This also keeps the Phase D auto-reconnect
+                    // case sane: if `self.inspectableApp` was nilled by a
+                    // channel swap and `isTheSameApp` misfired into this
+                    // branch, the user still gets a fresh hierarchy.
+                    [targetWC.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
                     [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
-                        [newWC.viewController.progressView finishWithCompletion:nil];
                         if (!info) {
-                            AlertError(LookinErr_Inner, newWC.window);
+                            [targetWC.viewController.progressView resetToZero];
+                            AlertError(LookinErr_Inner, targetWC.window);
                             return;
                         }
-                        [newWC.hierarchyDataSource reloadWithHierarchyInfo:info keepState:NO];
+                        [targetWC _applyHierarchyInfo:info forApp:app keepState:alreadyOpen];
                     } error:^(NSError *fetchErr) {
-                        [newWC.viewController.progressView resetToZero];
-                        AlertError(fetchErr, newWC.window);
+                        [targetWC.viewController.progressView resetToZero];
+                        AlertError(fetchErr, targetWC.window);
                     }];
                 }];
                 return;
