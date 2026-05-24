@@ -28,6 +28,7 @@
 @property(nonatomic, strong) LKProgressIndicatorView *bottomIndicatorView;
 @property(nonatomic, strong) NSProgressIndicator *reloadingIndicator;
 @property(nonatomic, strong) LKLabel *noAppsTitleLabel;
+@property(nonatomic, strong) NSButton *attachToRunningAppButton;
 @property(nonatomic, copy) void (^crashBlock)(void);
 
 @property(nonatomic, assign) BOOL isEnteringApp;
@@ -66,8 +67,17 @@
     
     self.bottomIndicatorView = [LKProgressIndicatorView new];
     [containerView addSubview:self.bottomIndicatorView];
-    
+
     [self.bottomIndicatorView animateToProgress:.7 duration:0.5];
+
+    // Attach-to-running-app entry: always visible (including the no-apps state)
+    // so users can inject LookInsideServer.framework into an app that hasn't
+    // statically linked the SDK.
+    self.attachToRunningAppButton = [NSButton buttonWithTitle:NSLocalizedString(@"Attach to Running App…", nil)
+                                                       target:self
+                                                       action:@selector(_handleAttachToRunningAppClick:)];
+    self.attachToRunningAppButton.bezelStyle = NSBezelStyleRounded;
+    [containerView addSubview:self.attachToRunningAppButton];
     
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         // 延时一下，因为如果有 USB 设备被连接，则需要一定时间来使 ConnectionManager 检测到，这个时间实际实验大概 0.1 秒，这里稍微宽裕一点给个 0.2 秒
@@ -95,6 +105,13 @@
     }];
     
     $(_bottomIndicatorView).fullWidth.height(3).bottom(0);
+
+    [self.attachToRunningAppButton sizeToFit];
+    $(self.attachToRunningAppButton).midX(self.view.$width / 2).y(self.view.$height - self.attachToRunningAppButton.$height - 14);
+}
+
+- (void)_handleAttachToRunningAppClick:(id)sender {
+    [[LKInjectionFlow sharedInstance] startFromWindow:self.window];
 }
 
 #pragma mark - Others

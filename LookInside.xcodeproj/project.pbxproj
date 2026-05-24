@@ -14,6 +14,9 @@
 		E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0F1F97B1B100600001 /* Sparkle */; };
 		E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */; };
 		E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */ = {isa = PBXBuildFile; productRef = E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */; };
+		E97210092FC2E5C0003AAEA6 /* HelperClient in Frameworks */ = {isa = PBXBuildFile; productRef = E97210082FC2E5C0003AAEA6 /* HelperClient */; };
+		E972100B2FC2E5C0003AAEA6 /* HelperCommunication in Frameworks */ = {isa = PBXBuildFile; productRef = E972100A2FC2E5C0003AAEA6 /* HelperCommunication */; };
+		E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */ = {isa = PBXBuildFile; productRef = E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -188,6 +191,10 @@
 				Hierarchy/LKHierarchyItem.m,
 				Hierarchy/LKHierarchyRowView.m,
 				Hierarchy/LKHierarchyView.m,
+				Injection/LKInjectableFrameworkInstaller.swift,
+				Injection/LKInjectionFlow.swift,
+				Injection/LKInjectionService.swift,
+				Injection/LKInjectionTargetPicker.swift,
 				InfoPlist.xcstrings,
 				Launch/LKLaunchAppView.m,
 				Launch/LKLaunchViewController.m,
@@ -639,6 +646,9 @@
 				E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */,
 				E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */,
 				E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */,
+				E97210092FC2E5C0003AAEA6 /* HelperClient in Frameworks */,
+				E972100B2FC2E5C0003AAEA6 /* HelperCommunication in Frameworks */,
+				E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -684,6 +694,7 @@
 				AA48F29821CC0CA50032EC2C /* Frameworks */,
 				AA48F29921CC0CA50032EC2C /* Resources */,
 				5005F8FD2FA505DF00C0BB07 /* Build Authenticator at DEBUG */,
+				5005F8FE2FA505DF00C0BB07 /* Embed Injector Daemon */,
 			);
 			buildRules = (
 			);
@@ -695,6 +706,9 @@
 				E37B8D0F1F97B1B100600001 /* Sparkle */,
 				E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */,
 				E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */,
+				E97210082FC2E5C0003AAEA6 /* HelperClient */,
+				E972100A2FC2E5C0003AAEA6 /* HelperCommunication */,
+				E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */,
 			);
 			productName = Lookin;
 			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
@@ -780,6 +794,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ \"$CONFIGURATION\" != \"Debug\" ]; then\n    echo \"Skipping Build Authenticator (configuration: $CONFIGURATION)\"\n    exit 0\nfi\nif [ ! -d \"$SRCROOT/../LookInside-Auth\" ]; then\n    echo \"Skipping Build Authenticator: LookInside-Auth not present (not in monorepo checkout)\"\n    exit 0\nfi\nPREPARE_SCRIPT=\"$SRCROOT/Scripts/prepare-debug-auth-server.sh\"\n# Run in a fresh login zsh so xcodebuild env from the host build does not leak\n# into the nested LookInside-Auth build (causes XCBBuildService to crash).\nenv -i HOME=\"$HOME\" USER=\"$USER\" TERM=\"${TERM:-dumb}\" /bin/zsh -lc \"$PREPARE_SCRIPT\"\n";
+		};
+		5005F8FE2FA505DF00C0BB07 /* Embed Injector Daemon */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Injector Daemon";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ ! -d \"$SRCROOT/../LookInside-Injector\" ]; then\n    echo \"Skipping Embed Injector Daemon: LookInside-Injector not present (not in monorepo checkout)\"\n    exit 0\nfi\nPREPARE_SCRIPT=\"$SRCROOT/Scripts/prepare-injector-daemon.sh\"\n# Run in a fresh login zsh so xcodebuild env from the host build does not leak\n# into the nested LookInside-Injector build (would crash XCBBuildService).\n# Re-export the host's BUILT_PRODUCTS_DIR / CONTENTS_FOLDER_PATH / CONFIGURATION\n# so the nested zsh can locate the LookInside.app bundle to embed into.\nenv -i HOME=\"$HOME\" USER=\"$USER\" TERM=\"${TERM:-dumb}\" \\\n    CONFIGURATION=\"$CONFIGURATION\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\" \\\n    /bin/zsh -lc \"$PREPARE_SCRIPT\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1173,6 +1206,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E97210042FC2D5C0003AAEA6 /* XCRemoteSwiftPackageReference "RunningApplicationKit" */;
 			productName = RunningApplicationKit;
+		};
+		E97210082FC2E5C0003AAEA6 /* HelperClient */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */;
+			productName = HelperClient;
+		};
+		E972100A2FC2E5C0003AAEA6 /* HelperCommunication */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */;
+			productName = HelperCommunication;
+		};
+		E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */;
+			productName = InjectionServiceInterface;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

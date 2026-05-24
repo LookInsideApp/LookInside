@@ -38,6 +38,7 @@ static NSUInteger const kTag_Filter = 28;
 static NSUInteger const kTag_OpenInNewWindow = 31;
 static NSUInteger const kTag_Export = 32;
 static NSUInteger const kTag_NewInspection = 33;
+static NSUInteger const kTag_AttachToRunningApp = 34;
 
 static NSUInteger const kTag_GitHub = 57;
 static NSUInteger const kTag_Acknowledgements = 72;
@@ -142,6 +143,7 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     // fresh Live Doc can be created from any state (no Doc, Live Doc, or Archive
     // Doc focused).
     [menu addItem:LKMenuItem(@"New Inspection…", nil, @"n", NSEventModifierFlagCommand, kTag_NewInspection)];
+    [menu addItem:LKMenuItem(@"Attach to Running App…", nil, @"", 0, kTag_AttachToRunningApp)];
     [menu addItem:[NSMenuItem separatorItem]];
 
     [menu addItem:LKMenuItem(@"Open…", @selector(openDocument:), @"o", NSEventModifierFlagCommand, 0)];
@@ -337,6 +339,10 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     menuItem_newInspection.target = self;
     menuItem_newInspection.action = @selector(_handleNewInspection);
 
+    NSMenuItem *menuItem_attachToRunningApp = [menu_file itemWithTag:kTag_AttachToRunningApp];
+    menuItem_attachToRunningApp.target = self;
+    menuItem_attachToRunningApp.action = @selector(_handleAttachToRunningApp);
+
     NSMenu *menu_view = [menu itemAtIndex:3].submenu;
     menu_view.autoenablesItems = NO;
     menu_view.delegate = self;
@@ -518,6 +524,15 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     // Phase E: File > New Inspection… reuses the Launch window's app picker
     // so a fresh Live Doc can be created from any state.
     [[LKNavigationManager sharedInstance] showLaunch];
+}
+
+- (void)_handleAttachToRunningApp {
+    // File > Attach to Running App… opens the running-process picker and
+    // injects LookInsideServer.framework into the chosen pid via the
+    // privileged lookinside-injector daemon. Driven from LKInjectionFlow on
+    // the Swift side; we just hand it the current key window for sheet
+    // attachment.
+    [[LKInjectionFlow sharedInstance] startFromWindow:NSApp.keyWindow];
 }
 
 @end
