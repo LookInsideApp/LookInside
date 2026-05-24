@@ -3,14 +3,6 @@ import CryptoKit
 import Foundation
 import Security
 
-private extension NSLock {
-    func withLock<T>(_ work: () throws -> T) rethrows -> T {
-        lock()
-        defer { unlock() }
-        return try work()
-    }
-}
-
 enum LKSwiftUISupportInstallerError: LocalizedError {
     case downloadFailed(String)
     case unzipFailed(String)
@@ -68,58 +60,6 @@ enum LKSwiftUISupportInstallerStage: String {
             return NSLocalizedString("Installing…", comment: "")
         case .finishing:
             return NSLocalizedString("Finalizing…", comment: "")
-        }
-    }
-}
-
-final class LKSwiftUISupportInstallerCancellation {
-    private let lock = NSLock()
-    private var cancelled = false
-    private weak var downloadTask: URLSessionDownloadTask?
-    private weak var unzipProcess: Process?
-
-    var isCancelled: Bool {
-        lock.withLock { cancelled }
-    }
-
-    func cancel() {
-        let task: URLSessionDownloadTask?
-        let process: Process?
-        lock.lock()
-        cancelled = true
-        task = downloadTask
-        process = unzipProcess
-        lock.unlock()
-
-        task?.cancel()
-        if process?.isRunning == true {
-            process?.terminate()
-        }
-    }
-
-    func register(downloadTask task: URLSessionDownloadTask?) {
-        let shouldCancel = lock.withLock {
-            downloadTask = task
-            return cancelled
-        }
-        if shouldCancel {
-            task?.cancel()
-        }
-    }
-
-    func register(unzipProcess process: Process?) {
-        let shouldCancel = lock.withLock {
-            unzipProcess = process
-            return cancelled
-        }
-        if shouldCancel, process?.isRunning == true {
-            process?.terminate()
-        }
-    }
-
-    func checkCancellation() throws {
-        if isCancelled {
-            throw LKSwiftUISupportInstallerError.cancelled
         }
     }
 }
@@ -304,7 +244,10 @@ final class LKSwiftUISupportInstaller {
                     "Debug auth server app is missing. Build the LookInside Debug target again to prepare \(destination.path)."
                 )
             }
-            try Self.ensureExecutableBit(at: LKSwiftUISupportInstallerLayout.installedExecutableURL)
+            try LKInstallerFilesystem.ensureExecutableBit(
+                at: LKSwiftUISupportInstallerLayout.installedExecutableURL,
+                errorBuilder: { LKSwiftUISupportInstallerError.installFailed($0) }
+            )
             debugLocalInstallPrepared = true
             invalidatePublishedVersionCache()
             LKSwiftUISupportLogger.installer.notice(
@@ -364,10 +307,10 @@ final class LKSwiftUISupportInstaller {
     }
 
     private func fetchPublishedVersionPresentingProgress() -> String? {
-        let controller = LKSwiftUISupportInstallerWindowController(
-            title: NSLocalizedString("Checking LookInside Auth Server", comment: "")
+        let controller = LKInstallerProgressWindowController(
+            title: NSLocalizedString("Checking LookInside Auth Server", comment: ""),
+            initialStatus: LKSwiftUISupportInstallerStage.checkingForUpdates.localizedDescription
         )
-        controller.updateStage(.checkingForUpdates)
         controller.showWindow(self)
 
         var capturedVersion: String?
@@ -451,17 +394,13 @@ final class LKSwiftUISupportInstaller {
     }
 
     func verifyTeamIdentifier(of appURL: URL) throws {
-        let helperTeamID = try Self.teamIdentifier(atPath: appURL.path)
-        let hostTeamID = try? Self.teamIdentifier(atPath: Bundle.main.bundlePath)
-        guard let hostTeamID, hostTeamID.isEmpty == false else {
-            LKSwiftUISupportLogger.installer.info(
-                "host has no Team Identifier; skipping helper Team Identifier check (dev build)"
-            )
-            return
-        }
-        guard hostTeamID == helperTeamID else {
-            throw LKSwiftUISupportInstallerError.teamIdentifierMismatch(expected: hostTeamID, found: helperTeamID)
-        }
+        try LKInstallerCodeSignature.verifyTeamIdentifierMatchesHost(
+            of: appURL,
+            unavailableErrorBuilder: { LKSwiftUISupportInstallerError.teamIdentifierUnavailable($0) },
+            mismatchErrorBuilder: { expected, found in
+                LKSwiftUISupportInstallerError.teamIdentifierMismatch(expected: expected, found: found)
+            }
+        )
     }
 
     private func runInstallWithModal(presentingWindow: NSWindow?) throws {
@@ -485,8 +424,11 @@ final class LKSwiftUISupportInstaller {
             return
         }
 
-        let cancellation = LKSwiftUISupportInstallerCancellation()
-        let controller = LKSwiftUISupportInstallerWindowController()
+        let cancellation = LKInstallerCancellation()
+        let controller = LKInstallerProgressWindowController(
+            title: NSLocalizedString("Installing LookInside Auth Server", comment: ""),
+            initialStatus: LKSwiftUISupportInstallerStage.preparing.localizedDescription
+        )
         var cancelledByUser = false
         controller.onCancel = {
             cancelledByUser = true
@@ -502,7 +444,7 @@ final class LKSwiftUISupportInstaller {
             do {
                 try self.performInstall(cancellation: cancellation) { stage in
                     DispatchQueue.main.async {
-                        controller.updateStage(stage)
+                        controller.updateStatus(stage.localizedDescription)
                     }
                 }
             } catch {
@@ -569,7 +511,7 @@ final class LKSwiftUISupportInstaller {
             }
         }
 
-        let cancellation = LKSwiftUISupportInstallerCancellation()
+        let cancellation = LKInstallerCancellation()
         try performInstall(cancellation: cancellation) { stage in
             LKSwiftUISupportLogger.installer.info(
                 "background install stage=\(stage.rawValue, privacy: .public)"
@@ -578,159 +520,83 @@ final class LKSwiftUISupportInstaller {
     }
 
     private func performInstall(
-        cancellation: LKSwiftUISupportInstallerCancellation,
+        cancellation: LKInstallerCancellation,
         onStage: @escaping (LKSwiftUISupportInstallerStage) -> Void
     ) throws {
-        try cancellation.checkCancellation()
-        onStage(.preparing)
-        let fileManager = FileManager.default
-        let stagingRoot = fileManager.temporaryDirectory
-            .appendingPathComponent("LookInsideAuthServer-\(UUID().uuidString)", isDirectory: true)
-        try fileManager.createDirectory(at: stagingRoot, withIntermediateDirectories: true)
-        defer {
-            try? fileManager.removeItem(at: stagingRoot)
-        }
-
-        try cancellation.checkCancellation()
-        onStage(.downloading)
-        let zipURL = stagingRoot.appendingPathComponent("helper.zip", isDirectory: false)
-        let checksumURL = stagingRoot.appendingPathComponent("helper.zip.sha256", isDirectory: false)
-        try downloadSynchronously(from: LKSwiftUISupportInstallerLayout.downloadURL, to: zipURL, cancellation: cancellation)
-        try downloadSynchronously(from: LKSwiftUISupportInstallerLayout.checksumURL, to: checksumURL, cancellation: cancellation)
-
-        try cancellation.checkCancellation()
-        onStage(.verifying)
-        try Self.verifyChecksum(of: zipURL, using: checksumURL)
-
-        try cancellation.checkCancellation()
-        onStage(.extracting)
-        let extractDir = stagingRoot.appendingPathComponent("extracted", isDirectory: true)
-        try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
-        try unzip(zipURL, into: extractDir, cancellation: cancellation)
-
-        try cancellation.checkCancellation()
-        let stagedApp = try Self.findAppBundle(in: extractDir)
-
-        onStage(.verifying)
-        try verifyTeamIdentifier(of: stagedApp)
-
-        try cancellation.checkCancellation()
-        onStage(.installing)
-        let destination = LKSwiftUISupportInstallerLayout.installedAppURL
-        try fileManager.createDirectory(
-            at: destination.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-        if fileManager.fileExists(atPath: destination.path) {
-            try fileManager.removeItem(at: destination)
-        }
         do {
-            try fileManager.moveItem(at: stagedApp, to: destination)
-        } catch {
-            throw LKSwiftUISupportInstallerError.installFailed(error.localizedDescription)
-        }
+            try cancellation.checkCancellation()
+            onStage(.preparing)
+            let fileManager = FileManager.default
+            let stagingRoot = fileManager.temporaryDirectory
+                .appendingPathComponent("LookInsideAuthServer-\(UUID().uuidString)", isDirectory: true)
+            try fileManager.createDirectory(at: stagingRoot, withIntermediateDirectories: true)
+            defer {
+                try? fileManager.removeItem(at: stagingRoot)
+            }
 
-        try cancellation.checkCancellation()
-        onStage(.finishing)
-        try Self.ensureExecutableBit(at: LKSwiftUISupportInstallerLayout.installedExecutableURL)
-        try verifyTeamIdentifier(of: destination)
-    }
+            try cancellation.checkCancellation()
+            onStage(.downloading)
+            let zipURL = stagingRoot.appendingPathComponent("helper.zip", isDirectory: false)
+            let checksumURL = stagingRoot.appendingPathComponent("helper.zip.sha256", isDirectory: false)
+            try LKInstallerDownloader.download(
+                from: LKSwiftUISupportInstallerLayout.downloadURL,
+                to: zipURL,
+                cancellation: cancellation,
+                errorBuilder: { LKSwiftUISupportInstallerError.downloadFailed($0) }
+            )
+            try LKInstallerDownloader.download(
+                from: LKSwiftUISupportInstallerLayout.checksumURL,
+                to: checksumURL,
+                cancellation: cancellation,
+                errorBuilder: { LKSwiftUISupportInstallerError.downloadFailed($0) }
+            )
 
-    private func downloadSynchronously(
-        from url: URL,
-        to destination: URL,
-        cancellation: LKSwiftUISupportInstallerCancellation
-    ) throws {
-        try cancellation.checkCancellation()
-        var capturedError: Error?
-        var capturedTempURL: URL?
-        let semaphore = DispatchSemaphore(value: 0)
+            try cancellation.checkCancellation()
+            onStage(.verifying)
+            try Self.verifyChecksum(of: zipURL, using: checksumURL)
 
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 30
-        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-        let task = URLSession.shared.downloadTask(with: request) { tempURL, response, error in
-            defer { semaphore.signal() }
-            if let error {
-                if cancellation.isCancelled || (error as NSError).code == NSURLErrorCancelled {
-                    capturedError = LKSwiftUISupportInstallerError.cancelled
-                } else {
-                    capturedError = LKSwiftUISupportInstallerError.downloadFailed(error.localizedDescription)
-                }
-                return
-            }
-            guard cancellation.isCancelled == false else {
-                capturedError = LKSwiftUISupportInstallerError.cancelled
-                return
-            }
-            guard let httpResponse = response as? HTTPURLResponse else {
-                capturedError = LKSwiftUISupportInstallerError.downloadFailed(
-                    NSLocalizedString("No response received.", comment: "")
-                )
-                return
-            }
-            guard (200 ... 299).contains(httpResponse.statusCode) else {
-                capturedError = LKSwiftUISupportInstallerError.downloadFailed("HTTP \(httpResponse.statusCode)")
-                return
-            }
-            guard let tempURL else {
-                capturedError = LKSwiftUISupportInstallerError.downloadFailed(
-                    NSLocalizedString("Empty download payload.", comment: "")
-                )
-                return
+            try cancellation.checkCancellation()
+            onStage(.extracting)
+            let extractDir = stagingRoot.appendingPathComponent("extracted", isDirectory: true)
+            try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
+            try LKInstallerArchiveExtractor.unzip(
+                zipURL,
+                into: extractDir,
+                cancellation: cancellation,
+                errorBuilder: { LKSwiftUISupportInstallerError.unzipFailed($0) }
+            )
+
+            try cancellation.checkCancellation()
+            let stagedApp = try Self.findAppBundle(in: extractDir)
+
+            onStage(.verifying)
+            try verifyTeamIdentifier(of: stagedApp)
+
+            try cancellation.checkCancellation()
+            onStage(.installing)
+            let destination = LKSwiftUISupportInstallerLayout.installedAppURL
+            try fileManager.createDirectory(
+                at: destination.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            if fileManager.fileExists(atPath: destination.path) {
+                try fileManager.removeItem(at: destination)
             }
             do {
-                if FileManager.default.fileExists(atPath: destination.path) {
-                    try FileManager.default.removeItem(at: destination)
-                }
-                try FileManager.default.moveItem(at: tempURL, to: destination)
-                capturedTempURL = destination
+                try fileManager.moveItem(at: stagedApp, to: destination)
             } catch {
-                capturedError = LKSwiftUISupportInstallerError.downloadFailed(error.localizedDescription)
+                throw LKSwiftUISupportInstallerError.installFailed(error.localizedDescription)
             }
-        }
-        cancellation.register(downloadTask: task)
-        task.resume()
-        semaphore.wait()
-        cancellation.register(downloadTask: nil)
 
-        try cancellation.checkCancellation()
-        if let capturedError {
-            throw capturedError
-        }
-        guard capturedTempURL != nil else {
-            throw LKSwiftUISupportInstallerError.downloadFailed(
-                NSLocalizedString("Unknown download failure.", comment: "")
+            try cancellation.checkCancellation()
+            onStage(.finishing)
+            try LKInstallerFilesystem.ensureExecutableBit(
+                at: LKSwiftUISupportInstallerLayout.installedExecutableURL,
+                errorBuilder: { LKSwiftUISupportInstallerError.installFailed($0) }
             )
-        }
-    }
-
-    private func unzip(
-        _ zipURL: URL,
-        into destination: URL,
-        cancellation: LKSwiftUISupportInstallerCancellation
-    ) throws {
-        try cancellation.checkCancellation()
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        process.arguments = ["-x", "-k", zipURL.path, destination.path]
-        let errorPipe = Pipe()
-        process.standardError = errorPipe
-        process.standardOutput = Pipe()
-        do {
-            try process.run()
-        } catch {
-            throw LKSwiftUISupportInstallerError.unzipFailed(error.localizedDescription)
-        }
-        cancellation.register(unzipProcess: process)
-        process.waitUntilExit()
-        cancellation.register(unzipProcess: nil)
-        try cancellation.checkCancellation()
-        if process.terminationStatus != 0 {
-            let data = errorPipe.fileHandleForReading.readDataToEndOfFile()
-            let message = String(data: data, encoding: .utf8)
-                ?? String(format: NSLocalizedString("ditto exited with status %d.", comment: ""), process.terminationStatus)
-            throw LKSwiftUISupportInstallerError.unzipFailed(message)
+            try verifyTeamIdentifier(of: destination)
+        } catch is LKInstallerCancelled {
+            throw LKSwiftUISupportInstallerError.cancelled
         }
     }
 
@@ -750,26 +616,6 @@ final class LKSwiftUISupportInstaller {
             }
         }
         throw LKSwiftUISupportInstallerError.appBundleNotFound
-    }
-
-    private static func ensureExecutableBit(at url: URL) throws {
-        let fileManager = FileManager.default
-        guard fileManager.fileExists(atPath: url.path) else {
-            throw LKSwiftUISupportInstallerError.installFailed(
-                String(format: NSLocalizedString("Executable not found at %@", comment: ""), url.path)
-            )
-        }
-        let attributes = try fileManager.attributesOfItem(atPath: url.path)
-        if let perms = attributes[.posixPermissions] as? NSNumber {
-            let current = perms.int16Value
-            let desired = current | 0o111
-            if desired != current {
-                try fileManager.setAttributes(
-                    [.posixPermissions: NSNumber(value: desired)],
-                    ofItemAtPath: url.path
-                )
-            }
-        }
     }
 
     private static func verifyChecksum(of zipURL: URL, using checksumURL: URL) throws {
@@ -807,118 +653,5 @@ final class LKSwiftUISupportInstaller {
                 String(format: NSLocalizedString("Expected %1$@, got %2$@.", comment: ""), expected, actual)
             )
         }
-    }
-
-    private static func teamIdentifier(atPath path: String) throws -> String {
-        let url = URL(fileURLWithPath: path)
-        var staticCode: SecStaticCode?
-        let createStatus = SecStaticCodeCreateWithPath(url as CFURL, [], &staticCode)
-        guard createStatus == errSecSuccess, let staticCode else {
-            throw LKSwiftUISupportInstallerError.teamIdentifierUnavailable("SecStaticCodeCreateWithPath failed (OSStatus \(createStatus)).")
-        }
-
-        let validateStatus = SecStaticCodeCheckValidity(staticCode, SecCSFlags(rawValue: 0), nil)
-        guard validateStatus == errSecSuccess else {
-            throw LKSwiftUISupportInstallerError.teamIdentifierUnavailable("Code signature validation failed (OSStatus \(validateStatus)).")
-        }
-
-        var infoRef: CFDictionary?
-        let infoStatus = SecCodeCopySigningInformation(
-            staticCode,
-            SecCSFlags(rawValue: kSecCSSigningInformation),
-            &infoRef
-        )
-        guard infoStatus == errSecSuccess, let info = infoRef as? [String: Any] else {
-            throw LKSwiftUISupportInstallerError.teamIdentifierUnavailable("SecCodeCopySigningInformation failed (OSStatus \(infoStatus)).")
-        }
-
-        guard let teamID = info[kSecCodeInfoTeamIdentifier as String] as? String, teamID.isEmpty == false else {
-            throw LKSwiftUISupportInstallerError.teamIdentifierUnavailable("Team identifier is missing from code signing information.")
-        }
-        return teamID
-    }
-}
-
-final class LKSwiftUISupportInstallerWindowController: NSWindowController, NSWindowDelegate {
-    private let statusLabel = NSTextField(labelWithString: LKSwiftUISupportInstallerStage.preparing.localizedDescription)
-    private let progressIndicator = NSProgressIndicator()
-    var onCancel: (() -> Void)?
-
-    convenience init() {
-        self.init(title: NSLocalizedString("Installing LookInside Auth Server", comment: ""))
-    }
-
-    init(title: String) {
-        let contentRect = NSRect(x: 0, y: 0, width: 360, height: 140)
-        let window = NSWindow(
-            contentRect: contentRect,
-            styleMask: [.titled, .closable],
-            backing: .buffered,
-            defer: false
-        )
-        window.title = "LookInside"
-        window.isReleasedWhenClosed = false
-        window.center()
-        window.level = .modalPanel
-
-        super.init(window: window)
-        window.delegate = self
-
-        let titleLabel = NSTextField(labelWithString: title)
-        titleLabel.font = NSFont.boldSystemFont(ofSize: 13)
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        statusLabel.font = NSFont.systemFont(ofSize: 12)
-        statusLabel.textColor = .secondaryLabelColor
-        statusLabel.translatesAutoresizingMaskIntoConstraints = false
-        statusLabel.lineBreakMode = .byTruncatingTail
-
-        progressIndicator.style = .bar
-        progressIndicator.isIndeterminate = true
-        progressIndicator.translatesAutoresizingMaskIntoConstraints = false
-
-        let container = NSView()
-        container.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(titleLabel)
-        container.addSubview(statusLabel)
-        container.addSubview(progressIndicator)
-
-        window.contentView = container
-
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
-
-            statusLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
-            statusLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-            statusLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
-
-            progressIndicator.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 14),
-            progressIndicator.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-            progressIndicator.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
-            progressIndicator.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor, constant: -20),
-        ])
-
-        progressIndicator.startAnimation(nil)
-    }
-
-    @available(*, unavailable)
-    required init?(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func showWindow(_ sender: Any?) {
-        super.showWindow(sender)
-        window?.makeKeyAndOrderFront(sender)
-    }
-
-    func updateStage(_ stage: LKSwiftUISupportInstallerStage) {
-        statusLabel.stringValue = stage.localizedDescription
-    }
-
-    func windowShouldClose(_: NSWindow) -> Bool {
-        onCancel?()
-        return true
     }
 }

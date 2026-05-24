@@ -13,6 +13,7 @@
 		E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0C2F97B1B100600001 /* Demangling */; };
 		E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0F1F97B1B100600001 /* Sparkle */; };
 		E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */; };
+		E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */ = {isa = PBXBuildFile; productRef = E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,6 +83,13 @@
 				Base/LKWindowController.m,
 				Base/Message/LookinMsgAttribute.m,
 				Base/Message/LookinMsgTargetAction.m,
+				Common/Installer/LKInstallerArchiveExtractor.swift,
+				Common/Installer/LKInstallerCancellation.swift,
+				Common/Installer/LKInstallerCodeSignature.swift,
+				Common/Installer/LKInstallerDownloader.swift,
+				Common/Installer/LKInstallerFilesystem.swift,
+				Common/Installer/LKInstallerLogger.swift,
+				Common/Installer/LKInstallerProgressWindowController.swift,
 				Connection/LKAppsManager.m,
 				Connection/LKConnectionManager.m,
 				Connection/LKConnectionRequest.m,
@@ -112,7 +120,6 @@
 				Dashboard/AttributeView/LKDashboardAttributeNumberInputView.m,
 				Dashboard/AttributeView/LKDashboardAttributeOpenImageView.m,
 				Dashboard/AttributeView/LKDashboardAttributePointView.m,
-				Dashboard/AttributeView/LKDashboardAttributePrivateDiscriminatorView.h,
 				Dashboard/AttributeView/LKDashboardAttributePrivateDiscriminatorView.m,
 				Dashboard/AttributeView/LKDashboardAttributeRectView.m,
 				Dashboard/AttributeView/LKDashboardAttributeRelationView.m,
@@ -630,6 +637,7 @@
 				50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */,
 				E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */,
 				E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */,
+				E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */,
 				E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -686,6 +694,7 @@
 				E37B8D0C2F97B1B100600001 /* Demangling */,
 				E37B8D0F1F97B1B100600001 /* Sparkle */,
 				E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */,
+				E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */,
 			);
 			productName = Lookin;
 			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
@@ -729,6 +738,8 @@
 				E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */,
 				E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */,
+				E97210042FC2D5C0003AAEA6 /* XCRemoteSwiftPackageReference "RunningApplicationKit" */,
+				E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */,
 			);
 			preferredProjectObjectVersion = 50;
 			productRefGroup = AA48F29C21CC0CA50032EC2C /* Products */;
@@ -1100,14 +1111,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/LookInsideApp/LookInsidePrivateDiscriminator.git";
-			requirement = {
-				kind = exactVersion;
-				version = 0.0.2;
-			};
-		};
 		E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/MxIris-Reverse-Engineering/swift-demangling.git";
@@ -1122,6 +1125,30 @@
 			requirement = {
 				kind = exactVersion;
 				version = 2.9.1;
+			};
+		};
+		E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/LookInsideApp/LookInsidePrivateDiscriminator.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.0.2;
+			};
+		};
+		E97210042FC2D5C0003AAEA6 /* XCRemoteSwiftPackageReference "RunningApplicationKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Mx-Iris/RunningApplicationKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.2;
+			};
+		};
+		E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Mx-Iris/swift-helper-service";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1141,6 +1168,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */;
 			productName = LookInsidePrivateDiscriminator;
+		};
+		E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E97210042FC2D5C0003AAEA6 /* XCRemoteSwiftPackageReference "RunningApplicationKit" */;
+			productName = RunningApplicationKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

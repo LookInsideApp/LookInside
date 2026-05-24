@@ -7,11 +7,3 @@ enum LKSwiftUISupportLogger {
 
     private static let subsystem = "com.lookinside.app"
 }
-
-extension NSLock {
-    func lkLock<T>(_ work: () throws -> T) rethrows -> T {
-        lock()
-        defer { unlock() }
-        return try work()
-    }
-}
