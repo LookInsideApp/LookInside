@@ -94,11 +94,22 @@ final class LKInjectionFlow: NSObject {
 
     @MainActor
     private func presentDaemonApprovalGuide(window: NSWindow?) async {
+        // Open System Settings → Login Items & Extensions immediately, so the
+        // approval surface is on screen before the user finishes reading the
+        // alert. The alert that follows just tells them what to look for and
+        // that they should re-trigger Attach once the toggle is on.
+        LKInjectionService.shared.openLoginItemsSettings()
+
         let alert = NSAlert()
-        alert.messageText = NSLocalizedString("Approve LookInside Injector", comment: "")
-        alert.informativeText = LKInjectionServiceError.daemonRequiresApproval.localizedDescription ?? ""
-        alert.addButton(withTitle: NSLocalizedString("Open Login Items Settings", comment: ""))
-        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+        alert.alertStyle = .informational
+        alert.messageText = NSLocalizedString("Enable LookInside Injector", comment: "")
+        alert.informativeText = NSLocalizedString(
+            "LookInside opened System Settings → Login Items & Extensions for you.\n\nFind “LookInside” in the list, turn it on, then come back and click Attach to Running App again.",
+            comment: ""
+        )
+        alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Open Settings Again", comment: ""))
+        alert.buttons.first?.keyEquivalent = "\r"
 
         let response: NSApplication.ModalResponse
         if let window {
@@ -106,7 +117,7 @@ final class LKInjectionFlow: NSObject {
         } else {
             response = alert.runModal()
         }
-        if response == .alertFirstButtonReturn {
+        if response == .alertSecondButtonReturn {
             LKInjectionService.shared.openLoginItemsSettings()
         }
     }

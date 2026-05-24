@@ -191,11 +191,11 @@
 				Hierarchy/LKHierarchyItem.m,
 				Hierarchy/LKHierarchyRowView.m,
 				Hierarchy/LKHierarchyView.m,
+				InfoPlist.xcstrings,
 				Injection/LKInjectableFrameworkInstaller.swift,
 				Injection/LKInjectionFlow.swift,
 				Injection/LKInjectionService.swift,
 				Injection/LKInjectionTargetPicker.swift,
-				InfoPlist.xcstrings,
 				Launch/LKLaunchAppView.m,
 				Launch/LKLaunchViewController.m,
 				Launch/LKLaunchWindowController.m,
@@ -1173,7 +1173,7 @@
 			repositoryURL = "https://github.com/Mx-Iris/RunningApplicationKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.2;
+				minimumVersion = 0.3.3;
 			};
 		};
 		E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */ = {

@@ -263,6 +263,21 @@
         }
       }
     },
+    "Attach" : {
+
+    },
+    "Attach to Running App" : {
+
+    },
+    "Attach to Running App…" : {
+
+    },
+    "Attach to Running Process" : {
+
+    },
+    "Attached" : {
+
+    },
     "Auth Server state file is not a JSON object." : {
       "localizations" : {
         "en" : {
@@ -275,22 +290,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Auth Server 状态文件不是 JSON 对象。"
-          }
-        }
-      }
-    },
-    "Background Auth Server install is waiting after a recent failure." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Background Auth Server install is waiting after a recent failure."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "后台授权服务器安装在最近失败后等待重试。"
           }
         }
       }
@@ -372,6 +371,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已自动保存 %ld 条"
+          }
+        }
+      }
+    },
+    "Background Auth Server install is waiting after a recent failure." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Background Auth Server install is waiting after a recent failure."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "后台授权服务器安装在最近失败后等待重试。"
           }
         }
       }
@@ -583,6 +598,9 @@
           }
         }
       }
+    },
+    "Code is signed by a different team.\nExpected: %1$@\nFound: %2$@" : {
+
     },
     "Collapse children" : {
       "localizations" : {
@@ -1049,6 +1067,12 @@
         }
       }
     },
+    "Downloading LookInside Server Framework" : {
+
+    },
+    "Downloading LookInside Server framework…" : {
+
+    },
     "Downloading…" : {
       "localizations" : {
         "en" : {
@@ -1096,6 +1120,9 @@
           }
         }
       }
+    },
+    "Enable LookInside Injector" : {
+
     },
     "Enter a module name, comma-separated candidate words, and a maximum word count." : {
       "localizations" : {
@@ -1289,6 +1316,9 @@
         }
       }
     },
+    "Failed to download LookInside Server framework.\n%@" : {
+
+    },
     "Failed to extract LookInside Auth Server.\n%@" : {
       "localizations" : {
         "en" : {
@@ -1304,6 +1334,9 @@
           }
         }
       }
+    },
+    "Failed to extract LookInside Server framework.\n%@" : {
+
     },
     "Failed to get target object in iOS app" : {
       "localizations" : {
@@ -1321,6 +1354,9 @@
         }
       }
     },
+    "Failed to inject LookInsideServer.framework into the target process.\n%@" : {
+
+    },
     "Failed to install LookInside Auth Server.\n%@" : {
       "localizations" : {
         "en" : {
@@ -1336,6 +1372,9 @@
           }
         }
       }
+    },
+    "Failed to install LookInside Server framework.\n%@" : {
+
     },
     "Failed to launch swift-pd-guess: %@" : {
       "localizations" : {
@@ -1368,6 +1407,9 @@
           }
         }
       }
+    },
+    "Failed to register the LookInside Injector daemon.\n%@" : {
+
     },
     "Failed to search related methods: " : {
       "localizations" : {
@@ -2555,38 +2597,6 @@
         }
       }
     },
-    "LookInside Auth Server Updating" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside Auth Server Updating"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 授权服务器正在更新"
-          }
-        }
-      }
-    },
-    "LookInside is preparing the local Auth Server. Try the action again after the update finishes." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside is preparing the local Auth Server. Try the action again after the update finishes."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 正在准备本地授权服务器。更新完成后再试一次。"
-          }
-        }
-      }
-    },
     "LookInside Auth Server is signed by a different team.\nExpected: %1$@\nFound: %2$@" : {
       "localizations" : {
         "en" : {
@@ -2683,6 +2693,22 @@
         }
       }
     },
+    "LookInside Auth Server Updating" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Auth Server Updating"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 授权服务器正在更新"
+          }
+        }
+      }
+    },
     "LookInside Auth Server version mismatch.\nExpected: %1$@\nFound: %2$@" : {
       "localizations" : {
         "en" : {
@@ -2731,6 +2757,22 @@
         }
       }
     },
+    "LookInside is preparing the local Auth Server. Try the action again after the update finishes." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside is preparing the local Auth Server. Try the action again after the update finishes."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 正在准备本地授权服务器。更新完成后再试一次。"
+          }
+        }
+      }
+    },
     "LookInside license verification failed." : {
       "localizations" : {
         "en" : {
@@ -2746,6 +2788,9 @@
           }
         }
       }
+    },
+    "LookInside opened System Settings → Login Items & Extensions for you.\n\nFind “LookInside” in the list, turn it on, then come back and click Attach to Running App again." : {
+
     },
     "LookInside Pro" : {
       "localizations" : {
@@ -2794,6 +2839,12 @@
           }
         }
       }
+    },
+    "LookInside Server framework is signed by a different team.\nExpected: %1$@\nFound: %2$@" : {
+
+    },
+    "LookInsideServer was injected into pid %d. The app should appear in the Launch list shortly." : {
+
     },
     "Matched from %@." : {
       "localizations" : {
@@ -3242,6 +3293,9 @@
           }
         }
       }
+    },
+    "Open Settings Again" : {
+
     },
     "Operation failed." : {
       "localizations" : {
@@ -3883,6 +3937,12 @@
         }
       }
     },
+    "Select a process to inject LookInsideServer into." : {
+
+    },
+    "Select a running app to inject LookInsideServer into." : {
+
+    },
     "Select App" : {
       "localizations" : {
         "en" : {
@@ -4237,6 +4297,9 @@
         }
       }
     },
+    "The downloaded archive did not contain a macOS slice of LookInsideServer.xcframework." : {
+
+    },
     "The feature is not available in current mode." : {
       "localizations" : {
         "en" : {
@@ -4285,6 +4348,12 @@
           }
         }
       }
+    },
+    "The LookInside Injector daemon is not enabled (status %@)." : {
+
+    },
+    "The LookInside Injector daemon requires your approval.\nOpen System Settings → Login Items & Extensions, locate “LookInside Injector”, and turn it on, then try again." : {
+
     },
     "The method was invoked successfully and no value was returned." : {
       "localizations" : {
@@ -4640,6 +4709,12 @@
         }
       }
     },
+    "Unable to reach the LookInside Injector daemon.\n%@" : {
+
+    },
+    "Unable to read code signature.\n%@" : {
+
+    },
     "Unable to read Swift files in %@." : {
       "localizations" : {
         "en" : {
@@ -4671,6 +4746,9 @@
           }
         }
       }
+    },
+    "Unable to read the code signature of LookInside Server framework.\n%@" : {
+
     },
     "Unknown download failure." : {
       "localizations" : {

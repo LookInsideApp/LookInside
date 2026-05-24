@@ -55,9 +55,13 @@ enum LKInstallerCodeSignature {
     /// Reads the team identifier of the target at `targetURL` and validates that
     /// it matches the host process's team identifier.
     ///
-    /// If the host is unsigned (dev build), the host has no team identifier and
-    /// the check is skipped — this matches the established behavior of the
-    /// license helper installer.
+    /// Strategy:
+    /// - Read host first. If the host has no team identifier (dev / ad-hoc
+    ///   build), skip the target check entirely — dev builds are inherently
+    ///   trust-on-first-build, and external artifacts may be unsigned during
+    ///   development too.
+    /// - Only when the host carries a real team identifier do we require the
+    ///   target to be properly signed and to match.
     ///
     /// Errors are re-thrown via `unavailableErrorBuilder` / `mismatchErrorBuilder`
     /// so callers can wrap them in their own domain-specific error types.
@@ -66,22 +70,25 @@ enum LKInstallerCodeSignature {
         unavailableErrorBuilder: (String) -> Error,
         mismatchErrorBuilder: (_ expected: String, _ found: String) -> Error
     ) throws {
+        let hostTeamID = try? teamIdentifier(atPath: Bundle.main.bundlePath)
+        guard let hostTeamID, hostTeamID.isEmpty == false else {
+            LKInstallerLogger.installer.info(
+                "verifyTeamIdentifierMatchesHost: host has no team identifier (dev build); skipping target team check at \(targetURL.path, privacy: .public)"
+            )
+            return
+        }
+
         let targetTeamID: String
         do {
             targetTeamID = try teamIdentifier(atPath: targetURL.path)
         } catch let error as TeamIdentifierUnavailable {
             throw unavailableErrorBuilder(error.message)
         }
-
-        let hostTeamID = try? teamIdentifier(atPath: Bundle.main.bundlePath)
-        guard let hostTeamID, hostTeamID.isEmpty == false else {
-            LKInstallerLogger.installer.info(
-                "host has no Team Identifier; skipping target Team Identifier check (dev build)"
-            )
-            return
-        }
         guard hostTeamID == targetTeamID else {
             throw mismatchErrorBuilder(hostTeamID, targetTeamID)
         }
+        LKInstallerLogger.installer.info(
+            "verifyTeamIdentifierMatchesHost: host=\(hostTeamID, privacy: .public) matches target at \(targetURL.path, privacy: .public)"
+        )
     }
 }

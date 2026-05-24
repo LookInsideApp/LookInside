@@ -19,14 +19,14 @@ final class LKInjectionTargetPicker: NSObject, RunningPickerTabViewController.De
             description: NSLocalizedString("Select a running app to inject LookInsideServer into.", comment: ""),
             cancelButtonTitle: NSLocalizedString("Cancel", comment: ""),
             confirmButtonTitle: NSLocalizedString("Attach", comment: ""),
-            allowsColumns: [.icon, .name, .bundleIdentifier, .pid, .architecture]
+            allowsColumns: [.icon, .name, .bundleIdentifier, .pid, .architecture, .sandboxed]
         )
         let processConfig = RunningPickerTabViewController.ProcessConfiguration(
             title: NSLocalizedString("Attach to Running Process", comment: ""),
             description: NSLocalizedString("Select a process to inject LookInsideServer into.", comment: ""),
             cancelButtonTitle: NSLocalizedString("Cancel", comment: ""),
             confirmButtonTitle: NSLocalizedString("Attach", comment: ""),
-            allowsColumns: [.icon, .name, .pid, .architecture, .executablePath]
+            allowsColumns: [.icon, .name, .pid, .architecture, .executablePath, .sandboxed]
         )
         tabController = RunningPickerTabViewController(
             applicationConfiguration: appConfig,

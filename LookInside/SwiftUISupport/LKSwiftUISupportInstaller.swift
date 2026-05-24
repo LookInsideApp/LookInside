@@ -317,7 +317,7 @@ final class LKSwiftUISupportInstaller {
         let semaphore = DispatchSemaphore(value: 0)
         Thread.detachNewThread {
             capturedVersion = self.fetchPublishedVersionFromNetwork()
-            DispatchQueue.main.async {
+            RunLoop.main.perform(inModes: [.default, .modalPanel, .common]) {
                 NSApp.stopModal()
                 semaphore.signal()
             }
@@ -443,14 +443,14 @@ final class LKSwiftUISupportInstaller {
         Thread.detachNewThread {
             do {
                 try self.performInstall(cancellation: cancellation) { stage in
-                    DispatchQueue.main.async {
+                    RunLoop.main.perform(inModes: [.default, .modalPanel, .common]) {
                         controller.updateStatus(stage.localizedDescription)
                     }
                 }
             } catch {
                 capturedError = error
             }
-            DispatchQueue.main.async {
+            RunLoop.main.perform(inModes: [.default, .modalPanel, .common]) {
                 NSApp.stopModal()
                 semaphore.signal()
             }

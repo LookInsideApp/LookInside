@@ -10,6 +10,10 @@ enum LKInstallerDownloader {
     ) throws {
         try cancellation.checkCancellation()
 
+        LKInstallerLogger.installer.info(
+            "downloader: start url=\(url.absoluteString, privacy: .public) timeout=\(timeout)"
+        )
+
         var capturedError: Error?
         var downloadedToDestination = false
         let semaphore = DispatchSemaphore(value: 0)
@@ -20,6 +24,10 @@ enum LKInstallerDownloader {
 
         let task = URLSession.shared.downloadTask(with: request) { tempURL, response, error in
             defer { semaphore.signal() }
+            let status = (response as? HTTPURLResponse)?.statusCode ?? -1
+            LKInstallerLogger.installer.info(
+                "downloader: completion status=\(status) error=\(error?.localizedDescription ?? "nil", privacy: .public)"
+            )
             if let error {
                 if cancellation.isCancelled || (error as NSError).code == NSURLErrorCancelled {
                     capturedError = LKInstallerCancelled()
@@ -49,6 +57,8 @@ enum LKInstallerDownloader {
                     try FileManager.default.removeItem(at: destination)
                 }
                 try FileManager.default.moveItem(at: tempURL, to: destination)
+                let movedSize = (try? FileManager.default.attributesOfItem(atPath: destination.path)[.size] as? Int) ?? -1
+                LKInstallerLogger.installer.info("downloader: moved to destination bytes=\(movedSize)")
                 downloadedToDestination = true
             } catch {
                 capturedError = errorBuilder(error.localizedDescription)
@@ -56,11 +66,16 @@ enum LKInstallerDownloader {
         }
         cancellation.register(downloadTask: task)
         task.resume()
+        LKInstallerLogger.installer.info("downloader: task.resume() called, waiting on semaphore")
         semaphore.wait()
+        LKInstallerLogger.installer.info("downloader: semaphore released")
         cancellation.register(downloadTask: nil)
 
         try cancellation.checkCancellation()
         if let capturedError {
+            LKInstallerLogger.installer.error(
+                "downloader: throwing error=\(capturedError.localizedDescription, privacy: .public)"
+            )
             throw capturedError
         }
         guard downloadedToDestination else {

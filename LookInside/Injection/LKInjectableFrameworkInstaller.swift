@@ -140,22 +140,32 @@ final class LKInjectableFrameworkInstaller {
         installLock.lock()
         defer { installLock.unlock() }
 
+        LKInstallerLogger.installer.info("ensureInstalled: entered")
+
         let targetVersion = resolveTargetVersion()
+        LKInstallerLogger.installer.info(
+            "ensureInstalled: resolved target version=\(targetVersion, privacy: .public)"
+        )
         let installedURL = LKInjectableFrameworkInstallerLayout.installedFrameworkURL(for: targetVersion)
+        LKInstallerLogger.installer.info(
+            "ensureInstalled: checking existing path=\(installedURL.path, privacy: .public)"
+        )
 
         if FileManager.default.fileExists(atPath: installedURL.path) {
             do {
                 try verifyTeamIdentifier(of: installedURL)
                 LKInstallerLogger.installer.info(
-                    "injectable framework already installed version=\(targetVersion, privacy: .public)"
+                    "ensureInstalled: existing framework valid; reusing version=\(targetVersion, privacy: .public)"
                 )
                 return LKInjectableFrameworkInstallation(version: targetVersion, frameworkURL: installedURL)
             } catch {
                 LKInstallerLogger.installer.notice(
-                    "installed framework signature invalid, re-downloading: \(error.localizedDescription, privacy: .public)"
+                    "ensureInstalled: existing framework signature invalid (\(error.localizedDescription, privacy: .public)); will re-download"
                 )
                 try? FileManager.default.removeItem(at: installedURL)
             }
+        } else {
+            LKInstallerLogger.installer.info("ensureInstalled: no existing framework; running modal install")
         }
 
         return try runInstallWithModal(version: targetVersion, presentingWindow: presentingWindow)
@@ -252,6 +262,8 @@ final class LKInjectableFrameworkInstaller {
     private func runInstallWithModal(version: String, presentingWindow _: NSWindow?) throws -> LKInjectableFrameworkInstallation {
         precondition(Thread.isMainThread, "runInstallWithModal must run on the main thread")
 
+        LKInstallerLogger.installer.info("runInstallWithModal: start version=\(version, privacy: .public)")
+
         let cancellation = LKInstallerCancellation()
         let controller = LKInstallerProgressWindowController(
             title: NSLocalizedString("Downloading LookInside Server Framework", comment: ""),
@@ -264,35 +276,46 @@ final class LKInjectableFrameworkInstaller {
             NSApp.stopModal()
         }
         controller.showWindow(self)
+        LKInstallerLogger.installer.info("runInstallWithModal: progress window shown")
 
         var captured: Result<LKInjectableFrameworkInstallation, Error>!
         let semaphore = DispatchSemaphore(value: 0)
 
         Thread.detachNewThread {
+            LKInstallerLogger.installer.info("install worker: thread started")
             do {
                 let installation = try self.performInstall(version: version, cancellation: cancellation) { stage in
-                    DispatchQueue.main.async {
+                    LKInstallerLogger.installer.info("install worker: stage=\(String(describing: stage), privacy: .public)")
+                    RunLoop.main.perform(inModes: [.default, .modalPanel, .common]) {
                         controller.updateStatus(stage.localizedDescription)
                     }
                 }
+                LKInstallerLogger.installer.info("install worker: success")
                 captured = .success(installation)
             } catch {
+                LKInstallerLogger.installer.error(
+                    "install worker: failed error=\(error.localizedDescription, privacy: .public)"
+                )
                 captured = .failure(error)
             }
-            DispatchQueue.main.async {
+            RunLoop.main.perform(inModes: [.default, .modalPanel, .common]) {
                 NSApp.stopModal()
                 semaphore.signal()
             }
         }
 
+        LKInstallerLogger.installer.info("runInstallWithModal: entering runModal")
         NSApp.runModal(for: controller.window!)
+        LKInstallerLogger.installer.info("runInstallWithModal: runModal returned")
         let waitResult = semaphore.wait(timeout: .now() + 5)
         controller.close()
 
         if cancelledByUser {
+            LKInstallerLogger.installer.info("runInstallWithModal: cancelled by user")
             throw LKInjectableFrameworkInstallerError.cancelled
         }
         if waitResult == .timedOut {
+            LKInstallerLogger.installer.error("runInstallWithModal: worker did not signal within 5s after modal stop")
             cancellation.cancel()
             throw LKInjectableFrameworkInstallerError.cancelled
         }
@@ -311,6 +334,9 @@ final class LKInjectableFrameworkInstaller {
             let stagingRoot = fileManager.temporaryDirectory
                 .appendingPathComponent("LookInsideServerFramework-\(UUID().uuidString)", isDirectory: true)
             try fileManager.createDirectory(at: stagingRoot, withIntermediateDirectories: true)
+            LKInstallerLogger.installer.info(
+                "performInstall: staging root=\(stagingRoot.path, privacy: .public)"
+            )
             defer {
                 try? fileManager.removeItem(at: stagingRoot)
             }
@@ -318,30 +344,42 @@ final class LKInjectableFrameworkInstaller {
             try cancellation.checkCancellation()
             onStage(.downloading)
             let zipURL = stagingRoot.appendingPathComponent("server.xcframework.zip", isDirectory: false)
+            let downloadURL = LKInjectableFrameworkInstallerLayout.assetDownloadURL(for: version)
+            LKInstallerLogger.installer.info(
+                "performInstall: starting download url=\(downloadURL.absoluteString, privacy: .public)"
+            )
             try LKInstallerDownloader.download(
-                from: LKInjectableFrameworkInstallerLayout.assetDownloadURL(for: version),
+                from: downloadURL,
                 to: zipURL,
                 cancellation: cancellation,
                 timeout: 120,
                 errorBuilder: { LKInjectableFrameworkInstallerError.downloadFailed($0) }
             )
+            let zipSize = (try? fileManager.attributesOfItem(atPath: zipURL.path)[.size] as? Int) ?? -1
+            LKInstallerLogger.installer.info("performInstall: download complete bytes=\(zipSize)")
 
             try cancellation.checkCancellation()
             onStage(.extracting)
             let extractDir = stagingRoot.appendingPathComponent("extracted", isDirectory: true)
             try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
+            LKInstallerLogger.installer.info("performInstall: starting unzip into=\(extractDir.path, privacy: .public)")
             try LKInstallerArchiveExtractor.unzip(
                 zipURL,
                 into: extractDir,
                 cancellation: cancellation,
                 errorBuilder: { LKInjectableFrameworkInstallerError.unzipFailed($0) }
             )
+            LKInstallerLogger.installer.info("performInstall: unzip complete")
 
             try cancellation.checkCancellation()
             let stagedFramework = try locateMacFramework(in: extractDir)
+            LKInstallerLogger.installer.info(
+                "performInstall: located macOS framework path=\(stagedFramework.path, privacy: .public)"
+            )
 
             onStage(.verifying)
             try verifyTeamIdentifier(of: stagedFramework)
+            LKInstallerLogger.installer.info("performInstall: signature verified")
 
             try cancellation.checkCancellation()
             onStage(.installing)
@@ -359,16 +397,20 @@ final class LKInjectableFrameworkInstaller {
             } catch {
                 throw LKInjectableFrameworkInstallerError.installFailed(error.localizedDescription)
             }
+            LKInstallerLogger.installer.info(
+                "performInstall: moved into place path=\(destinationFramework.path, privacy: .public)"
+            )
 
             try cancellation.checkCancellation()
             onStage(.finishing)
             try verifyTeamIdentifier(of: destinationFramework)
 
             LKInstallerLogger.installer.info(
-                "injectable framework installed version=\(version, privacy: .public) path=\(destinationFramework.path, privacy: .public)"
+                "performInstall: done version=\(version, privacy: .public)"
             )
             return LKInjectableFrameworkInstallation(version: version, frameworkURL: destinationFramework)
         } catch is LKInstallerCancelled {
+            LKInstallerLogger.installer.info("performInstall: cancelled")
             throw LKInjectableFrameworkInstallerError.cancelled
         }
     }
