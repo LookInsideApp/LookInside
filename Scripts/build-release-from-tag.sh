@@ -379,6 +379,8 @@ package_cli() {
 
 archive_app_unsigned() {
 	local archive_path="$1"
+	local app_products_dir="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION"
+	local built_app_path="$app_products_dir/LookInside.app"
 	local xcodebuild_args=(
 		-skipMacroValidation
 		-project "$PROJECT_FILE"
@@ -386,7 +388,6 @@ archive_app_unsigned() {
 		-configuration "$CONFIGURATION"
 		-destination "generic/platform=macOS"
 		-derivedDataPath "$DERIVED_DATA_PATH"
-		-archivePath "$archive_path"
 		CODE_SIGNING_ALLOWED=NO
 	)
 
@@ -399,8 +400,22 @@ archive_app_unsigned() {
 	log "Syncing derived source mirror"
 	bash Scripts/sync-derived-source.sh
 
-	log "Archiving app without Xcode signing"
-	xcodebuild "${xcodebuild_args[@]}" archive 2>&1 | format_output
+	log "Building app without Xcode signing"
+	xcodebuild "${xcodebuild_args[@]}" build 2>&1 | format_output
+
+	[[ -d "$built_app_path" ]] || fail "Built app not found at $built_app_path"
+
+	log "Assembling unsigned archive"
+	mkdir -p "$archive_path/Products/Applications"
+	ditto "$built_app_path" "$archive_path/Products/Applications/LookInside.app"
+	/usr/libexec/PlistBuddy -c "Add :ApplicationProperties dict" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :ApplicationProperties:ApplicationPath string Applications/LookInside.app" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :ApplicationProperties:CFBundleIdentifier string $HOST_BUNDLE_IDENTIFIER" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :ApplicationProperties:CFBundleShortVersionString string $RELEASE_VERSION" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :ApplicationProperties:CFBundleVersion string $RELEASE_BUILD_NUMBER" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :ArchiveVersion integer 2" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :Name string LookInside" "$archive_path/Info.plist" >/dev/null
+	/usr/libexec/PlistBuddy -c "Add :SchemeName string $SCHEME" "$archive_path/Info.plist" >/dev/null
 }
 
 sign_app_bundle() {
