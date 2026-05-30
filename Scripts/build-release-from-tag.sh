@@ -390,6 +390,9 @@ archive_app_unsigned() {
 		-skipMacroValidation
 		-skipPackagePluginValidation
 		-disableAutomaticPackageResolution
+		-onlyUsePackageVersionsFromResolvedFile
+		-skipPackageUpdates
+		-scmProvider system
 		-project "$PROJECT_FILE"
 		-scheme "$SCHEME"
 		-configuration "$CONFIGURATION"
@@ -406,6 +409,9 @@ archive_app_unsigned() {
 
 	log "Syncing derived source mirror"
 	bash Scripts/sync-derived-source.sh
+
+	log "Resolving app package dependencies"
+	xcodebuild "${xcodebuild_args[@]}" -resolvePackageDependencies 2>&1 | format_output
 
 	log "Building app without Xcode signing"
 	xcodebuild "${xcodebuild_args[@]}" build 2>&1 | format_output
