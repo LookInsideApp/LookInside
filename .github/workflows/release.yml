@@ -141,7 +141,7 @@ jobs:
   build_package:
     needs: prepare
     runs-on: macos-26
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
       RELEASE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
@@ -186,7 +186,7 @@ jobs:
             --build-number "${RELEASE_BUILD_NUMBER}"
 
       - name: Archive App
-        timeout-minutes: 30
+        timeout-minutes: 60
         run: |
           bash Scripts/build-release-from-tag.sh \
             --tag "${{ needs.prepare.outputs.build_version }}" \
