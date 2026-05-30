@@ -3,12 +3,12 @@ import Foundation
 
 /// Orchestrates the attach-to-running-app flow:
 ///
-/// 1. `LKInjectableFrameworkInstaller` — ensures LookInsideServer.framework is
+/// 1. `LKInjectionService.registerDaemonIfNeeded()` — only after the user
+///    clicks Attach, asks before registering the privileged daemon with
+///    SMAppService and waits for administrator approval if macOS requires it.
+/// 2. `LKInjectionTargetPicker` — wraps `RunningPickerTabViewController`.
+/// 3. `LKInjectableFrameworkInstaller` — ensures LookInsideServer.framework is
 ///    downloaded under `~/Library/Application Support/LookInside/InjectableFrameworks/`.
-/// 2. `LKInjectionService.registerDaemonIfNeeded()` — registers the
-///    privileged daemon with SMAppService. If the user has not yet approved
-///    it, surfaces a guide alert with a button that opens System Settings.
-/// 3. `LKInjectionTargetPicker` — wraps `RunningPickerTabViewController`.
 /// 4. `LKInjectionService.attach(pid:dylibURL:)` — fires
 ///    `InjectApplicationRequest` at the root daemon over XPC.
 /// 5. Brief sleep so the target app's Peertalk listener can bind; the existing
@@ -35,6 +35,14 @@ final class LKInjectionFlow: NSObject {
 
     @MainActor
     private func runFlow(presentingWindow window: NSWindow?) async {
+        guard await ensureDaemonReady(window: window) else {
+            return
+        }
+
+        guard let pid = await pickTargetPID(window: window) else {
+            return
+        }
+
         let installation: LKInjectableFrameworkInstallation
         do {
             installation = try LKInjectableFrameworkInstaller.shared.ensureInstalled(presentingWindow: window)
@@ -42,20 +50,6 @@ final class LKInjectionFlow: NSObject {
             return
         } catch {
             presentAlert(error: error, window: window)
-            return
-        }
-
-        do {
-            try await LKInjectionService.shared.registerDaemonIfNeeded()
-        } catch LKInjectionServiceError.daemonRequiresApproval {
-            await presentDaemonApprovalGuide(window: window)
-            return
-        } catch {
-            presentAlert(error: error, window: window)
-            return
-        }
-
-        guard let pid = await pickTargetPID(window: window) else {
             return
         }
 
@@ -70,6 +64,66 @@ final class LKInjectionFlow: NSObject {
 
         try? await Task.sleep(nanoseconds: 1_500_000_000)
         await presentAttachSuccess(pid: pid, window: window)
+    }
+
+    @MainActor
+    private func ensureDaemonReady(window: NSWindow?) async -> Bool {
+        while true {
+            let status = await LKInjectionService.shared.currentDaemonStatusSnapshot()
+            switch LKInjectionDaemonReadiness.nextStep(for: status) {
+            case .proceed:
+                return true
+
+            case .requestRegistrationConsent:
+                guard await confirmInjectorRegistration(window: window) else {
+                    return false
+                }
+                do {
+                    try await LKInjectionService.shared.registerDaemonIfNeeded()
+                    return true
+                } catch LKInjectionServiceError.daemonRequiresApproval {
+                    return await presentDaemonApprovalGuide(window: window)
+                } catch {
+                    presentAlert(error: error, window: window)
+                    return false
+                }
+
+            case .waitForApproval:
+                guard await presentDaemonApprovalGuide(window: window) else {
+                    return false
+                }
+
+            case .reportMissingBundle:
+                presentAlert(error: LKInjectionServiceError.daemonBundleMissing, window: window)
+                return false
+
+            case let .reportUnsupportedStatus(rawValue):
+                presentAlert(error: LKInjectionServiceError.unsupportedDaemonStatus(rawValue), window: window)
+                return false
+            }
+        }
+    }
+
+    @MainActor
+    private func confirmInjectorRegistration(window: NSWindow?) async -> Bool {
+        let alert = NSAlert()
+        alert.alertStyle = .informational
+        alert.messageText = NSLocalizedString("Enable LookInside Injector?", comment: "")
+        alert.informativeText = NSLocalizedString(
+            "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings.",
+            comment: ""
+        )
+        alert.addButton(withTitle: NSLocalizedString("Continue", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+        alert.buttons.first?.keyEquivalent = "\r"
+
+        let response: NSApplication.ModalResponse
+        if let window {
+            response = await alert.beginSheetModal(for: window)
+        } else {
+            response = alert.runModal()
+        }
+        return response == .alertFirstButtonReturn
     }
 
     @MainActor
@@ -95,32 +149,52 @@ final class LKInjectionFlow: NSObject {
     }
 
     @MainActor
-    private func presentDaemonApprovalGuide(window: NSWindow?) async {
-        // Open System Settings → Login Items & Extensions immediately, so the
-        // approval surface is on screen before the user finishes reading the
-        // alert. The alert that follows just tells them what to look for and
-        // that they should re-trigger Attach once the toggle is on.
-        LKInjectionService.shared.openLoginItemsSettings()
+    private func presentDaemonApprovalGuide(window: NSWindow?) async -> Bool {
+        while true {
+            let status = await LKInjectionService.shared.currentDaemonStatusSnapshot()
+            switch LKInjectionDaemonReadiness.nextStep(for: status) {
+            case .proceed:
+                return true
+            case .reportMissingBundle:
+                presentAlert(error: LKInjectionServiceError.daemonBundleMissing, window: window)
+                return false
+            case .requestRegistrationConsent:
+                return false
+            case .waitForApproval:
+                break
+            case let .reportUnsupportedStatus(rawValue):
+                presentAlert(error: LKInjectionServiceError.unsupportedDaemonStatus(rawValue), window: window)
+                return false
+            }
 
-        let alert = NSAlert()
-        alert.alertStyle = .informational
-        alert.messageText = NSLocalizedString("Enable LookInside Injector", comment: "")
-        alert.informativeText = NSLocalizedString(
-            "LookInside opened System Settings → Login Items & Extensions for you.\n\nFind “LookInside” in the list, turn it on, then come back and click Attach to Running App again.",
-            comment: ""
-        )
-        alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
-        alert.addButton(withTitle: NSLocalizedString("Open Settings Again", comment: ""))
-        alert.buttons.first?.keyEquivalent = "\r"
+            let alert = NSAlert()
+            alert.alertStyle = .informational
+            alert.messageText = NSLocalizedString("Approve LookInside Injector", comment: "")
+            alert.informativeText = NSLocalizedString(
+                "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again.",
+                comment: ""
+            )
+            alert.addButton(withTitle: NSLocalizedString("Check Again", comment: ""))
+            alert.addButton(withTitle: NSLocalizedString("Open System Settings", comment: ""))
+            alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+            alert.buttons.first?.keyEquivalent = "\r"
 
-        let response: NSApplication.ModalResponse
-        if let window {
-            response = await alert.beginSheetModal(for: window)
-        } else {
-            response = alert.runModal()
-        }
-        if response == .alertSecondButtonReturn {
-            LKInjectionService.shared.openLoginItemsSettings()
+            let response: NSApplication.ModalResponse
+            if let window {
+                response = await alert.beginSheetModal(for: window)
+            } else {
+                response = alert.runModal()
+            }
+
+            switch response {
+            case .alertFirstButtonReturn:
+                continue
+            case .alertSecondButtonReturn:
+                LKInjectionService.shared.openLoginItemsSettings()
+                return false
+            default:
+                return false
+            }
         }
     }
 

@@ -8,6 +8,8 @@ import ServiceManagement
 enum LKInjectionServiceError: LocalizedError {
     case daemonRegistrationFailed(String)
     case daemonRequiresApproval
+    case daemonBundleMissing
+    case unsupportedDaemonStatus(Int)
     case daemonNotEnabled(status: SMAppService.Status)
     case daemonUnreachable(String)
     case attachFailed(String)
@@ -23,6 +25,16 @@ enum LKInjectionServiceError: LocalizedError {
             return NSLocalizedString(
                 "The LookInside Injector daemon requires your approval.\nOpen System Settings → Login Items & Extensions, locate “LookInside Injector”, and turn it on, then try again.",
                 comment: ""
+            )
+        case .daemonBundleMissing:
+            return NSLocalizedString(
+                "The LookInside Injector daemon is missing from this app.\nPlease reinstall LookInside, then try again.",
+                comment: ""
+            )
+        case let .unsupportedDaemonStatus(rawValue):
+            return String(
+                format: NSLocalizedString("The LookInside Injector daemon returned an unsupported status (%d).", comment: ""),
+                rawValue
             )
         case let .daemonNotEnabled(status):
             return String(
@@ -70,6 +82,10 @@ final class LKInjectionService {
         await daemonInstaller.currentStatus
     }
 
+    func currentDaemonStatusSnapshot() async -> LKInjectionDaemonStatusSnapshot {
+        Self.statusSnapshot(await daemonInstaller.currentStatus)
+    }
+
     /// Registers the daemon via SMAppService if it is not already enabled.
     ///
     /// Outcomes:
@@ -86,7 +102,9 @@ final class LKInjectionService {
             return
         case .requiresApproval:
             throw LKInjectionServiceError.daemonRequiresApproval
-        case .notRegistered, .notFound:
+        case .notFound:
+            throw LKInjectionServiceError.daemonBundleMissing
+        case .notRegistered:
             do {
                 try await daemonInstaller.register()
             } catch {
@@ -96,8 +114,10 @@ final class LKInjectionService {
             switch newStatus {
             case .enabled:
                 return
-            case .requiresApproval, .notRegistered, .notFound:
+            case .requiresApproval, .notRegistered:
                 throw LKInjectionServiceError.daemonRequiresApproval
+            case .notFound:
+                throw LKInjectionServiceError.daemonBundleMissing
             @unknown default:
                 throw LKInjectionServiceError.daemonNotEnabled(status: newStatus)
             }
@@ -162,5 +182,20 @@ final class LKInjectionService {
             format: NSLocalizedString("Unable to read injector daemon plist: %@", comment: ""),
             daemonPlistName
         )
+    }
+
+    private static func statusSnapshot(_ status: SMAppService.Status) -> LKInjectionDaemonStatusSnapshot {
+        switch status {
+        case .notRegistered:
+            return .notRegistered
+        case .enabled:
+            return .enabled
+        case .requiresApproval:
+            return .requiresApproval
+        case .notFound:
+            return .notFound
+        @unknown default:
+            return .unknown(status.rawValue)
+        }
     }
 }

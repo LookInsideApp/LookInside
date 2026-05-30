@@ -5440,6 +5440,150 @@
           }
         }
       }
+    },
+    "Approve LookInside Injector" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approve LookInside Injector"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批准 LookInside 注入器"
+          }
+        }
+      }
+    },
+    "Check Again" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check Again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新检查"
+          }
+        }
+      }
+    },
+    "Enable LookInside Injector?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable LookInside Injector?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 LookInside 注入器？"
+          }
+        }
+      }
+    },
+    "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 需要先启用特权注入器，才能附加到其他进程。macOS 可能会要求管理员在系统设置中批准此操作。"
+          }
+        }
+      }
+    },
+    "Open System Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开系统设置"
+          }
+        }
+      }
+    },
+    "The LookInside Injector daemon is missing from this app.\\nPlease reinstall LookInside, then try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector daemon is missing from this app.\\nPlease reinstall LookInside, then try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 中缺少 LookInside 注入器守护进程。\\n请重新安装 LookInside，然后再试一次。"
+          }
+        }
+      }
+    },
+    "The LookInside Injector daemon returned an unsupported status (%d)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector daemon returned an unsupported status (%d)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 注入器守护进程返回了不支持的状态（%d）。"
+          }
+        }
+      }
+    },
+    "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return here and check again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return here and check again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 正在等待管理员批准后才能运行 LookInside 注入器。请打开“登录项与扩展”，启用 LookInside，然后回到这里重新检查。"
+          }
+        }
+      }
+    },
+    "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 正在等待管理员批准后才能运行 LookInside 注入器。请打开“登录项与扩展”，启用 LookInside，然后回到 LookInside 再点击“附加到运行中的 App”。"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

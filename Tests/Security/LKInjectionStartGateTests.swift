@@ -39,6 +39,27 @@ struct LKInjectionStartGateTests {
         }
         expect(restarted == .started, "gate can start after finish")
         expect(gateChecks == 3, "restart checks access")
+
+        expect(
+            LKInjectionDaemonReadiness.nextStep(for: .enabled) == .proceed,
+            "enabled daemon proceeds without prompting"
+        )
+        expect(
+            LKInjectionDaemonReadiness.nextStep(for: .notRegistered) == .requestRegistrationConsent,
+            "unregistered daemon asks for explicit user consent"
+        )
+        expect(
+            LKInjectionDaemonReadiness.nextStep(for: .requiresApproval) == .waitForApproval,
+            "pending daemon approval waits for system approval"
+        )
+        expect(
+            LKInjectionDaemonReadiness.nextStep(for: .notFound) == .reportMissingBundle,
+            "missing bundled daemon is reported as a damaged app bundle"
+        )
+        expect(
+            LKInjectionDaemonReadiness.nextStep(for: .unknown(42)) == .reportUnsupportedStatus(42),
+            "unknown daemon status is surfaced as unsupported"
+        )
     }
 
     private static func expect(_ condition: Bool, _ message: String) {

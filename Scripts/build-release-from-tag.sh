@@ -8,6 +8,9 @@ PROJECT_ROOT="$PWD"
 PROJECT_FILE="$PROJECT_ROOT/LookInside.xcodeproj"
 SCHEME="LookInside"
 CONFIGURATION="Release"
+HOST_BUNDLE_IDENTIFIER="com.lookinside-app.lookinside"
+INJECTOR_LABEL="app.lookinside.LookInsideInjector"
+INJECTOR_AUTHORIZED_TEAM_ID="964G86XT2P"
 KEYCHAIN_PROFILE="${KEYCHAIN_PROFILE:-}"
 RELEASE_BUILD_NUMBER="${RELEASE_BUILD_NUMBER:-0}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/LookInsideReleaseDerivedData}"
@@ -334,6 +337,38 @@ sign_nested_code() {
 	done
 }
 
+verify_injector_bundle_layout() {
+	local app_path="$1"
+	local injector_binary="$app_path/Contents/MacOS/lookinside-injector"
+	local injector_plist="$app_path/Contents/Library/LaunchDaemons/${INJECTOR_LABEL}.plist"
+	local plist_buddy="/usr/libexec/PlistBuddy"
+	local associated_bundle_identifier
+	local authorized_client
+	local bundle_program
+	local label
+	local mach_service_enabled
+
+	[[ -x "$injector_binary" ]] || fail "Injector daemon executable is not executable: $injector_binary"
+	[[ -f "$injector_plist" ]] || fail "Injector daemon launchd plist is missing: $injector_plist"
+
+	label="$("$plist_buddy" -c "Print :Label" "$injector_plist")"
+	[[ "$label" == "$INJECTOR_LABEL" ]] || fail "Injector launchd Label is $label, expected $INJECTOR_LABEL"
+
+	bundle_program="$("$plist_buddy" -c "Print :BundleProgram" "$injector_plist")"
+	[[ "$bundle_program" == "Contents/MacOS/lookinside-injector" ]] || fail "Injector BundleProgram is $bundle_program"
+
+	associated_bundle_identifier="$("$plist_buddy" -c "Print :AssociatedBundleIdentifiers:0" "$injector_plist")"
+	[[ "$associated_bundle_identifier" == "$HOST_BUNDLE_IDENTIFIER" ]] ||
+		fail "Injector AssociatedBundleIdentifiers[0] is $associated_bundle_identifier, expected $HOST_BUNDLE_IDENTIFIER"
+
+	mach_service_enabled="$("$plist_buddy" -c "Print :MachServices:${INJECTOR_LABEL}" "$injector_plist")"
+	[[ "$mach_service_enabled" == "true" ]] || fail "Injector MachServices entry is not enabled for $INJECTOR_LABEL"
+
+	authorized_client="identifier \"${HOST_BUNDLE_IDENTIFIER}\" and anchor apple generic and certificate leaf[subject.OU] = \"${INJECTOR_AUTHORIZED_TEAM_ID}\""
+	strings "$injector_binary" | grep -F "$authorized_client" >/dev/null ||
+		fail "Injector binary SMAuthorizedClients does not authorize $HOST_BUNDLE_IDENTIFIER for team $INJECTOR_AUTHORIZED_TEAM_ID"
+}
+
 package_cli() {
 	local cli_binary="$1"
 	local cli_zip="$2"
@@ -377,10 +412,8 @@ sign_app_bundle() {
 	chmod 755 "$app_path/Contents/MacOS/LookInside"
 	[[ -x "$app_path/Contents/MacOS/LookInside" ]] || fail "Main app executable is not executable: $app_path/Contents/MacOS/LookInside"
 
-	local injector_binary="$app_path/Contents/MacOS/lookinside-injector"
-	local injector_plist="$app_path/Contents/Library/LaunchDaemons/app.lookinside.LookInsideInjector.plist"
-	[[ -x "$injector_binary" ]] || fail "Injector daemon executable is not executable: $injector_binary"
-	[[ -f "$injector_plist" ]] || fail "Injector daemon launchd plist is missing: $injector_plist"
+	log "Verifying bundled injector daemon"
+	verify_injector_bundle_layout "$app_path"
 
 	log "Signing nested app code"
 	sign_nested_code "$app_path"
@@ -569,6 +602,7 @@ require_command security
 require_command spctl
 require_command find
 require_command file
+require_command strings
 
 mkdir -p "$ARCHIVE_ROOT"
 init_release_paths
