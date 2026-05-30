@@ -374,12 +374,13 @@ sign_app_bundle() {
 
 	[[ -f "$app_path/Contents/MacOS/LookInside" ]] || fail "Main app executable not found at $app_path/Contents/MacOS/LookInside"
 
-	local macos_entries
-	macos_entries="$(find "$app_path/Contents/MacOS" -maxdepth 1 -type f | wc -l | tr -d ' ')"
-	[[ "$macos_entries" == "1" ]] || fail "Expected exactly one executable in Contents/MacOS, found $macos_entries."
-
 	chmod 755 "$app_path/Contents/MacOS/LookInside"
 	[[ -x "$app_path/Contents/MacOS/LookInside" ]] || fail "Main app executable is not executable: $app_path/Contents/MacOS/LookInside"
+
+	local injector_binary="$app_path/Contents/MacOS/lookinside-injector"
+	local injector_plist="$app_path/Contents/Library/LaunchDaemons/app.lookinside.LookInsideInjector.plist"
+	[[ -x "$injector_binary" ]] || fail "Injector daemon executable is not executable: $injector_binary"
+	[[ -f "$injector_plist" ]] || fail "Injector daemon launchd plist is missing: $injector_plist"
 
 	log "Signing nested app code"
 	sign_nested_code "$app_path"
