@@ -145,6 +145,8 @@ jobs:
     env:
       SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
       RELEASE_BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+      GIT_TERMINAL_PROMPT: "0"
+      GCM_INTERACTIVE: "Never"
 
     steps:
       - name: Checkout
@@ -178,6 +180,19 @@ jobs:
           git clone --depth 1 \
             "https://x-access-token:${LOOKINSIDE_INJECTOR_READ_TOKEN}@github.com/LookInsideApp/LookInside-Injector.git" \
             ../LookInside-Injector
+
+      - name: Configure Private Package Access
+        env:
+          LOOKINSIDE_PRIVATE_READ_TOKEN: ${{ secrets.LOOKINSIDE_PRIVATE_READ_TOKEN || secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.LOOKINSIDE_INJECTOR_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${LOOKINSIDE_PRIVATE_READ_TOKEN}" ]]; then
+            echo "LOOKINSIDE_PRIVATE_READ_TOKEN, LOOKINSIDE_WEB_RELEASE_TOKEN, or LOOKINSIDE_INJECTOR_READ_TOKEN is required for private SwiftPM packages." >&2
+            exit 1
+          fi
+          git config --global \
+            url."https://x-access-token:${LOOKINSIDE_PRIVATE_READ_TOKEN}@github.com/LookInsideApp/".insteadOf \
+            "https://github.com/LookInsideApp/"
 
       - name: Generate Xcode Configuration
         run: |
