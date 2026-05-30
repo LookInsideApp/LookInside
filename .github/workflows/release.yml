@@ -202,7 +202,9 @@ jobs:
             --build-number "${RELEASE_BUILD_NUMBER}"
 
       - name: Archive App
-        timeout-minutes: 60
+        timeout-minutes: 30
+        env:
+          LOOKINSIDE_RAW_XCODEBUILD_LOG: "1"
         run: |
           bash Scripts/build-release-from-tag.sh \
             --tag "${{ needs.prepare.outputs.build_version }}" \

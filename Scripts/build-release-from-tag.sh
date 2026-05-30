@@ -114,6 +114,11 @@ load_keychain_secret_from_zshrc_if_needed() {
 }
 
 format_output() {
+	if [[ "${LOOKINSIDE_RAW_XCODEBUILD_LOG:-}" == "1" ]]; then
+		cat
+		return
+	fi
+
 	if command -v xcbeautify >/dev/null 2>&1; then
 		xcbeautify --disable-logging
 	else
