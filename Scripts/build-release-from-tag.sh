@@ -223,6 +223,11 @@ ensure_keychain_unlocked() {
 	log "Setting signing keychain as default for build step"
 	run_and_log_status "security default-keychain" security default-keychain -d user -s "$KEYCHAIN_PATH"
 
+	if [[ -z "${KEYCHAIN_SECRET:-}" ]]; then
+		log "KEYCHAIN_SECRET is not set; using current keychain unlock state"
+		return
+	fi
+
 	log "Unlocking signing keychain for build step"
 	run_and_log_status "security unlock-keychain" security unlock-keychain -p "$KEYCHAIN_SECRET" "$KEYCHAIN_PATH"
 	run_and_log_status "security set-keychain-settings" security set-keychain-settings -t 3600 -u "$KEYCHAIN_PATH"
