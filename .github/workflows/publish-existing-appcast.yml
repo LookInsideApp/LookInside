@@ -1,0 +1,167 @@
+name: Publish Existing Appcast
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to publish into the Sparkle appcast, for example 2.3.7.
+        required: true
+        type: string
+      asset_download_url:
+        description: HTTPS URL for the notarized LookInside app zip.
+        required: true
+        type: string
+      prune_appcast_versions:
+        description: Comma-separated versions to remove from the Sparkle appcast before signing.
+        required: false
+        default: ""
+        type: string
+      prune_appcast_deltas:
+        description: Remove existing Sparkle delta archives while pruning the appcast.
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-existing-appcast-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  publish_appcast:
+    if: github.actor == 'Lakr233'
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.5.0.app/Contents/Developer
+
+    steps:
+      - name: Validate Inputs
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_ACTOR}" != "Lakr233" ]]; then
+            echo "Only Lakr233 may run the Publish Existing Appcast workflow." >&2
+            exit 1
+          fi
+
+          VERSION="${{ inputs.version }}"
+          ASSET_DOWNLOAD_URL="${{ inputs.asset_download_url }}"
+          PRUNE_APPCAST_DELTAS="${{ inputs.prune_appcast_deltas }}"
+
+          if [[ ! "${VERSION}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version must match x.y.z or vX.Y.Z" >&2
+            exit 1
+          fi
+          if [[ ! "${ASSET_DOWNLOAD_URL}" =~ ^https:// ]]; then
+            echo "asset_download_url must be an HTTPS URL." >&2
+            exit 1
+          fi
+          if [[ "${PRUNE_APPCAST_DELTAS}" != "true" && "${PRUNE_APPCAST_DELTAS}" != "false" ]]; then
+            echo "prune_appcast_deltas must be true or false." >&2
+            exit 1
+          fi
+
+      - name: Checkout App Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: app
+
+      - name: Download Existing App Zip
+        id: artifact
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          app_zip="dist/LookInside-${{ inputs.version }}-macOS-app.zip"
+          curl -fsSL "${{ inputs.asset_download_url }}" -o "$app_zip"
+          shasum -a 256 "$app_zip" | tee dist/checksums.txt
+          echo "app_zip=$app_zip" >> "$GITHUB_OUTPUT"
+
+      - name: Validate Sparkle Publishing Secrets
+        env:
+          LOOKINSIDE_WEB_RELEASE_TOKEN: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
+          LOOKINSIDE_SECRETS_READ_TOKEN: ${{ secrets.LOOKINSIDE_SECRETS_READ_TOKEN }}
+          SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE: ${{ secrets.SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          [[ -n "$LOOKINSIDE_WEB_RELEASE_TOKEN" ]] || { echo "LOOKINSIDE_WEB_RELEASE_TOKEN secret is required." >&2; exit 1; }
+          [[ -n "$LOOKINSIDE_SECRETS_READ_TOKEN" ]] || { echo "LOOKINSIDE_SECRETS_READ_TOKEN secret is required." >&2; exit 1; }
+          [[ -n "$SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE" ]] || { echo "SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE secret is required." >&2; exit 1; }
+
+      - name: Checkout Web Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.WEB_TARGET_REPO }}
+          ref: main
+          path: web
+          token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
+
+      - name: Checkout Secrets Repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.SECRETS_SOURCE_REPO }}
+          ref: main
+          path: secrets
+          token: ${{ secrets.LOOKINSIDE_SECRETS_READ_TOKEN }}
+
+      - name: Export GitHub Release Notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release view "${{ inputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --json body \
+            --jq '.body // ""' > "$RUNNER_TEMP/release-notes.md"
+          if [[ ! -s "$RUNNER_TEMP/release-notes.md" ]]; then
+            printf '# LookInside %s\n\nSparkle update build.\n' "${{ inputs.version }}" > "$RUNNER_TEMP/release-notes.md"
+          fi
+
+      - name: Decrypt Sparkle Private Key
+        env:
+          SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE: ${{ secrets.SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          command -v gpg >/dev/null 2>&1 || brew install gnupg
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$SPARKLE_PRIVATE_KEY_GPG_PASSPHRASE" \
+            --decrypt secrets/sparkle/private-ed-key.txt.gpg > "$RUNNER_TEMP/sparkle-private-ed-key.txt"
+          chmod 600 "$RUNNER_TEMP/sparkle-private-ed-key.txt"
+
+      - name: Install Sparkle Tools
+        id: sparkle
+        run: |
+          set -euo pipefail
+          tools_dir="$(bash app/Scripts/install-sparkle-tools.sh --version 2.9.1)"
+          echo "tools_dir=$tools_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Publish Appcast Into Web Repository
+        env:
+          PRUNE_APPCAST_VERSIONS: ${{ inputs.prune_appcast_versions }}
+          PRUNE_APPCAST_DELTAS: ${{ inputs.prune_appcast_deltas }}
+        run: |
+          set -euo pipefail
+          bash app/Scripts/publish-sparkle-appcast-to-web.sh \
+            --web-dir web \
+            --app-zip "${{ steps.artifact.outputs.app_zip }}" \
+            --private-key-file "$RUNNER_TEMP/sparkle-private-ed-key.txt" \
+            --sparkle-tools-dir "${{ steps.sparkle.outputs.tools_dir }}" \
+            --release-notes-file "$RUNNER_TEMP/release-notes.md" \
+            --version "${{ inputs.version }}" \
+            --asset-download-url "${{ inputs.asset_download_url }}"
+
+      - name: Commit Web Appcast
+        working-directory: web
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/appcast.xml public/downloads/manifest.json public/downloads/lookinside
+          if git diff --cached --quiet; then
+            echo "No Web appcast changes to publish."
+            exit 0
+          fi
+          git commit -m "Publish LookInside ${{ inputs.version }} appcast"
+          git push origin HEAD:main
