@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
     " / " : {
       "comment" : "Separator between imported/autosaved CSV sources",
       "localizations" : {
