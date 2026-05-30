@@ -20,6 +20,11 @@ INJECTOR_REPO="$MONOREPO_DIR/LookInside-Injector"
 WORKSPACE="$INJECTOR_REPO/LookInsideInjector.xcworkspace"
 
 if [ ! -d "$INJECTOR_REPO" ]; then
+    if [ "${CONFIGURATION:-}" = "Release" ]; then
+        echo "error: LookInside-Injector repo not found at $INJECTOR_REPO" >&2
+        echo "       Release builds must embed the injector daemon and launchd plist." >&2
+        exit 1
+    fi
     echo "warning: LookInside-Injector repo not found at $INJECTOR_REPO" >&2
     echo "         (private/source-available; public contributors can ignore)" >&2
     exit 0
@@ -49,7 +54,7 @@ mkdir -p "$DERIVED_DATA"
 
 if [ ! -d "$WORKSPACE" ]; then
     if command -v mise >/dev/null 2>&1; then
-        (cd "$INJECTOR_REPO" && mise exec -- tuist generate --no-open)
+        (cd "$INJECTOR_REPO" && mise trust -y mise.toml >/dev/null && mise exec -- tuist generate --no-open)
     elif command -v tuist >/dev/null 2>&1; then
         (cd "$INJECTOR_REPO" && tuist generate --no-open)
     else

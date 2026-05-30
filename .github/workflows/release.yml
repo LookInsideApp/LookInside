@@ -166,6 +166,19 @@ jobs:
             exit 1
           fi
 
+      - name: Checkout Injector Daemon
+        env:
+          LOOKINSIDE_INJECTOR_READ_TOKEN: ${{ secrets.LOOKINSIDE_INJECTOR_READ_TOKEN || secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${LOOKINSIDE_INJECTOR_READ_TOKEN}" ]]; then
+            echo "LOOKINSIDE_INJECTOR_READ_TOKEN or LOOKINSIDE_WEB_RELEASE_TOKEN is required to checkout LookInside-Injector." >&2
+            exit 1
+          fi
+          git clone --depth 1 \
+            "https://x-access-token:${LOOKINSIDE_INJECTOR_READ_TOKEN}@github.com/LookInsideApp/LookInside-Injector.git" \
+            ../LookInside-Injector
+
       - name: Generate Xcode Configuration
         run: |
           bash Scripts/write-github-action-xcconfig.sh \
