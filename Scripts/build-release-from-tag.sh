@@ -104,6 +104,7 @@ load_keychain_secret_from_zshrc_if_needed() {
         source ~/.zshrc >/dev/null 2>&1 || true
         umask 077
         [[ -n "${KEYCHAIN_SECRET:-}" ]] && printf "%s" "$KEYCHAIN_SECRET" > "$1"
+        true
     ' zsh "$tmp_file"
 
 	if [[ -s "$tmp_file" ]]; then
