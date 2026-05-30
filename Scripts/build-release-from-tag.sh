@@ -218,7 +218,6 @@ ensure_keychain_unlocked() {
 	[[ -n "${KEYCHAIN_PATH:-}" ]] || fail "KEYCHAIN_PATH is not set."
 
 	load_keychain_secret_from_zshrc_if_needed
-	[[ -n "${KEYCHAIN_SECRET:-}" ]] || fail "KEYCHAIN_SECRET is required to unlock the signing keychain before signing."
 
 	log "Setting signing keychain as default for build step"
 	run_and_log_status "security default-keychain" security default-keychain -d user -s "$KEYCHAIN_PATH"
