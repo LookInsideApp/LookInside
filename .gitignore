@@ -48,4 +48,5 @@ LookInside/DerivedSource/*
 *~
 *.resolved
 !LookInside.xcworkspace/xcshareddata/swiftpm/Package.resolved
+!LookInside.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 .omc
