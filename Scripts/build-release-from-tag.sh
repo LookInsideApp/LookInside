@@ -390,6 +390,7 @@ archive_app_unsigned() {
 	local xcodebuild_args=(
 		-skipMacroValidation
 		-skipPackagePluginValidation
+		-disableAutomaticPackageResolution
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
 		-configuration "$CONFIGURATION"

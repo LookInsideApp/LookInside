@@ -202,7 +202,7 @@ jobs:
             --build-number "${RELEASE_BUILD_NUMBER}"
 
       - name: Archive App
-        timeout-minutes: 30
+        timeout-minutes: 75
         env:
           LOOKINSIDE_RAW_XCODEBUILD_LOG: "1"
         run: |
