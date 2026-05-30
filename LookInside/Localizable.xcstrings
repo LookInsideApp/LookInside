@@ -264,19 +264,84 @@
       }
     },
     "Attach" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附加"
+          }
+        }
+      }
     },
     "Attach to Running App" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach to Running App"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附加到运行中的 App"
+          }
+        }
+      }
     },
     "Attach to Running App…" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach to Running App…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附加到运行中的 App…"
+          }
+        }
+      }
     },
     "Attach to Running Process" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach to Running Process"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附加到运行中的进程"
+          }
+        }
+      }
     },
     "Attached" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attached"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已附加"
+          }
+        }
+      }
     },
     "Auth Server state file is not a JSON object." : {
       "localizations" : {
@@ -600,7 +665,20 @@
       }
     },
     "Code is signed by a different team.\nExpected: %1$@\nFound: %2$@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Code is signed by a different team.\nExpected: %1$@\nFound: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代码由其他团队签名。\n期望：%1$@\n实际：%2$@"
+          }
+        }
+      }
     },
     "Collapse children" : {
       "localizations" : {
@@ -1068,10 +1146,36 @@
       }
     },
     "Downloading LookInside Server Framework" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading LookInside Server Framework"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在下载 LookInside Server Framework"
+          }
+        }
+      }
     },
     "Downloading LookInside Server framework…" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading LookInside Server framework…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在下载 LookInside Server framework…"
+          }
+        }
+      }
     },
     "Downloading…" : {
       "localizations" : {
@@ -1122,7 +1226,20 @@
       }
     },
     "Enable LookInside Injector" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable LookInside Injector"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 LookInside 注入器"
+          }
+        }
+      }
     },
     "Enter a module name, comma-separated candidate words, and a maximum word count." : {
       "localizations" : {
@@ -1317,7 +1434,20 @@
       }
     },
     "Failed to download LookInside Server framework.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to download LookInside Server framework.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载 LookInside Server framework 失败。\n%@"
+          }
+        }
+      }
     },
     "Failed to extract LookInside Auth Server.\n%@" : {
       "localizations" : {
@@ -1336,7 +1466,20 @@
       }
     },
     "Failed to extract LookInside Server framework.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to extract LookInside Server framework.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解压 LookInside Server framework 失败。\n%@"
+          }
+        }
+      }
     },
     "Failed to get target object in iOS app" : {
       "localizations" : {
@@ -1355,7 +1498,20 @@
       }
     },
     "Failed to inject LookInsideServer.framework into the target process.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to inject LookInsideServer.framework into the target process.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 LookInsideServer.framework 注入目标进程失败。\n%@"
+          }
+        }
+      }
     },
     "Failed to install LookInside Auth Server.\n%@" : {
       "localizations" : {
@@ -1374,7 +1530,20 @@
       }
     },
     "Failed to install LookInside Server framework.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to install LookInside Server framework.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "安装 LookInside Server framework 失败。\n%@"
+          }
+        }
+      }
     },
     "Failed to launch swift-pd-guess: %@" : {
       "localizations" : {
@@ -1409,7 +1578,20 @@
       }
     },
     "Failed to register the LookInside Injector daemon.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to register the LookInside Injector daemon.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "注册 LookInside 注入器守护进程失败。\n%@"
+          }
+        }
+      }
     },
     "Failed to search related methods: " : {
       "localizations" : {
@@ -2790,7 +2972,20 @@
       }
     },
     "LookInside opened System Settings → Login Items & Extensions for you.\n\nFind “LookInside” in the list, turn it on, then come back and click Attach to Running App again." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside opened System Settings → Login Items & Extensions for you.\n\nFind “LookInside” in the list, turn it on, then come back and click Attach to Running App again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 已为你打开“系统设置”→“登录项与扩展”。\n\n在列表中找到“LookInside”，将它打开，然后回到 LookInside 再次点击“附加到运行中的 App”。"
+          }
+        }
+      }
     },
     "LookInside Pro" : {
       "localizations" : {
@@ -2841,10 +3036,36 @@
       }
     },
     "LookInside Server framework is signed by a different team.\nExpected: %1$@\nFound: %2$@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Server framework is signed by a different team.\nExpected: %1$@\nFound: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside Server framework 由其他团队签名。\n期望：%1$@\n实际：%2$@"
+          }
+        }
+      }
     },
     "LookInsideServer was injected into pid %d. The app should appear in the Launch list shortly." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInsideServer was injected into pid %d. The app should appear in the Launch list shortly."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInsideServer 已注入 pid %d。该 App 很快会出现在启动列表中。"
+          }
+        }
+      }
     },
     "Matched from %@." : {
       "localizations" : {
@@ -3295,7 +3516,20 @@
       }
     },
     "Open Settings Again" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings Again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次打开设置"
+          }
+        }
+      }
     },
     "Operation failed." : {
       "localizations" : {
@@ -3938,10 +4172,36 @@
       }
     },
     "Select a process to inject LookInsideServer into." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a process to inject LookInsideServer into."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择要注入 LookInsideServer 的进程。"
+          }
+        }
+      }
     },
     "Select a running app to inject LookInsideServer into." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a running app to inject LookInsideServer into."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择要注入 LookInsideServer 的运行中 App。"
+          }
+        }
+      }
     },
     "Select App" : {
       "localizations" : {
@@ -4298,7 +4558,20 @@
       }
     },
     "The downloaded archive did not contain a macOS slice of LookInsideServer.xcframework." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The downloaded archive did not contain a macOS slice of LookInsideServer.xcframework."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载的归档中不包含 LookInsideServer.xcframework 的 macOS slice。"
+          }
+        }
+      }
     },
     "The feature is not available in current mode." : {
       "localizations" : {
@@ -4350,10 +4623,36 @@
       }
     },
     "The LookInside Injector daemon is not enabled (status %@)." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector daemon is not enabled (status %@)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 注入器守护进程未启用（状态 %@）。"
+          }
+        }
+      }
     },
     "The LookInside Injector daemon requires your approval.\nOpen System Settings → Login Items & Extensions, locate “LookInside Injector”, and turn it on, then try again." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector daemon requires your approval.\nOpen System Settings → Login Items & Extensions, locate “LookInside Injector”, and turn it on, then try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 注入器守护进程需要你的批准。\n打开“系统设置”→“登录项与扩展”，找到“LookInside 注入器”并将它打开，然后重试。"
+          }
+        }
+      }
     },
     "The method was invoked successfully and no value was returned." : {
       "localizations" : {
@@ -4710,10 +5009,52 @@
       }
     },
     "Unable to reach the LookInside Injector daemon.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to reach the LookInside Injector daemon.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接到 LookInside 注入器守护进程。\n%@"
+          }
+        }
+      }
     },
     "Unable to read code signature.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to read code signature.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取代码签名。\n%@"
+          }
+        }
+      }
+    },
+    "Unable to read injector daemon plist: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to read injector daemon plist: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取注入守护进程配置：%@"
+          }
+        }
+      }
     },
     "Unable to read Swift files in %@." : {
       "localizations" : {
@@ -4748,7 +5089,20 @@
       }
     },
     "Unable to read the code signature of LookInside Server framework.\n%@" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unable to read the code signature of LookInside Server framework.\n%@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取 LookInside Server framework 的代码签名。\n%@"
+          }
+        }
+      }
     },
     "Unknown download failure." : {
       "localizations" : {

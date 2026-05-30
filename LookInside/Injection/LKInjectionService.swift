@@ -90,7 +90,7 @@ final class LKInjectionService {
             do {
                 try await daemonInstaller.register()
             } catch {
-                throw LKInjectionServiceError.daemonRegistrationFailed(error.localizedDescription)
+                throw LKInjectionServiceError.daemonRegistrationFailed(Self.registrationFailureMessage(from: error))
             }
             let newStatus = await daemonInstaller.currentStatus
             switch newStatus {
@@ -150,5 +150,17 @@ final class LKInjectionService {
         } catch {
             throw LKInjectionServiceError.daemonUnreachable(error.localizedDescription)
         }
+    }
+
+    private static func registrationFailureMessage(from error: Error) -> String {
+        let message = error.localizedDescription
+        let unreadablePlistPrefix = "Unable to read plist:"
+        guard message.localizedStandardContains(unreadablePlistPrefix) else {
+            return message
+        }
+        return String(
+            format: NSLocalizedString("Unable to read injector daemon plist: %@", comment: ""),
+            daemonPlistName
+        )
     }
 }
