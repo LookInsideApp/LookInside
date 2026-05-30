@@ -542,7 +542,7 @@ private final class LKSwiftUISupportAuthServerBridge {
 
     func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
         if Thread.isMainThread,
-           let mainThreadDecision = mainThreadProtectedFeatureAccessDecision(window: window)
+           let mainThreadDecision = mainThreadProtectedFeatureAccessDecision(window: window, presentsAlerts: true)
         {
             return mainThreadDecision
         }
@@ -588,14 +588,40 @@ private final class LKSwiftUISupportAuthServerBridge {
         }
     }
 
-    private func mainThreadProtectedFeatureAccessDecision(window: NSWindow?) -> Bool? {
+    func canUseProtectedFeatureWithoutPrompt() -> Bool {
+        if Thread.isMainThread,
+           let mainThreadDecision = mainThreadProtectedFeatureAccessDecision(window: nil, presentsAlerts: false)
+        {
+            return mainThreadDecision
+        }
+
+        switch currentActivationState {
+        case .activated:
+            return true
+        case .notActivated:
+            if hasPersistedLocalLicenseMaterial() {
+                refreshActivationStateInBackground()
+            }
+            return false
+        case .unknown:
+            guard hasPersistedLocalLicenseMaterial() else {
+                return false
+            }
+            refreshActivationStateInBackground()
+            return true
+        }
+    }
+
+    private func mainThreadProtectedFeatureAccessDecision(window: NSWindow?, presentsAlerts: Bool) -> Bool? {
         switch currentActivationState {
         case .activated:
             return true
         case .notActivated:
             guard hasPersistedLocalLicenseMaterial() else {
-                let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
-                presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                if presentsAlerts {
+                    let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
+                    presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                }
                 return false
             }
             LKSwiftUISupportLogger.authServer.info(
@@ -605,8 +631,10 @@ private final class LKSwiftUISupportAuthServerBridge {
             return false
         case .unknown:
             guard hasPersistedLocalLicenseMaterial() else {
-                let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
-                presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                if presentsAlerts {
+                    let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
+                    presentAccessAlert(title: payload.title, detail: payload.message, window: window)
+                }
                 return false
             }
             LKSwiftUISupportLogger.authServer.info(
@@ -1246,6 +1274,11 @@ public final class LKSwiftUISupportGatekeeper: NSObject {
     @objc(allowProtectedFeatureAccessForWindow:)
     public func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
         runtimeBridge.allowProtectedFeatureAccess(for: window)
+    }
+
+    @objc(canUseProtectedFeatureWithoutPrompt)
+    public func canUseProtectedFeatureWithoutPrompt() -> Bool {
+        runtimeBridge.canUseProtectedFeatureWithoutPrompt()
     }
 
     public var activationState: LKSwiftUISupportActivationState {

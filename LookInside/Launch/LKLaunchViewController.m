@@ -111,6 +111,9 @@
 }
 
 - (void)_handleAttachToRunningAppClick:(id)sender {
+    if (![[LKSwiftUISupportGatekeeper sharedInstance] allowProtectedFeatureAccessForWindow:self.window]) {
+        return;
+    }
     [[LKInjectionFlow sharedInstance] startFromWindow:self.window];
 }
 

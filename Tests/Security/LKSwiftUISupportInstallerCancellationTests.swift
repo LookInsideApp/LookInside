@@ -3,7 +3,7 @@ import Foundation
 @main
 struct LKSwiftUISupportInstallerCancellationTests {
     static func main() throws {
-        let cancellation = LKSwiftUISupportInstallerCancellation()
+        let cancellation = LKInstallerCancellation()
         expect(cancellation.isCancelled == false, "starts active")
 
         cancellation.cancel()
@@ -46,7 +46,7 @@ struct LKSwiftUISupportInstallerCancellationTests {
     private static func expectThrowsCancelled(_ message: String, _ body: () throws -> Void) {
         do {
             try body()
-        } catch LKSwiftUISupportInstallerError.cancelled {
+        } catch is LKInstallerCancelled {
             return
         } catch {
             FileHandle.standardError.write(Data("FAIL: \(message): \(error)\n".utf8))

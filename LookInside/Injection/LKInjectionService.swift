@@ -118,6 +118,11 @@ final class LKInjectionService {
     /// 1. Resolved a valid macOS-slice dylib URL inside an installed
     ///    `LookInsideServer.framework` (see `LKInjectableFrameworkInstaller`).
     /// 2. Confirmed daemon enablement via `registerDaemonIfNeeded()`.
+    ///
+    /// LookInside Pro gating is enforced in the host before this service is
+    /// reached. This daemon/XPC boundary is not a hard license-enforcement
+    /// layer in v1; adding daemon-side proof validation is a separate protocol
+    /// change.
     func attach(pid: pid_t, dylibURL: URL) async throws {
         try await ensureConnectedToTool()
         do {

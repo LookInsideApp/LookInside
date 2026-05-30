@@ -195,6 +195,7 @@
 				Injection/LKInjectableFrameworkInstaller.swift,
 				Injection/LKInjectionFlow.swift,
 				Injection/LKInjectionService.swift,
+				Injection/LKInjectionStartGate.swift,
 				Injection/LKInjectionTargetPicker.swift,
 				Launch/LKLaunchAppView.m,
 				Launch/LKLaunchViewController.m,

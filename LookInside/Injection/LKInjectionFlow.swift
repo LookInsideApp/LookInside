@@ -19,15 +19,17 @@ final class LKInjectionFlow: NSObject {
     @objc(sharedInstance) static let shared = LKInjectionFlow()
 
     private var picker: LKInjectionTargetPicker?
-    private var inProgress = false
+    private var startGate = LKInjectionStartGate()
 
     @objc func startFromWindow(_ window: NSWindow?) {
-        guard !inProgress else { return }
-        inProgress = true
+        let decision = startGate.begin {
+            LKSwiftUISupportGatekeeper.sharedInstance().canUseProtectedFeatureWithoutPrompt()
+        }
+        guard decision == .started else { return }
 
         Task { @MainActor in
             await self.runFlow(presentingWindow: window)
-            self.inProgress = false
+            self.startGate.finish()
         }
     }
 

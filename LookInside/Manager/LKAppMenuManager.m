@@ -532,6 +532,9 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     // privileged lookinside-injector daemon. Driven from LKInjectionFlow on
     // the Swift side; we just hand it the current key window for sheet
     // attachment.
+    if (![[LKSwiftUISupportGatekeeper sharedInstance] allowProtectedFeatureAccessForWindow:NSApp.keyWindow]) {
+        return;
+    }
     [[LKInjectionFlow sharedInstance] startFromWindow:NSApp.keyWindow];
 }
 
