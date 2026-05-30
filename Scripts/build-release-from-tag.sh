@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.."
 
 PROJECT_ROOT="$PWD"
 PROJECT_FILE="$PROJECT_ROOT/LookInside.xcodeproj"
+WORKSPACE_FILE="$PROJECT_ROOT/LookInside.xcworkspace"
 SCHEME="LookInside"
 CONFIGURATION="Release"
 HOST_BUNDLE_IDENTIFIER="com.lookinside-app.lookinside"
@@ -388,7 +389,8 @@ archive_app_unsigned() {
 	local built_app_path="$app_products_dir/LookInside.app"
 	local xcodebuild_args=(
 		-skipMacroValidation
-		-project "$PROJECT_FILE"
+		-skipPackagePluginValidation
+		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
 		-configuration "$CONFIGURATION"
 		-destination "generic/platform=macOS"
