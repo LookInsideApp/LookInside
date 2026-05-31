@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PROJECT_ROOT="$PWD"
-PROJECT_FILE="$PROJECT_ROOT/LookInside.xcodeproj"
+WORKSPACE_FILE="$PROJECT_ROOT/LookInside.xcworkspace"
 SCHEME="LookInside"
 CONFIGURATION="Release"
 HOST_BUNDLE_IDENTIFIER="com.lookinside-app.lookinside"
@@ -177,7 +177,7 @@ normalize_tag_version() {
 build_setting() {
 	local key="$1"
 	xcodebuild \
-		-project "$PROJECT_FILE" \
+		-workspace "$WORKSPACE_FILE" \
 		-scheme "$SCHEME" \
 		-configuration "$CONFIGURATION" \
 		-showBuildSettings 2>/dev/null |
@@ -472,7 +472,7 @@ archive_app_unsigned() {
 		-onlyUsePackageVersionsFromResolvedFile
 		-skipPackageUpdates
 		-scmProvider system
-		-project "$PROJECT_FILE"
+		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
 		-configuration "$CONFIGURATION"
 		-destination "generic/platform=macOS"
