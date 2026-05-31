@@ -212,6 +212,7 @@ jobs:
         env:
           LOOKINSIDE_RAW_XCODEBUILD_LOG: "1"
           PACKAGE_AUTH_PROVIDER: netrc
+          PACKAGE_SCM_PROVIDER: xcode
         run: |
           bash Scripts/build-release-from-tag.sh \
             --tag "${{ needs.prepare.outputs.build_version }}" \

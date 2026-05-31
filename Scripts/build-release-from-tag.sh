@@ -17,6 +17,7 @@ RELEASE_BUILD_NUMBER="${RELEASE_BUILD_NUMBER:-0}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/LookInsideReleaseDerivedData}"
 SOURCE_PACKAGES_PATH="${SOURCE_PACKAGES_PATH:-$DERIVED_DATA_PATH/SourcePackages}"
 PACKAGE_AUTH_PROVIDER="${PACKAGE_AUTH_PROVIDER:-}"
+PACKAGE_SCM_PROVIDER="${PACKAGE_SCM_PROVIDER:-system}"
 ARCHIVE_ROOT=""
 RAW_TAG=""
 RELEASE_VERSION=""
@@ -475,7 +476,7 @@ archive_app_unsigned() {
 		-skipPackageSignatureValidation
 		-packageFingerprintPolicy warn
 		-packageSigningEntityPolicy warn
-		-scmProvider system
+		-scmProvider "$PACKAGE_SCM_PROVIDER"
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
 		-configuration "$CONFIGURATION"
@@ -491,7 +492,7 @@ archive_app_unsigned() {
 		-skipPackageSignatureValidation
 		-packageFingerprintPolicy warn
 		-packageSigningEntityPolicy warn
-		-scmProvider system
+		-scmProvider "$PACKAGE_SCM_PROVIDER"
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
 		-configuration "$CONFIGURATION"
