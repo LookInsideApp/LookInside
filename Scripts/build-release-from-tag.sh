@@ -471,6 +471,9 @@ archive_app_unsigned() {
 		-skipPackagePluginValidation
 		-skipPackageUpdates
 		-disablePackageRepositoryCache
+		-skipPackageSignatureValidation
+		-packageFingerprintPolicy warn
+		-packageSigningEntityPolicy warn
 		-scmProvider system
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
@@ -484,6 +487,9 @@ archive_app_unsigned() {
 		-onlyUsePackageVersionsFromResolvedFile
 		-skipPackageUpdates
 		-disablePackageRepositoryCache
+		-skipPackageSignatureValidation
+		-packageFingerprintPolicy warn
+		-packageSigningEntityPolicy warn
 		-scmProvider system
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
