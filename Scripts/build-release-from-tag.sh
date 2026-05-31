@@ -470,6 +470,7 @@ archive_app_unsigned() {
 		-skipMacroValidation
 		-skipPackagePluginValidation
 		-skipPackageUpdates
+		-disablePackageRepositoryCache
 		-scmProvider system
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
@@ -482,6 +483,7 @@ archive_app_unsigned() {
 		-disableAutomaticPackageResolution
 		-onlyUsePackageVersionsFromResolvedFile
 		-skipPackageUpdates
+		-disablePackageRepositoryCache
 		-scmProvider system
 		-workspace "$WORKSPACE_FILE"
 		-scheme "$SCHEME"
