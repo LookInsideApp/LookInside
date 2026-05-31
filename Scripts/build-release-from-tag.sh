@@ -16,6 +16,7 @@ KEYCHAIN_PROFILE="${KEYCHAIN_PROFILE:-}"
 RELEASE_BUILD_NUMBER="${RELEASE_BUILD_NUMBER:-0}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/LookInsideReleaseDerivedData}"
 SOURCE_PACKAGES_PATH="${SOURCE_PACKAGES_PATH:-$DERIVED_DATA_PATH/SourcePackages}"
+PACKAGE_AUTH_PROVIDER="${PACKAGE_AUTH_PROVIDER:-}"
 ARCHIVE_ROOT=""
 RAW_TAG=""
 RELEASE_VERSION=""
@@ -502,6 +503,11 @@ archive_app_unsigned() {
 
 	if [[ -n "${SPARKLE_PUBLIC_ED_KEY:-}" ]]; then
 		xcodebuild_args+=(SPARKLE_PUBLIC_ED_KEY="$SPARKLE_PUBLIC_ED_KEY")
+	fi
+
+	if [[ -n "$PACKAGE_AUTH_PROVIDER" ]]; then
+		resolve_args+=(-packageAuthorizationProvider "$PACKAGE_AUTH_PROVIDER")
+		xcodebuild_args+=(-packageAuthorizationProvider "$PACKAGE_AUTH_PROVIDER")
 	fi
 
 	rm -rf "$archive_path" "$DERIVED_DATA_PATH"

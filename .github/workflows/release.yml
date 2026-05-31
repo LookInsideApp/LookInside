@@ -194,6 +194,12 @@ jobs:
           git config --global \
             url."https://x-access-token:${LOOKINSIDE_PRIVATE_READ_TOKEN}@github.com/LookInsideApp/".insteadOf \
             "https://github.com/LookInsideApp/"
+          cat > ~/.netrc <<EOF
+          machine github.com
+            login x-access-token
+            password ${LOOKINSIDE_PRIVATE_READ_TOKEN}
+          EOF
+          chmod 600 ~/.netrc
 
       - name: Generate Xcode Configuration
         run: |
@@ -205,6 +211,7 @@ jobs:
         timeout-minutes: 75
         env:
           LOOKINSIDE_RAW_XCODEBUILD_LOG: "1"
+          PACKAGE_AUTH_PROVIDER: netrc
         run: |
           bash Scripts/build-release-from-tag.sh \
             --tag "${{ needs.prepare.outputs.build_version }}" \
