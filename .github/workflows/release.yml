@@ -140,7 +140,7 @@ jobs:
 
   build_package:
     needs: prepare
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     timeout-minutes: 90
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.5.0.app/Contents/Developer
@@ -228,7 +228,7 @@ jobs:
 
   sign_notarize_app:
     needs: [prepare, build_package]
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     timeout-minutes: 60
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.5.0.app/Contents/Developer
@@ -335,7 +335,7 @@ jobs:
   publish_appcast:
     needs: [prepare, collect_release]
     if: needs.prepare.outputs.publish_appcast == 'true'
-    runs-on: macos-26-xlarge
+    runs-on: macos-26
     timeout-minutes: 30
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.5.0.app/Contents/Developer

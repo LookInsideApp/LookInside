@@ -15,6 +15,7 @@ DEVELOPER_ID_APPLICATION_REQUIREMENT="anchor apple generic and certificate leaf[
 KEYCHAIN_PROFILE="${KEYCHAIN_PROFILE:-}"
 RELEASE_BUILD_NUMBER="${RELEASE_BUILD_NUMBER:-0}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/LookInsideReleaseDerivedData}"
+SOURCE_PACKAGES_PATH="${SOURCE_PACKAGES_PATH:-$DERIVED_DATA_PATH/SourcePackages}"
 ARCHIVE_ROOT=""
 RAW_TAG=""
 RELEASE_VERSION=""
@@ -465,6 +466,16 @@ archive_app_unsigned() {
 	local archive_path="$1"
 	local app_products_dir="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION"
 	local built_app_path="$app_products_dir/LookInside.app"
+	local resolve_args=(
+		-skipMacroValidation
+		-skipPackagePluginValidation
+		-skipPackageUpdates
+		-scmProvider system
+		-workspace "$WORKSPACE_FILE"
+		-scheme "$SCHEME"
+		-configuration "$CONFIGURATION"
+		-clonedSourcePackagesDirPath "$SOURCE_PACKAGES_PATH"
+	)
 	local xcodebuild_args=(
 		-skipMacroValidation
 		-skipPackagePluginValidation
@@ -477,6 +488,7 @@ archive_app_unsigned() {
 		-configuration "$CONFIGURATION"
 		-destination "generic/platform=macOS"
 		-derivedDataPath "$DERIVED_DATA_PATH"
+		-clonedSourcePackagesDirPath "$SOURCE_PACKAGES_PATH"
 		CODE_SIGNING_ALLOWED=NO
 	)
 
@@ -488,6 +500,9 @@ archive_app_unsigned() {
 
 	log "Syncing derived source mirror"
 	bash Scripts/sync-derived-source.sh
+
+	log "Resolving Swift package dependencies"
+	xcodebuild "${resolve_args[@]}" -resolvePackageDependencies 2>&1 | format_output
 
 	log "Building app without Xcode signing"
 	xcodebuild "${xcodebuild_args[@]}" build 2>&1 | format_output
