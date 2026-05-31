@@ -213,6 +213,7 @@ jobs:
       - name: Archive App
         timeout-minutes: 75
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           LOOKINSIDE_RAW_XCODEBUILD_LOG: "1"
           PACKAGE_AUTH_PROVIDER: netrc
           PACKAGE_SCM_PROVIDER: xcode
