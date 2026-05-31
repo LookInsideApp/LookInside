@@ -9,6 +9,7 @@ enum LKInjectionServiceError: LocalizedError {
     case daemonRegistrationFailed(String)
     case daemonRequiresApproval
     case daemonBundleMissing
+    case daemonUnavailableFromCurrentLocation
     case unsupportedDaemonStatus(Int)
     case daemonNotEnabled(status: SMAppService.Status)
     case daemonUnreachable(String)
@@ -29,6 +30,11 @@ enum LKInjectionServiceError: LocalizedError {
         case .daemonBundleMissing:
             return NSLocalizedString(
                 "The LookInside Injector daemon is missing from this app.\nPlease reinstall LookInside, then try again.",
+                comment: ""
+            )
+        case .daemonUnavailableFromCurrentLocation:
+            return NSLocalizedString(
+                "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again.",
                 comment: ""
             )
         case let .unsupportedDaemonStatus(rawValue):
@@ -90,13 +96,13 @@ final class LKInjectionService {
     ///
     /// Outcomes:
     /// - `.enabled` already: returns immediately.
-    /// - `.notRegistered` / `.notFound`: calls `register()`. If the resulting
-    ///   status is `.enabled` returns; if it is `.requiresApproval` throws
-    ///   `.daemonRequiresApproval`.
+    /// - `.notRegistered` / `.notFound` with bundled assets in `/Applications`:
+    ///   calls `register()`. If the resulting status is `.enabled` returns; if
+    ///   it is `.requiresApproval` throws `.daemonRequiresApproval`.
     /// - `.requiresApproval` already: throws `.daemonRequiresApproval` so the
     ///   caller can point the user to System Settings.
     func registerDaemonIfNeeded() async throws {
-        let status = await daemonInstaller.currentStatus
+        let status = await currentDaemonStatusSnapshot()
         switch status {
         case .enabled:
             return
@@ -104,13 +110,15 @@ final class LKInjectionService {
             throw LKInjectionServiceError.daemonRequiresApproval
         case .notFound:
             throw LKInjectionServiceError.daemonBundleMissing
+        case .unavailableFromCurrentLocation:
+            throw LKInjectionServiceError.daemonUnavailableFromCurrentLocation
         case .notRegistered:
             do {
                 try await daemonInstaller.register()
             } catch {
                 throw LKInjectionServiceError.daemonRegistrationFailed(Self.registrationFailureMessage(from: error))
             }
-            let newStatus = await daemonInstaller.currentStatus
+            let newStatus = await currentDaemonStatusSnapshot()
             switch newStatus {
             case .enabled:
                 return
@@ -118,11 +126,13 @@ final class LKInjectionService {
                 throw LKInjectionServiceError.daemonRequiresApproval
             case .notFound:
                 throw LKInjectionServiceError.daemonBundleMissing
-            @unknown default:
-                throw LKInjectionServiceError.daemonNotEnabled(status: newStatus)
+            case .unavailableFromCurrentLocation:
+                throw LKInjectionServiceError.daemonUnavailableFromCurrentLocation
+            case let .unknown(rawValue):
+                throw LKInjectionServiceError.unsupportedDaemonStatus(rawValue)
             }
-        @unknown default:
-            throw LKInjectionServiceError.daemonNotEnabled(status: status)
+        case let .unknown(rawValue):
+            throw LKInjectionServiceError.unsupportedDaemonStatus(rawValue)
         }
     }
 
@@ -193,9 +203,42 @@ final class LKInjectionService {
         case .requiresApproval:
             return .requiresApproval
         case .notFound:
-            return .notFound
+            guard bundledDaemonAssetsArePresent() else {
+                return .notFound
+            }
+            guard isRunningFromLocalApplicationsDirectory() else {
+                return .unavailableFromCurrentLocation
+            }
+            return .notRegistered
         @unknown default:
             return .unknown(status.rawValue)
         }
+    }
+
+    private static func bundledDaemonAssetsArePresent() -> Bool {
+        let fileManager = FileManager.default
+        return fileManager.isReadableFile(atPath: bundledDaemonPlistURL.path)
+            && fileManager.isExecutableFile(atPath: bundledDaemonExecutableURL.path)
+    }
+
+    private static var bundledDaemonPlistURL: URL {
+        Bundle.main.bundleURL
+            .appendingPathComponent("Contents/Library/LaunchDaemons", isDirectory: true)
+            .appendingPathComponent(daemonPlistName, isDirectory: false)
+    }
+
+    private static var bundledDaemonExecutableURL: URL {
+        Bundle.main.bundleURL
+            .appendingPathComponent("Contents/MacOS", isDirectory: true)
+            .appendingPathComponent("lookinside-injector", isDirectory: false)
+    }
+
+    private static func isRunningFromLocalApplicationsDirectory() -> Bool {
+        guard let applicationsURL = FileManager.default.urls(for: .applicationDirectory, in: .localDomainMask).first else {
+            return false
+        }
+        let applicationsPath = applicationsURL.standardizedFileURL.path
+        let bundlePath = Bundle.main.bundleURL.standardizedFileURL.path
+        return bundlePath.hasPrefix(applicationsPath + "/")
     }
 }

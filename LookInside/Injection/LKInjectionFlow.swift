@@ -97,6 +97,10 @@ final class LKInjectionFlow: NSObject {
                 presentAlert(error: LKInjectionServiceError.daemonBundleMissing, window: window)
                 return false
 
+            case .reportCurrentLocationUnsupported:
+                presentAlert(error: LKInjectionServiceError.daemonUnavailableFromCurrentLocation, window: window)
+                return false
+
             case let .reportUnsupportedStatus(rawValue):
                 presentAlert(error: LKInjectionServiceError.unsupportedDaemonStatus(rawValue), window: window)
                 return false
@@ -157,6 +161,9 @@ final class LKInjectionFlow: NSObject {
                 return true
             case .reportMissingBundle:
                 presentAlert(error: LKInjectionServiceError.daemonBundleMissing, window: window)
+                return false
+            case .reportCurrentLocationUnsupported:
+                presentAlert(error: LKInjectionServiceError.daemonUnavailableFromCurrentLocation, window: window)
                 return false
             case .requestRegistrationConsent:
                 return false

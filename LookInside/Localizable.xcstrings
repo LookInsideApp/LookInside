@@ -5534,6 +5534,22 @@
         }
       }
     },
+    "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 注入器已包含在 App 中，但 macOS 只能从已安装的 App 启用它。请将 LookInside 移到“应用程序”文件夹，重新启动后再点击“附加到运行中的 App”。"
+          }
+        }
+      }
+    },
     "The LookInside Injector daemon returned an unsupported status (%d)." : {
       "localizations" : {
         "en" : {

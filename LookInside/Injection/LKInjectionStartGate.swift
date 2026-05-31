@@ -30,6 +30,7 @@ enum LKInjectionDaemonStatusSnapshot: Equatable {
     case enabled
     case requiresApproval
     case notFound
+    case unavailableFromCurrentLocation
     case unknown(Int)
 }
 
@@ -38,6 +39,7 @@ enum LKInjectionDaemonNextStep: Equatable {
     case requestRegistrationConsent
     case waitForApproval
     case reportMissingBundle
+    case reportCurrentLocationUnsupported
     case reportUnsupportedStatus(Int)
 }
 
@@ -52,6 +54,8 @@ struct LKInjectionDaemonReadiness {
             return .waitForApproval
         case .notFound:
             return .reportMissingBundle
+        case .unavailableFromCurrentLocation:
+            return .reportCurrentLocationUnsupported
         case let .unknown(rawValue):
             return .reportUnsupportedStatus(rawValue)
         }

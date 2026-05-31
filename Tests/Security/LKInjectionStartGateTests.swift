@@ -57,6 +57,10 @@ struct LKInjectionStartGateTests {
             "missing bundled daemon is reported as a damaged app bundle"
         )
         expect(
+            LKInjectionDaemonReadiness.nextStep(for: .unavailableFromCurrentLocation) == .reportCurrentLocationUnsupported,
+            "bundled daemon outside /Applications reports an unsupported app location"
+        )
+        expect(
             LKInjectionDaemonReadiness.nextStep(for: .unknown(42)) == .reportUnsupportedStatus(42),
             "unknown daemon status is surfaced as unsupported"
         )
