@@ -12,6 +12,7 @@ CONFIGURATION="Release"
 REMOTE="origin"
 KEYCHAIN_PROFILE="${KEYCHAIN_PROFILE:-Lakr233}"
 RELEASE_TITLE="${RELEASE_TITLE:-automatic release}"
+DEVELOPER_ID_APPLICATION_REQUIREMENT="anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists"
 SKIP_TESTS=false
 SKIP_NOTARIZE=false
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-}"
@@ -231,6 +232,99 @@ verify_codesign() {
 	codesign --verify --deep --strict --verbose=2 "$app_path"
 }
 
+is_mach_o_file() {
+	local path="$1"
+	file -b "$path" 2>/dev/null | grep -q "Mach-O"
+}
+
+path_contains_symlink() {
+	local path="$1"
+	local root="${2:-}"
+	local current="$path"
+
+	if [[ -n "$root" ]]; then
+		while [[ "$current" == "$root" || "$current" == "$root/"* ]]; do
+			[[ -L "$current" ]] && return 0
+			[[ "$current" == "$root" ]] && break
+			current="$(dirname "$current")"
+		done
+		return 1
+	fi
+
+	while [[ "$current" != "/" && "$current" != "." ]]; do
+		[[ -L "$current" ]] && return 0
+		current="$(dirname "$current")"
+	done
+
+	return 1
+}
+
+should_skip_nested_code_path() {
+	local path="$1"
+	local root="${2:-}"
+
+	[[ "$path" == *"/Versions/Current"* ]] && return 0
+	path_contains_symlink "$path" "$root"
+}
+
+remove_legacy_code_resources() {
+	local app_path="$1"
+	local legacy_code_resources="$app_path/Contents/CodeResources"
+
+	if [[ -e "$legacy_code_resources" || -L "$legacy_code_resources" ]]; then
+		log "Removing legacy code signature resource envelope: ${legacy_code_resources#$PROJECT_ROOT/}"
+		rm -f "$legacy_code_resources"
+	fi
+}
+
+verify_developer_id_signature() {
+	local path="$1"
+
+	log "Verifying Developer ID signature: ${path#$PROJECT_ROOT/}"
+	codesign \
+		--verify \
+		--strict \
+		--verbose=2 \
+		-R="$DEVELOPER_ID_APPLICATION_REQUIREMENT" \
+		"$path"
+}
+
+verify_developer_id_signatures() {
+	local app_path="$1"
+	local legacy_code_resources="$app_path/Contents/CodeResources"
+	local signed_paths_file
+	local candidate
+
+	[[ ! -e "$legacy_code_resources" && ! -L "$legacy_code_resources" ]] ||
+		fail "Legacy code signature resource envelope is present: $legacy_code_resources"
+
+	signed_paths_file="$(mktemp "${TMPDIR:-/tmp}/lookinside-signed-code.XXXXXX")"
+
+	printf "%s\n" "$app_path" >>"$signed_paths_file"
+
+	while IFS= read -r candidate; do
+		should_skip_nested_code_path "$candidate" "$app_path/Contents" && continue
+		printf "%s\n" "$candidate" >>"$signed_paths_file"
+	done < <(
+		find "$app_path/Contents" -type d \
+			\( -name "*.app" -o -name "*.appex" -o -name "*.bundle" -o -name "*.framework" -o -name "*.xpc" \) \
+			-print
+	)
+
+	while IFS= read -r candidate; do
+		should_skip_nested_code_path "$candidate" "$app_path/Contents" && continue
+		if is_mach_o_file "$candidate"; then
+			printf "%s\n" "$candidate" >>"$signed_paths_file"
+		fi
+	done < <(find "$app_path/Contents" -type f -print)
+
+	while IFS= read -r candidate; do
+		verify_developer_id_signature "$candidate"
+	done < <(sort -u "$signed_paths_file")
+
+	rm -f "$signed_paths_file"
+}
+
 notarize_app() {
 	local app_path="$1"
 	local zip_path="$2"
@@ -255,7 +349,13 @@ notarize_app() {
 verify_spctl() {
 	local app_path="$1"
 	if [[ "$SKIP_NOTARIZE" == "true" ]]; then
-		log "Skipping spctl assessment because notarization was skipped"
+		log "Skipping distribution policy assessment because notarization was skipped"
+		return
+	fi
+
+	if command -v syspolicy_check >/dev/null 2>&1; then
+		log "Running syspolicy_check distribution assessment"
+		syspolicy_check distribution "$app_path"
 		return
 	fi
 
@@ -302,6 +402,8 @@ require_command xcrun
 require_command gh
 require_command security
 require_command ditto
+require_command find
+require_command file
 
 ensure_clean_worktree
 
@@ -362,7 +464,9 @@ log "Using signing identity: $IDENTITY"
 create_archive "$ARCHIVE_PATH" "$IDENTITY"
 [[ -d "$APP_PATH" ]] || fail "Archived app not found at $APP_PATH"
 
+remove_legacy_code_resources "$APP_PATH"
 verify_codesign "$APP_PATH"
+verify_developer_id_signatures "$APP_PATH"
 notarize_app "$APP_PATH" "$RELEASE_ZIP"
 verify_spctl "$APP_PATH"
 repack_release_zip "$APP_PATH" "$RELEASE_ZIP"

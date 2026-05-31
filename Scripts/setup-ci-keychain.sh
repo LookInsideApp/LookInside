@@ -114,6 +114,7 @@ load_secrets_from_zshrc_if_needed() {
         umask 077
         [[ -n "${KEYCHAIN_CONTENT_GZIP:-}" ]] && printf "%s" "$KEYCHAIN_CONTENT_GZIP" > "$1/content"
         [[ -n "${KEYCHAIN_SECRET:-}" ]] && printf "%s" "$KEYCHAIN_SECRET" > "$1/secret"
+        true
     ' zsh "$tmp_dir"
 
 	if [[ -z "${KEYCHAIN_CONTENT_GZIP:-}" && -f "$tmp_dir/content" ]]; then
@@ -127,6 +128,13 @@ load_secrets_from_zshrc_if_needed() {
 }
 
 restore_keychain() {
+	if [[ -z "${KEYCHAIN_CONTENT_GZIP:-}" && -z "${KEYCHAIN_SECRET:-}" ]]; then
+		KEYCHAIN_PATH="$(security default-keychain -d user 2>/dev/null | sed 's/^ *"//; s/"$//')"
+		[[ -n "$KEYCHAIN_PATH" ]] || fail "Unable to detect current default keychain."
+		log "Using current default keychain because CI keychain secrets are not set"
+		return
+	fi
+
 	[[ -n "${KEYCHAIN_CONTENT_GZIP:-}" ]] || fail "KEYCHAIN_CONTENT_GZIP is not set."
 	[[ -n "${KEYCHAIN_SECRET:-}" ]] || fail "KEYCHAIN_SECRET is not set."
 

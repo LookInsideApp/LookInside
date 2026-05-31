@@ -11,6 +11,7 @@ CONFIGURATION="Release"
 HOST_BUNDLE_IDENTIFIER="com.lookinside-app.lookinside"
 INJECTOR_LABEL="app.lookinside.LookInsideInjector"
 INJECTOR_AUTHORIZED_TEAM_ID="964G86XT2P"
+DEVELOPER_ID_APPLICATION_REQUIREMENT="anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.13] exists"
 KEYCHAIN_PROFILE="${KEYCHAIN_PROFILE:-}"
 RELEASE_BUILD_NUMBER="${RELEASE_BUILD_NUMBER:-0}"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-${RUNNER_TEMP:-/tmp}/LookInsideReleaseDerivedData}"
@@ -242,11 +243,11 @@ ensure_signing_context() {
 
 	local env_file
 	env_file="$(mktemp "${TMPDIR:-/tmp}/lookinside-release-env.XXXXXX")"
-	trap 'rm -f "$env_file"' RETURN
 
 	bash Scripts/setup-ci-keychain.sh --env-file "$env_file" --keychain-profile "$KEYCHAIN_PROFILE"
 	# shellcheck disable=SC1090
 	source "$env_file"
+	rm -f "$env_file"
 
 	[[ -n "${SIGNING_IDENTITY:-}" ]] || fail "SIGNING_IDENTITY was not detected."
 	[[ -n "${DEVELOPMENT_TEAM:-}" ]] || fail "DEVELOPMENT_TEAM was not detected."
@@ -281,7 +282,17 @@ is_mach_o_file() {
 
 path_contains_symlink() {
 	local path="$1"
+	local root="${2:-}"
 	local current="$path"
+
+	if [[ -n "$root" ]]; then
+		while [[ "$current" == "$root" || "$current" == "$root/"* ]]; do
+			[[ -L "$current" ]] && return 0
+			[[ "$current" == "$root" ]] && break
+			current="$(dirname "$current")"
+		done
+		return 1
+	fi
 
 	while [[ "$current" != "/" && "$current" != "." ]]; do
 		[[ -L "$current" ]] && return 0
@@ -293,9 +304,10 @@ path_contains_symlink() {
 
 should_skip_nested_code_path() {
 	local path="$1"
+	local root="${2:-}"
 
 	[[ "$path" == *"/Versions/Current"* ]] && return 0
-	path_contains_symlink "$path"
+	path_contains_symlink "$path" "$root"
 }
 
 sign_code_path() {
@@ -311,6 +323,16 @@ sign_code_path() {
 		"$path"
 }
 
+remove_legacy_code_resources() {
+	local app_path="$1"
+	local legacy_code_resources="$app_path/Contents/CodeResources"
+
+	if [[ -e "$legacy_code_resources" || -L "$legacy_code_resources" ]]; then
+		log "Removing legacy code signature resource envelope: ${legacy_code_resources#$PROJECT_ROOT/}"
+		rm -f "$legacy_code_resources"
+	fi
+}
+
 sign_nested_code() {
 	local app_path="$1"
 	local main_executable="$app_path/Contents/MacOS/LookInside"
@@ -320,7 +342,7 @@ sign_nested_code() {
 
 	while IFS= read -r candidate; do
 		[[ "$candidate" == "$main_executable" ]] && continue
-		should_skip_nested_code_path "$candidate" && continue
+		should_skip_nested_code_path "$candidate" "$app_path/Contents" && continue
 		if is_mach_o_file "$candidate"; then
 			mach_o_files+=("$candidate")
 		fi
@@ -337,14 +359,66 @@ sign_nested_code() {
 			cut -d' ' -f2-
 	)
 
-	for candidate in "${mach_o_files[@]}"; do
-		sign_code_path "$candidate"
-	done
+	if [[ "${#mach_o_files[@]}" -gt 0 ]]; then
+		for candidate in "${mach_o_files[@]}"; do
+			sign_code_path "$candidate"
+		done
+	fi
 
-	for candidate in "${bundles[@]}"; do
-		should_skip_nested_code_path "$candidate" && continue
-		sign_code_path "$candidate"
-	done
+	if [[ "${#bundles[@]}" -gt 0 ]]; then
+		for candidate in "${bundles[@]}"; do
+			should_skip_nested_code_path "$candidate" "$app_path/Contents" && continue
+			sign_code_path "$candidate"
+		done
+	fi
+}
+
+verify_developer_id_signature() {
+	local path="$1"
+
+	log "Verifying Developer ID signature: ${path#$PROJECT_ROOT/}"
+	codesign \
+		--verify \
+		--strict \
+		--verbose=2 \
+		-R="$DEVELOPER_ID_APPLICATION_REQUIREMENT" \
+		"$path"
+}
+
+verify_developer_id_signatures() {
+	local app_path="$1"
+	local legacy_code_resources="$app_path/Contents/CodeResources"
+	local signed_paths_file
+	local candidate
+
+	[[ ! -e "$legacy_code_resources" && ! -L "$legacy_code_resources" ]] ||
+		fail "Legacy code signature resource envelope is present: $legacy_code_resources"
+
+	signed_paths_file="$(mktemp "${TMPDIR:-/tmp}/lookinside-signed-code.XXXXXX")"
+
+	printf "%s\n" "$app_path" >>"$signed_paths_file"
+
+	while IFS= read -r candidate; do
+		should_skip_nested_code_path "$candidate" "$app_path/Contents" && continue
+		printf "%s\n" "$candidate" >>"$signed_paths_file"
+	done < <(
+		find "$app_path/Contents" -type d \
+			\( -name "*.app" -o -name "*.appex" -o -name "*.bundle" -o -name "*.framework" -o -name "*.xpc" \) \
+			-print
+	)
+
+	while IFS= read -r candidate; do
+		should_skip_nested_code_path "$candidate" "$app_path/Contents" && continue
+		if is_mach_o_file "$candidate"; then
+			printf "%s\n" "$candidate" >>"$signed_paths_file"
+		fi
+	done < <(find "$app_path/Contents" -type f -print)
+
+	while IFS= read -r candidate; do
+		verify_developer_id_signature "$candidate"
+	done < <(sort -u "$signed_paths_file")
+
+	rm -f "$signed_paths_file"
 }
 
 verify_injector_bundle_layout() {
@@ -445,6 +519,8 @@ sign_app_bundle() {
 	log "Verifying bundled injector daemon"
 	verify_injector_bundle_layout "$app_path"
 
+	remove_legacy_code_resources "$app_path"
+
 	log "Signing nested app code"
 	sign_nested_code "$app_path"
 
@@ -461,6 +537,9 @@ sign_app_bundle() {
 
 	log "Verifying app signature"
 	codesign --verify --deep --strict --verbose=2 "$app_path"
+
+	log "Verifying Developer ID signature gate"
+	verify_developer_id_signatures "$app_path"
 }
 
 notarize_file() {
@@ -478,6 +557,19 @@ notarize_file() {
 		--wait
 }
 
+assess_app_distribution() {
+	local app_path="$1"
+
+	if command -v syspolicy_check >/dev/null 2>&1; then
+		log "Assessing app distribution policy with syspolicy_check"
+		syspolicy_check distribution "$app_path"
+		return
+	fi
+
+	log "Assessing app with spctl"
+	spctl --assess --type execute --verbose=4 "$app_path"
+}
+
 staple_app() {
 	local app_path="$1"
 
@@ -489,8 +581,7 @@ staple_app() {
 	log "Stapling notarization ticket"
 	xcrun stapler staple "$app_path"
 
-	log "Assessing app with spctl"
-	spctl --assess --type execute --verbose=4 "$app_path"
+	assess_app_distribution "$app_path"
 }
 
 write_checksums() {
@@ -509,9 +600,11 @@ init_release_paths() {
 	CLI_UNSIGNED_BINARY="$CLI_UNSIGNED_DIR/lookinside"
 	if [[ -f "$CLI_UNSIGNED_BINARY" ]]; then
 		CLI_BINARY="$CLI_UNSIGNED_BINARY"
-	else
+	elif [[ "$STAGE" == "all" || "$STAGE" == "build-cli" || "$STAGE" == "package-cli" || "$STAGE" == "sign-cli" ]]; then
 		CLI_BINARY_DIR="$(swift build -c release --product lookinside --show-bin-path)"
 		CLI_BINARY="$CLI_BINARY_DIR/lookinside"
+	else
+		CLI_BINARY="$CLI_UNSIGNED_BINARY"
 	fi
 	CLI_ZIP="$ARCHIVE_ROOT/lookinside-${RELEASE_VERSION}-macOS-cli.zip"
 
