@@ -17,7 +17,7 @@ let package = Package(
     platforms: [
         .iOS(.v12),
         .tvOS(.v12),
-        .macOS(.v11),
+        .macOS(.v13),
     ],
     products: [
         .library(
@@ -42,8 +42,18 @@ let package = Package(
             type: .dynamic,
             targets: ["LookinServerInjected"]
         ),
+        .library(
+            name: "LookinMCPCore",
+            targets: ["LookinMCPCore"]
+        ),
+        .executable(
+            name: "lookinside-mcp",
+            targets: ["LookinMCPServer"]
+        ),
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.11.0"),
+    ],
     targets: [
         .target(
             name: "LookinServerBase",
@@ -107,6 +117,37 @@ let package = Package(
             linkerSettings: [
                 .linkedFramework("AppKit", .when(platforms: [.macOS])),
                 .linkedFramework("UIKit", .when(platforms: [.iOS, .tvOS])),
+            ]
+        ),
+        .target(
+            name: "LookinMCPCore",
+            dependencies: ["LookinCore"],
+            path: "Sources/LookinMCPCore",
+            swiftSettings: [
+                .define("SHOULD_COMPILE_LOOKIN_SERVER"),
+                .define("SPM_LOOKIN_SERVER_ENABLED"),
+            ]
+        ),
+        .executableTarget(
+            name: "LookinMCPServer",
+            dependencies: [
+                "LookinMCPCore",
+                .product(name: "MCP", package: "swift-sdk"),
+            ],
+            path: "Sources/LookinMCPServer",
+            swiftSettings: [
+                .define("SHOULD_COMPILE_LOOKIN_SERVER"),
+                .define("SPM_LOOKIN_SERVER_ENABLED"),
+            ]
+        ),
+        .testTarget(
+            name: "LookinMCPCoreTests",
+            dependencies: ["LookinMCPCore"],
+            path: "Tests/LookinMCPCoreTests",
+            resources: [.process("Fixtures")],
+            swiftSettings: [
+                .define("SHOULD_COMPILE_LOOKIN_SERVER"),
+                .define("SPM_LOOKIN_SERVER_ENABLED"),
             ]
         ),
     ]
