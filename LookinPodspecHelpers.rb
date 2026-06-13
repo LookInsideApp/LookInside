@@ -14,6 +14,8 @@ module LookinPodspecHelpers
     spec.author = AUTHOR
     spec.source = { :path => '.' }
     spec.ios.deployment_target = '12.0'
+    spec.tvos.deployment_target = '12.0'
+    spec.osx.deployment_target = '11.0'
     spec.requires_arc = true
   end
 

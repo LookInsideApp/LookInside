@@ -17,6 +17,9 @@ Pod::Spec.new do |s|
     'Sources/LookinServer/include/LookinServer.h',
     'Sources/LookinServer/Server/**/*.h'
   ]
+  s.tvos.exclude_files = [
+    'Sources/LookinServer/Server/Category/UIWindowScene+LookinServer.{h,m}'
+  ]
 
   s.pod_target_xcconfig = {
     'GCC_PREPROCESSOR_DEFINITIONS' => LookinPodspecHelpers.base_defines,

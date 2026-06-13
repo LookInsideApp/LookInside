@@ -267,14 +267,18 @@
 }
 
 - (NSInteger)lks_traitCollection_userInterfaceLevel {
+#if TARGET_OS_TV
+    return -1;
+#else
     if (@available(iOS 13.0, *)) {
         return (NSInteger)self.traitCollection.userInterfaceLevel;
     }
     return -1;
+#endif
 }
 
 - (NSInteger)lks_traitCollection_activeAppearance {
-    if (@available(iOS 14.0, *)) {
+    if (@available(iOS 14.0, tvOS 14.0, *)) {
         return (NSInteger)self.traitCollection.activeAppearance;
     }
     return -1;
@@ -314,7 +318,7 @@
 }
 
 - (NSInteger)lks_traitCollection_imageDynamicRange {
-    if (@available(iOS 17.0, *)) {
+    if (@available(iOS 17.0, tvOS 17.0, *)) {
         return (NSInteger)self.traitCollection.imageDynamicRange;
     }
     return -1;
@@ -343,7 +347,7 @@
 }
 
 - (NSString *)lks_traitCollection_typesettingLanguage {
-    if (@available(iOS 17.0, *)) {
+    if (@available(iOS 17.0, tvOS 17.0, *)) {
         return self.traitCollection.typesettingLanguage;
     }
     return nil;
