@@ -27,10 +27,11 @@ enum Fixtures {
         return info
     }
 
-    static func makeApp() -> LookinAppInfo {
+    static func makeApp(name: String = "FixtureApp",
+                        bundleIdentifier: String = "test.fixture") -> LookinAppInfo {
         let app = LookinAppInfo()
-        app.appName = "FixtureApp"
-        app.appBundleIdentifier = "test.fixture"
+        app.appName = name
+        app.appBundleIdentifier = bundleIdentifier
         app.deviceDescription = "iPhone 15 Pro"
         app.osDescription = "iOS 17.4"
         app.screenWidth = 390; app.screenHeight = 844; app.screenScale = 3

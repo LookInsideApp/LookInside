@@ -31,15 +31,19 @@ public final class LiveLookinClient: NSObject, HierarchyProvider, Lookin_PTChann
     private let queue = DispatchQueue(label: "lookin.mcp.client", qos: .userInitiated)
     private let connectTimeout: TimeInterval
     private let requestTimeout: TimeInterval
+    private let targetBundleIdentifier: String?
 
     private var channel: Lookin_PTChannel?
     private var pendingRequests: [UInt32: PendingRequest] = [:]
     private var hierarchyCache: LookinHierarchyInfo?
     private var indexCache: HierarchyIndex?
 
-    public init(connectTimeout: TimeInterval = 1.5, requestTimeout: TimeInterval = 10) {
+    public init(connectTimeout: TimeInterval = 1.5,
+                requestTimeout: TimeInterval = 10,
+                targetBundleIdentifier: String? = ProcessInfo.processInfo.environment["LOOKIN_MCP_TARGET_BUNDLE_ID"]) {
         self.connectTimeout = connectTimeout
         self.requestTimeout = requestTimeout
+        self.targetBundleIdentifier = targetBundleIdentifier
         super.init()
     }
 
@@ -67,10 +71,51 @@ public final class LiveLookinClient: NSObject, HierarchyProvider, Lookin_PTChann
     /// Connect to the first reachable app, preferring simulator → macOS → device.
     @discardableResult
     public func connectToFirstAvailable() throws -> DiscoveredApp {
-        let apps = discover()
-        guard let pick = apps.first else { throw HierarchyProviderError.noTargetApp }
-        try connect(port: pick.port)
-        return pick
+        disconnect()
+        let ranges = [
+            ("simulator", LookinSimulatorIPv4PortNumberStart...LookinSimulatorIPv4PortNumberEnd),
+            ("macos",     LookinMacIPv4PortNumberStart...LookinMacIPv4PortNumberEnd),
+            ("device",    LookinUSBDeviceIPv4PortNumberStart...LookinUSBDeviceIPv4PortNumberEnd),
+        ]
+        var fallbacks: [(client: ProbeClient, app: DiscoveredApp)] = []
+        for (platform, range) in ranges {
+            for port in range {
+                guard let client = try? Self.makeAndConnect(port: Int(port), timeout: connectTimeout),
+                      let app = try? client.fetchAppInfo() else {
+                    continue
+                }
+                let discovered = DiscoveredApp(port: Int(port), platform: platform, appInfo: app)
+                if Self.matches(discovered, bundleIdentifier: targetBundleIdentifier) {
+                    takeOver(client)
+                    return discovered
+                }
+                fallbacks.append((client, discovered))
+            }
+        }
+        if targetBundleIdentifier == nil, let first = fallbacks.first {
+            takeOver(first.client)
+            fallbacks.dropFirst().forEach { $0.client.disconnect() }
+            return first.app
+        }
+        fallbacks.forEach { $0.client.disconnect() }
+        throw HierarchyProviderError.noTargetApp
+    }
+
+    public static func selectPreferredApp(_ apps: [DiscoveredApp],
+                                          bundleIdentifier: String?) -> DiscoveredApp? {
+        guard let bundleIdentifier, !bundleIdentifier.isEmpty else { return apps.first }
+        return apps.first { matches($0, bundleIdentifier: bundleIdentifier) }
+    }
+
+    private static func matches(_ app: DiscoveredApp, bundleIdentifier: String?) -> Bool {
+        guard let bundleIdentifier, !bundleIdentifier.isEmpty else { return true }
+        return app.appInfo.appBundleIdentifier == bundleIdentifier
+    }
+
+    private func takeOver(_ client: ProbeClient) {
+        let connectedChannel = client.releaseChannel()
+        connectedChannel?.delegate = self
+        channel = connectedChannel
     }
 
     public func connect(port: Int) throws {
@@ -180,32 +225,24 @@ public final class LiveLookinClient: NSObject, HierarchyProvider, Lookin_PTChann
         let dispatchPayload = data.withUnsafeBytes { raw -> DispatchData in
             DispatchData(bytes: raw)
         }
-        let sem = DispatchSemaphore(value: 0)
         let pending = PendingRequest()
         queue.sync { pendingRequests[tag] = pending }
         channel.sendFrame(ofType: type, tag: tag, withPayload: dispatchPayload as __DispatchData) { err in
+            Self.debugLog("send callback type=\(type) tag=\(tag) error=\(String(describing: err))")
             if let err = err {
                 self.queue.sync {
                     pending.error = err
                     self.pendingRequests.removeValue(forKey: tag)
                 }
-                sem.signal()
+                pending.semaphore.signal()
             }
         }
-        if sem.wait(timeout: .now() + requestTimeout) == .timedOut, pending.response == nil {
+        if pending.semaphore.wait(timeout: .now() + requestTimeout) == .timedOut {
             queue.sync { pendingRequests.removeValue(forKey: tag) }
             throw HierarchyProviderError.timeout(requestType: type)
         }
         if let response = pending.response { return response }
         if let err = pending.error { throw HierarchyProviderError.transport(underlying: err) }
-        // Wait for the response delivered via delegate callback; if we got here without one, it's a transport issue.
-        // (sendFrame's callback fires before the response — we need to wait for the read path.)
-        let secondSem = pending.semaphore
-        if secondSem.wait(timeout: .now() + requestTimeout) == .timedOut {
-            queue.sync { pendingRequests.removeValue(forKey: tag) }
-            throw HierarchyProviderError.timeout(requestType: type)
-        }
-        if let response = pending.response { return response }
         throw HierarchyProviderError.transport(underlying: NSError(domain: "Lookin", code: -2, userInfo: [NSLocalizedDescriptionKey: "No response and no error for request \(type)."]))
     }
 
@@ -215,28 +252,54 @@ public final class LiveLookinClient: NSObject, HierarchyProvider, Lookin_PTChann
                                didReceiveFrameOfType type: UInt32,
                                tag: UInt32,
                                payload: Lookin_PTData?) {
+        Self.debugLog("received frame type=\(type) tag=\(tag) payload=\(payload?.length ?? 0)")
         guard let payload else { return }
         let data = Data(bytes: payload.data, count: payload.length)
+        do {
+            let response = try Self.decodeResponse(from: data)
+            queue.async {
+                if let pending = self.pendingRequests.removeValue(forKey: tag) {
+                    pending.response = response
+                    pending.semaphore.signal()
+                }
+            }
+        } catch {
+            queue.async {
+                if let pending = self.pendingRequests.removeValue(forKey: tag) {
+                    pending.error = error
+                    pending.semaphore.signal()
+                }
+            }
+        }
+    }
+
+    public static func decodeResponse(from data: Data) throws -> LookinConnectionResponseAttachment {
         let allowed: [AnyClass] = [
             LookinConnectionResponseAttachment.self,
             LookinHierarchyInfo.self,
             LookinDisplayItem.self, LookinAppInfo.self,
             LookinAttributesGroup.self, LookinAttribute.self, LookinObject.self,
             PlatformImage.self,
-            NSArray.self, NSDictionary.self, NSString.self, NSNumber.self, NSData.self, NSValue.self,
+            NSArray.self, NSMutableArray.self,
+            NSDictionary.self, NSMutableDictionary.self,
+            NSString.self, NSMutableString.self,
+            NSNumber.self, NSData.self, NSMutableData.self,
+            NSValue.self, NSError.self,
         ]
-        guard let response = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: allowed, from: data) as? LookinConnectionResponseAttachment else {
-            return
+        if let response = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: allowed, from: data) as? LookinConnectionResponseAttachment {
+            return response
         }
-        queue.async {
-            if let pending = self.pendingRequests.removeValue(forKey: tag) {
-                pending.response = response
-                pending.semaphore.signal()
-            }
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+        unarchiver.requiresSecureCoding = false
+        defer { unarchiver.finishDecoding() }
+        if let response = unarchiver.decodeObject(of: allowed, forKey: NSKeyedArchiveRootObjectKey) as? LookinConnectionResponseAttachment {
+            return response
         }
+        throw HierarchyProviderError.decodeFailure(reason: "expected LookinConnectionResponseAttachment")
     }
 
     public func ioFrameChannel(_ channel: Lookin_PTChannel, didEndWithError error: Error?) {
+        Self.debugLog("channel ended error=\(String(describing: error))")
         queue.async {
             self.pendingRequests.values.forEach { pending in
                 pending.error = error ?? NSError(domain: "Lookin", code: -3, userInfo: [NSLocalizedDescriptionKey: "Channel closed."])
@@ -245,6 +308,11 @@ public final class LiveLookinClient: NSObject, HierarchyProvider, Lookin_PTChann
             self.pendingRequests.removeAll()
             self.channel = nil
         }
+    }
+
+    private static func debugLog(_ message: String) {
+        guard ProcessInfo.processInfo.environment["LOOKIN_MCP_DEBUG"] == "1" else { return }
+        FileHandle.standardError.write(Data("lookinside-mcp debug: \(message)\n".utf8))
     }
 
     private final class PendingRequest {
@@ -262,6 +330,12 @@ fileprivate final class ProbeClient: NSObject, Lookin_PTChannelDelegate {
     private var pending: [UInt32: (LookinConnectionResponseAttachment?) -> Void] = [:]
 
     func disconnect() { channel?.close(); channel = nil }
+
+    func releaseChannel() -> Lookin_PTChannel? {
+        let ch = channel
+        channel = nil
+        return ch
+    }
 
     func fetchAppInfo() throws -> LookinAppInfo {
         guard let channel else { throw HierarchyProviderError.noTargetApp }
