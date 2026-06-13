@@ -65,6 +65,7 @@ let package = Package(
                 .headerSearchPath("."),
                 .headerSearchPath("Category"),
                 .headerSearchPath("Peertalk"),
+                .headerSearchPath("../LookinServer/Server/Category"),
             ],
             cxxSettings: sharedCXXDefines
         ),

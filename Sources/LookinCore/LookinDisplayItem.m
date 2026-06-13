@@ -20,8 +20,8 @@
 #import "LookinDashboardBlueprint.h"
 
 #if TARGET_OS_IPHONE
-#import "../LookinServer/Server/Category/UIColor+LookinServer.h"
-#import "../LookinServer/Server/Category/UIImage+LookinServer.h"
+#import "UIColor+LookinServer.h"
+#import "UIImage+LookinServer.h"
 #elif TARGET_OS_OSX
 #endif
 
