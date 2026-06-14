@@ -6,7 +6,7 @@ Pod::Spec.new do |s|
 
   s.module_name = 'LookinServer'
   s.static_framework = false
-  s.dependency 'LookinShared'
+  s.dependency 'LookinServer/Shared'
 
   s.source_files = [
     'Sources/LookinServer/Server/**/*.{h,m}'
