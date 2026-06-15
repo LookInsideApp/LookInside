@@ -1,0 +1,4 @@
+interface:
+  display_name: "LookInside MCP UI Debugging"
+  short_description: "Debug iOS and macOS app UI through LookInside MCP."
+  default_prompt: "Use LookInside MCP to inspect the target app UI, diagnose layout/accessibility issues, and report actionable hierarchy findings."
