@@ -114,6 +114,25 @@ lookinside-mcp print-config cursor
 
 Then add `LOOKIN_MCP_TARGET_BUNDLE_ID` to the MCP server environment when more than one app may be reachable.
 
+### KuGou (酷狗) hierarchy collapse
+
+KuGou apps keep every pushed child view controller live under `KGMainViewController`, so the raw hierarchy is huge. By default the MCP collapses each `KGMainViewController.view` subtree to just the topmost VC and hides the drawer (`_setViewContainer`), matching the LookInside.app default. Two independent environment variables override this (accepted values: `1/true/yes/on` and `0/false/no/off`):
+
+- `LOOKIN_MCP_SHOW_ALL_PAGES=1` — show the full page stack instead of only the topmost VC.
+- `LOOKIN_MCP_SHOW_DRAWER=1` — include the drawer (`_setViewContainer`) subtree.
+
+The two switches are orthogonal: turning on All Pages does not reveal the drawer, and vice versa. Set them in the MCP server environment alongside `LOOKIN_MCP_TARGET_BUNDLE_ID`, e.g.:
+
+```sh
+codex mcp add lookinside \
+  LOOKIN_MCP_TARGET_BUNDLE_ID=<bundle.id> \
+  LOOKIN_MCP_SHOW_ALL_PAGES=1 \
+  LOOKIN_MCP_SHOW_DRAWER=1 \
+  /path/to/lookinside-mcp serve
+```
+
+These only apply to KuGou's `KGMainViewController` framework; for all other apps the hierarchy is returned unchanged.
+
 ## Inspection Workflow
 
 1. Identify the target bundle id.

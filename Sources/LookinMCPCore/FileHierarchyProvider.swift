@@ -17,13 +17,23 @@ public final class FileHierarchyProvider: HierarchyProvider {
         guard let info = try Self.decode(data: data) else {
             throw HierarchyProviderError.decodeFailure(reason: "no LookinHierarchyInfo root in \(fileURL.lastPathComponent)")
         }
+        Self.applyKuGouCollapse(to: info)
         self.info = info
         self.index = HierarchyIndex(info: info)
     }
 
     public init(info: LookinHierarchyInfo) {
+        Self.applyKuGouCollapse(to: info)
         self.info = info
         self.index = HierarchyIndex(info: info)
+    }
+
+    /// 酷狗（KuGou）：折叠 KGMainViewController 子树，使快照文件的层级输出与 macOS 客户端一致。
+    /// 默认折叠、隐藏抽屉，可用环境变量 LOOKIN_MCP_SHOW_ALL_PAGES / LOOKIN_MCP_SHOW_DRAWER 控制。
+    private static func applyKuGouCollapse(to info: LookinHierarchyInfo) {
+        if let roots = info.displayItems as? [LookinDisplayItem] {
+            LookinDisplayItem.lk_kg_applyKuGouCollapse(to: roots)
+        }
     }
 
     public func appInfo() throws -> LookinAppInfo {

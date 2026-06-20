@@ -142,6 +142,11 @@ public final class LiveLookinClient: NSObject, HierarchyProvider, Lookin_PTChann
         guard let info = resp.data as? LookinHierarchyInfo else {
             throw HierarchyProviderError.decodeFailure(reason: "expected LookinHierarchyInfo, got \(String(describing: type(of: resp.data)))")
         }
+        // 酷狗（KuGou）：折叠 KGMainViewController 子树，使 MCP 的层级输出与 macOS 客户端一致。
+        // 默认折叠、隐藏抽屉，可用环境变量 LOOKIN_MCP_SHOW_ALL_PAGES / LOOKIN_MCP_SHOW_DRAWER 控制。
+        if let roots = info.displayItems as? [LookinDisplayItem] {
+            LookinDisplayItem.lk_kg_applyKuGouCollapse(to: roots)
+        }
         hierarchyCache = info
         indexCache = HierarchyIndex(info: info)
         return info
