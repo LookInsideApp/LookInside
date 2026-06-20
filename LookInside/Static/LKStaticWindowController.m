@@ -294,7 +294,7 @@
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
-    NSMutableArray *ret = @[LKToolBarIdentifier_Reload, LKToolBarIdentifier_FastMode, LKToolBarIdentifier_App, LKToolBarIdentifier_SwiftUIMode, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Dimension, LKToolBarIdentifier_Rotation, LKToolBarIdentifier_Setting, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Scale, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Measure, LKToolBarIdentifier_Console].mutableCopy;
+    NSMutableArray *ret = @[LKToolBarIdentifier_Reload, LKToolBarIdentifier_FastMode, LKToolBarIdentifier_KGShowAllPages, LKToolBarIdentifier_KGShowDrawer, LKToolBarIdentifier_App, LKToolBarIdentifier_SwiftUIMode, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Dimension, LKToolBarIdentifier_Rotation, LKToolBarIdentifier_Setting, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Scale, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Measure, LKToolBarIdentifier_Console].mutableCopy;
     if ([[[LKMessageManager sharedInstance] queryMessages] count] > 0) {
         [ret addObject:LKToolBarIdentifier_Message];
     }
@@ -346,6 +346,12 @@
         } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_FastMode]) {
             item.target = self;
             item.action = @selector(handleFastMode);
+        } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_KGShowAllPages]) {
+            item.target = self;
+            item.action = @selector(_handleKGShowAllPages);
+        } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_KGShowDrawer]) {
+            item.target = self;
+            item.action = @selector(_handleKGShowDrawer);
         }
     }
     return item;
@@ -469,6 +475,20 @@
 - (void)_handleFreeRotation {
     BOOL boolValue = [LKPreferenceManager mainManager].freeRotation.currentBOOLValue;
     [[LKPreferenceManager mainManager].freeRotation setBOOLValue:!boolValue ignoreSubscriber:nil];
+}
+
+- (void)_handleKGShowAllPages {
+    BOOL boolValue = [LKPreferenceManager mainManager].kgShowAllPages.currentBOOLValue;
+    [[LKPreferenceManager mainManager].kgShowAllPages setBOOLValue:!boolValue ignoreSubscriber:nil];
+    // 折叠逻辑会就地修改层级树，需要重新从设备拉取一份干净的层级后再按新开关折叠
+    [self _handleReload];
+}
+
+- (void)_handleKGShowDrawer {
+    BOOL boolValue = [LKPreferenceManager mainManager].kgShowDrawer.currentBOOLValue;
+    [[LKPreferenceManager mainManager].kgShowDrawer setBOOLValue:!boolValue ignoreSubscriber:nil];
+    // 折叠逻辑会就地修改层级树，需要重新从设备拉取一份干净的层级后再按新开关折叠
+    [self _handleReload];
 }
 
 #pragma mark - <LKAppMenuManagerDelegate>

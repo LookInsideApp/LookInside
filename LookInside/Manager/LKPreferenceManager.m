@@ -22,6 +22,8 @@ const NSTimeInterval LKDefaultLicenseHandshakeTimeoutInterval = 5;
 static NSString * const Key_PreviousClientVersion = @"preVer";
 static NSString * const Key_ShowOutline = @"showOutline";
 static NSString * const Key_ShowHiddenItems = @"showHiddenItems";
+static NSString * const Key_KGShowAllPages = @"KGShouldDisableLookinHook";
+static NSString * const Key_KGShowDrawer = @"KGShouldShowSetContainer";
 static NSString * const Key_RgbaFormat = @"egbaFormat";
 static NSString * const Key_ZInterspace = @"zInterspace_v095";
 static NSString * const Key_AppearanceType = @"appearanceType";
@@ -93,7 +95,17 @@ static const NSUInteger MaxRememberedExpansionStateBundles = 20;
             [userDefaults setObject:@(NO) forKey:Key_ShowHiddenItems];
         }
         [self.showHiddenItems subscribe:self action:@selector(_handleShowHiddenItemsChange:) relatedObject:nil];
-        
+
+        // 酷狗（KuGou）：是否显示全部页面（关闭折叠），默认 NO
+        NSNumber *obj_kgShowAllPages = [userDefaults objectForKey:Key_KGShowAllPages];
+        _kgShowAllPages = [LookinBOOLMsgAttribute attributeWithBOOL:(obj_kgShowAllPages != nil ? obj_kgShowAllPages.boolValue : NO)];
+        [self.kgShowAllPages subscribe:self action:@selector(_handleKGShowAllPagesDidChange:) relatedObject:nil];
+
+        // 酷狗（KuGou）：是否显示抽屉（_setViewContainer），默认 NO
+        NSNumber *obj_kgShowDrawer = [userDefaults objectForKey:Key_KGShowDrawer];
+        _kgShowDrawer = [LookinBOOLMsgAttribute attributeWithBOOL:(obj_kgShowDrawer != nil ? obj_kgShowDrawer.boolValue : NO)];
+        [self.kgShowDrawer subscribe:self action:@selector(_handleKGShowDrawerDidChange:) relatedObject:nil];
+
         NSNumber *obj_doubleClickBehavior = [userDefaults objectForKey:Key_DoubleClickBehavior];
         if (obj_doubleClickBehavior) {
             _doubleClickBehavior = [obj_doubleClickBehavior intValue];
@@ -352,6 +364,18 @@ static const NSUInteger MaxRememberedExpansionStateBundles = 20;
 - (void)_handleShowHiddenItemsChange:(LookinMsgActionParams *)param {
     if (self.shouldStoreToLocal) {
         [[NSUserDefaults standardUserDefaults] setObject:@(param.boolValue) forKey:Key_ShowHiddenItems];
+    }
+}
+
+- (void)_handleKGShowAllPagesDidChange:(LookinMsgActionParams *)param {
+    if (self.shouldStoreToLocal) {
+        [[NSUserDefaults standardUserDefaults] setObject:@(param.boolValue) forKey:Key_KGShowAllPages];
+    }
+}
+
+- (void)_handleKGShowDrawerDidChange:(LookinMsgActionParams *)param {
+    if (self.shouldStoreToLocal) {
+        [[NSUserDefaults standardUserDefaults] setObject:@(param.boolValue) forKey:Key_KGShowDrawer];
     }
 }
 

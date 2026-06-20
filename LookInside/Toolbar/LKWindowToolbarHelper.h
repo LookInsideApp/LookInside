@@ -22,6 +22,10 @@ extern NSToolbarItemIdentifier const LKToolBarIdentifier_Measure;
 extern NSToolbarItemIdentifier const LKToolBarIdentifier_Message;
 extern NSToolbarItemIdentifier const LKToolBarIdentifier_FastMode;
 extern NSToolbarItemIdentifier const LKToolBarIdentifier_SwiftUIMode;
+/// 酷狗（KuGou）：显示全部页面（关闭 KGMainViewController 折叠）
+extern NSToolbarItemIdentifier const LKToolBarIdentifier_KGShowAllPages;
+/// 酷狗（KuGou）：显示抽屉（_setViewContainer）
+extern NSToolbarItemIdentifier const LKToolBarIdentifier_KGShowDrawer;
 
 @class LKPreferenceManager, LookinAppInfo;
 
