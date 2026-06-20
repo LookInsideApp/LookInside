@@ -745,7 +745,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ ! -d \"$SRCROOT/../LookInside-Injector\" ]; then\n    if [ \"$CONFIGURATION\" = \"Release\" ]; then\n        echo \"error: LookInside-Injector not present; Release builds must embed the injector daemon\"\n        exit 1\n    fi\n    echo \"Skipping Embed Injector Daemon: LookInside-Injector not present (not in monorepo checkout)\"\n    exit 0\nfi\nPREPARE_SCRIPT=\"$SRCROOT/Scripts/prepare-injector-daemon.sh\"\n# Run in a fresh login zsh so xcodebuild env from the host build does not leak\n# into the nested LookInside-Injector build (would crash XCBBuildService).\n# Re-export the host's BUILT_PRODUCTS_DIR / CONTENTS_FOLDER_PATH / CONFIGURATION\n# so the nested zsh can locate the LookInside.app bundle to embed into.\nenv -i HOME=\"$HOME\" USER=\"$USER\" TERM=\"${TERM:-dumb}\" \\\n    GITHUB_TOKEN=\"${GITHUB_TOKEN:-}\" \\\n    CONFIGURATION=\"$CONFIGURATION\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\" \\\n    /bin/zsh -lc \"$PREPARE_SCRIPT\"\n";
+			shellScript = "if [ ! -d \"$SRCROOT/../LookInside-Injector\" ]; then\n    if [ \"$CONFIGURATION\" = \"Release\" ] && [ \"${LOOKINSIDE_ALLOW_MISSING_INJECTOR:-NO}\" != \"YES\" ]; then\n        echo \"error: LookInside-Injector not present; Release builds must embed the injector daemon\"\n        exit 1\n    fi\n    echo \"Skipping Embed Injector Daemon: LookInside-Injector not present (not in monorepo checkout)\"\n    exit 0\nfi\nPREPARE_SCRIPT=\"$SRCROOT/Scripts/prepare-injector-daemon.sh\"\n# Run in a fresh login zsh so xcodebuild env from the host build does not leak\n# into the nested LookInside-Injector build (would crash XCBBuildService).\n# Re-export the host's BUILT_PRODUCTS_DIR / CONTENTS_FOLDER_PATH / CONFIGURATION\n# so the nested zsh can locate the LookInside.app bundle to embed into.\nenv -i HOME=\"$HOME\" USER=\"$USER\" TERM=\"${TERM:-dumb}\" \\\n    GITHUB_TOKEN=\"${GITHUB_TOKEN:-}\" \\\n    CONFIGURATION=\"$CONFIGURATION\" \\\n    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\\n    CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\" \\\n    /bin/zsh -lc \"$PREPARE_SCRIPT\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -963,7 +963,7 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.lookinside-app.lookinside";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = cn.vanjay.lookinside;
 				PRODUCT_MODULE_NAME = LookInside;
 				PRODUCT_NAME = "LookInside 酷狗版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
@@ -1041,7 +1041,7 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.lookinside-app.lookinside";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = cn.vanjay.lookinside;
 				PRODUCT_MODULE_NAME = LookInside;
 				PRODUCT_NAME = "LookInside 酷狗版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
