@@ -24,6 +24,8 @@ static NSUInteger const kTag_PurchaseSwiftUISupport = 17;
 static NSUInteger const kTag_SwiftUISupportCustomerSupport = 18;
 static NSUInteger const kTag_SwiftUISupportSubmenu = 19;
 
+static NSString *const kLookInsideKugouEditionName = @"LookInside 酷狗适配版";
+
 static NSString *const kSwiftUISupportPurchaseURL = @"https://lookinside-app.com/purchase";
 static NSString *const kSwiftUISupportCustomerSupportURL = @"mailto:support@lookinside-app.com";
 
@@ -62,6 +64,7 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 @property(nonatomic, copy) NSDictionary<NSNumber *, NSString *> *delegatingTagToSelMap;
 @property(nonatomic, strong) NSMenu *recentDocumentsMenu;
 @property(nonatomic, strong) SPUStandardUpdaterController *updaterController;
+@property(nonatomic, assign, getter=isUpdaterAvailable) BOOL updaterAvailable;
 
 @end
 
@@ -81,15 +84,21 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 }
 
 - (NSString *)_applicationName {
-    NSString *bundleDisplayName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"];
-    if (bundleDisplayName.length > 0) {
-        return bundleDisplayName;
+    return kLookInsideKugouEditionName;
+}
+
+- (BOOL)_hasValidSparkleConfiguration {
+    NSBundle *bundle = NSBundle.mainBundle;
+    NSString *feedURL = [bundle objectForInfoDictionaryKey:@"SUFeedURL"];
+    NSString *publicKey = [bundle objectForInfoDictionaryKey:@"SUPublicEDKey"];
+
+    if (feedURL.length == 0 || publicKey.length == 0) {
+        return NO;
     }
-    NSString *bundleName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"];
-    if (bundleName.length > 0) {
-        return bundleName;
+    if ([publicKey containsString:@"$("]) {
+        return NO;
     }
-    return [NSProcessInfo processInfo].processName ?: @"LookInside";
+    return YES;
 }
 
 - (NSMenu *)_buildApplicationMenu {
@@ -293,7 +302,10 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 }
 
 - (void)setup {
-    self.updaterController = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:YES updaterDelegate:nil userDriverDelegate:nil];
+    self.updaterAvailable = [self _hasValidSparkleConfiguration];
+    if (self.isUpdaterAvailable) {
+        self.updaterController = [[SPUStandardUpdaterController alloc] initWithStartingUpdater:YES updaterDelegate:nil userDriverDelegate:nil];
+    }
     [self _installMainMenu];
 
     self.delegatingTagToSelMap = @{
@@ -479,6 +491,15 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
 }
 
 - (void)_handleCheckUpdates {
+    if (!self.isUpdaterAvailable) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = NSLocalizedString(@"Updates Disabled", nil);
+        alert.informativeText = NSLocalizedString(@"Automatic update checks are disabled in this community build.", nil);
+        alert.alertStyle = NSAlertStyleInformational;
+        [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
+        [alert runModal];
+        return;
+    }
     [self.updaterController checkForUpdates:nil];
 }
 

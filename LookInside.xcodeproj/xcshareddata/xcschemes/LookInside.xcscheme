@@ -17,7 +17,7 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-                     BuildableName = "LookInside.app"
+                     BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
                      BlueprintName = "LookInside"
                      ReferencedContainer = "container:LookInside.xcodeproj">
                   </BuildableReference>
@@ -35,7 +35,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-               BuildableName = "LookInside.app"
+               BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
                BlueprintName = "LookInside"
                ReferencedContainer = "container:LookInside.xcodeproj">
             </BuildableReference>
@@ -64,7 +64,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-            BuildableName = "LookInside.app"
+            BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
             BlueprintName = "LookInside"
             ReferencedContainer = "container:LookInside.xcodeproj">
          </BuildableReference>
@@ -81,7 +81,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-            BuildableName = "LookInside.app"
+            BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
             BlueprintName = "LookInside"
             ReferencedContainer = "container:LookInside.xcodeproj">
          </BuildableReference>

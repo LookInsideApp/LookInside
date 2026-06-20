@@ -13,6 +13,7 @@
 		E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0C2F97B1B100600001 /* Demangling */; };
 		E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0F1F97B1B100600001 /* Sparkle */; };
 		E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */; };
+		E5B000012FA9000000000001 /* LookinCore in Frameworks */ = {isa = PBXBuildFile; productRef = E5B000032FA9000000000001 /* LookinCore */; };
 		E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */ = {isa = PBXBuildFile; productRef = E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */; };
 		E97210092FC2E5C0003AAEA6 /* HelperClient in Frameworks */ = {isa = PBXBuildFile; productRef = E97210082FC2E5C0003AAEA6 /* HelperClient */; };
 		E972100B2FC2E5C0003AAEA6 /* HelperCommunication in Frameworks */ = {isa = PBXBuildFile; productRef = E972100A2FC2E5C0003AAEA6 /* HelperCommunication */; };
@@ -146,40 +147,6 @@
 				Dashboard/Search/LKDashboardSearchMethodsDataSource.m,
 				Dashboard/Search/LKDashboardSearchMethodsView.m,
 				Dashboard/Search/LKDashboardSearchPropView.m,
-				"DerivedSource/LookinCore/Category/CALayer+Lookin.m",
-				"DerivedSource/LookinCore/Category/Color+Lookin.m",
-				"DerivedSource/LookinCore/Category/Image+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSArray+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSObject+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSSet+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSString+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSValue+Lookin.m",
-				DerivedSource/LookinCore/LKS_MultiplatformAdapter.m,
-				DerivedSource/LookinCore/LookinAppInfo.m,
-				DerivedSource/LookinCore/LookinAttribute.m,
-				DerivedSource/LookinCore/LookinAttributeModification.m,
-				DerivedSource/LookinCore/LookinAttributesGroup.m,
-				DerivedSource/LookinCore/LookinAttributesSection.m,
-				DerivedSource/LookinCore/LookinAttrIdentifiers.m,
-				DerivedSource/LookinCore/LookinAutoLayoutConstraint.m,
-				DerivedSource/LookinCore/LookinConnectionAttachment.m,
-				DerivedSource/LookinCore/LookinConnectionResponseAttachment.m,
-				DerivedSource/LookinCore/LookinCustomAttrModification.m,
-				DerivedSource/LookinCore/LookinCustomDisplayItemInfo.m,
-				DerivedSource/LookinCore/LookinDashboardBlueprint.m,
-				DerivedSource/LookinCore/LookinDisplayItem.m,
-				DerivedSource/LookinCore/LookinDisplayItemDetail.m,
-				DerivedSource/LookinCore/LookinEventHandler.m,
-				DerivedSource/LookinCore/LookinHierarchyFile.m,
-				DerivedSource/LookinCore/LookinHierarchyInfo.m,
-				DerivedSource/LookinCore/LookinObject.m,
-				DerivedSource/LookinCore/LookinStaticAsyncUpdateTask.m,
-				DerivedSource/LookinCore/LookinTuple.m,
-				DerivedSource/LookinCore/LookinWeakContainer.m,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTChannel.m,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTProtocol.m,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTUSBHub.m,
-				DerivedSource/LookinServerBase/LookinIvarTrace.m,
 				Export/LKExportAccessoryView.m,
 				Export/LKExportManager.m,
 				Hierarchy/LKDanceUIAttrMaker.m,
@@ -441,46 +408,6 @@
 				Dashboard/Search/LKDashboardSearchMethodsDataSource.h,
 				Dashboard/Search/LKDashboardSearchMethodsView.h,
 				Dashboard/Search/LKDashboardSearchPropView.h,
-				"DerivedSource/LookinCore/Category/CALayer+Lookin.h",
-				"DerivedSource/LookinCore/Category/Color+Lookin.h",
-				"DerivedSource/LookinCore/Category/Image+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSArray+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSObject+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSSet+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSString+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSValue+Lookin.h",
-				DerivedSource/LookinCore/include/LookinCore.h,
-				DerivedSource/LookinCore/LKS_MultiplatformAdapter.h,
-				DerivedSource/LookinCore/LookinAppInfo.h,
-				DerivedSource/LookinCore/LookinAttribute.h,
-				DerivedSource/LookinCore/LookinAttributeModification.h,
-				DerivedSource/LookinCore/LookinAttributesGroup.h,
-				DerivedSource/LookinCore/LookinAttributesSection.h,
-				DerivedSource/LookinCore/LookinAttrIdentifiers.h,
-				DerivedSource/LookinCore/LookinAttrType.h,
-				DerivedSource/LookinCore/LookinAutoLayoutConstraint.h,
-				DerivedSource/LookinCore/LookinCodingValueType.h,
-				DerivedSource/LookinCore/LookinConnectionAttachment.h,
-				DerivedSource/LookinCore/LookinConnectionResponseAttachment.h,
-				DerivedSource/LookinCore/LookinCustomAttrModification.h,
-				DerivedSource/LookinCore/LookinCustomDisplayItemInfo.h,
-				DerivedSource/LookinCore/LookinDashboardBlueprint.h,
-				DerivedSource/LookinCore/LookinDefines.h,
-				DerivedSource/LookinCore/LookinDisplayItem.h,
-				DerivedSource/LookinCore/LookinDisplayItemDetail.h,
-				DerivedSource/LookinCore/LookinEventHandler.h,
-				DerivedSource/LookinCore/LookinHierarchyFile.h,
-				DerivedSource/LookinCore/LookinHierarchyInfo.h,
-				DerivedSource/LookinCore/LookinObject.h,
-				DerivedSource/LookinCore/LookinStaticAsyncUpdateTask.h,
-				DerivedSource/LookinCore/LookinTuple.h,
-				DerivedSource/LookinCore/LookinWeakContainer.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTChannel.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTPrivate.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTProtocol.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTUSBHub.h,
-				DerivedSource/LookinCore/Peertalk/Peertalk.h,
-				DerivedSource/LookinServerBase/LookinIvarTrace.h,
 				Export/LKExportAccessoryView.h,
 				Export/LKExportManager.h,
 				Hierarchy/LKDanceUIAttrMaker.h,
@@ -645,6 +572,7 @@
 				50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */,
 				E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */,
 				E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */,
+				E5B000012FA9000000000001 /* LookinCore in Frameworks */,
 				E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */,
 				E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */,
 				E97210092FC2E5C0003AAEA6 /* HelperClient in Frameworks */,
@@ -705,6 +633,7 @@
 			packageProductDependencies = (
 				E37B8D0C2F97B1B100600001 /* Demangling */,
 				E37B8D0F1F97B1B100600001 /* Sparkle */,
+				E5B000032FA9000000000001 /* LookinCore */,
 				E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */,
 				E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */,
 				E97210082FC2E5C0003AAEA6 /* HelperClient */,
@@ -750,6 +679,7 @@
 			);
 			mainGroup = AA48F29221CC0CA50032EC2C;
 			packageReferences = (
+				E5B000022FA9000000000001 /* XCLocalSwiftPackageReference "." */,
 				E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */,
 				E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */,
@@ -990,6 +920,7 @@
 				CURRENT_PROJECT_VERSION = "$(inherited)";
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = X6B6C6U6QV;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1019,7 +950,7 @@
 					"$(SRCROOT)/LookInside/ReactiveObjC",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
+				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗适配版";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_OUTPUT_FORMAT = XML;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1030,7 +961,8 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
-				PRODUCT_NAME = LookInside;
+				PRODUCT_MODULE_NAME = LookInside;
+				PRODUCT_NAME = "LookInside 酷狗适配版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
 				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
@@ -1038,6 +970,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "LookInside-Swift.h";
 				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1064,6 +997,7 @@
 				CURRENT_PROJECT_VERSION = "$(inherited)";
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = X6B6C6U6QV;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -1093,7 +1027,7 @@
 					"$(SRCROOT)/LookInside/ReactiveObjC",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
+				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗适配版";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_OUTPUT_FORMAT = XML;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1104,7 +1038,8 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
-				PRODUCT_NAME = LookInside;
+				PRODUCT_MODULE_NAME = LookInside;
+				PRODUCT_NAME = "LookInside 酷狗适配版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
 				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
@@ -1112,6 +1047,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "LookInside-Swift.h";
 				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				WARNING_CFLAGS = (
@@ -1143,6 +1079,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		E5B000022FA9000000000001 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */ = {
@@ -1197,6 +1140,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		E5B000032FA9000000000001 /* LookinCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E5B000022FA9000000000001 /* XCLocalSwiftPackageReference "." */;
+			productName = LookinCore;
 		};
 		E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */ = {
 			isa = XCSwiftPackageProductDependency;
