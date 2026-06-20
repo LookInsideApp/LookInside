@@ -930,6 +930,22 @@
         }
       }
     },
+    "Copy property data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy property data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制属性数据"
+          }
+        }
+      }
+    },
     "Copy text \"%@\"" : {
       "localizations" : {
         "en" : {
@@ -1422,6 +1438,22 @@
         }
       }
     },
+    "Export node analysis data (incl. children)…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export node analysis data (incl. children)…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出节点分析数据（含子节点）…"
+          }
+        }
+      }
+    },
     "Export screenshot…" : {
       "localizations" : {
         "en" : {
@@ -1434,6 +1466,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导出截图…"
+          }
+        }
+      }
+    },
+    "Export this node's analysis data…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export this node's analysis data…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出当前节点分析数据…"
           }
         }
       }
@@ -1514,6 +1562,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载 LookInside Server framework 失败。\n%@"
+          }
+        }
+      }
+    },
+    "Failed to export node analysis data." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to export node analysis data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出节点分析数据失败。"
           }
         }
       }
@@ -1660,6 +1724,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "注册 LookInside 注入器守护进程失败。\n%@"
+          }
+        }
+      }
+    },
+    "Failed to save file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to save file."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存文件失败。"
           }
         }
       }

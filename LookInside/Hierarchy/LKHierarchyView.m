@@ -20,6 +20,7 @@
 #import "LKAppsManager.h"
 #import "LKInspectableApp.h"
 #import "LookinDisplayItem+LookinClient.h"
+#import "LKMCPNodeExporter.h"
 
 static NSString * const kMenuBindKey_RowView = @"view";
 static CGFloat const kRowHeight = 28;
@@ -383,6 +384,32 @@ extern NSString *const LKAppShowConsoleNotificationName;
         })];
     }];
 
+    // MCP 数据导出 / 属性复制
+    if (!displayItem.isUserCustom) {
+        [menu addItem:[NSMenuItem separatorItem]];
+        [menu addItem:({
+            NSMenuItem *item = [NSMenuItem new];
+            item.target = self;
+            item.action = @selector(_handleExportNodeAnalysisRecursively:);
+            item.title = NSLocalizedString(@"Export node analysis data (incl. children)…", nil);
+            item;
+        })];
+        [menu addItem:({
+            NSMenuItem *item = [NSMenuItem new];
+            item.target = self;
+            item.action = @selector(_handleExportNodeAnalysisSingle:);
+            item.title = NSLocalizedString(@"Export this node's analysis data…", nil);
+            item;
+        })];
+        [menu addItem:({
+            NSMenuItem *item = [NSMenuItem new];
+            item.target = self;
+            item.action = @selector(_handleCopyAttributesData:);
+            item.title = NSLocalizedString(@"Copy property data", nil);
+            item;
+        })];
+    }
+
     NSArray<LookinDisplayItem *> *backingLayerItems = [self.dataSource swiftUIBackingLayerItemsForItem:displayItem];
     LookinDisplayItem *swiftUISourceItem = [self.dataSource swiftUISourceItemForLayerItem:displayItem];
     if (backingLayerItems.count || swiftUISourceItem) {
@@ -557,6 +584,78 @@ extern NSString *const LKAppShowConsoleNotificationName;
 - (void)_handleExportScreenshot:(NSMenuItem *)menuItem {
     LKHierarchyRowView *view = [menuItem.menu lookin_getBindObjectForKey:kMenuBindKey_RowView];
     [LKExportManager exportScreenshotWithDisplayItem:view.displayItem];
+}
+
+- (void)_handleExportNodeAnalysisRecursively:(NSMenuItem *)menuItem {
+    LKHierarchyRowView *view = [menuItem.menu lookin_getBindObjectForKey:kMenuBindKey_RowView];
+    [self _exportAnalysisDataForItem:view.displayItem recursive:YES];
+}
+
+- (void)_handleExportNodeAnalysisSingle:(NSMenuItem *)menuItem {
+    LKHierarchyRowView *view = [menuItem.menu lookin_getBindObjectForKey:kMenuBindKey_RowView];
+    [self _exportAnalysisDataForItem:view.displayItem recursive:NO];
+}
+
+- (void)_exportAnalysisDataForItem:(LookinDisplayItem *)item recursive:(BOOL)recursive {
+    if (!item) {
+        NSBeep();
+        return;
+    }
+    NSError *error = nil;
+    NSData *data = [LKMCPNodeExporter jsonDataForItem:item recursive:recursive error:&error];
+    if (!data) {
+        NSAlert *alert = [[NSAlert alloc] init];
+        alert.messageText = NSLocalizedString(@"Failed to export node analysis data.", nil);
+        alert.informativeText = error.localizedDescription ?: @"";
+        [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
+        [alert runModal];
+        return;
+    }
+
+    NSSavePanel *panel = [NSSavePanel savePanel];
+    panel.nameFieldStringValue = [LKMCPNodeExporter suggestedFileNameForItem:item recursive:recursive];
+    panel.allowedFileTypes = @[@"json"];
+    panel.canCreateDirectories = YES;
+    panel.title = recursive ? NSLocalizedString(@"Export node analysis data (incl. children)…", nil)
+                            : NSLocalizedString(@"Export this node's analysis data…", nil);
+
+    NSWindow *hostWindow = self.window;
+    void (^completion)(NSModalResponse) = ^(NSModalResponse result) {
+        if (result != NSModalResponseOK || !panel.URL) {
+            return;
+        }
+        NSError *writeError = nil;
+        BOOL ok = [data writeToURL:panel.URL options:NSDataWritingAtomic error:&writeError];
+        if (!ok) {
+            NSAlert *alert = [[NSAlert alloc] init];
+            alert.messageText = NSLocalizedString(@"Failed to save file.", nil);
+            alert.informativeText = writeError.localizedDescription ?: @"";
+            [alert addButtonWithTitle:NSLocalizedString(@"OK", nil)];
+            [alert runModal];
+        }
+    };
+    if (hostWindow) {
+        [panel beginSheetModalForWindow:hostWindow completionHandler:completion];
+    } else {
+        completion([panel runModal]);
+    }
+}
+
+- (void)_handleCopyAttributesData:(NSMenuItem *)menuItem {
+    LKHierarchyRowView *view = [menuItem.menu lookin_getBindObjectForKey:kMenuBindKey_RowView];
+    LookinDisplayItem *item = view.displayItem;
+    if (!item) {
+        NSBeep();
+        return;
+    }
+    NSString *text = [LKMCPNodeExporter readableAttributesTextForItem:item];
+    if (!text.length) {
+        NSBeep();
+        return;
+    }
+    NSPasteboard *paste = [NSPasteboard generalPasteboard];
+    [paste clearContents];
+    [paste writeObjects:@[text]];
 }
 
 - (void)_handleCopyDisplayItemName:(NSMenuItem *)menuItem {
