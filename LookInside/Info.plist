@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>LookInside 酷狗适配版</string>
+	<string>LookInside 酷狗版</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

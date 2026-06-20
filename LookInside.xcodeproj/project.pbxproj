@@ -22,7 +22,7 @@
 
 /* Begin PBXFileReference section */
 		AA1CAA3D22E471EC006D9285 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		AA48F29B21CC0CA50032EC2C /* LookInside.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LookInside.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA48F29B21CC0CA50032EC2C /* LookInside 酷狗版.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LookInside 酷狗版.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB9517A22C3AECA00A5F958 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -607,7 +607,7 @@
 		AA48F29C21CC0CA50032EC2C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA48F29B21CC0CA50032EC2C /* LookInside.app */,
+				AA48F29B21CC0CA50032EC2C /* LookInside 酷狗版.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -641,7 +641,7 @@
 				E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */,
 			);
 			productName = Lookin;
-			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
+			productReference = AA48F29B21CC0CA50032EC2C /* LookInside 酷狗版.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -950,7 +950,7 @@
 					"$(SRCROOT)/LookInside/ReactiveObjC",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗适配版";
+				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗版";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_OUTPUT_FORMAT = XML;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -961,8 +961,9 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.lookinside-app.lookinside";
 				PRODUCT_MODULE_NAME = LookInside;
-				PRODUCT_NAME = "LookInside 酷狗适配版";
+				PRODUCT_NAME = "LookInside 酷狗版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
 				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
@@ -970,8 +971,8 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
-				SWIFT_OBJC_INTERFACE_HEADER_NAME = "LookInside-Swift.h";
 				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "LookInside-Swift.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				WARNING_CFLAGS = (
@@ -1027,7 +1028,7 @@
 					"$(SRCROOT)/LookInside/ReactiveObjC",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗适配版";
+				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗版";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_OUTPUT_FORMAT = XML;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1038,8 +1039,9 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.lookinside-app.lookinside";
 				PRODUCT_MODULE_NAME = LookInside;
-				PRODUCT_NAME = "LookInside 酷狗适配版";
+				PRODUCT_NAME = "LookInside 酷狗版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
 				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
@@ -1047,8 +1049,8 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
-				SWIFT_OBJC_INTERFACE_HEADER_NAME = "LookInside-Swift.h";
 				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "LookInside-Swift.h";
 				SWIFT_VERSION = 5.0;
 				WARNING_CFLAGS = (
 					"$(inherited)",
@@ -1141,15 +1143,15 @@
 			package = E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
 		};
-		E5B000032FA9000000000001 /* LookinCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E5B000022FA9000000000001 /* XCLocalSwiftPackageReference "." */;
-			productName = LookinCore;
-		};
 		E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */;
 			productName = LookInsidePrivateDiscriminator;
+		};
+		E5B000032FA9000000000001 /* LookinCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E5B000022FA9000000000001 /* XCLocalSwiftPackageReference "." */;
+			productName = LookinCore;
 		};
 		E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */ = {
 			isa = XCSwiftPackageProductDependency;

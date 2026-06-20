@@ -24,7 +24,7 @@ static NSUInteger const kTag_PurchaseSwiftUISupport = 17;
 static NSUInteger const kTag_SwiftUISupportCustomerSupport = 18;
 static NSUInteger const kTag_SwiftUISupportSubmenu = 19;
 
-static NSString *const kLookInsideKugouEditionName = @"LookInside 酷狗适配版";
+static NSString *const kLookInsideKugouEditionName = @"LookInside 酷狗版";
 
 static NSString *const kSwiftUISupportPurchaseURL = @"https://lookinside-app.com/purchase";
 static NSString *const kSwiftUISupportCustomerSupportURL = @"mailto:support@lookinside-app.com";

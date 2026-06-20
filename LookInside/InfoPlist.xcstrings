@@ -8,7 +8,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "LookInside 酷狗适配版"
+            "value" : "LookInside 酷狗版"
           }
         }
       }
@@ -19,13 +19,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside 酷狗适配版"
+            "value" : "LookInside 酷狗版"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside 酷狗适配版"
+            "value" : "LookInside 酷狗版"
           }
         }
       }
