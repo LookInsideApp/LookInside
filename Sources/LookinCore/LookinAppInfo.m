@@ -142,7 +142,13 @@ static NSString * const CodingKey_DeviceType = @"8";
     
     LookinAppInfo *info = [[LookinAppInfo alloc] init];
     info.serverReadableVersion = LOOKIN_SERVER_READABLE_VERSION;
-#ifdef LOOKIN_SERVER_SWIFT_ENABLED
+// Report Swift optimization as enabled whenever the Swift-aware build is
+// compiled in. The CocoaPods subspec path defines LOOKIN_SERVER_SWIFT_ENABLED;
+// the SwiftPM / XCFramework path defines SPM_LOOKIN_SERVER_ENABLED (which in
+// turn imports LookinServerSwift and activates LOOKIN_SERVER_SWIFT_ENABLED_SUCCESSFULLY
+// in LKS_TraceManager). Both imply the optimization is active, matching the
+// contract documented on -swiftEnabledInLookinServer ("SPM 或 Swift Subspec → 1").
+#if defined(LOOKIN_SERVER_SWIFT_ENABLED) || defined(SPM_LOOKIN_SERVER_ENABLED)
     info.swiftEnabledInLookinServer = 1;
 #else
     info.swiftEnabledInLookinServer = -1;
