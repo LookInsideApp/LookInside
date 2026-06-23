@@ -16,6 +16,26 @@
 #import <AppKit/AppKit.h>
 #endif
 
+#if TARGET_OS_IPHONE
+// Private +[UIScene _scenesIncludingInternal:] signature. Returns every
+// UIScene the process has created, including ones UIApplication.connectedScenes
+// hides (e.g. _UIKeyboardWindowScene on iOS 17+). Available since iOS 13.
+@protocol _LKS_UISceneInternalClassAPI <NSObject>
++ (NSArray<UIScene *> *)_scenesIncludingInternal:(BOOL)includeInternal;
+@end
+
+// Private -[UIWindowScene _allWindowsIncludingInternalWindows:onlyVisibleWindows:]
+// signature. The public `windows` getter routes through this with
+// includeInternal=NO, filtering out every UIWindow whose -isInternalWindow
+// returns YES. On iOS 26+ -[UIRemoteKeyboardWindow isInternalWindow] is
+// hardcoded to YES, so the soft-keyboard window disappears from the public
+// list. Calling with includeInternal=YES bypasses the filter and surfaces it.
+@protocol _LKS_UIWindowSceneInternalAPI <NSObject>
+- (NSArray<UIWindow *> *)_allWindowsIncludingInternalWindows:(BOOL)includeInternal
+                                          onlyVisibleWindows:(BOOL)onlyVisible;
+@end
+#endif
+
 @implementation LKS_MultiplatformAdapter
 
 + (BOOL)isiPad {
@@ -104,29 +124,82 @@
 
 
 + (NSArray<LookinWindow *> *)allWindows {
-#if TARGET_OS_VISION
-    NSMutableArray<UIWindow *> *windows = [NSMutableArray new];
-    for (UIScene *scene in
-         UIApplication.sharedApplication.connectedScenes) {
-        if (![scene isKindOfClass:UIWindowScene.class]) {
-            continue;
-        }
-        UIWindowScene *windowScene = (UIWindowScene *)scene;
-        [windows addObjectsFromArray:windowScene.windows];
+#if TARGET_OS_IPHONE
+    NSArray<UIWindowScene *> *scenes = [self allWindowScenes];
+    if (scenes.count > 0) {
+        NSMutableArray<UIWindow *> *windows = [NSMutableArray new];
+        for (UIWindowScene *windowScene in scenes) {
+            for (UIWindow *window in [self allWindowsForWindowScene:windowScene]) {
+                if (![windows containsObject:window]) {
+                    [windows addObject:window];
+                }
+            }
 
-        // 以UIModalPresentationFormSheet形式展示的页面由系统私有window承载，不出现在scene.windows，不过可以从scene.keyWindow中获取
-        if (![windows containsObject:windowScene.keyWindow]) {
-            if (![NSStringFromClass(windowScene.keyWindow.class) containsString:@"HUD"]) {
-                [windows addObject:windowScene.keyWindow];
+            // UIModalPresentationFormSheet uses a private window that is
+            // missing from scene.windows but reachable via scene.keyWindow.
+            // UIWindowScene.keyWindow is iOS 15+ only; on iOS 13/14 the form
+            // sheet window is reachable through scene.windows anyway.
+            if (@available(iOS 15.0, tvOS 15.0, macCatalyst 15.0, *)) {
+                UIWindow *sceneKeyWindow = windowScene.keyWindow;
+                if (sceneKeyWindow && ![windows containsObject:sceneKeyWindow]) {
+                    if (![NSStringFromClass(sceneKeyWindow.class) containsString:@"HUD"]) {
+                        [windows addObject:sceneKeyWindow];
+                    }
+                }
             }
         }
+        if (windows.count > 0) {
+            return [windows copy];
+        }
     }
-
-    return [windows copy];
+#if TARGET_OS_VISION
+    // visionOS deprecates -[UIApplication windows] outright; there's no global
+    // window list to fall back to, so just return empty.
+    return @[];
+#else
+    return [[LookinApplication sharedApplication].windows copy];
+#endif
 #else
     return [[LookinApplication sharedApplication].windows copy];
 #endif
 }
+
+#if TARGET_OS_IPHONE
++ (NSArray<UIWindowScene *> *)allWindowScenes {
+    NSArray<UIScene *> *allScenes = nil;
+    Class<_LKS_UISceneInternalClassAPI> uiSceneClass = (Class<_LKS_UISceneInternalClassAPI>)UIScene.class;
+    if ([uiSceneClass respondsToSelector:@selector(_scenesIncludingInternal:)]) {
+        allScenes = [uiSceneClass _scenesIncludingInternal:YES];
+    }
+    if (allScenes.count == 0) {
+        allScenes = UIApplication.sharedApplication.connectedScenes.allObjects;
+    }
+
+    NSMutableArray<UIWindowScene *> *windowScenes = [NSMutableArray arrayWithCapacity:allScenes.count];
+    for (UIScene *scene in allScenes) {
+        if ([scene isKindOfClass:UIWindowScene.class]) {
+            [windowScenes addObject:(UIWindowScene *)scene];
+        }
+    }
+    return [windowScenes copy];
+}
+
++ (NSArray<UIWindow *> *)allWindowsForWindowScene:(UIWindowScene *)scene {
+    if (!scene) {
+        return @[];
+    }
+    SEL selector = @selector(_allWindowsIncludingInternalWindows:onlyVisibleWindows:);
+    if ([scene respondsToSelector:selector]) {
+        NSArray<UIWindow *> *windows = [(id<_LKS_UIWindowSceneInternalAPI>)scene
+            _allWindowsIncludingInternalWindows:YES
+            onlyVisibleWindows:NO];
+        if (windows.count > 0) {
+            return windows;
+        }
+    }
+    return scene.windows ?: @[];
+}
+#endif
 
 @end
 
