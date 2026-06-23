@@ -12,7 +12,7 @@
 #import "Image+Lookin.h"
 
 #if TARGET_OS_IPHONE
-#import "../LookinServer/Server/Category/UIImage+LookinServer.h"
+#import "UIImage+LookinServer.h"
 #endif
 
 @implementation LookinDisplayItemDetail

@@ -64,6 +64,12 @@ typedef NS_ENUM(NSInteger, LookinMeasureState) {
 
 @property(nonatomic, strong, readonly) LookinBOOLMsgAttribute *showHiddenItems;
 
+/// 酷狗（KuGou）专用：是否在层级里展开 KGMainViewController 的全部页面（关闭折叠逻辑）。默认 NO。
+@property(nonatomic, strong, readonly) LookinBOOLMsgAttribute *kgShowAllPages;
+
+/// 酷狗（KuGou）专用：是否显示 KGMainViewController 的抽屉（_setViewContainer）。默认 NO。
+@property(nonatomic, strong, readonly) LookinBOOLMsgAttribute *kgShowDrawer;
+
 // 范围是 0 ～ 1
 @property(nonatomic, strong, readonly) LookinDoubleMsgAttribute *zInterspace;
 

@@ -179,6 +179,14 @@ typedef NS_ENUM(NSUInteger, LookinDisplayItemProperty) {
 /// 根据 subItems 属性将 items 打平为一维数组
 + (NSArray<LookinDisplayItem *> *)flatItemsFromHierarchicalItems:(NSArray<LookinDisplayItem *> *)items;
 
+/// 酷狗（KuGou）：就地把 items 这棵层级树里 KGMainViewController.view 的子树做折叠
+/// （只保留最上面的 VC，按开关决定是否展示抽屉/全部页面），不改变树的整体形状（不打平）。
+/// 供 lookinside-mcp 等不经过 flatItemsFromHierarchicalItems: 的客户端，在拿到 displayItems
+/// 后直接调用，使其层级输出与 macOS 客户端保持一致。
+/// 开关优先级：LKPreferenceManager（GUI 按钮） > 环境变量 LOOKIN_MCP_SHOW_ALL_PAGES /
+/// LOOKIN_MCP_SHOW_DRAWER > NSUserDefaults，默认都为 NO（即默认折叠、隐藏抽屉）。
++ (void)lk_kg_applyKuGouCollapseToHierarchicalItems:(NSArray<LookinDisplayItem *> *)items NS_SWIFT_NAME(lk_kg_applyKuGouCollapse(to:));
+
 @property(nonatomic, assign) BOOL hasDeterminedExpansion;
 
 /// 设置当前是否处于搜索状态

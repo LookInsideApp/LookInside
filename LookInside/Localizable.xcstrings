@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     " / " : {
       "comment" : "Separator between imported/autosaved CSV sources",
       "localizations" : {
@@ -212,6 +215,16 @@
         }
       }
     },
+    "All Pages" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有页面"
+          }
+        }
+      }
+    },
     "Allow future guessed rows to use autosaved module CSVs." : {
       "localizations" : {
         "en" : {
@@ -256,6 +269,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外观"
+          }
+        }
+      }
+    },
+    "Approve LookInside Injector" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approve LookInside Injector"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "批准 LookInside 注入器"
           }
         }
       }
@@ -357,7 +386,6 @@
       }
     },
     "Automatic update checks are disabled in this community build." : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -545,6 +573,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "切换 App"
+          }
+        }
+      }
+    },
+    "Check Again" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check Again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新检查"
           }
         }
       }
@@ -886,6 +930,22 @@
         }
       }
     },
+    "Copy property data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy property data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制属性数据"
+          }
+        }
+      }
+    },
     "Copy text \"%@\"" : {
       "localizations" : {
         "en" : {
@@ -903,6 +963,7 @@
       }
     },
     "Current LookInside app is too old to open this document. Current LookInside app version is %@, but the document version is %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1190,6 +1251,16 @@
         }
       }
     },
+    "Drawer" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "侧边栏抽屉"
+          }
+        }
+      }
+    },
     "Empty download payload." : {
       "localizations" : {
         "en" : {
@@ -1223,6 +1294,7 @@
       }
     },
     "Enable LookInside Injector" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1234,6 +1306,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用 LookInside 注入器"
+          }
+        }
+      }
+    },
+    "Enable LookInside Injector?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable LookInside Injector?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 LookInside 注入器？"
           }
         }
       }
@@ -1350,6 +1438,22 @@
         }
       }
     },
+    "Export node analysis data (incl. children)…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export node analysis data (incl. children)…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出节点分析数据（含子节点）…"
+          }
+        }
+      }
+    },
     "Export screenshot…" : {
       "localizations" : {
         "en" : {
@@ -1362,6 +1466,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "导出截图…"
+          }
+        }
+      }
+    },
+    "Export this node's analysis data…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export this node's analysis data…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出当前节点分析数据…"
           }
         }
       }
@@ -1446,6 +1566,22 @@
         }
       }
     },
+    "Failed to export node analysis data." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to export node analysis data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出节点分析数据失败。"
+          }
+        }
+      }
+    },
     "Failed to extract LookInside Auth Server.\n%@" : {
       "localizations" : {
         "en" : {
@@ -1479,6 +1615,7 @@
       }
     },
     "Failed to get target object in iOS app" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1559,6 +1696,7 @@
       }
     },
     "Failed to open the document." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1586,6 +1724,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "注册 LookInside 注入器守护进程失败。\n%@"
+          }
+        }
+      }
+    },
+    "Failed to save file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to save file."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存文件失败。"
           }
         }
       }
@@ -2648,7 +2802,6 @@
       }
     },
     "License Timeout" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2968,7 +3121,24 @@
         }
       }
     },
+    "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 需要先启用特权注入器，才能附加到其他进程。macOS 可能会要求管理员在系统设置中批准此操作。"
+          }
+        }
+      }
+    },
     "LookInside opened System Settings → Login Items & Extensions for you.\n\nFind “LookInside” in the list, turn it on, then come back and click Attach to Running App again." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3060,6 +3230,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LookInsideServer 已注入 pid %d。该 App 很快会出现在启动列表中。"
+          }
+        }
+      }
+    },
+    "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return here and check again." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return here and check again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 正在等待管理员批准后才能运行 LookInside 注入器。请打开“登录项与扩展”，启用 LookInside，然后回到这里重新检查。"
+          }
+        }
+      }
+    },
+    "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS 正在等待管理员批准后才能运行 LookInside 注入器。请打开“登录项与扩展”，启用 LookInside，然后回到 LookInside 再点击“附加到运行中的 App”。"
           }
         }
       }
@@ -3513,6 +3716,7 @@
       }
     },
     "Open Settings Again" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3524,6 +3728,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "再次打开设置"
+          }
+        }
+      }
+    },
+    "Open System Settings" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开系统设置"
           }
         }
       }
@@ -3593,6 +3813,7 @@
       }
     },
     "Perhaps the related object was deallocated. You can reload LookInside to get newest data." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3609,6 +3830,7 @@
       }
     },
     "Perhaps your iOS app is paused with breakpoint in Xcode, blocked by other tasks in main thread, or moved to background state." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4523,6 +4745,7 @@
       }
     },
     "The document was created by a LookInside app with too old version. Current LookInside app version is %@, but the document version is %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4619,6 +4842,26 @@
         }
       }
     },
+    "The LookInside Injector daemon is missing from this app.\nPlease reinstall LookInside, then try again." : {
+
+    },
+    "The LookInside Injector daemon is missing from this app.\\nPlease reinstall LookInside, then try again." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector daemon is missing from this app.\\nPlease reinstall LookInside, then try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 中缺少 LookInside 注入器守护进程。\\n请重新安装 LookInside，然后再试一次。"
+          }
+        }
+      }
+    },
     "The LookInside Injector daemon is not enabled (status %@)." : {
       "localizations" : {
         "en" : {
@@ -4647,6 +4890,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "LookInside 注入器守护进程需要你的批准。\n打开“系统设置”→“登录项与扩展”，找到“LookInside 注入器”并将它打开，然后重试。"
+          }
+        }
+      }
+    },
+    "The LookInside Injector daemon returned an unsupported status (%d)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector daemon returned an unsupported status (%d)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 注入器守护进程返回了不支持的状态（%d）。"
+          }
+        }
+      }
+    },
+    "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 注入器已包含在 App 中，但 macOS 只能从已安装的 App 启用它。请将 LookInside 移到“应用程序”文件夹，重新启动后再点击“附加到运行中的 App”。"
           }
         }
       }
@@ -4716,6 +4991,7 @@
       }
     },
     "The operation failed due to disconnection with the iOS app." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4909,7 +5185,6 @@
       }
     },
     "Timeout for license challenge and verification requests, in seconds. Default: 5s." : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5148,6 +5423,9 @@
           }
         }
       }
+    },
+    "Updates Disabled" : {
+
     },
     "Updating default library…" : {
       "localizations" : {
@@ -5434,166 +5712,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "缩放"
-          }
-        }
-      }
-    },
-    "Approve LookInside Injector" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Approve LookInside Injector"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "批准 LookInside 注入器"
-          }
-        }
-      }
-    },
-    "Check Again" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Check Again"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新检查"
-          }
-        }
-      }
-    },
-    "Enable LookInside Injector?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable LookInside Injector?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用 LookInside 注入器？"
-          }
-        }
-      }
-    },
-    "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside needs to enable its privileged injector before it can attach to another process. macOS may require an administrator to approve this in System Settings."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 需要先启用特权注入器，才能附加到其他进程。macOS 可能会要求管理员在系统设置中批准此操作。"
-          }
-        }
-      }
-    },
-    "Open System Settings" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open System Settings"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开系统设置"
-          }
-        }
-      }
-    },
-    "The LookInside Injector daemon is missing from this app.\\nPlease reinstall LookInside, then try again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The LookInside Injector daemon is missing from this app.\\nPlease reinstall LookInside, then try again."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此 App 中缺少 LookInside 注入器守护进程。\\n请重新安装 LookInside，然后再试一次。"
-          }
-        }
-      }
-    },
-    "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The LookInside Injector is bundled correctly, but macOS can only enable it from an installed app. Move LookInside to the Applications folder, relaunch it, then click Attach to Running App again."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 注入器已包含在 App 中，但 macOS 只能从已安装的 App 启用它。请将 LookInside 移到“应用程序”文件夹，重新启动后再点击“附加到运行中的 App”。"
-          }
-        }
-      }
-    },
-    "The LookInside Injector daemon returned an unsupported status (%d)." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The LookInside Injector daemon returned an unsupported status (%d)."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 注入器守护进程返回了不支持的状态（%d）。"
-          }
-        }
-      }
-    },
-    "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return here and check again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return here and check again."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS 正在等待管理员批准后才能运行 LookInside 注入器。请打开“登录项与扩展”，启用 LookInside，然后回到这里重新检查。"
-          }
-        }
-      }
-    },
-    "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS is waiting for administrator approval before it can run the LookInside Injector. Open Login Items & Extensions, enable LookInside, then return to LookInside and click Attach to Running App again."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "macOS 正在等待管理员批准后才能运行 LookInside 注入器。请打开“登录项与扩展”，启用 LookInside，然后回到 LookInside 再点击“附加到运行中的 App”。"
           }
         }
       }

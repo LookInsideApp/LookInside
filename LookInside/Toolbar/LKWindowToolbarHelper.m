@@ -29,6 +29,8 @@ NSToolbarItemIdentifier const LKToolBarIdentifier_Measure = @"17";
 NSToolbarItemIdentifier const LKToolBarIdentifier_Message = @"18";
 NSToolbarItemIdentifier const LKToolBarIdentifier_FastMode = @"19";
 NSToolbarItemIdentifier const LKToolBarIdentifier_SwiftUIMode = @"20";
+NSToolbarItemIdentifier const LKToolBarIdentifier_KGShowAllPages = @"21";
+NSToolbarItemIdentifier const LKToolBarIdentifier_KGShowDrawer = @"22";
 
 
 static NSString * const Key_BindingPreferenceManager = @"PreferenceManager";
@@ -232,7 +234,41 @@ static NSString * const Key_BindingAppInfo = @"AppInfo";
         [manager.fastMode subscribe:self action:@selector(_handleFastModeDidChange:) relatedObject:button sendAtOnce:YES];
         return item;
     }
-    
+
+    if ([identifier isEqualToString:LKToolBarIdentifier_KGShowAllPages]) {
+        NSImage *image = [NSImage imageWithSystemSymbolName:@"rectangle.stack" accessibilityDescription:nil];
+        image.template = YES;
+
+        NSButton *button = [NSButton new];
+        [button setImage:image];
+        button.bezelStyle = NSBezelStyleTexturedRounded;
+        [button setButtonType:NSButtonTypePushOnPushOff];
+
+        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:LKToolBarIdentifier_KGShowAllPages];
+        item.label = NSLocalizedString(@"All Pages", nil);
+        item.view = button;
+
+        [manager.kgShowAllPages subscribe:self action:@selector(_handleKGShowAllPagesDidChange:) relatedObject:button sendAtOnce:YES];
+        return item;
+    }
+
+    if ([identifier isEqualToString:LKToolBarIdentifier_KGShowDrawer]) {
+        NSImage *image = [NSImage imageWithSystemSymbolName:@"sidebar.left" accessibilityDescription:nil];
+        image.template = YES;
+
+        NSButton *button = [NSButton new];
+        [button setImage:image];
+        button.bezelStyle = NSBezelStyleTexturedRounded;
+        [button setButtonType:NSButtonTypePushOnPushOff];
+
+        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:LKToolBarIdentifier_KGShowDrawer];
+        item.label = NSLocalizedString(@"Drawer", nil);
+        item.view = button;
+
+        [manager.kgShowDrawer subscribe:self action:@selector(_handleKGShowDrawerDidChange:) relatedObject:button sendAtOnce:YES];
+        return item;
+    }
+
     if ([identifier isEqualToString:LKToolBarIdentifier_Add]) {
         NSImage *image = [NSImage imageNamed:NSImageNameAddTemplate];
         image.template = YES;
@@ -323,6 +359,16 @@ static NSString * const Key_BindingAppInfo = @"AppInfo";
     NSButton *button = param.relatedObject;
     BOOL boolValue = param.boolValue;
     button.state = boolValue ? NSControlStateValueOn : NSControlStateValueOff;
+}
+
+- (void)_handleKGShowAllPagesDidChange:(LookinMsgActionParams *)param {
+    NSButton *button = param.relatedObject;
+    button.state = param.boolValue ? NSControlStateValueOn : NSControlStateValueOff;
+}
+
+- (void)_handleKGShowDrawerDidChange:(LookinMsgActionParams *)param {
+    NSButton *button = param.relatedObject;
+    button.state = param.boolValue ? NSControlStateValueOn : NSControlStateValueOff;
 }
 
 - (void)_handleDimensionDidChange:(LookinMsgActionParams *)param {

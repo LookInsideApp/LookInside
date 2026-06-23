@@ -6,7 +6,7 @@
 #include "Version.xcconfig"
 
 DEVELOPMENT_TEAM =
-PRODUCT_BUNDLE_IDENTIFIER = com.lookinside-app.lookinside
+PRODUCT_BUNDLE_IDENTIFIER = cn.vanjay.lookinside
 
 CODE_SIGN_STYLE = Automatic
 SPARKLE_PUBLIC_ED_KEY =
