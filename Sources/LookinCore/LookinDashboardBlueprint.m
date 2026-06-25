@@ -2738,7 +2738,6 @@
             LookinAttr_NSTableView_AutosaveName_AutosaveName: @{
                 @"className": @"NSTableView",
                 @"fullTitle": @"AutosaveName",
-                @"typeIfObj": @(LookinAttrTypeNSString),
                 @"patch": @(YES)
             },
             LookinAttr_NSTableView_AutosaveTableColumns_AutosaveTableColumns: @{
@@ -3960,26 +3959,23 @@
             LookinAttr_NSDatePicker_Range_DateValue: @{
                 @"className": @"NSDatePicker",
                 @"fullTitle": @"DateValue",
-                @"getterString": @"lks_dateValueDescription",
                 @"setterString": @"",
-                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"typeIfObj": @(LookinAttrTypeCustomObj),
                 @"patch": @(NO)
             },
             LookinAttr_NSDatePicker_Range_MinDate: @{
                 @"className": @"NSDatePicker",
                 @"fullTitle": @"MinDate",
-                @"getterString": @"lks_minDateDescription",
                 @"setterString": @"",
-                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"typeIfObj": @(LookinAttrTypeCustomObj),
                 @"hideIfNil": @(YES),
                 @"patch": @(NO)
             },
             LookinAttr_NSDatePicker_Range_MaxDate: @{
                 @"className": @"NSDatePicker",
                 @"fullTitle": @"MaxDate",
-                @"getterString": @"lks_maxDateDescription",
                 @"setterString": @"",
-                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"typeIfObj": @(LookinAttrTypeCustomObj),
                 @"hideIfNil": @(YES),
                 @"patch": @(NO)
             },
@@ -4087,9 +4083,8 @@
             LookinAttr_NSCollectionView_Colors_BackgroundColors: @{
                 @"className": @"NSCollectionView",
                 @"fullTitle": @"BackgroundColors",
-                @"getterString": @"lks_backgroundColorsDescription",
                 @"setterString": @"",
-                @"typeIfObj": @(LookinAttrTypeNSString),
+                @"typeIfObj": @(LookinAttrTypeCustomObj),
                 @"patch": @(NO)
             },
 

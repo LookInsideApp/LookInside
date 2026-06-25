@@ -4,6 +4,7 @@
 
 
 
+#import "LookInsideServerLogger.h"
 #import "Lookin_PTPrivate.h"
 
 #include <netinet/in.h>
@@ -194,7 +195,8 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
     gSharedHub = [Lookin_PTUSBHub new];
     [gSharedHub listenOnQueue:dispatch_get_main_queue() onStart:^(NSError *error) {
       if (error) {
-        NSLog(@"Lookin_PTUSBHub failed to initialize: %@", error);
+        [LookInsideServerLogger logWithLevel:LookInsideServerLogLevelError
+                                      message:[NSString stringWithFormat:@"Lookin_PTUSBHub failed to initialize: %@", error]];
       }
     } onEnd:nil];
   });
@@ -257,7 +259,10 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
   } else if ([@"Detached" isEqualToString:messageType]) {
     [[NSNotificationCenter defaultCenter] postNotificationName:Lookin_PTUSBDeviceDidDetachNotification object:self userInfo:packet];
   } else {
-    NSLog(@"Warning: Unhandled broadcast message: %@", packet);
+    if ([LookInsideServerLogger shouldLogAtLevel:LookInsideServerLogLevelWarning]) {
+      [LookInsideServerLogger logWithLevel:LookInsideServerLogLevelWarning
+                                    message:[NSString stringWithFormat:@"Unhandled broadcast message: %@", packet]];
+    }
   }
 }
 
@@ -463,7 +468,10 @@ static NSString *kPlistPacketTypeConnect = @"Connect";
           [self->responseQueue_ removeObjectForKey:key];
         requestCallback(error, packet);
       } else {
-        NSLog(@"Warning: Ignoring reply packet for which there is no registered callback. Packet => %@", packet);
+        if ([LookInsideServerLogger shouldLogAtLevel:LookInsideServerLogLevelWarning]) {
+          [LookInsideServerLogger logWithLevel:LookInsideServerLogLevelWarning
+                                        message:[NSString stringWithFormat:@"Ignoring reply packet for which there is no registered callback. Packet => %@", packet]];
+        }
       }
     }
     

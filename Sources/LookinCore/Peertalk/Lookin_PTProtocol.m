@@ -2,6 +2,7 @@
 
 #import "Lookin_PTProtocol.h"
 #import "Lookin_PTPrivate.h"
+#import "LookInsideServerLogger.h"
 #import <objc/runtime.h>
 
 static const uint32_t PTProtocolVersion1 = 1;
@@ -401,7 +402,8 @@ static void _release_queue_local_protocol(void *objcobj) {
   NSError *error = nil;
   NSData *plistData = [NSPropertyListSerialization dataWithPropertyList:self format:NSPropertyListBinaryFormat_v1_0 options:0 error:&error];
   if (!plistData) {
-    NSLog(@"Failed to serialize property list: %@", error);
+    [LookInsideServerLogger logWithLevel:LookInsideServerLogLevelError
+                                  message:[NSString stringWithFormat:@"Failed to serialize property list: %@", error]];
     return nil;
   } else {
     return [plistData createReferencingDispatchData];
