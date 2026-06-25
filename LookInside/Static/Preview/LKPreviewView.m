@@ -33,6 +33,10 @@ const CGFloat LookinPreviewMaxZInterspace = 1;
 @property(nonatomic, copy) NSArray<LookinDisplayItem *> *flatDisplayItems;
 @property(nonatomic, strong) NSMutableArray<LKDisplayItemNode *> *displayItemNodes;
 
+/// 3D 视图坐标原点对应的 frameToRoot 点，等于"面积最大的顶层 window item"的中心。
+/// 每次 render 时根据当前 flatDisplayItems 重新计算并分发到所有 LKDisplayItemNode。
+@property(nonatomic, assign) CGPoint referenceCenter;
+
 @end
 
 @implementation LKPreviewView
@@ -83,46 +87,92 @@ const CGFloat LookinPreviewMaxZInterspace = 1;
         return;
     }
     _appScreenSize = appScreenSize;
-    
+
     SCNVector3 rightPos = self.rightLightNode.position;
     rightPos.x = appScreenSize.width * 0.01 * 0.5 + 2;
     rightPos.y = appScreenSize.height * 0.01 * 0.5 + 2;
     self.rightLightNode.position = rightPos;
-    
+
     SCNVector3 leftPos = self.leftLightNode.position;
     leftPos.x = -appScreenSize.width * 0.01 * 0.5 - 2;
     leftPos.y = -appScreenSize.height * 0.01 * 0.5 - 2;
     self.leftLightNode.position = leftPos;
 
-    [self.displayItemNodes enumerateObjectsUsingBlock:^(LKDisplayItemNode * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        obj.screenSize = appScreenSize;
+    // 兜底：若尚未通过 render 计算出 referenceCenter，先以屏幕中心作为缺省。
+    // 真正的 referenceCenter 会在每次 renderWithDisplayItems: 中根据"面积最大的顶层窗口"重算。
+    if (CGPointEqualToPoint(self.referenceCenter, CGPointZero)) {
+        self.referenceCenter = CGPointMake(appScreenSize.width / 2, appScreenSize.height / 2);
+    }
+}
+
+- (void)setReferenceCenter:(CGPoint)referenceCenter {
+    if (CGPointEqualToPoint(_referenceCenter, referenceCenter)) {
+        return;
+    }
+    _referenceCenter = referenceCenter;
+    [self.displayItemNodes enumerateObjectsUsingBlock:^(LKDisplayItemNode * _Nonnull node, NSUInteger idx, BOOL * _Nonnull stop) {
+        node.referenceCenter = referenceCenter;
     }];
+}
+
+/// 在所有顶层 displayItem 及其直接子 item（覆盖 macOS 直接窗口顶层结构和 iOS/Catalyst 的 sceneItem→windowItem 结构）
+/// 中挑出 frameToRoot 面积最大的那个，作为 3D 视图的参考中心。
+/// 若找不到任何具有合法 frame 的候选项，回退到 appScreenSize 的几何中心。
+- (CGPoint)_calculateReferenceCenterForItems:(NSArray<LookinDisplayItem *> *)items {
+    LookinDisplayItem *largestItem = nil;
+    CGFloat largestArea = 0;
+    for (LookinDisplayItem *item in items) {
+        if (item.superItem != nil) {
+            continue;
+        }
+        NSMutableArray<LookinDisplayItem *> *candidates = [NSMutableArray arrayWithObject:item];
+        for (LookinDisplayItem *child in item.subitems) {
+            [candidates addObject:child];
+        }
+        for (LookinDisplayItem *candidate in candidates) {
+            CGRect frameToRoot = [candidate calculateFrameToRoot];
+            CGFloat area = frameToRoot.size.width * frameToRoot.size.height;
+            if (area > largestArea) {
+                largestArea = area;
+                largestItem = candidate;
+            }
+        }
+    }
+    if (largestItem) {
+        CGRect frameToRoot = [largestItem calculateFrameToRoot];
+        return CGPointMake(CGRectGetMidX(frameToRoot), CGRectGetMidY(frameToRoot));
+    }
+    return CGPointMake(self.appScreenSize.width / 2, self.appScreenSize.height / 2);
 }
 
 - (void)renderWithDisplayItems:(NSArray<LookinDisplayItem *> *)items discardCache:(BOOL)discardCache {
     NSLog(@"LKPreviewView - render %@ items", @(items.count));
-    
+
     self.flatDisplayItems = items;
-    
+
+    // 在创建/复用任何 displayItemNode 之前确定 referenceCenter。
+    // setter 会自动把新中心分发给已存在的 displayItemNodes（触发其位置重算）。
+    self.referenceCenter = [self _calculateReferenceCenterForItems:items];
+
     NSMutableArray<LKDisplayItemNode *> *nodesToBeDiscarded = nil;
     if (discardCache) {
         nodesToBeDiscarded = [NSMutableArray array];
     }
-    
+
     [self.displayItemNodes lookin_dequeueWithCount:items.count add:^LKDisplayItemNode *(NSUInteger idx) {
         LKDisplayItemNode *newNode = [[LKDisplayItemNode alloc] initWithDataSource:self.dataSource];
-        newNode.screenSize = self.appScreenSize;
+        newNode.referenceCenter = self.referenceCenter;
         newNode.preferenceManager = self.preferenceManager;
         newNode.isDarkMode = self.isDarkMode;
         [self.stageNode addChildNode:newNode];
         return newNode;
-        
+
     } notDequeued:^(NSUInteger idx, LKDisplayItemNode *node) {
         [node removeFromParentNode];
         if (discardCache) {
             [nodesToBeDiscarded addObject:node];
         }
-        
+
     } doNext:^(NSUInteger idx, LKDisplayItemNode *node) {
         if (!node.parentNode) {
             [self.stageNode addChildNode:node];

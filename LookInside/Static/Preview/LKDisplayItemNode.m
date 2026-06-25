@@ -77,6 +77,16 @@
     [self _renderImageAndColor];
 }
 
+- (void)setReferenceCenter:(CGPoint)referenceCenter {
+    if (CGPointEqualToPoint(_referenceCenter, referenceCenter)) {
+        return;
+    }
+    _referenceCenter = referenceCenter;
+    if (self.displayItem) {
+        [self displayItem:self.displayItem propertyDidChange:LookinDisplayItemProperty_FrameToRoot];
+    }
+}
+
 - (void)setDisplayItem:(LookinDisplayItem *)displayItem {
     _displayItem = displayItem;
     
@@ -248,8 +258,8 @@
         CGFloat originY = frameToRoot.origin.y;
         CGFloat width = frameToRoot.size.width;
         CGFloat height = frameToRoot.size.height;
-        CGFloat xOffSet = -self.screenSize.width / 2;
-        CGFloat yOffSet = self.screenSize.height / 2;
+        CGFloat xOffSet = -self.referenceCenter.x;
+        CGFloat yOffSet = self.referenceCenter.y;
         
         CGFloat transformedX = 0;
         CGFloat transformedY = 0;
