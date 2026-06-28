@@ -29,6 +29,8 @@ public final class LKMCPBridgeInspectionService {
             return handleTargetsList(identifier: request.identifier)
         case "hierarchy.read":
             return handleHierarchyRead(identifier: request.identifier, parameters: request.parameters)
+        case "attributes.read":
+            return handleAttributesRead(identifier: request.identifier, parameters: request.parameters)
         default:
             return .failure(identifier: request.identifier, error: .unknownMethod)
         }
@@ -177,6 +179,108 @@ public final class LKMCPBridgeInspectionService {
             representsKeyWindow: item.representedAsKeyWindow,
             childObjectIdentifiers: childIdentifiers,
             children: inlinedChildren
+        )
+    }
+
+    // MARK: - attributes.read
+
+    private func handleAttributesRead(
+        identifier: String,
+        parameters: [String: LKMCPBridgeJSONValue]?
+    ) -> LKMCPBridgeResponse {
+        guard let parameters = parameters,
+              case .string(let targetIdentifier)? = parameters["targetIdentifier"],
+              case .string(let objectIdentifier)? = parameters["objectIdentifier"]
+        else {
+            return .failure(identifier: identifier, error: .invalidParameters)
+        }
+
+        let includeUserCustom: Bool
+        if case .bool(let raw)? = parameters["includeUserCustom"] {
+            includeUserCustom = raw
+        } else {
+            includeUserCustom = true
+        }
+
+        guard let document = findLiveDocument(targetIdentifier: targetIdentifier) else {
+            return .failure(
+                identifier: identifier,
+                error: LKMCPBridgeErrorPayload(
+                    code: "hierarchy.targetNotFound",
+                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                )
+            )
+        }
+
+        guard let dataSource = document.hierarchyDataSource else {
+            return .failure(
+                identifier: identifier,
+                error: LKMCPBridgeErrorPayload(
+                    code: "hierarchy.notReady",
+                    message: "Live document has not loaded a hierarchy yet."
+                )
+            )
+        }
+
+        guard let displayItem = findDisplayItem(
+            amongRoots: dataSource.rawFlatItems?.filter({ $0.indentLevel() == 0 }) ?? [],
+            matchingObjectIdentifier: objectIdentifier
+        ) else {
+            return .failure(
+                identifier: identifier,
+                error: LKMCPBridgeErrorPayload(
+                    code: "hierarchy.objectNotFound",
+                    message: "Object identifier \(objectIdentifier) is not present in this target's hierarchy."
+                )
+            )
+        }
+
+        var rawGroups: [LookinAttributesGroup] = []
+        if let inbuiltGroups = displayItem.attributesGroupList {
+            rawGroups.append(contentsOf: inbuiltGroups)
+        }
+        if includeUserCustom, let customGroups = displayItem.customAttrGroupList {
+            rawGroups.append(contentsOf: customGroups)
+        }
+
+        let encodedGroups = rawGroups.map(encodeGroup(_:))
+
+        do {
+            let payload = try encodeAsJSONValue(encodedGroups)
+            // Annotate whether the host has actually fetched per-item
+            // details for this view. v2 reads the cache as-is; agents that
+            // see an empty `groups` array should know to ask the user to
+            // open this view in the host inspector first.
+            let hasCachedDetails = displayItem.attributesGroupList?.isEmpty == false
+            return .success(
+                identifier: identifier,
+                result: .object([
+                    "groups": payload,
+                    "detailsCached": .bool(hasCachedDetails),
+                ])
+            )
+        } catch {
+            Self.logger.error("attributes.read encode failed: \(error.localizedDescription, privacy: .public)")
+            return .failure(identifier: identifier, error: .internalError)
+        }
+    }
+
+    private func encodeGroup(_ group: LookinAttributesGroup) -> LKMCPBridgeAttributeGroup {
+        let identifier = group.userCustomTitle ?? group.identifier
+        let sections = (group.attrSections ?? []).map(encodeSection(_:))
+        return LKMCPBridgeAttributeGroup(
+            identifier: identifier ?? "",
+            isUserCustom: group.userCustomTitle != nil,
+            isSwiftUIGroup: group.isSwiftUIGroup,
+            sections: sections
+        )
+    }
+
+    private func encodeSection(_ section: LookinAttributesSection) -> LKMCPBridgeAttributeSection {
+        let attributes = (section.attributes ?? []).map(LKMCPBridgeAttributeEncoder.encode(_:))
+        return LKMCPBridgeAttributeSection(
+            identifier: section.identifier ?? "",
+            attributes: attributes
         )
     }
 

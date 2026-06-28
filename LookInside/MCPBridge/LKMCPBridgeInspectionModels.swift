@@ -112,3 +112,69 @@ public struct LKMCPBridgeViewNode: Sendable, Codable {
     /// children were expanded and there are none.
     public let children: [LKMCPBridgeViewNode]?
 }
+
+// MARK: - AttributeGroup / Section / Attribute
+
+/// One attribute "card" in the host's inspector — a coherent bundle of
+/// related attributes (Frame, View, Layer, AutoLayout, UIControl, …).
+public struct LKMCPBridgeAttributeGroup: Sendable, Codable {
+    /// Group identifier (`LookinAttrGroupIdentifier`, e.g. `Layout`,
+    /// `UIScrollView`, `NSWindow`), or the user-supplied title when the
+    /// group originates from `lookin_customDebugInfos`.
+    public let identifier: String
+
+    /// `true` when this group comes from in-app `lookin_customDebugInfos`
+    /// rather than LookinServer's built-in introspection.
+    public let isUserCustom: Bool
+
+    /// `true` when this group was produced by the activation-gated SwiftUI
+    /// extension; agents can use this to flag paid-feature data origin.
+    public let isSwiftUIGroup: Bool
+
+    public let sections: [LKMCPBridgeAttributeSection]
+}
+
+/// One sub-row inside an attribute group.
+public struct LKMCPBridgeAttributeSection: Sendable, Codable {
+    public let identifier: String
+    public let attributes: [LKMCPBridgeAttribute]
+}
+
+/// One inspected attribute value with a type-discriminating `kind`.
+public struct LKMCPBridgeAttribute: Sendable, Codable {
+    /// `LookinAttrIdentifier` string (e.g. `BasicViewClass_Frame`,
+    /// `BasicViewClass_Hidden`). Stable across LookinServer versions.
+    public let identifier: String
+
+    /// Human-readable title set by `lookin_customDebugInfos`; empty for
+    /// built-in attributes.
+    public let displayTitle: String?
+
+    /// `true` when this attribute originates from `lookin_customDebugInfos`.
+    public let isUserCustom: Bool
+
+    /// Type discriminator for `value`. See `LKMCPBridgeAttributeEncoder`
+    /// for the full kind → JSON-shape mapping. Common values:
+    /// `integer`, `double`, `bool`, `string`, `selector`, `class`,
+    /// `point`, `size`, `rect`, `edgeInsets`, `offset`, `transform`,
+    /// `color`, `shadow`, `enum`, `json`, `custom`, `void`,
+    /// `unknown` (when the encoder cannot project the type cleanly and
+    /// falls back to a `{ "rawDescription": "..." }` payload).
+    public let kind: String
+
+    /// The encoded attribute value, shape-correlated with `kind`. `nil`
+    /// when the source attribute carries no value (`LookinAttrTypeVoid`
+    /// or genuinely empty optional fields).
+    public let value: LKMCPBridgeJSONValue?
+
+    /// Auxiliary payload for select kinds. For `enum` types, this is the
+    /// list of all enum case names the inspected object can hold (the
+    /// host calls these `extraValue` on `LookinAttribute`).
+    public let extraValue: LKMCPBridgeJSONValue?
+
+    /// Server-side identifier of a custom-attribute setter, present only
+    /// when the host can write to this attribute through a registered
+    /// custom setter. Pass-through; the bridge does not interpret it.
+    public let customSetterIdentifier: String?
+}
+
