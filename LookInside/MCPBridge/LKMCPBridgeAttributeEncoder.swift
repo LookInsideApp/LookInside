@@ -23,17 +23,56 @@ import AppKit
 
 enum LKMCPBridgeAttributeEncoder {
 
-    static func encode(_ attribute: LookinAttribute) -> LKMCPBridgeAttribute {
+    /// Encodes one host-side `LookinAttribute` into the wire DTO.
+    ///
+    /// - Parameter redactingSecureContent: when `true`, string-valued kinds
+    ///   (`string`, `selector`, `class`, `enum` string variant) are replaced
+    ///   with a `kind: "redacted"` marker and a nil value before the DTO
+    ///   leaves this encoder. Geometry / numeric / color projections are
+    ///   not affected — they cannot reveal secret user content. The flag is
+    ///   evaluated once per display item by the caller (see
+    ///   `LKMCPBridgeSecureContentDetector`) and applies uniformly to every
+    ///   attribute carried by that item, so a secure text field never leaks
+    ///   either its `text`, its `placeholder`, or any custom-attribute
+    ///   string the host might collect via `lookin_customDebugInfos`.
+    static func encode(
+        _ attribute: LookinAttribute,
+        redactingSecureContent: Bool
+    ) -> LKMCPBridgeAttribute {
         let projection = projectValue(of: attribute)
+        let finalProjection = redactingSecureContent
+            ? redactedIfString(projection)
+            : projection
         return LKMCPBridgeAttribute(
             identifier: attribute.identifier,
             displayTitle: attribute.displayTitle,
             isUserCustom: attribute.isUserCustom(),
-            kind: projection.kind,
-            value: projection.value,
-            extraValue: encodeExtraValue(attribute),
+            kind: finalProjection.kind,
+            value: finalProjection.value,
+            extraValue: redactingSecureContent ? nil : encodeExtraValue(attribute),
             customSetterIdentifier: attribute.customSetterID
         )
+    }
+
+    /// When the enclosing display item is flagged as secure, swap any
+    /// string-bearing projection for a redaction marker. Numeric, boolean,
+    /// geometry, color, shadow, json, and custom-object projections fall
+    /// through unchanged — they don't carry text values that could leak.
+    private static func redactedIfString(_ projection: Projection) -> Projection {
+        switch projection.kind {
+        case "string", "selector", "class":
+            return Projection(kind: "redacted", value: nil)
+        case "enum":
+            // `enum` covers both EnumInt/EnumLong (numeric) and EnumString
+            // (textual). Only the latter actually carries a user-visible
+            // string; the projection layer collapses them into the same
+            // `kind`, so we conservatively redact both. The numeric variant
+            // case is degenerate (no leak possible from an integer enum
+            // value), the cost of redaction is just losing the raw int.
+            return Projection(kind: "redacted", value: nil)
+        default:
+            return projection
+        }
     }
 
     // MARK: - Per-type projection

@@ -243,20 +243,30 @@ public final class LKMCPBridgeInspectionService {
             rawGroups.append(contentsOf: customGroups)
         }
 
-        let encodedGroups = rawGroups.map(encodeGroup(_:))
+        // Evaluate the secure-content gate once per display item so every
+        // attribute we emit for this view shares the same redaction
+        // decision (a UITextField/NSSecureTextField can't have its
+        // `placeholder` leak when its `text` is redacted, for example).
+        let redactSecureContent = LKMCPBridgeSecureContentDetector.isSecure(displayItem: displayItem)
+
+        let encodedGroups = rawGroups.map { group in
+            return encodeGroup(group, redactingSecureContent: redactSecureContent)
+        }
 
         do {
             let payload = try encodeAsJSONValue(encodedGroups)
             // Annotate whether the host has actually fetched per-item
             // details for this view. v2 reads the cache as-is; agents that
             // see an empty `groups` array should know to ask the user to
-            // open this view in the host inspector first.
+            // open this view in the host inspector first. `secureContent`
+            // tells the agent why textual values may be `null` here.
             let hasCachedDetails = displayItem.attributesGroupList?.isEmpty == false
             return .success(
                 identifier: identifier,
                 result: .object([
                     "groups": payload,
                     "detailsCached": .bool(hasCachedDetails),
+                    "secureContent": .bool(redactSecureContent),
                 ])
             )
         } catch {
@@ -265,9 +275,14 @@ public final class LKMCPBridgeInspectionService {
         }
     }
 
-    private func encodeGroup(_ group: LookinAttributesGroup) -> LKMCPBridgeAttributeGroup {
+    private func encodeGroup(
+        _ group: LookinAttributesGroup,
+        redactingSecureContent: Bool
+    ) -> LKMCPBridgeAttributeGroup {
         let identifier = group.userCustomTitle ?? group.identifier
-        let sections = (group.attrSections ?? []).map(encodeSection(_:))
+        let sections = (group.attrSections ?? []).map { section in
+            return encodeSection(section, redactingSecureContent: redactingSecureContent)
+        }
         return LKMCPBridgeAttributeGroup(
             identifier: identifier ?? "",
             isUserCustom: group.userCustomTitle != nil,
@@ -276,8 +291,16 @@ public final class LKMCPBridgeInspectionService {
         )
     }
 
-    private func encodeSection(_ section: LookinAttributesSection) -> LKMCPBridgeAttributeSection {
-        let attributes = (section.attributes ?? []).map(LKMCPBridgeAttributeEncoder.encode(_:))
+    private func encodeSection(
+        _ section: LookinAttributesSection,
+        redactingSecureContent: Bool
+    ) -> LKMCPBridgeAttributeSection {
+        let attributes = (section.attributes ?? []).map { attribute in
+            return LKMCPBridgeAttributeEncoder.encode(
+                attribute,
+                redactingSecureContent: redactingSecureContent
+            )
+        }
         return LKMCPBridgeAttributeSection(
             identifier: section.identifier ?? "",
             attributes: attributes
