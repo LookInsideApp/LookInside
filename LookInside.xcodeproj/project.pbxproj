@@ -210,6 +210,8 @@
 				Manager/LKPreferenceManager.m,
 				MCPBridge/LKMCPBridgeConnection.swift,
 				MCPBridge/LKMCPBridgeFrame.swift,
+				MCPBridge/LKMCPBridgeInspectionModels.swift,
+				MCPBridge/LKMCPBridgeInspectionService.swift,
 				MCPBridge/LKMCPBridgeServer.swift,
 				Measure/LKMeasureController.m,
 				Measure/LKMeasureResultLineData.m,

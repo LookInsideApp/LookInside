@@ -49,6 +49,12 @@ public final class LKMCPBridgeServer: NSObject {
     private var openConnections: [ObjectIdentifier: LKMCPBridgeConnection] = [:]
     private var isRunning = false
 
+    /// Routes inspection-method requests (`targets.list`, `hierarchy.read`,
+    /// …) to the host's per-window inspection state. Lazily constructed on
+    /// the main actor on first use because `NSDocumentController` access
+    /// requires main-thread isolation.
+    private var inspectionService: LKMCPBridgeInspectionService?
+
     // MARK: - Lifecycle
 
     @objc public func start() {
@@ -188,12 +194,9 @@ public final class LKMCPBridgeServer: NSObject {
     // MARK: - Request dispatch
 
     private func handle(request: LKMCPBridgeRequest) async -> LKMCPBridgeResponse {
-        // Phase 1 (v0): no methods implemented yet. Return a structured
-        // `unknownMethod` error for every method except `ping` so the wire
-        // pipeline can be smoke-tested end-to-end without committing to any
-        // inspection schema. Real method handlers will be wired in a later
-        // commit once `MCPBridgeEntitlement` / `MCPBridgeTargetRegistry` /
-        // `MCPBridgeEventCoalescer` land.
+        // `ping` stays as a transport-level smoke test that doesn't require
+        // the inspection state to be initialized; all other methods hop to
+        // the main actor and let the inspection service dispatch.
         switch request.method {
         case "ping":
             return .success(
@@ -204,8 +207,20 @@ public final class LKMCPBridgeServer: NSObject {
                 ])
             )
         default:
-            return .failure(identifier: request.identifier, error: .unknownMethod)
+            return await inspectionDispatch(request: request)
         }
+    }
+
+    private func inspectionDispatch(request: LKMCPBridgeRequest) async -> LKMCPBridgeResponse {
+        let service = await MainActor.run { () -> LKMCPBridgeInspectionService in
+            if let existing = self.inspectionService {
+                return existing
+            }
+            let created = LKMCPBridgeInspectionService()
+            self.inspectionService = created
+            return created
+        }
+        return await service.handle(request: request)
     }
 
     // MARK: - Helpers
