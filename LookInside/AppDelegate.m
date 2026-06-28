@@ -46,6 +46,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [LKConnectionManager sharedInstance];
+    [[LKMCPBridgeServer sharedInstance] start];
     // Phase F: any documents opened during launch (Finder double-click,
     // Open With…) are already registered with NSDocumentController by the
     // time we reach here, so the simple "no docs ⇒ show Launch" check
@@ -167,6 +168,7 @@
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
     [[LKSwiftUISupportGatekeeper sharedInstance] shutdownRuntime];
+    [[LKMCPBridgeServer sharedInstance] stop];
 
     // 清理打开 UIImageView 的图片时创建的临时文件
     NSArray<NSString *> *tempImageFilesToDelete = [LKHelper sharedInstance].tempImageFiles;
