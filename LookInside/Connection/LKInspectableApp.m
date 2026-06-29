@@ -72,6 +72,27 @@
     }];
 }
 
+- (RACSignal *)rawInvokeMethodWithOid:(unsigned long)oid text:(NSString *)text {
+    if (oid == 0 || !text.length) {
+        return [RACSignal error:LookinErr_Inner];
+    }
+    if (!self.channel) {
+        return [RACSignal error:LookinErr_NoConnect];
+    }
+    NSDictionary *param = @{@"oid":@(oid), @"text":text};
+    return [[[LKConnectionManager sharedInstance] requestWithType:LookinRequestTypeInvokeMethod data:param channel:self.channel] flattenMap:^__kindof RACSignal * _Nullable(RACTuple * _Nullable tuple) {
+        LookinConnectionResponseAttachment *attachment = tuple.first;
+        if (attachment.error) {
+            // Surface the server's raw error code untouched so the MCPBridge
+            // route can map LookinErrCode_ObjectNotFound / _Inner / etc. to
+            // structured bridge error codes. The console-facing variant above
+            // does this translation; we deliberately skip it here.
+            return [RACSignal error:attachment.error];
+        }
+        return [RACSignal return:attachment.data];
+    }];
+}
+
 - (RACSignal *)fetchAttrGroupListWithOid:(unsigned long)oid {
     if (!oid) {
         return [RACSignal error:LookinErr_Inner];

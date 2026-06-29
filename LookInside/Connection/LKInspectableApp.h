@@ -38,6 +38,17 @@
 
 - (RACSignal *)invokeMethodWithOid:(unsigned long)oid text:(NSString *)text;
 
+/// Variant of `-invokeMethodWithOid:text:` that surfaces the server's raw
+/// response dictionary and raw `NSError` codes verbatim, without the
+/// console-facing `LookinStringFlag_VoidReturn` → localized description
+/// substitution and without remapping `LookinErrCode_ObjectNotFound` /
+/// `LookinErrCode_Inner` onto the localized `LookinErr_*` constants. The
+/// MCPBridge invocation route consumes this so it can translate the raw
+/// server signal into structured machine-readable bridge error codes
+/// (`invoke.objectNotFound`, `invoke.invalidSelector`, etc.) while preserving
+/// the `returnedVoid` flag on the success path.
+- (RACSignal *)rawInvokeMethodWithOid:(unsigned long)oid text:(NSString *)text;
+
 /// 获取某个 imageView 的 image 对象，oid 是 imageView 的 oid
 - (RACSignal *)fetchImageWithImageViewOid:(unsigned long)oid;
 
