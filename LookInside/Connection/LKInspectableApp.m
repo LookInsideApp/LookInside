@@ -27,6 +27,26 @@
     return [self _requestWithType:LookinRequestTypeInbuiltAttrModification data:modification];
 }
 
+- (RACSignal *)rawSubmitInbuiltModification:(LookinAttributeModification *)modification {
+    if (!modification) {
+        return [RACSignal error:LookinErr_Inner];
+    }
+    if (!self.channel) {
+        return [RACSignal error:LookinErr_NoConnect];
+    }
+    return [[[LKConnectionManager sharedInstance] requestWithType:LookinRequestTypeInbuiltAttrModification data:modification channel:self.channel] flattenMap:^__kindof RACSignal * _Nullable(RACTuple * _Nullable tuple) {
+        LookinConnectionResponseAttachment *attachment = tuple.first;
+        if (attachment.error) {
+            // Surface raw error codes so the MCPBridge can map them to
+            // structured wire codes; the console-facing -submit variant
+            // does the LookinErrCode_* → LookinErr_* localization, we
+            // deliberately skip it here.
+            return [RACSignal error:attachment.error];
+        }
+        return [RACSignal return:attachment.data];
+    }];
+}
+
 - (RACSignal *)submitCustomModification:(LookinCustomAttrModification *)modification {
     return [self _requestWithType:LookinRequestTypeCustomAttrModification data:modification];
 }

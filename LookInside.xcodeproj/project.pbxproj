@@ -209,6 +209,7 @@
 				Manager/LKNavigationManager.m,
 				Manager/LKPreferenceManager.m,
 				MCPBridge/LKMCPBridgeAttributeEncoder.swift,
+				MCPBridge/LKMCPBridgeAttributeValueDecoder.swift,
 				MCPBridge/LKMCPBridgeConnection.swift,
 				MCPBridge/LKMCPBridgeFrame.swift,
 				MCPBridge/LKMCPBridgeInspectionModels.swift,

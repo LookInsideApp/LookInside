@@ -25,6 +25,15 @@
 - (RACSignal *)fetchHierarchyData;
 
 - (RACSignal *)submitInbuiltModification:(LookinAttributeModification *)modification;
+
+/// Variant of `-submitInbuiltModification:` that surfaces the server's raw
+/// `LookinErrCode_*` values verbatim instead of remapping them onto the
+/// localized `LookinErr_*` constants. The MCPBridge modification route
+/// consumes this so it can translate raw codes into structured wire
+/// error codes (`modify.objectNotFound`, `modify.invalidSetter`,
+/// `modify.exception`, etc.) on the success path the response is the
+/// unwrapped `LookinDisplayItemDetail *` exactly as the server sent it.
+- (RACSignal *)rawSubmitInbuiltModification:(LookinAttributeModification *)modification;
 - (RACSignal *)submitCustomModification:(LookinCustomAttrModification *)modification;
 
 - (RACSignal *)fetchHierarchyDetailWithTaskPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages;
