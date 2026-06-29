@@ -39,7 +39,7 @@ public final class LKMCPBridgeInspectionService {
     // MARK: - targets.list
 
     private func handleTargetsList(identifier: String) -> LKMCPBridgeResponse {
-        let documents = enumerateLiveDocuments()
+        let documents = LKMCPBridgeLiveDocumentLookup.enumerateLiveDocuments()
         let infos = documents.compactMap(makeTargetInfo(for:))
         do {
             let payload = try encodeAsJSONValue(infos)
@@ -102,7 +102,7 @@ public final class LKMCPBridgeInspectionService {
             depth = nil
         }
 
-        guard let document = findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -124,7 +124,7 @@ public final class LKMCPBridgeInspectionService {
 
         let rootItems: [LookinDisplayItem]
         if let rootObjectIdentifier {
-            guard let scopedRoot = findDisplayItem(
+            guard let scopedRoot = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
                 amongRoots: dataSource.rawFlatItems ?? [],
                 matchingObjectIdentifier: rootObjectIdentifier
             ) else {
@@ -138,11 +138,7 @@ public final class LKMCPBridgeInspectionService {
             }
             rootItems = [scopedRoot]
         } else {
-            // Top-level UIWindow / NSWindow items report indentLevel == 0;
-            // every nested view has indentLevel >= 1. `superItem` would also
-            // work but the Objective-C importer renames it into a Swift
-            // keyword collision, so `indentLevel()` is the portable check.
-            rootItems = dataSource.rawFlatItems?.filter { $0.indentLevel() == 0 } ?? []
+            rootItems = LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document)
         }
 
         let nodes = rootItems.map { makeViewNode(from: $0, remainingDepth: depth) }
@@ -156,11 +152,11 @@ public final class LKMCPBridgeInspectionService {
     }
 
     private func makeViewNode(from item: LookinDisplayItem, remainingDepth: Int?) -> LKMCPBridgeViewNode {
-        let identity = objectIdentifierString(for: item)
+        let identity = LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: item)
         let className = item.displayingObject()?.classChainList?.first ?? ""
         let frame = LKMCPBridgeRect(cgRect: item.frame)
         let subitems = item.subitems ?? []
-        let childIdentifiers = subitems.map(objectIdentifierString(for:))
+        let childIdentifiers = subitems.map(LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for:))
 
         let inlinedChildren: [LKMCPBridgeViewNode]?
         if let remainingDepth, remainingDepth <= 1 {
@@ -202,7 +198,7 @@ public final class LKMCPBridgeInspectionService {
             includeUserCustom = true
         }
 
-        guard let document = findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -212,7 +208,7 @@ public final class LKMCPBridgeInspectionService {
             )
         }
 
-        guard let dataSource = document.hierarchyDataSource else {
+        guard document.hierarchyDataSource != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -222,8 +218,8 @@ public final class LKMCPBridgeInspectionService {
             )
         }
 
-        guard let displayItem = findDisplayItem(
-            amongRoots: dataSource.rawFlatItems?.filter({ $0.indentLevel() == 0 }) ?? [],
+        guard let displayItem = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
+            amongRoots: LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document),
             matchingObjectIdentifier: objectIdentifier
         ) else {
             return .failure(
@@ -307,43 +303,7 @@ public final class LKMCPBridgeInspectionService {
         )
     }
 
-    // MARK: - Document lookup
-
-    private func enumerateLiveDocuments() -> [LookinLiveDocument] {
-        let allDocuments = NSDocumentController.shared.documents
-        return allDocuments.compactMap { $0 as? LookinLiveDocument }
-    }
-
-    private func findLiveDocument(targetIdentifier: String) -> LookinLiveDocument? {
-        guard let identifierValue = UInt(targetIdentifier) else { return nil }
-        return enumerateLiveDocuments().first { document in
-            return document.inspectableApp.appInfo?.appInfoIdentifier == identifierValue
-        }
-    }
-
-    private func findDisplayItem(
-        amongRoots roots: [LookinDisplayItem],
-        matchingObjectIdentifier identifier: String
-    ) -> LookinDisplayItem? {
-        var queue: [LookinDisplayItem] = roots
-        while queue.isEmpty == false {
-            let current = queue.removeFirst()
-            if objectIdentifierString(for: current) == identifier {
-                return current
-            }
-            if let subitems = current.subitems {
-                queue.append(contentsOf: subitems)
-            }
-        }
-        return nil
-    }
-
     // MARK: - Encoding helpers
-
-    private func objectIdentifierString(for item: LookinDisplayItem) -> String {
-        let oid = item.displayingObject()?.oid ?? 0
-        return String(format: "0x%lx", oid)
-    }
 
     /// Encodes any `Encodable` value into the loose `LKMCPBridgeJSONValue`
     /// tree used inside response frame `result` containers. Round-trips
