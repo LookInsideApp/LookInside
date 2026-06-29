@@ -297,4 +297,27 @@ public struct LKMCPBridgeModificationResult: Sendable, Codable {
     public let secureContent: Bool
 }
 
+// MARK: - Details prefetch
+
+/// One per-view entry in a `details.read` response. The shape is
+/// deliberately a subset of `attributes.read`'s envelope: agents that
+/// already consume `attributes.read` can reuse their `groups` parsing
+/// code unchanged. The `secureContent` flag is per-item because a
+/// single batch may contain both regular and secure-input views.
+public struct LKMCPBridgeViewDetail: Sendable, Codable {
+    public let objectIdentifier: String
+    public let groups: [LKMCPBridgeAttributeGroup]
+    public let secureContent: Bool
+}
+
+/// Envelope for `details.read`. Successful per-view detail goes in
+/// `details`. Object identifiers that were missing from the client
+/// hierarchy or returned `failureCode = -1` from the server fall
+/// into `failedIdentifiers` — the call as a whole still succeeds so
+/// agents can act on whatever did come back.
+public struct LKMCPBridgeDetailsReadResult: Sendable, Codable {
+    public let details: [LKMCPBridgeViewDetail]
+    public let failedIdentifiers: [String]
+}
+
 

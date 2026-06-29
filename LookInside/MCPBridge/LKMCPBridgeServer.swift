@@ -66,6 +66,12 @@ public final class LKMCPBridgeServer: NSObject {
     /// lookup / value decoding code stays self-contained.
     private var modificationService: LKMCPBridgeModificationService?
 
+    /// Routes `details.read` (batch RPC 203 HierarchyDetails prefetch).
+    /// Kept distinct from the read-only inspection service because
+    /// details.read actively pumps the Peertalk channel rather than
+    /// reading cached state.
+    private var detailsService: LKMCPBridgeDetailsService?
+
     // MARK: - Lifecycle
 
     @objc public func start() {
@@ -223,6 +229,8 @@ public final class LKMCPBridgeServer: NSObject {
             return await invocationDispatch(request: request)
         case "attribute.modify":
             return await modificationDispatch(request: request)
+        case "details.read":
+            return await detailsDispatch(request: request)
         default:
             return await inspectionDispatch(request: request)
         }
@@ -259,6 +267,18 @@ public final class LKMCPBridgeServer: NSObject {
             }
             let created = LKMCPBridgeModificationService()
             self.modificationService = created
+            return created
+        }
+        return await service.handle(request: request)
+    }
+
+    private func detailsDispatch(request: LKMCPBridgeRequest) async -> LKMCPBridgeResponse {
+        let service = await MainActor.run { () -> LKMCPBridgeDetailsService in
+            if let existing = self.detailsService {
+                return existing
+            }
+            let created = LKMCPBridgeDetailsService()
+            self.detailsService = created
             return created
         }
         return await service.handle(request: request)
