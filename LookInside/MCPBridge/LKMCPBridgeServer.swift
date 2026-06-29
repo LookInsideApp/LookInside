@@ -55,6 +55,13 @@ public final class LKMCPBridgeServer: NSObject {
     /// requires main-thread isolation.
     private var inspectionService: LKMCPBridgeInspectionService?
 
+    /// Routes mutating / RPC-emitting methods (`invoke.method`, future
+    /// `attribute.modify`, `screenshot.read`). Kept separate from
+    /// `inspectionService` so the inspection surface stays read-only
+    /// even as new mutating verbs land; lazily constructed on the main
+    /// actor on first use.
+    private var invocationService: LKMCPBridgeInvocationService?
+
     // MARK: - Lifecycle
 
     @objc public func start() {
@@ -195,8 +202,10 @@ public final class LKMCPBridgeServer: NSObject {
 
     private func handle(request: LKMCPBridgeRequest) async -> LKMCPBridgeResponse {
         // `ping` stays as a transport-level smoke test that doesn't require
-        // the inspection state to be initialized; all other methods hop to
-        // the main actor and let the inspection service dispatch.
+        // the inspection state to be initialized; mutating verbs route to
+        // the invocation service; everything else routes to the (read-only)
+        // inspection service. The split keeps the read surface free of
+        // any Peertalk-round-trip work so cached reads stay snappy.
         switch request.method {
         case "ping":
             return .success(
@@ -206,6 +215,8 @@ public final class LKMCPBridgeServer: NSObject {
                     "serverVersion": .string(currentHostMarketingVersion()),
                 ])
             )
+        case "invoke.method":
+            return await invocationDispatch(request: request)
         default:
             return await inspectionDispatch(request: request)
         }
@@ -218,6 +229,18 @@ public final class LKMCPBridgeServer: NSObject {
             }
             let created = LKMCPBridgeInspectionService()
             self.inspectionService = created
+            return created
+        }
+        return await service.handle(request: request)
+    }
+
+    private func invocationDispatch(request: LKMCPBridgeRequest) async -> LKMCPBridgeResponse {
+        let service = await MainActor.run { () -> LKMCPBridgeInvocationService in
+            if let existing = self.invocationService {
+                return existing
+            }
+            let created = LKMCPBridgeInvocationService()
+            self.invocationService = created
             return created
         }
         return await service.handle(request: request)

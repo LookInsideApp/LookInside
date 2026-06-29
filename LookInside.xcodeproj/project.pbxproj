@@ -213,6 +213,7 @@
 				MCPBridge/LKMCPBridgeFrame.swift,
 				MCPBridge/LKMCPBridgeInspectionModels.swift,
 				MCPBridge/LKMCPBridgeInspectionService.swift,
+				MCPBridge/LKMCPBridgeInvocationService.swift,
 				MCPBridge/LKMCPBridgeLiveDocumentLookup.swift,
 				MCPBridge/LKMCPBridgeRACBridge.swift,
 				MCPBridge/LKMCPBridgeSecureContentDetector.swift,

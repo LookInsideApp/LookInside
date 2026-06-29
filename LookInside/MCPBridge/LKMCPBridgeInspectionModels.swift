@@ -178,3 +178,62 @@ public struct LKMCPBridgeAttribute: Sendable, Codable {
     public let customSetterIdentifier: String?
 }
 
+// MARK: - Invocation
+
+/// Structural metadata for an `NSObject` returned by an invocation
+/// (RPC 206). The receiver of an `invoke.method` response may use
+/// `objectIdentifier` as a handle for a follow-up `invoke.method` call on
+/// the same object — but the identifier is a fresh server-registered
+/// `LookinObject.oid` and is NOT guaranteed to appear in a subsequent
+/// `hierarchy.read` (the hierarchy walks the view tree, not the server's
+/// general object registry).
+public struct LKMCPBridgeReturnedObject: Sendable, Codable {
+    /// Hex-encoded `LookinObject.oid` for the returned object, prefixed
+    /// with `0x` (matches the form used everywhere else on the bridge).
+    public let objectIdentifier: String
+
+    /// Pointer-formatted memory address of the returned object inside
+    /// the inspected app's address space, e.g. `0x100abcd00`.
+    public let memoryAddress: String
+
+    /// Full class chain of the returned object (head is the leaf class,
+    /// tail is `NSObject`). Identical shape to the
+    /// `LookinObject.classChainList` produced by the inspection routes.
+    public let classChainList: [String]
+
+    /// Optional debug annotation that the in-app `lookin_specialTrace`
+    /// hook may set. `nil` when the object does not opt in.
+    public let specialTrace: String?
+}
+
+/// Result envelope for `invoke.method`. Always carries `returnedVoid` so
+/// callers can disambiguate "method returned `nil` / `0` / empty string"
+/// from "method returned void"; the two cases produce the same JSON
+/// `description: null` shape on most type-erased clients otherwise.
+public struct LKMCPBridgeInvocationResult: Sendable, Codable {
+    /// Stringified return value. `nil` when the method returned `void`
+    /// or when `secureContent` is `true`. For scalar (non-object,
+    /// non-void) returns the server fills in a generic `"Method invoked."`
+    /// placeholder; the bridge surfaces that string verbatim.
+    public let description: String?
+
+    /// `true` when the inspected method's return type is `void` (the
+    /// server signals this via the `LOOKIN_TAG_RETURN_VALUE_VOID` marker).
+    public let returnedVoid: Bool
+
+    /// Present only when the method returned an `NSObject`. Even when
+    /// `secureContent` is `true` the structural metadata stays — it
+    /// carries no user secret, only the object's class chain / address /
+    /// `oid` — matching the redaction philosophy of `attributes.read`
+    /// (string-bearing attribute values get redacted; structural
+    /// metadata does not).
+    public let returnObject: LKMCPBridgeReturnedObject?
+
+    /// `true` when the receiver display item is treated as carrying
+    /// secure user content (see `LKMCPBridgeSecureContentDetector`). In
+    /// that case `description` is redacted to `nil` to avoid leaking
+    /// passwords / OTPs into agent transcripts. `returnObject` is kept;
+    /// see its doc comment for the redaction rationale.
+    public let secureContent: Bool
+}
+
