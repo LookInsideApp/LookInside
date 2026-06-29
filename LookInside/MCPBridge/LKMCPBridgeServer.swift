@@ -56,11 +56,15 @@ public final class LKMCPBridgeServer: NSObject {
     private var inspectionService: LKMCPBridgeInspectionService?
 
     /// Routes mutating / RPC-emitting methods (`invoke.method`, future
-    /// `attribute.modify`, `screenshot.read`). Kept separate from
-    /// `inspectionService` so the inspection surface stays read-only
-    /// even as new mutating verbs land; lazily constructed on the main
-    /// actor on first use.
+    /// `screenshot.read`). Kept separate from `inspectionService` so the
+    /// inspection surface stays read-only even as new mutating verbs
+    /// land; lazily constructed on the main actor on first use.
     private var invocationService: LKMCPBridgeInvocationService?
+
+    /// Routes `attribute.modify` (RPC 204 InbuiltAttrModification).
+    /// Kept distinct from `invocationService` so each route's setter
+    /// lookup / value decoding code stays self-contained.
+    private var modificationService: LKMCPBridgeModificationService?
 
     // MARK: - Lifecycle
 
@@ -217,6 +221,8 @@ public final class LKMCPBridgeServer: NSObject {
             )
         case "invoke.method":
             return await invocationDispatch(request: request)
+        case "attribute.modify":
+            return await modificationDispatch(request: request)
         default:
             return await inspectionDispatch(request: request)
         }
@@ -241,6 +247,18 @@ public final class LKMCPBridgeServer: NSObject {
             }
             let created = LKMCPBridgeInvocationService()
             self.invocationService = created
+            return created
+        }
+        return await service.handle(request: request)
+    }
+
+    private func modificationDispatch(request: LKMCPBridgeRequest) async -> LKMCPBridgeResponse {
+        let service = await MainActor.run { () -> LKMCPBridgeModificationService in
+            if let existing = self.modificationService {
+                return existing
+            }
+            let created = LKMCPBridgeModificationService()
+            self.modificationService = created
             return created
         }
         return await service.handle(request: request)

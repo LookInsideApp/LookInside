@@ -237,3 +237,64 @@ public struct LKMCPBridgeInvocationResult: Sendable, Codable {
     public let secureContent: Bool
 }
 
+// MARK: - Modification
+
+/// Wire envelope for an attribute value passed across the bridge in a
+/// modification context: `kind` is the same string the read-side
+/// `LKMCPBridgeAttributeEncoder` produces, `data` is its corresponding
+/// JSON-friendly payload. The bridge consumes this in both directions:
+/// requests carry it as the value to apply; responses echo it as
+/// `requestedValue` so agents can compare against `effectiveAttribute`
+/// without having to reconstruct the wire form.
+public struct LKMCPBridgeAttributeValueWire: Sendable, Codable {
+    public let kind: String
+    public let data: LKMCPBridgeJSONValue?
+}
+
+/// Result envelope for `attribute.modify`. Echoes the requested value,
+/// surfaces the post-layout effective attribute, and includes the
+/// host-visible side-effect snapshot (frame / bounds / hidden / alpha)
+/// that the server captures in `LookinDisplayItemDetail` after the
+/// setter has run and a layout pass has completed.
+public struct LKMCPBridgeModificationResult: Sendable, Codable {
+    /// Echo of the attribute identifier the agent asked to modify.
+    public let attributeIdentifier: String
+
+    /// Echo of the wire `value` payload the agent supplied. Lets the
+    /// agent diff against `effectiveAttribute.value` without re-deriving
+    /// the wire shape from the encoded result.
+    public let requestedValue: LKMCPBridgeAttributeValueWire
+
+    /// Fully-encoded attribute as the host saw it AFTER the setter ran
+    /// and a layout pass settled. May differ from the request (autolayout
+    /// adjusts frames; some setters round to pixel boundaries; some
+    /// setters are no-ops). When `secureContent` is `true` the value
+    /// here is redacted in the same way `read_attributes` redacts.
+    public let effectiveAttribute: LKMCPBridgeAttribute
+
+    /// `true` when the effective wire value is structurally equal to
+    /// the requested wire value. Strict equality — no float epsilon.
+    /// `false` means the inspected app's layout pass / setter / autolayout
+    /// constraints rejected or adjusted the requested value; agents
+    /// should surface this to the user as a real signal.
+    public let effectiveMatchesRequested: Bool
+
+    /// Post-modification frame snapshot. Often differs from the previous
+    /// `get_hierarchy` result when the modification touched layout.
+    public let frame: LKMCPBridgeRect
+
+    /// Post-modification bounds snapshot.
+    public let bounds: LKMCPBridgeRect
+
+    /// Post-modification `isHidden` snapshot.
+    public let isHidden: Bool
+
+    /// Post-modification composite alpha snapshot in `0.0...1.0`.
+    public let alpha: Double
+
+    /// Same secure-content semantics as `read_attributes`: when `true`,
+    /// any string-bearing `effectiveAttribute.value` fields are redacted.
+    public let secureContent: Bool
+}
+
+

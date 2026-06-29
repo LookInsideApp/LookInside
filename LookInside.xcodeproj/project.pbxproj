@@ -216,6 +216,7 @@
 				MCPBridge/LKMCPBridgeInspectionService.swift,
 				MCPBridge/LKMCPBridgeInvocationService.swift,
 				MCPBridge/LKMCPBridgeLiveDocumentLookup.swift,
+				MCPBridge/LKMCPBridgeModificationService.swift,
 				MCPBridge/LKMCPBridgeRACBridge.swift,
 				MCPBridge/LKMCPBridgeSecureContentDetector.swift,
 				MCPBridge/LKMCPBridgeServer.swift,
