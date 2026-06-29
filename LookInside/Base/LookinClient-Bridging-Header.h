@@ -17,6 +17,7 @@
 #import "LookinAttributesSection.h"
 #import "LookinDashboardBlueprint.h"
 #import "LookinDisplayItemDetail.h"
+#import "LookinStaticAsyncUpdateTask.h"
 #import "LookinDisplayItem.h"
 #import "LookinObject.h"
 #import "LookinAppInfo.h"
