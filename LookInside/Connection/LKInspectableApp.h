@@ -37,6 +37,17 @@
 - (RACSignal *)submitCustomModification:(LookinCustomAttrModification *)modification;
 
 - (RACSignal *)fetchHierarchyDetailWithTaskPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages;
+
+/// Variant of `-fetchHierarchyDetailWithTaskPackages:` that surfaces the
+/// server's raw `LookinErrCode_*` values verbatim instead of remapping
+/// them onto the localized `LookinErr_*` constants. The MCPBridge
+/// `details.read` route consumes this so it can map raw codes onto
+/// structured `details.*` wire codes. RACSignal semantics match the
+/// inspector-facing variant: the signal emits ONE value PER PACKAGE
+/// frame (the server streams one detail array per package), then
+/// completes when the full batch lands.
+- (RACSignal *)rawFetchHierarchyDetailWithTaskPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages;
+
 - (void)cancelHierarchyDetailFetching;
 
 - (RACSignal *)fetchModificationPatchWithTasks:(NSArray<LookinStaticAsyncUpdateTask *> *)tasks;

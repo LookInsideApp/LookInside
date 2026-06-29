@@ -53,6 +53,37 @@ enum RACBridgeError: Error, LocalizedError {
 
 enum LKMCPBridgeRACBridge {
 
+    /// Awaits ALL `next` values emitted by an `RACSignal` and returns
+    /// them as a flat `[Element]`, in emission order. Suitable for
+    /// streaming RPCs whose Host-side `RACSignal` emits one frame at a
+    /// time (e.g. RPC 203 `HierarchyDetails`, which emits one
+    /// `[LookinDisplayItemDetail]` per `LookinStaticAsyncUpdateTasksPackage`).
+    ///
+    /// Internally relies on `RACSignal.collect()`, which aggregates the
+    /// `next` events into a single `NSArray` published on `completed`,
+    /// then bridges via `awaitFirstValue`. If any emitted event is not
+    /// an `Element`-compatible type the function throws
+    /// `RACBridgeError.completedWithoutValue`.
+    static func awaitAllValues<Element>(
+        of signal: RACSignal<AnyObject>,
+        as elementType: Element.Type = Element.self
+    ) async throws -> [Element] {
+        // RACSignal's Swift generic is type-erased at runtime; .collect()
+        // narrows the static type to RACSignal<NSArray> but the underlying
+        // class is the same. Re-erase so we can reuse awaitFirstValue.
+        let collected = signal.collect() as AnyObject as! RACSignal<AnyObject>
+        let bag = try await awaitFirstValue(of: collected, as: NSArray.self)
+        var values: [Element] = []
+        values.reserveCapacity(bag.count)
+        for entry in bag {
+            guard let typed = entry as? Element else {
+                throw RACBridgeError.completedWithoutValue
+            }
+            values.append(typed)
+        }
+        return values
+    }
+
     /// Awaits the first `next` value of an `RACSignal`, cast to the
     /// expected type. Throws when the signal emits an `error`, completes
     /// before producing a value, or returns a value that does not bridge

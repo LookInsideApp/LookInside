@@ -55,6 +55,22 @@
     return [self _requestWithType:LookinRequestTypeHierarchyDetails data:packages];
 }
 
+- (RACSignal *)rawFetchHierarchyDetailWithTaskPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages {
+    if (!self.channel) {
+        return [RACSignal error:LookinErr_NoConnect];
+    }
+    return [[[LKConnectionManager sharedInstance] requestWithType:LookinRequestTypeHierarchyDetails data:(packages ?: @[]) channel:self.channel] flattenMap:^__kindof RACSignal * _Nullable(RACTuple * _Nullable tuple) {
+        LookinConnectionResponseAttachment *attachment = tuple.first;
+        if (attachment.error) {
+            // Raw error code preserved so MCPBridge can map LookinErrCode_*
+            // onto structured details.* wire codes; the console-facing
+            // variant above does the LookinErr_* localization swap.
+            return [RACSignal error:attachment.error];
+        }
+        return [RACSignal return:attachment.data];
+    }];
+}
+
 - (void)cancelHierarchyDetailFetching {
     [self _cancelRequestWithType:LookinRequestTypeHierarchyDetails];
     [self _pushWithType:LookinPush_CanceHierarchyDetails data:nil];
