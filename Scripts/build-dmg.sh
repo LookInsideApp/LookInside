@@ -97,9 +97,16 @@ read_build_setting() {
 	)
 
 	xcodebuild \
+		-skipPackageUpdates \
+		-disablePackageRepositoryCache \
+		-skipPackageSignatureValidation \
+		-packageFingerprintPolicy warn \
+		-packageSigningEntityPolicy warn \
+		-scmProvider "$PACKAGE_SCM_PROVIDER" \
 		-workspace "$WORKSPACE_FILE" \
 		-scheme "$SCHEME" \
 		-configuration "$CONFIGURATION" \
+		-clonedSourcePackagesDirPath "$SOURCE_PACKAGES_PATH" \
 		-showBuildSettings \
 		"${overrides[@]}" 2>/dev/null |
 		awk -F' = ' -v search_key="$key" '$1 ~ search_key"$" { print $2; exit }'
