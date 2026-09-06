@@ -55,6 +55,7 @@
 
         NSArray<RACSignal *> *signals = [connectedChannels lookin_map:^id(NSUInteger idx, Lookin_PTChannel *channel) {
             return [[[LKConnectionManager sharedInstance] requestWithType:LookinRequestTypeApp data:params channel:channel] catch:^RACSignal * _Nonnull(NSError * _Nonnull error) {
+                [LKConnectionManager.sharedInstance discardUnidentifiedChannel:channel];
                 if (error.code == LookinErrCode_ServerVersionTooHigh ||
                     error.code == LookinErrCode_ServerVersionTooLow) {
                     // 这些 Lookin 版本不匹配错误应该被保留，因为业务需要显示这些错误
@@ -84,6 +85,7 @@
             if ([value isKindOfClass:[RACTuple class]]) {
                 RACTupleUnpack(LookinConnectionResponseAttachment *response, Lookin_PTChannel *relatedChannel) = value;
                 if (response.error) {
+                    [LKConnectionManager.sharedInstance discardUnidentifiedChannel:relatedChannel];
                     NSLog(@"LookinClient - app info request failed, domain:%@, code:%@, description:%@",
                           response.error.domain,
                           @(response.error.code),
@@ -111,8 +113,8 @@
 
                     LKInspectableApp *app = [[LKInspectableApp alloc] init];
                     app.appInfo = receivedInfo;
-                    app.channel = relatedChannel;
-                    app.transportIdentifier = [LKConnectionManager.sharedInstance transportIdentifierForChannel:relatedChannel];
+                    app.channel = [LKConnectionManager.sharedInstance canonicalChannel:relatedChannel applicationIdentifier:receivedInfo.appInfoIdentifier];
+                    app.transportIdentifier = [LKConnectionManager.sharedInstance transportIdentifierForChannel:app.channel];
                     return app;
                 }
             }
@@ -120,7 +122,16 @@
             NSAssert(NO, @"");
             return nil;
         }];
-        return apps;
+        NSMutableArray<LKInspectableApp *> *uniqueApplications = [NSMutableArray array];
+        NSMutableSet<NSString *> *applicationIdentities = [NSMutableSet set];
+        for (LKInspectableApp *application in apps) {
+            NSString *identity = application.appInfo
+                ? [NSString stringWithFormat:@"%@:%lu", application.transportIdentifier, (unsigned long)application.appInfo.appInfoIdentifier] : nil;
+            if (identity && [applicationIdentities containsObject:identity]) continue;
+            if (identity) [applicationIdentities addObject:identity];
+            [uniqueApplications addObject:application];
+        }
+        return uniqueApplications;
     }];
 }
 

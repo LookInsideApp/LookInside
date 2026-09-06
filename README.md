@@ -22,6 +22,12 @@ LookInside 2.3.11 and later include a local MCP server for Codex, Claude, Cursor
 
 See the [MCP configuration and usage guide](docs/mcp.md).
 
+## Use it from the terminal
+
+Development builds include `lookinside-cli` for inspecting a running target without opening the LookInside window. The CLI starts a local service on demand and keeps inspection sessions between commands.
+
+See the [command-line guide](docs/cli.md) for availability, commands, authorization, and session behavior.
+
 ## What you can inspect
 
 - UIKit, AppKit, and SwiftUI view trees

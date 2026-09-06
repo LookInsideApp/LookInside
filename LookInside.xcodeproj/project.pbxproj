@@ -5,6 +5,993 @@
 	};
 	objectVersion = 100;
 	objects = {
+		1D1E0000000000000000006D = {
+			path = "Sources/LookInsideService/InspectionAuthorization.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000006E = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000006D";
+		};
+		1D1E00000000000000000055 = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionConnectionOwnership.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000056 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000055";
+		};
+		1D1E00000000000000000057 = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E00000000000000000058 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E00000000000000000059 = {
+			path = "Tests/HeadlessFixture/main.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000005A = {
+			path = "lookinside-service-fixture";
+			isa = "PBXFileReference";
+			includeInIndex = "0";
+			explicitFileType = "compiled.mach-o.executable";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		1D1E0000000000000000005B = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000059";
+		};
+		1D1E0000000000000000005C = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000049";
+		};
+		1D1E0000000000000000005D = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004A";
+		};
+		1D1E0000000000000000005E = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004B";
+		};
+		1D1E0000000000000000005F = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004C";
+		};
+		1D1E00000000000000000060 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004D";
+		};
+		1D1E00000000000000000061 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004E";
+		};
+		1D1E00000000000000000062 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E0000000000000000005B",
+				"1D1E0000000000000000005C",
+				"1D1E0000000000000000005D",
+				"1D1E0000000000000000005E",
+				"1D1E0000000000000000005F",
+				"1D1E00000000000000000060",
+				"1D1E00000000000000000061",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000063 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E00000000000000000064 = {
+			isa = "PBXBuildFile";
+			fileRef = "1C0E00000000000000000002";
+		};
+		1D1E00000000000000000065 = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E00000000000000000063",
+				"1D1E00000000000000000064",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000066 = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				SKIP_INSTALL = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_MODULE_NAME = "lookinside_service_fixture";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)/LookInside.app/Contents/MacOS";
+				GENERATE_INFOPLIST_FILE = "YES";
+				CREATE_INFOPLIST_SECTION_IN_BINARY = "YES";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				PRODUCT_NAME = "lookinside-service-fixture";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-fixture";
+			};
+		};
+		1D1E00000000000000000067 = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				SKIP_INSTALL = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_MODULE_NAME = "lookinside_service_fixture";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)/LookInside.app/Contents/MacOS";
+				GENERATE_INFOPLIST_FILE = "YES";
+				CREATE_INFOPLIST_SECTION_IN_BINARY = "YES";
+				GCC_OPTIMIZATION_LEVEL = "s";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				PRODUCT_NAME = "lookinside-service-fixture";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-fixture";
+			};
+		};
+		1D1E00000000000000000068 = {
+			isa = "XCConfigurationList";
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+			buildConfigurations = (
+				"1D1E00000000000000000066",
+				"1D1E00000000000000000067",
+			);
+		};
+		1D1E00000000000000000069 = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E0000000000000000006A = {
+			isa = "PBXTargetDependency";
+			target = "1C0E00000000000000000001";
+		};
+		1D1E0000000000000000006B = {
+			productReference = "1D1E0000000000000000005A";
+			productType = "com.apple.product-type.tool";
+			buildConfigurationList = "1D1E00000000000000000068";
+			productName = "lookinside-service-fixture";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1D1E00000000000000000062",
+				"1D1E00000000000000000065",
+			);
+			dependencies = (
+				"1D1E00000000000000000069",
+				"1D1E0000000000000000006A",
+			);
+			name = "lookinside-service-fixture";
+			buildRules = (
+			);
+		};
+		1D1E0000000000000000006C = {
+			isa = "PBXTargetDependency";
+			target = "1D1E0000000000000000006B";
+		};
+		1D1E00000000000000000049 = {
+			path = "Sources/LookInsideService/InspectionServiceBackend.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000004A = {
+			path = "Sources/LookInsideService/InspectionSnapshotEncoder.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000004B = {
+			path = "LookInside/MCPBridge/LKMCPBridgeFrame.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000004C = {
+			path = "LookInside/MCPBridge/LKMCPBridgeInspectionModels.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000004D = {
+			path = "LookInside/MCPBridge/LKMCPBridgeAttributeEncoder.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000004E = {
+			path = "LookInside/MCPBridge/LKMCPBridgeSecureContentDetector.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000004F = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000049";
+		};
+		1D1E00000000000000000050 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004A";
+		};
+		1D1E00000000000000000051 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004B";
+		};
+		1D1E00000000000000000052 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004C";
+		};
+		1D1E00000000000000000053 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004D";
+		};
+		1D1E00000000000000000054 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000004E";
+		};
+		1D1E00000000000000000001 = {
+			isa = "XCRemoteSwiftPackageReference";
+			repositoryURL = "https://github.com/apple/swift-argument-parser";
+			requirement = {
+				kind = "exactVersion";
+				version = "1.8.2";
+			};
+		};
+		1D1E00000000000000000002 = {
+			isa = "XCSwiftPackageProductDependency";
+			package = "1D1E00000000000000000001";
+			productName = "ArgumentParser";
+		};
+		1D1E00000000000000000003 = {
+			path = "LookInsideInspectionProtocol.framework";
+			isa = "PBXFileReference";
+			includeInIndex = "0";
+			explicitFileType = "wrapper.framework";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		1D1E00000000000000000004 = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionFrame.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000005 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000004";
+		};
+		1D1E00000000000000000006 = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionMetadata.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000007 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000006";
+		};
+		1D1E00000000000000000008 = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionRuntimePaths.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000009 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000008";
+		};
+		1D1E0000000000000000000A = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionSocketClient.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000000B = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000000A";
+		};
+		1D1E0000000000000000000C = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionServiceLauncher.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000000D = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000000C";
+		};
+		1D1E0000000000000000000E = {
+			path = "Sources/LookInsideInspectionProtocol/InspectionSocketServer.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E0000000000000000000F = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E0000000000000000000E";
+		};
+		1D1E00000000000000000010 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E00000000000000000005",
+				"1D1E00000000000000000007",
+				"1D1E00000000000000000009",
+				"1D1E0000000000000000000B",
+				"1D1E0000000000000000000D",
+				"1D1E0000000000000000000F",
+				"1D1E00000000000000000056",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000011 = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000012 = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				CLANG_ENABLE_MODULES = "YES";
+				PRODUCT_MODULE_NAME = "LookInsideInspectionProtocol";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.LookInsideInspectionProtocol";
+				SWIFT_INSTALL_OBJC_HEADER = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				CODE_SIGN_STYLE = "Automatic";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				SDKROOT = "macosx";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_VERSION = "5.0";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				PRODUCT_NAME = "LookInsideInspectionProtocol";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				SKIP_INSTALL = "YES";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				DEFINES_MODULE = "YES";
+				GENERATE_INFOPLIST_FILE = "YES";
+			};
+		};
+		1D1E00000000000000000013 = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				CLANG_ENABLE_MODULES = "YES";
+				PRODUCT_MODULE_NAME = "LookInsideInspectionProtocol";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.LookInsideInspectionProtocol";
+				SWIFT_INSTALL_OBJC_HEADER = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				GCC_OPTIMIZATION_LEVEL = "s";
+				CODE_SIGN_STYLE = "Automatic";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				SDKROOT = "macosx";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_VERSION = "5.0";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				PRODUCT_NAME = "LookInsideInspectionProtocol";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				SKIP_INSTALL = "YES";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				DEFINES_MODULE = "YES";
+				GENERATE_INFOPLIST_FILE = "YES";
+			};
+		};
+		1D1E00000000000000000014 = {
+			isa = "XCConfigurationList";
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+			buildConfigurations = (
+				"1D1E00000000000000000012",
+				"1D1E00000000000000000013",
+			);
+		};
+		1D1E00000000000000000015 = {
+			productReference = "1D1E00000000000000000003";
+			productType = "com.apple.product-type.framework";
+			buildConfigurationList = "1D1E00000000000000000014";
+			packageProductDependencies = (
+			);
+			productName = "LookInsideInspectionProtocol";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1D1E00000000000000000010",
+				"1D1E00000000000000000011",
+			);
+			dependencies = (
+			);
+			name = "LookInsideInspectionProtocol";
+			buildRules = (
+			);
+		};
+		1D1E00000000000000000016 = {
+			path = "lookinside-service";
+			isa = "PBXFileReference";
+			includeInIndex = "0";
+			explicitFileType = "compiled.mach-o.executable";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		1D1E00000000000000000017 = {
+			path = "Sources/LookInsideService/main.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000018 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000017";
+		};
+		1D1E00000000000000000019 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E0000000000000000006E",
+				"1D1E00000000000000000018",
+				"1D1E0000000000000000004F",
+				"1D1E00000000000000000050",
+				"1D1E00000000000000000051",
+				"1D1E00000000000000000052",
+				"1D1E00000000000000000053",
+				"1D1E00000000000000000054",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E0000000000000000001A = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E0000000000000000001B = {
+			isa = "PBXBuildFile";
+			fileRef = "1C0E00000000000000000002";
+		};
+		1D1E0000000000000000001C = {
+			isa = "PBXBuildFile";
+			productRef = "1D1E00000000000000000002";
+		};
+		1D1E0000000000000000001D = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E0000000000000000001A",
+				"1D1E0000000000000000001B",
+				"1D1E0000000000000000001C",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E0000000000000000001E = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				SKIP_INSTALL = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_MODULE_NAME = "lookinside_service";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)/LookInside.app/Contents/MacOS";
+				GENERATE_INFOPLIST_FILE = "YES";
+				CREATE_INFOPLIST_SECTION_IN_BINARY = "YES";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				PRODUCT_NAME = "lookinside-service";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.lookinside.service";
+			};
+		};
+		1D1E0000000000000000001F = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				SKIP_INSTALL = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_MODULE_NAME = "lookinside_service";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)/LookInside.app/Contents/MacOS";
+				GENERATE_INFOPLIST_FILE = "YES";
+				CREATE_INFOPLIST_SECTION_IN_BINARY = "YES";
+				GCC_OPTIMIZATION_LEVEL = "s";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				PRODUCT_NAME = "lookinside-service";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.lookinside.service";
+			};
+		};
+		1D1E00000000000000000020 = {
+			isa = "XCConfigurationList";
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+			buildConfigurations = (
+				"1D1E0000000000000000001E",
+				"1D1E0000000000000000001F",
+			);
+		};
+		1D1E00000000000000000021 = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E00000000000000000022 = {
+			isa = "PBXTargetDependency";
+			target = "1C0E00000000000000000001";
+		};
+		1D1E00000000000000000023 = {
+			productReference = "1D1E00000000000000000016";
+			productType = "com.apple.product-type.tool";
+			buildConfigurationList = "1D1E00000000000000000020";
+			packageProductDependencies = (
+				"1D1E00000000000000000002",
+			);
+			productName = "lookinside-service";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1D1E00000000000000000019",
+				"1D1E0000000000000000001D",
+			);
+			dependencies = (
+				"1D1E00000000000000000021",
+				"1D1E00000000000000000022",
+			);
+			name = "lookinside-service";
+			buildRules = (
+			);
+		};
+		1D1E00000000000000000024 = {
+			path = "lookinside-cli";
+			isa = "PBXFileReference";
+			includeInIndex = "0";
+			explicitFileType = "compiled.mach-o.executable";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		1D1E00000000000000000025 = {
+			path = "Sources/LookInsideCLI/InspectionCommand.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000026 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000025";
+		};
+		1D1E00000000000000000027 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E00000000000000000026",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000028 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E00000000000000000029 = {
+			isa = "PBXBuildFile";
+			productRef = "1D1E00000000000000000002";
+		};
+		1D1E0000000000000000002A = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E00000000000000000028",
+				"1D1E00000000000000000029",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E0000000000000000002B = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				SKIP_INSTALL = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_MODULE_NAME = "lookinside_cli";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)/LookInside.app/Contents/MacOS";
+				GENERATE_INFOPLIST_FILE = "YES";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				CREATE_INFOPLIST_SECTION_IN_BINARY = "YES";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				PRODUCT_NAME = "lookinside-cli";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.lookinside-cli";
+			};
+		};
+		1D1E0000000000000000002C = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				SKIP_INSTALL = "YES";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				PRODUCT_MODULE_NAME = "lookinside_cli";
+				INSTALL_PATH = "$(LOCAL_APPS_DIR)/LookInside.app/Contents/MacOS";
+				GENERATE_INFOPLIST_FILE = "YES";
+				GCC_OPTIMIZATION_LEVEL = "s";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				CREATE_INFOPLIST_SECTION_IN_BINARY = "YES";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				CODE_SIGN_STYLE = "Automatic";
+				SDKROOT = "macosx";
+				SWIFT_VERSION = "5.0";
+				PRODUCT_NAME = "lookinside-cli";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.lookinside-cli";
+			};
+		};
+		1D1E0000000000000000002D = {
+			isa = "XCConfigurationList";
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+			buildConfigurations = (
+				"1D1E0000000000000000002B",
+				"1D1E0000000000000000002C",
+			);
+		};
+		1D1E0000000000000000002E = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E0000000000000000002F = {
+			productReference = "1D1E00000000000000000024";
+			productType = "com.apple.product-type.tool";
+			buildConfigurationList = "1D1E0000000000000000002D";
+			packageProductDependencies = (
+				"1D1E00000000000000000002",
+			);
+			productName = "lookinside-cli";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1D1E00000000000000000027",
+				"1D1E0000000000000000002A",
+			);
+			dependencies = (
+				"1D1E0000000000000000002E",
+			);
+			name = "lookinside-cli";
+			buildRules = (
+			);
+		};
+		1D1E00000000000000000030 = {
+			path = "LookInsideHeadlessTests.xctest";
+			isa = "PBXFileReference";
+			includeInIndex = "0";
+			explicitFileType = "wrapper.cfbundle";
+			sourceTree = "BUILT_PRODUCTS_DIR";
+		};
+		1D1E00000000000000000031 = {
+			path = "Tests/Headless/InspectionProcessTests.swift";
+			isa = "PBXFileReference";
+			lastKnownFileType = "sourcecode.swift";
+			sourceTree = "SOURCE_ROOT";
+		};
+		1D1E00000000000000000032 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000031";
+		};
+		1D1E00000000000000000033 = {
+			isa = "PBXSourcesBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E00000000000000000032",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000034 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E00000000000000000035 = {
+			isa = "PBXFrameworksBuildPhase";
+			buildActionMask = "2147483647";
+			files = (
+				"1D1E00000000000000000034",
+			);
+			runOnlyForDeploymentPostprocessing = "0";
+		};
+		1D1E00000000000000000036 = {
+			isa = "XCBuildConfiguration";
+			name = "Debug";
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				PRODUCT_MODULE_NAME = "LookInsideHeadlessTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.LookInsideHeadlessTests";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				TEST_HOST = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				CODE_SIGN_STYLE = "Automatic";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SDKROOT = "macosx";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_VERSION = "5.0";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				PRODUCT_NAME = "LookInsideHeadlessTests";
+				SKIP_INSTALL = "YES";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				GENERATE_INFOPLIST_FILE = "YES";
+			};
+		};
+		1D1E00000000000000000037 = {
+			isa = "XCBuildConfiguration";
+			name = "Release";
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				CLANG_ENABLE_MODULES = "YES";
+				PRODUCT_MODULE_NAME = "LookInsideHeadlessTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.LookInsideHeadlessTests";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				TEST_HOST = "";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				GCC_OPTIMIZATION_LEVEL = "s";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				CODE_SIGN_STYLE = "Automatic";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SDKROOT = "macosx";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path",
+					"@loader_path/../../../",
+				);
+				SWIFT_VERSION = "5.0";
+				SWIFT_STRICT_CONCURRENCY = "complete";
+				PRODUCT_NAME = "LookInsideHeadlessTests";
+				SKIP_INSTALL = "YES";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				GENERATE_INFOPLIST_FILE = "YES";
+			};
+		};
+		1D1E00000000000000000038 = {
+			isa = "XCConfigurationList";
+			defaultConfigurationIsVisible = "0";
+			defaultConfigurationName = "Release";
+			buildConfigurations = (
+				"1D1E00000000000000000036",
+				"1D1E00000000000000000037",
+			);
+		};
+		1D1E00000000000000000039 = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E0000000000000000003A = {
+			productType = "com.apple.product-type.bundle.unit-test";
+			productReference = "1D1E00000000000000000030";
+			buildConfigurationList = "1D1E00000000000000000038";
+			packageProductDependencies = (
+			);
+			productName = "LookInsideHeadlessTests";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1D1E00000000000000000033",
+				"1D1E00000000000000000035",
+			);
+			dependencies = (
+				"1D1E00000000000000000039",
+				"1D1E0000000000000000003B",
+				"1D1E0000000000000000003C",
+				"1D1E0000000000000000006C",
+			);
+			name = "LookInsideHeadlessTests";
+			buildRules = (
+			);
+		};
+		1D1E0000000000000000003B = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000023";
+		};
+		1D1E0000000000000000003C = {
+			isa = "PBXTargetDependency";
+			target = "1D1E0000000000000000002F";
+		};
+		1D1E0000000000000000003D = {
+			isa = "PBXGroup";
+			name = "Headless Inspection";
+			children = (
+				"1D1E00000000000000000004",
+				"1D1E00000000000000000006",
+				"1D1E00000000000000000008",
+				"1D1E0000000000000000000A",
+				"1D1E0000000000000000000C",
+				"1D1E0000000000000000000E",
+				"1D1E00000000000000000017",
+				"1D1E00000000000000000025",
+				"1D1E00000000000000000031",
+				"1D1E00000000000000000049",
+				"1D1E0000000000000000004A",
+				"1D1E0000000000000000004B",
+				"1D1E0000000000000000004C",
+				"1D1E0000000000000000004D",
+				"1D1E0000000000000000004E",
+				"1D1E00000000000000000055",
+				"1D1E00000000000000000059",
+				"1D1E0000000000000000006D",
+			);
+			sourceTree = "<group>";
+		};
+		1D1E0000000000000000003E = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E0000000000000000003F = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000023";
+		};
+		1D1E00000000000000000040 = {
+			isa = "PBXTargetDependency";
+			target = "1D1E0000000000000000002F";
+		};
+		1D1E00000000000000000041 = {
+			isa = "PBXTargetDependency";
+			target = "1D1E00000000000000000015";
+		};
+		1D1E00000000000000000042 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E00000000000000000043 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+		};
+		1D1E00000000000000000044 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000003";
+			settings = {
+				ATTRIBUTES = (
+					"CodeSignOnCopy",
+					"RemoveHeadersOnCopy",
+				);
+			};
+		};
+		1D1E00000000000000000045 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000016";
+			settings = {
+				ATTRIBUTES = (
+					"CodeSignOnCopy",
+				);
+			};
+		};
+		1D1E00000000000000000046 = {
+			buildActionMask = "2147483647";
+			dstSubfolderSpec = "6";
+			isa = "PBXCopyFilesBuildPhase";
+			runOnlyForDeploymentPostprocessing = "0";
+			dstPath = "";
+			files = (
+				"1D1E00000000000000000045",
+			);
+			name = "Embed Inspection Service";
+		};
+		1D1E00000000000000000047 = {
+			isa = "PBXBuildFile";
+			fileRef = "1D1E00000000000000000024";
+			settings = {
+				ATTRIBUTES = (
+					"CodeSignOnCopy",
+				);
+			};
+		};
+		1D1E00000000000000000048 = {
+			buildActionMask = "2147483647";
+			dstSubfolderSpec = "7";
+			isa = "PBXCopyFilesBuildPhase";
+			runOnlyForDeploymentPostprocessing = "0";
+			dstPath = "";
+			files = (
+				"1D1E00000000000000000047",
+			);
+			name = "Embed Inspection CLI";
+		};
 
 /* Inspection core and standalone tests */
 		1C0E00000000000000000810 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/InspectionCore/InspectionBridgeTests.swift"; sourceTree = SOURCE_ROOT; };
@@ -1043,7 +2030,7 @@
 				1C0E00000000000000000202,
 				1C0E00000000000000000204,
 			); runOnlyForDeploymentPostprocessing = 0; };
-		1C0E00000000000000000005 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E00000000000000000005 = { "isa" = "PBXFrameworksBuildPhase"; "buildActionMask" = "2147483647"; "files" = ( "1D1E00000000000000000058", ); "runOnlyForDeploymentPostprocessing" = "0"; };
 		1C0E0000000000000000000C = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
 			1C0E00000000000000000811,
 			1C0E00000000000000000813,
@@ -1061,8 +2048,8 @@
 		1C0E00000000000000000207 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; };
 		1C0E00000000000000000208 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; };
 		1C0E00000000000000000209 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; settings = { ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy,); }; };
-		1C0E00000000000000000012 = { isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 10; files = (1C0E00000000000000000209,); name = "Embed Inspection Core"; runOnlyForDeploymentPostprocessing = 0; };
-		1C0E0000000000000000000D = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (1C0E00000000000000000208,); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E00000000000000000012 = { "buildActionMask" = "2147483647"; "dstSubfolderSpec" = "10"; "isa" = "PBXCopyFilesBuildPhase"; "runOnlyForDeploymentPostprocessing" = "0"; "dstPath" = ""; "files" = ( "1C0E00000000000000000209", "1D1E00000000000000000044", ); "name" = "Embed Inspection Core"; };
+		1C0E0000000000000000000D = { "isa" = "PBXFrameworksBuildPhase"; "buildActionMask" = "2147483647"; "files" = ( "1C0E00000000000000000208", "1D1E00000000000000000043", ); "runOnlyForDeploymentPostprocessing" = "0"; };
 		1C0E00000000000000000014 = { isa = PBXContainerItemProxy; containerPortal = AA48F29321CC0CA50032EC2C; proxyType = 1; remoteGlobalIDString = 1C0E00000000000000000001; remoteInfo = LookInsideInspectionCore; };
 		1C0E00000000000000000016 = { isa = PBXContainerItemProxy; containerPortal = AA48F29321CC0CA50032EC2C; proxyType = 1; remoteGlobalIDString = 1C0E00000000000000000001; remoteInfo = LookInsideInspectionCore; };
 		1C0E00000000000000000013 = { isa = PBXTargetDependency; target = 1C0E00000000000000000001; targetProxy = 1C0E00000000000000000014; };
@@ -1074,7 +2061,7 @@
 				"$(SRCROOT)/Sources/LookinCore/Peertalk",
 				"$(SRCROOT)/Sources/LookinServerBase",
 				"$(SRCROOT)/LookInside/ReactiveObjC",
-			); INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks"; SKIP_INSTALL = YES; PRODUCT_NAME = LookInsideInspectionCore; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core"; OTHER_LDFLAGS = ("-framework", AppKit, "-framework", QuartzCore, "-framework", IOKit,); GCC_OPTIMIZATION_LEVEL = 0; ENABLE_TESTABILITY = YES; }; name = Debug; };
+			 ); DYLIB_INSTALL_NAME_BASE = "@rpath"; LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)"; INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks"; SKIP_INSTALL = YES; PRODUCT_NAME = LookInsideInspectionCore; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core"; OTHER_LDFLAGS = ("-framework", AppKit, "-framework", QuartzCore, "-framework", IOKit,); GCC_OPTIMIZATION_LEVEL = 0; ENABLE_TESTABILITY = YES; }; name = Debug; };
 		1C0E00000000000000000009 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); DEFINES_MODULE = YES; CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO; ENABLE_MODULE_VERIFIER = NO; USE_HEADERMAP = NO; GCC_PRECOMPILE_PREFIX_HEADER = NO; GCC_PREFIX_HEADER = ""; HEADER_SEARCH_PATHS = (
 				"$(SRCROOT)/Sources/LookInsideInspectionCore",
 				"$(SRCROOT)/Sources/LookinCore",
@@ -1082,13 +2069,110 @@
 				"$(SRCROOT)/Sources/LookinCore/Peertalk",
 				"$(SRCROOT)/Sources/LookinServerBase",
 				"$(SRCROOT)/LookInside/ReactiveObjC",
-			); INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks"; SKIP_INSTALL = YES; PRODUCT_NAME = LookInsideInspectionCore; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core"; OTHER_LDFLAGS = ("-framework", AppKit, "-framework", QuartzCore, "-framework", IOKit,); }; name = Release; };
-		1C0E00000000000000000010 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); USE_HEADERMAP = NO; PRODUCT_NAME = LookInsideInspectionCoreTests; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core-tests"; TEST_HOST = ""; BUNDLE_LOADER = ""; FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PLATFORM_DIR)/Developer/Library/Frameworks",); LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@loader_path/../../../",); GCC_OPTIMIZATION_LEVEL = 0; }; name = Debug; };
-		1C0E00000000000000000011 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); USE_HEADERMAP = NO; PRODUCT_NAME = LookInsideInspectionCoreTests; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core-tests"; TEST_HOST = ""; BUNDLE_LOADER = ""; FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PLATFORM_DIR)/Developer/Library/Frameworks",); LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@loader_path/../../../",); }; name = Release; };
+			 ); DYLIB_INSTALL_NAME_BASE = "@rpath"; LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)"; INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks"; SKIP_INSTALL = YES; PRODUCT_NAME = LookInsideInspectionCore; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core"; OTHER_LDFLAGS = ("-framework", AppKit, "-framework", QuartzCore, "-framework", IOKit,); }; name = Release; };
+		1C0E00000000000000000010 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core-tests";
+				BUNDLE_LOADER = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/../../../",
+				);
+				CLANG_ENABLE_MODULES = "YES";
+				USE_HEADERMAP = "NO";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				TEST_HOST = "";
+				GENERATE_INFOPLIST_FILE = "YES";
+				GCC_OPTIMIZATION_LEVEL = "0";
+				CODE_SIGN_STYLE = "Automatic";
+				PRODUCT_NAME = "LookInsideInspectionCoreTests";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SHOULD_COMPILE_LOOKIN_SERVER=1",
+				);
+				SDKROOT = "macosx";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				SWIFT_VERSION = "5.0";
+				CLANG_ENABLE_OBJC_ARC = "YES";
+			};
+			name = "Debug";
+		};
+		1C0E00000000000000000011 = {
+			isa = "XCBuildConfiguration";
+			buildSettings = {
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core-tests";
+				BUNDLE_LOADER = "";
+				DEVELOPMENT_TEAM = "D5Q73692VW";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/../../../",
+				);
+				CLANG_ENABLE_MODULES = "YES";
+				USE_HEADERMAP = "NO";
+				MACOSX_DEPLOYMENT_TARGET = "14.0";
+				TEST_HOST = "";
+				GENERATE_INFOPLIST_FILE = "YES";
+				CODE_SIGN_STYLE = "Automatic";
+				PRODUCT_NAME = "LookInsideInspectionCoreTests";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SHOULD_COMPILE_LOOKIN_SERVER=1",
+				);
+				SDKROOT = "macosx";
+				ENABLE_HARDENED_RUNTIME = "YES";
+				SWIFT_VERSION = "5.0";
+				CLANG_ENABLE_OBJC_ARC = "YES";
+			};
+			name = "Release";
+		};
 		1C0E00000000000000000007 = { isa = XCConfigurationList; buildConfigurations = (1C0E00000000000000000008, 1C0E00000000000000000009,); defaultConfigurationName = Release; };
 		1C0E0000000000000000000F = { isa = XCConfigurationList; buildConfigurations = (1C0E00000000000000000010, 1C0E00000000000000000011,); defaultConfigurationName = Release; };
-		1C0E00000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = 1C0E00000000000000000007; buildPhases = (1C0E00000000000000000004, 1C0E00000000000000000003, 1C0E00000000000000000005,); buildRules = (); dependencies = (); name = LookInsideInspectionCore; productName = LookInsideInspectionCore; productReference = 1C0E00000000000000000002; productType = "com.apple.product-type.framework"; };
-		1C0E0000000000000000000A = { isa = PBXNativeTarget; buildConfigurationList = 1C0E0000000000000000000F; buildPhases = (1C0E0000000000000000000C, 1C0E0000000000000000000D,); buildRules = (); dependencies = (1C0E00000000000000000015,); name = LookInsideInspectionCoreTests; productName = LookInsideInspectionCoreTests; productReference = 1C0E0000000000000000000B; productType = "com.apple.product-type.bundle.unit-test"; };
+		1C0E00000000000000000001 = {
+			productType = "com.apple.product-type.framework";
+			productReference = "1C0E00000000000000000002";
+			buildConfigurationList = "1C0E00000000000000000007";
+			productName = "LookInsideInspectionCore";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1C0E00000000000000000004",
+				"1C0E00000000000000000003",
+				"1C0E00000000000000000005",
+			);
+			dependencies = (
+				"1D1E00000000000000000057",
+			);
+			name = "LookInsideInspectionCore";
+			buildRules = (
+			);
+		};
+		1C0E0000000000000000000A = {
+			productType = "com.apple.product-type.bundle.unit-test";
+			productReference = "1C0E0000000000000000000B";
+			buildConfigurationList = "1C0E0000000000000000000F";
+			productName = "LookInsideInspectionCoreTests";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"1C0E0000000000000000000C",
+				"1C0E0000000000000000000D",
+			);
+			dependencies = (
+				"1C0E00000000000000000015",
+				"1D1E00000000000000000041",
+			);
+			name = "LookInsideInspectionCoreTests";
+			buildRules = (
+			);
+		};
 
 
 /* Begin PBXBuildFile section */
@@ -1521,22 +2605,23 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		AA48F29821CC0CA50032EC2C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
+		AA48F29821CC0CA50032EC2C = {
+			isa = "PBXFrameworksBuildPhase";
 			files = (
-				1C0E00000000000000000207,
-				E9FE990C3026C657008692AF /* UIFoundation in Frameworks */,
-				50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */,
-				50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */,
-				50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */,
-				E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */,
-				E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */,
-				E97210062FC2D5C0003AAEA6 /* RunningApplicationKit in Frameworks */,
-				E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */,
-				E97210092FC2E5C0003AAEA6 /* HelperClient in Frameworks */,
-				E972100B2FC2E5C0003AAEA6 /* HelperCommunication in Frameworks */,
-				E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */,
-				E9FE990E3026C657008692AF /* UIFoundationToolbox in Frameworks */,
+				"1C0E00000000000000000207",
+				"E9FE990C3026C657008692AF",
+				"50EAE1AA2F71C01A00EBE063",
+				"50EAE1AB2F71C01A00EBE063",
+				"50EAE1AC2F71C01A00EBE063",
+				"E37B8D0D2F97B1B100600001",
+				"E37B8D0F2F97B1B100600001",
+				"E97210062FC2D5C0003AAEA6",
+				"E37B8D222F97B1B100600001",
+				"E97210092FC2E5C0003AAEA6",
+				"E972100B2FC2E5C0003AAEA6",
+				"E972100D2FC2E5C0003AAEA6",
+				"E9FE990E3026C657008692AF",
+				"1D1E00000000000000000042",
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -1552,113 +2637,106 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		AA48F29221CC0CA50032EC2C = {
-			isa = PBXGroup;
-			children = (
-				5011BBAE2F9754F0002DA475 /* Configuration */,
-				50EADFB32F71BFF200EBE063 /* LookInside */,
-				1C0E00000000000000000006,
-				1C0E0000000000000000000E,
-				AA48F29C21CC0CA50032EC2C /* Products */,
-				0A9FB6E904476A1F9D0BB82E /* Frameworks */,
-			);
-			sourceTree = "<group>";
-		};
-		AA48F29C21CC0CA50032EC2C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				AA48F29B21CC0CA50032EC2C /* LookInside.app */,
-				1C0E00000000000000000002,
-				1C0E0000000000000000000B,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
+		AA48F29221CC0CA50032EC2C = { "isa" = "PBXGroup"; "sourceTree" = "<group>"; "children" = ( "5011BBAE2F9754F0002DA475", "50EADFB32F71BFF200EBE063", "1C0E00000000000000000006", "1C0E0000000000000000000E", "AA48F29C21CC0CA50032EC2C", "0A9FB6E904476A1F9D0BB82E", "1D1E0000000000000000003D", ); };
+		AA48F29C21CC0CA50032EC2C = { "isa" = "PBXGroup"; "name" = "Products"; "children" = ( "AA48F29B21CC0CA50032EC2C", "1C0E00000000000000000002", "1C0E0000000000000000000B", "1D1E00000000000000000003", "1D1E00000000000000000016", "1D1E00000000000000000024", "1D1E00000000000000000030", "1D1E0000000000000000005A", ); "sourceTree" = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		AA48F29A21CC0CA50032EC2C /* LookInside */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA48F2AC21CC0CA60032EC2C /* Build configuration list for PBXNativeTarget "LookInside" */;
-			buildPhases = (
-				50EADFB42F71C00C00EBE063 /* Sources */,
-				AA48F29821CC0CA50032EC2C /* Frameworks */,
-				AA48F29921CC0CA50032EC2C /* Resources */,
-				1C0E00000000000000000012,
-				5005F8FD2FA505DF00C0BB07 /* Build Authenticator at DEBUG */,
-				5005F8FE2FA505DF00C0BB07 /* Embed Injector Daemon */,
-				5005F8FF2FA505DF00C0BB07 /* Embed MCP CLI */,
+		AA48F29A21CC0CA50032EC2C = {
+			productType = "com.apple.product-type.application";
+			productReference = "AA48F29B21CC0CA50032EC2C";
+			buildConfigurationList = "AA48F2AC21CC0CA60032EC2C";
+			packageProductDependencies = (
+				"E37B8D0C2F97B1B100600001",
+				"E37B8D0F1F97B1B100600001",
+				"E37B8D212F97B1B100600001",
+				"E97210052FC2D5C0003AAEA6",
+				"E97210082FC2E5C0003AAEA6",
+				"E972100A2FC2E5C0003AAEA6",
+				"E972100C2FC2E5C0003AAEA6",
+				"E9FE990B3026C657008692AF",
+				"E9FE990D3026C657008692AF",
 			);
+			productName = "Lookin";
+			isa = "PBXNativeTarget";
+			buildPhases = (
+				"50EADFB42F71C00C00EBE063",
+				"AA48F29821CC0CA50032EC2C",
+				"AA48F29921CC0CA50032EC2C",
+				"1C0E00000000000000000012",
+				"5005F8FD2FA505DF00C0BB07",
+				"5005F8FE2FA505DF00C0BB07",
+				"5005F8FF2FA505DF00C0BB07",
+				"1D1E00000000000000000046",
+				"1D1E00000000000000000048",
+			);
+			dependencies = (
+				"1C0E00000000000000000013",
+				"1D1E0000000000000000003E",
+				"1D1E0000000000000000003F",
+				"1D1E00000000000000000040",
+			);
+			name = "LookInside";
 			buildRules = (
 			);
-			dependencies = (1C0E00000000000000000013,);
-			name = LookInside;
-			packageProductDependencies = (
-				E37B8D0C2F97B1B100600001 /* Demangling */,
-				E37B8D0F1F97B1B100600001 /* Sparkle */,
-				E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */,
-				E97210052FC2D5C0003AAEA6 /* RunningApplicationKit */,
-				E97210082FC2E5C0003AAEA6 /* HelperClient */,
-				E972100A2FC2E5C0003AAEA6 /* HelperCommunication */,
-				E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */,
-				E9FE990B3026C657008692AF /* UIFoundation */,
-				E9FE990D3026C657008692AF /* UIFoundationToolbox */,
-			);
-			productName = Lookin;
-			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
-			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		AA48F29321CC0CA50032EC2C /* Project object */ = {
-			isa = PBXProject;
+		AA48F29321CC0CA50032EC2C = {
+			buildConfigurationList = "AA48F29621CC0CA50032EC2C";
+			packageReferences = (
+				"E37B8D0B2F97B1B100600001",
+				"E37B8D0F0F97B1B100600001",
+				"E37B8D202F97B1B100600001",
+				"E97210042FC2D5C0003AAEA6",
+				"E97210072FC2E3FC003AAEA6",
+				"E9FE990A3026C657008692AF",
+				"1D1E00000000000000000001",
+			);
+			targets = (
+				"1C0E00000000000000000001",
+				"1C0E0000000000000000000A",
+				"AA48F29A21CC0CA50032EC2C",
+				"1D1E00000000000000000015",
+				"1D1E00000000000000000023",
+				"1D1E0000000000000000002F",
+				"1D1E0000000000000000003A",
+				"1D1E0000000000000000006B",
+			);
+			developmentRegion = "en";
+			knownRegions = (
+				"en",
+				"Base",
+				"zh-Hans",
+			);
+			isa = "PBXProject";
+			productRefGroup = "AA48F29C21CC0CA50032EC2C";
+			projectDirPath = "";
 			attributes = {
-				BuildIndependentTargetsInParallel = YES;
-				LastSwiftUpdateCheck = 2640;
-				LastUpgradeCheck = 2640;
-				ORGANIZATIONNAME = hughkli;
+				LastSwiftUpdateCheck = "2640";
+				BuildIndependentTargetsInParallel = "YES";
+				LastUpgradeCheck = "2640";
+				ORGANIZATIONNAME = "hughkli";
 				TargetAttributes = {
 					AA48F29A21CC0CA50032EC2C = {
-						CreatedOnToolsVersion = 10.1;
-						LastSwiftMigration = 1500;
+						LastSwiftMigration = "1500";
 						SystemCapabilities = {
 							com.apple.HardenedRuntime = {
-								enabled = 1;
+								enabled = "1";
 							};
 							com.apple.Sandbox = {
-								enabled = 0;
+								enabled = "0";
 							};
 						};
+						CreatedOnToolsVersion = "10.1";
 					};
 				};
 			};
-			buildConfigurationList = AA48F29621CC0CA50032EC2C /* Build configuration list for PBXProject "LookInside" */;
-			developmentRegion = en;
-			hasScannedForEncodings = 0;
-			knownRegions = (
-				en,
-				Base,
-				"zh-Hans",
-			);
-			mainGroup = AA48F29221CC0CA50032EC2C;
-			packageReferences = (
-				E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */,
-				E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */,
-				E37B8D202F97B1B100600001 /* XCRemoteSwiftPackageReference "LookInsidePrivateDiscriminator" */,
-				E97210042FC2D5C0003AAEA6 /* XCRemoteSwiftPackageReference "RunningApplicationKit" */,
-				E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */,
-				E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */,
-			);
-			preferredProjectObjectVersion = 50;
-			productRefGroup = AA48F29C21CC0CA50032EC2C /* Products */;
-			projectDirPath = "";
+			hasScannedForEncodings = "0";
 			projectRoot = "";
-			targets = (
-				1C0E00000000000000000001,
-				1C0E0000000000000000000A,
-				AA48F29A21CC0CA50032EC2C /* LookInside */,
-			);
+			preferredProjectObjectVersion = "50";
+			mainGroup = "AA48F29221CC0CA50032EC2C";
 		};
 /* End PBXProject section */
 

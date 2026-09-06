@@ -47,5 +47,9 @@ NS_SWIFT_NAME(ConnectionManager)
 
 - (void)authorizationStateDidChange;
 - (NSString *)transportIdentifierForChannel:(Lookin_PTChannel *)channel;
+- (BOOL)isLicenseVerifiedForChannel:(Lookin_PTChannel *)channel NS_SWIFT_NAME(isLicenseVerified(for:));
+/// Retains an existing connection when a fresh probe identifies the same process.
+- (Lookin_PTChannel *)canonicalChannel:(Lookin_PTChannel *)channel applicationIdentifier:(NSUInteger)applicationIdentifier;
+- (void)discardUnidentifiedChannel:(Lookin_PTChannel *)channel;
 
 @end

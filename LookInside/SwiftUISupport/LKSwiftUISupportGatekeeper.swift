@@ -1,6 +1,7 @@
 import AppKit
 import Darwin
 import Foundation
+import LookInsideInspectionProtocol
 
 private enum LKSwiftUISupportAuthServerConstants {
     static let supportedProtocolVersion = 1
@@ -124,11 +125,13 @@ private struct LKSwiftUISupportAuthServerHealthPayload: Decodable {
     let serverVersion: String
     let protocolVersion: Int
     let statusSummary: String
+    let ownerProcessIdentifier: Int32?
 
     private enum CodingKeys: String, CodingKey {
         case serverVersion = "server_version"
         case protocolVersion = "protocol_version"
         case statusSummary = "status_summary"
+        case ownerProcessIdentifier = "owner_process_identifier"
     }
 }
 
@@ -171,9 +174,12 @@ private enum LKSwiftUISupportAuthServerError: LocalizedError {
     case rpcTransport(String)
     case rpcServer(code: String, message: String)
     case invalidResponse(String)
+    case ownerConflict
 
     var errorDescription: String? {
         switch self {
+        case .ownerConflict:
+            return NSLocalizedString("The Auth Server belongs to another inspection process. Stop that inspection before using protected features here.", comment: "")
         case let .helperMissing(path):
             return String(format: NSLocalizedString("LookInside Auth Server is not installed.\nExpected executable:\n%@", comment: ""), path)
         case let .incompatibleProtocol(expected, found):
@@ -344,6 +350,7 @@ private final class LKSwiftUISupportAuthServerBridge {
     }
 
     func shutdownRuntime() {
+        guard lock.withLock({ launchedProcess?.isRunning == true }) else { return }
         guard let installation = try? resolveInstallation() else {
             return
         }
@@ -360,9 +367,6 @@ private final class LKSwiftUISupportAuthServerBridge {
                 "shutdown request failed: \(error.localizedDescription, privacy: .public)"
             )
         }
-
-        unlink(installation.socketURL.path + ".lock")
-        unlink(installation.socketURL.path)
 
         let deadline = Date().addingTimeInterval(LKSwiftUISupportAuthServerConstants.helperShutdownTimeout)
         while Date() < deadline {
@@ -395,10 +399,6 @@ private final class LKSwiftUISupportAuthServerBridge {
             if process.isRunning {
                 kill(process.processIdentifier, SIGKILL)
             }
-        }
-        if let installation = try? resolveInstallation() {
-            unlink(installation.socketURL.path + ".lock")
-            unlink(installation.socketURL.path)
         }
         lock.withLock {
             self.launchedProcess = nil
@@ -734,6 +734,9 @@ private final class LKSwiftUISupportAuthServerBridge {
         window: NSWindow?,
         installMode: LKSwiftUISupportAuthServerInstallMode = .userInitiated
     ) throws -> LKSwiftUISupportAuthServerInstallation {
+        if let installation = try? resolveInstallation() {
+            try rejectForeignHelperOwner(using: installation)
+        }
         switch installMode {
         case .userInitiated:
             try LKSwiftUISupportInstaller.shared.ensureInstalled(presentingWindow: window)
@@ -747,6 +750,7 @@ private final class LKSwiftUISupportAuthServerBridge {
     private func ensureServerAvailable(
         using installation: LKSwiftUISupportAuthServerInstallation
     ) throws -> LKSwiftUISupportAuthServerInstallation {
+        try rejectForeignHelperOwner(using: installation)
         let presence = lock.withLock { helperPresence }
 
         if presence == .notDetermined {
@@ -797,6 +801,9 @@ private final class LKSwiftUISupportAuthServerBridge {
         guard let payload = response.payload else {
             throw LKSwiftUISupportAuthServerError.invalidResponse("Missing health payload.")
         }
+        if let ownerIdentifier = payload.ownerProcessIdentifier, ownerIdentifier != getpid() {
+            throw LKSwiftUISupportAuthServerError.ownerConflict
+        }
         guard payload.protocolVersion == LKSwiftUISupportAuthServerConstants.supportedProtocolVersion else {
             throw LKSwiftUISupportAuthServerError.incompatibleProtocol(
                 expected: LKSwiftUISupportAuthServerConstants.supportedProtocolVersion,
@@ -804,6 +811,16 @@ private final class LKSwiftUISupportAuthServerBridge {
             )
         }
         try enforceVersionMatch(payload: payload)
+    }
+
+    private func rejectForeignHelperOwner(using installation: LKSwiftUISupportAuthServerInstallation) throws {
+        let request = LKSwiftUISupportAuthServerRequestEnvelope(protocolVersion: 1, requestID: UUID().uuidString,
+                                                                method: "health.ping", payload: LKSwiftUISupportEmptyPayload())
+        guard let requestData = try? Self.jsonEncoder.encode(request),
+              let data = try? InspectionSocketClient.exchangeUntilEnd(requestData, socketPath: installation.socketURL.path, timeout: 1),
+              let response = try? Self.jsonDecoder.decode(LKSwiftUISupportAuthServerResponseEnvelope<LKSwiftUISupportAuthServerHealthPayload>.self, from: data),
+              let ownerIdentifier = response.payload?.ownerProcessIdentifier, ownerIdentifier != getpid() else { return }
+        throw LKSwiftUISupportAuthServerError.ownerConflict
     }
 
     private func waitForHealthyServer(

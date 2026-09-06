@@ -11,6 +11,7 @@
 #import "LookinDefines.h"
 #import "LookinConnectionResponseAttachment.h"
 #import "LKInspectionEnvironment.h"
+#import <LookInsideInspectionProtocol/LookInsideInspectionProtocol-Swift.h>
 #import "LKInspectionRequestQueue.h"
 #import "ReactiveObjC.h"
 #import "NSArray+Lookin.h"
@@ -185,6 +186,9 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 @property(nonatomic, copy) NSArray<LKSimulatorConnectionPort *> *allSimulatorPorts;
 @property(nonatomic, copy) NSArray<LKMacConnectionPort *> *allMacPorts;
 @property(nonatomic, strong) NSMutableArray<LKUSBConnectionPort *> *allUSBPorts;
+@property(nonatomic, strong) NSMutableSet<Lookin_PTChannel *> *activeChannels;
+@property(nonatomic, strong) NSMapTable<Lookin_PTChannel *, NSString *> *channelTransportIdentifiers;
+@property(nonatomic, strong) NSMutableDictionary<NSString *, Lookin_PTChannel *> *applicationChannels;
 
 @end
 
@@ -207,6 +211,9 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     if (self = [super init]) {
         _channelWillEnd = [RACSubject subject];
         _didReceivePush = [RACSubject subject];
+        _activeChannels = [NSMutableSet set];
+        _channelTransportIdentifiers = [NSMapTable strongToStrongObjectsMapTable];
+        _applicationChannels = [NSMutableDictionary dictionary];
         
         self.allSimulatorPorts = ({
             NSMutableArray<LKSimulatorConnectionPort *> *ports = [NSMutableArray array];
@@ -236,12 +243,22 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 #pragma mark - Ports Connect
 
 - (RACSignal *)tryToConnectAllPorts {
+    NSError *ownershipError = nil;
+    BOOL (^ownershipProvider)(NSError **) = LKInspectionEnvironment.sharedEnvironment.acquireConnectionOwnership;
+    BOOL ownsConnections = ownershipProvider ? ownershipProvider(&ownershipError)
+        : [LKInspectionConnectionOwnership.sharedOwnership acquireAndReturnError:&ownershipError];
+    if (!ownsConnections) {
+        return [RACSignal error:ownershipError];
+    }
     return [[RACSignal zip:@[[self _tryToConnectAllSimulatorPorts],
                             [self _tryToConnectAllMacPorts],
                             [self _tryToConnectAllUSBDevices]]] map:^id _Nullable(RACTuple * _Nullable value) {
         RACTupleUnpack(NSArray<Lookin_PTChannel *> *simulatorChannels, NSArray<Lookin_PTChannel *> *macChannels, NSArray<Lookin_PTChannel *> *usbChannels) = value;
-        NSArray *connectedChannels = [[simulatorChannels arrayByAddingObjectsFromArray:macChannels] arrayByAddingObjectsFromArray:usbChannels];
-        return connectedChannels;
+        NSMutableOrderedSet *connectedChannels = [NSMutableOrderedSet orderedSetWithArray:[self _connectedChannels]];
+        [connectedChannels addObjectsFromArray:simulatorChannels];
+        [connectedChannels addObjectsFromArray:macChannels];
+        [connectedChannels addObjectsFromArray:usbChannels];
+        return connectedChannels.array;
     }];
 }
 
@@ -278,12 +295,6 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 /// 注意，如果某个 app 被退到了后台但是没有被 kill，则在这个方法里它的 channel 仍然会被成功连接
 - (RACSignal *)_connectToSimulatorPort:(LKSimulatorConnectionPort *)port {
     return [RACSignal createSignal:^RACDisposable * _Nullable(id<RACSubscriber>  _Nonnull subscriber) {
-        if (port.connectedChannel) {
-            // 该 port 本来就已经成功连接
-            [subscriber sendNext:port.connectedChannel];
-            [subscriber sendCompleted];
-            return nil;
-        }
         
         Lookin_PTChannel *localChannel = [Lookin_PTChannel channelWithDelegate:self];
         [localChannel connectToPort:port.portNumber IPv4Address:INADDR_LOOPBACK callback:^(NSError *error, Lookin_PTAddress *address) {
@@ -297,6 +308,8 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
                 [subscriber sendError:error];
             } else {
                 port.connectedChannel = localChannel;
+                [self.activeChannels addObject:localChannel];
+                [self.channelTransportIdentifiers setObject:@"simulator" forKey:localChannel];
                 [subscriber sendNext:localChannel];
                 [subscriber sendCompleted];
             }
@@ -307,11 +320,6 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 
 - (RACSignal *)_connectToMacPort:(LKMacConnectionPort *)port {
     return [RACSignal createSignal:^RACDisposable * _Nullable(id<RACSubscriber>  _Nonnull subscriber) {
-        if (port.connectedChannel) {
-            [subscriber sendNext:port.connectedChannel];
-            [subscriber sendCompleted];
-            return nil;
-        }
 
         Lookin_PTChannel *localChannel = [Lookin_PTChannel channelWithDelegate:self];
         [localChannel connectToPort:port.portNumber IPv4Address:INADDR_LOOPBACK callback:^(NSError *error, Lookin_PTAddress *address) {
@@ -320,6 +328,8 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
                 [subscriber sendError:error];
             } else {
                 port.connectedChannel = localChannel;
+                [self.activeChannels addObject:localChannel];
+                [self.channelTransportIdentifiers setObject:@"mac" forKey:localChannel];
                 [subscriber sendNext:localChannel];
                 [subscriber sendCompleted];
             }
@@ -349,12 +359,6 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 /// 返回的 x 为成功链接的 Lookin_PTChannel
 - (RACSignal *)_connectToUSBPort:(LKUSBConnectionPort *)port {
     return [RACSignal createSignal:^RACDisposable * _Nullable(id<RACSubscriber>  _Nonnull subscriber) {
-        if (port.connectedChannel) {
-            // 该 port 本来就已经成功连接
-            [subscriber sendNext:port.connectedChannel];
-            [subscriber sendCompleted];
-            return nil;
-        }
         
         Lookin_PTChannel *channel = [Lookin_PTChannel channelWithDelegate:self];
         [channel connectToPort:port.portNumber overUSBHub:Lookin_PTUSBHub.sharedHub deviceID:port.deviceID callback:^(NSError *error) {
@@ -369,6 +373,8 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
             } else {
                 // succ
                 port.connectedChannel = channel;
+                [self.activeChannels addObject:channel];
+                [self.channelTransportIdentifiers setObject:[NSString stringWithFormat:@"usb:%@", port.deviceID] forKey:channel];
                 [subscriber sendNext:channel];
                 [subscriber sendCompleted];
             }
@@ -597,6 +603,8 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 }
 
 - (NSString *)transportIdentifierForChannel:(Lookin_PTChannel *)channel {
+    NSString *rememberedIdentifier = [self.channelTransportIdentifiers objectForKey:channel];
+    if (rememberedIdentifier) return rememberedIdentifier;
     for (LKUSBConnectionPort *port in self.allUSBPorts) {
         if (port.connectedChannel == channel) return [NSString stringWithFormat:@"usb:%@", port.deviceID];
     }
@@ -606,23 +614,30 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     return @"simulator";
 }
 
+- (BOOL)isLicenseVerifiedForChannel:(Lookin_PTChannel *)channel {
+    return channel.isConnected && channel.isLicenseVerified;
+}
+
+- (Lookin_PTChannel *)canonicalChannel:(Lookin_PTChannel *)channel applicationIdentifier:(NSUInteger)applicationIdentifier {
+    NSString *identity = [NSString stringWithFormat:@"%@:%lu", [self transportIdentifierForChannel:channel], (unsigned long)applicationIdentifier];
+    Lookin_PTChannel *existingChannel = self.applicationChannels[identity];
+    if (existingChannel.isConnected && existingChannel != channel) {
+        [channel close];
+        return existingChannel;
+    }
+    self.applicationChannels[identity] = channel;
+    return channel;
+}
+
+- (void)discardUnidentifiedChannel:(Lookin_PTChannel *)channel {
+    if (![self.applicationChannels.allValues containsObject:channel]) [channel close];
+}
+
 - (NSArray<Lookin_PTChannel *> *)_connectedChannels {
     NSMutableArray<Lookin_PTChannel *> *channels = [NSMutableArray array];
-    [self.allSimulatorPorts enumerateObjectsUsingBlock:^(LKSimulatorConnectionPort *port, __unused NSUInteger idx, __unused BOOL *stop) {
-        if (port.connectedChannel.isConnected) {
-            [channels addObject:port.connectedChannel];
-        }
-    }];
-    [self.allMacPorts enumerateObjectsUsingBlock:^(LKMacConnectionPort *port, __unused NSUInteger idx, __unused BOOL *stop) {
-        if (port.connectedChannel.isConnected) {
-            [channels addObject:port.connectedChannel];
-        }
-    }];
-    [self.allUSBPorts enumerateObjectsUsingBlock:^(LKUSBConnectionPort *port, __unused NSUInteger idx, __unused BOOL *stop) {
-        if (port.connectedChannel.isConnected) {
-            [channels addObject:port.connectedChannel];
-        }
-    }];
+    for (Lookin_PTChannel *channel in self.activeChannels) {
+        if (channel.isConnected) [channels addObject:channel];
+    }
     return channels.copy;
 }
 
@@ -704,6 +719,10 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     
     [nc addObserverForName:Lookin_PTUSBDeviceDidDetachNotification object:Lookin_PTUSBHub.sharedHub queue:nil usingBlock:^(NSNotification *note) {
         NSNumber *deviceID = [note.userInfo objectForKey:@"DeviceID"];
+        NSString *transportIdentifier = [NSString stringWithFormat:@"usb:%@", deviceID];
+        for (Lookin_PTChannel *channel in [self _connectedChannels]) {
+            if ([[self transportIdentifierForChannel:channel] isEqualToString:transportIdentifier]) [channel close];
+        }
         [self.allUSBPorts.copy enumerateObjectsUsingBlock:^(LKUSBConnectionPort * _Nonnull port, NSUInteger idx, BOOL * _Nonnull stop) {
             if ([port.deviceID isEqual:deviceID]) {
                 [self.allUSBPorts removeObject:port];
@@ -832,6 +851,11 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 }
 
 - (void)ioFrameChannel:(Lookin_PTChannel*)channel didEndWithError:(NSError*)error {
+    [self.activeChannels removeObject:channel];
+    [self.channelTransportIdentifiers removeObjectForKey:channel];
+    for (NSString *identity in self.applicationChannels.allKeys) {
+        if (self.applicationChannels[identity] == channel) [self.applicationChannels removeObjectForKey:identity];
+    }
     // iOS 客户端断开
     [self.allSimulatorPorts enumerateObjectsUsingBlock:^(LKSimulatorConnectionPort * _Nonnull port, NSUInteger idx, BOOL * _Nonnull stop) {
         if (port.connectedChannel == channel) {

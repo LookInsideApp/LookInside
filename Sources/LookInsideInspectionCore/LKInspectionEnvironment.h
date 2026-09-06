@@ -13,6 +13,9 @@ NS_SWIFT_NAME(InspectionEnvironment)
 @property(nonatomic, copy) NSDictionary<NSString *, id> *initialCaptureOptions;
 @property(nonatomic, copy, nullable) NSDictionary<NSString *, id> *(^initialCaptureOptionsProvider)(void);
 @property(nonatomic, copy, nullable) BOOL (^licenseIsActivated)(void);
+/// Embedders may provide ownership for an isolated transport environment.
+/// The default acquires the shared graphical/headless process lock.
+@property(nonatomic, copy, nullable) BOOL (^acquireConnectionOwnership)(NSError *_Nullable *_Nullable error);
 @property(nonatomic, copy, nullable) NSDictionary<NSString *, id> *_Nullable (^licenseProofForChallenge)(
     NSDictionary<NSString *, id> *challenge, NSError *_Nullable *_Nullable error);
 @end

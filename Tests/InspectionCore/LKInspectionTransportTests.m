@@ -1,5 +1,9 @@
 #import <XCTest/XCTest.h>
 #import <LookInsideInspectionCore/LookInsideInspectionCore.h>
+#import <arpa/inet.h>
+#import <fcntl.h>
+#import <sys/socket.h>
+#import <unistd.h>
 
 @interface LKControlledInspectionPayload : Lookin_PTData
 @property(nonatomic, strong) NSData *encodedResponse;
@@ -55,6 +59,73 @@
 @end
 
 @implementation LKInspectionTransportTests
+
+- (void)testDiscoveryFindsAReusedListenerWithoutDisconnectingThePreviousApplication {
+    LKConnectionManager *manager = LKConnectionManager.sharedInstance;
+    NSArray *originalSimulatorPorts = [manager valueForKey:@"allSimulatorPorts"];
+    NSArray *originalMacPorts = [manager valueForKey:@"allMacPorts"];
+    NSMutableArray *originalDevicePorts = [manager valueForKey:@"allUSBPorts"];
+    BOOL (^originalOwnershipProvider)(NSError **) = LKInspectionEnvironment.sharedEnvironment.acquireConnectionOwnership;
+    LKInspectionEnvironment.sharedEnvironment.acquireConnectionOwnership = ^BOOL(NSError **error) { return YES; };
+
+    int listener = socket(AF_INET, SOCK_STREAM, 0);
+    XCTAssertGreaterThanOrEqual(listener, 0);
+    int allowsReuse = 1;
+    setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &allowsReuse, sizeof(allowsReuse));
+    struct sockaddr_in address = {0};
+    address.sin_len = sizeof(address);
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    XCTAssertEqual(bind(listener, (struct sockaddr *)&address, sizeof(address)), 0);
+    socklen_t addressLength = sizeof(address);
+    XCTAssertEqual(getsockname(listener, (struct sockaddr *)&address, &addressLength), 0);
+    XCTAssertEqual(listen(listener, 8), 0);
+    fcntl(listener, F_SETFL, O_NONBLOCK);
+    NSObject *endpoint = [NSClassFromString(@"LKMacConnectionPort") new];
+    [endpoint setValue:@(ntohs(address.sin_port)) forKey:@"portNumber"];
+    NSObject *unavailableEndpoint = [NSClassFromString(@"LKSimulatorConnectionPort") new];
+    [unavailableEndpoint setValue:@0 forKey:@"portNumber"];
+    [manager setValue:@[endpoint] forKey:@"allMacPorts"];
+    [manager setValue:@[unavailableEndpoint] forKey:@"allSimulatorPorts"];
+    [manager setValue:[NSMutableArray array] forKey:@"allUSBPorts"];
+
+    __block NSArray<Lookin_PTChannel *> *firstChannels = nil;
+    XCTestExpectation *firstDiscovery = [self expectationWithDescription:@"The first application connects"];
+    [[manager tryToConnectAllPorts] subscribeNext:^(NSArray *channels) {
+        firstChannels = channels;
+        [firstDiscovery fulfill];
+    }];
+    [self waitForExpectations:@[firstDiscovery] timeout:2];
+    XCTAssertEqual(firstChannels.count, 1);
+    int acceptedConnection = accept(listener, NULL, NULL);
+    close(listener);
+    listener = socket(AF_INET, SOCK_STREAM, 0);
+    setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &allowsReuse, sizeof(allowsReuse));
+    XCTAssertEqual(bind(listener, (struct sockaddr *)&address, sizeof(address)), 0);
+    XCTAssertEqual(listen(listener, 8), 0);
+
+    __block NSArray<Lookin_PTChannel *> *rediscoveredChannels = nil;
+    XCTestExpectation *secondDiscovery = [self expectationWithDescription:@"The reused port is probed again"];
+    [[manager tryToConnectAllPorts] subscribeNext:^(NSArray *channels) {
+        rediscoveredChannels = channels;
+        [secondDiscovery fulfill];
+    }];
+    [self waitForExpectations:@[secondDiscovery] timeout:2];
+    XCTAssertEqual(rediscoveredChannels.count, 2);
+    XCTAssertTrue([rediscoveredChannels containsObject:firstChannels.firstObject]);
+    XCTAssertTrue(firstChannels.firstObject.isConnected);
+    for (Lookin_PTChannel *channel in rediscoveredChannels) {
+        XCTAssertEqualObjects([manager transportIdentifierForChannel:channel], @"mac");
+        [channel close];
+    }
+    for (Lookin_PTChannel *channel in firstChannels) [channel close];
+    close(acceptedConnection);
+    close(listener);
+    [manager setValue:originalSimulatorPorts forKey:@"allSimulatorPorts"];
+    [manager setValue:originalMacPorts forKey:@"allMacPorts"];
+    [manager setValue:originalDevicePorts forKey:@"allUSBPorts"];
+    LKInspectionEnvironment.sharedEnvironment.acquireConnectionOwnership = originalOwnershipProvider;
+}
 
 - (void)testSameTypeRequestsDrainEveryFrameAndLateTagsCannotReachTheNextCaller {
     LKControlledInspectionChannel *channel = [LKControlledInspectionChannel new];

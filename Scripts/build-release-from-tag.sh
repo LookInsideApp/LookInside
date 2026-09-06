@@ -315,9 +315,19 @@ should_skip_nested_code_path() {
 
 sign_code_path() {
 	local path="$1"
+	local identifier_arguments=()
+	case "$path" in
+	*/Contents/MacOS/lookinside-service)
+		identifier_arguments=(--identifier com.lookinside-app.lookinside.service)
+		;;
+	*/Contents/Resources/lookinside-cli)
+		identifier_arguments=(--identifier com.lookinside-app.lookinside-cli)
+		;;
+	esac
 
 	log "Signing nested code: ${path#$PROJECT_ROOT/}"
 	codesign \
+		"${identifier_arguments[@]}" \
 		--sign "$SIGNING_IDENTITY" \
 		--options runtime \
 		--timestamp \
@@ -469,6 +479,40 @@ verify_mcp_cli_bundle_layout() {
 	is_mach_o_file "$mcp_binary" || fail "MCP server binary is not Mach-O: $mcp_binary"
 }
 
+# Inspection tools must run entirely from their containing App, including after
+# relocation. A successful link can still encode /Library/Frameworks paths.
+verify_inspection_bundle_layout() {
+	local application_bundle_path="$1"
+	local executable_path
+	local framework_name
+	local linked_libraries
+	local install_names
+	for executable_path in \
+		"$application_bundle_path/Contents/MacOS/lookinside-service" \
+		"$application_bundle_path/Contents/Resources/lookinside-cli"; do
+		[[ -x "$executable_path" ]] || fail "Inspection executable is missing: $executable_path"
+		is_mach_o_file "$executable_path" || fail "Inspection executable is not Mach-O: $executable_path"
+		linked_libraries="$(otool -L "$executable_path")"
+		if [[ "$linked_libraries" == *"/Library/Frameworks/LookInsideInspection"* ]]; then
+			fail "Inspection executable links a framework outside its App: $executable_path"
+		fi
+	done
+	for framework_name in LookInsideInspectionCore LookInsideInspectionProtocol; do
+		executable_path="$application_bundle_path/Contents/Frameworks/$framework_name.framework/$framework_name"
+		[[ -f "$executable_path" ]] || fail "Inspection framework is missing: $executable_path"
+		install_names="$(otool -D "$executable_path")"
+		[[ "$install_names" == *"@rpath/$framework_name.framework/"* ]] ||
+			fail "Inspection framework requires an App-relative install name: $executable_path"
+	done
+}
+
+verify_inspection_service_signature() {
+	local application_bundle_path="$1"
+	local service_requirement='anchor apple generic and identifier "com.lookinside-app.lookinside.service" and certificate leaf[subject.OU] = "964G86XT2P"'
+	codesign --verify --strict --verbose=2 -R="$service_requirement" \
+		"$application_bundle_path/Contents/MacOS/lookinside-service"
+}
+
 package_cli() {
 	local cli_binary="$1"
 	local cli_zip="$2"
@@ -565,6 +609,9 @@ sign_app_bundle() {
 	log "Verifying bundled MCP server"
 	verify_mcp_cli_bundle_layout "$app_path"
 
+	log "Verifying bundled inspection tools"
+	verify_inspection_bundle_layout "$app_path"
+
 	remove_legacy_code_resources "$app_path"
 
 	log "Signing nested app code"
@@ -586,6 +633,7 @@ sign_app_bundle() {
 
 	log "Verifying Developer ID signature gate"
 	verify_developer_id_signatures "$app_path"
+	verify_inspection_service_signature "$app_path"
 }
 
 notarize_file() {
