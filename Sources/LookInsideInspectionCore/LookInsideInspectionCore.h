@@ -6,6 +6,7 @@
 #import <LookInsideInspectionCore/LKInspectionEnvironment.h>
 #import <LookInsideInspectionCore/LKInspectionRequestQueue.h>
 #import <LookInsideInspectionCore/LKInspectionSession.h>
+#import <LookInsideInspectionCore/LKInspectionModelArchive.h>
 #import <LookInsideInspectionCore/LKAppsManager.h>
 #import <LookInsideInspectionCore/LKConnectionManager.h>
 #import <LookInsideInspectionCore/LKConnectionRequest.h>

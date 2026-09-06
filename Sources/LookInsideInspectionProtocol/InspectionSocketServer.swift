@@ -5,9 +5,20 @@ import Foundation
 @MainActor
 public final class InspectionSocketServer {
     public typealias Handler = @MainActor @Sendable (InspectionRequest, String) async -> InspectionResponse
-    public let instanceIdentifier = UUID().uuidString
+    public let instanceIdentifier: String
+    public var connectedClientCount: Int {
+        clients.count
+    }
+
+    public var hasExternalClients: (() -> Bool)?
     public var onStop: (() -> Void)?
     public var onClientDisconnect: ((String) -> Void)?
+
+    public func publish(_ event: InspectionEvent, to clientIdentifier: String? = nil) {
+        for connection in Array(clients.values) where clientIdentifier == nil || connection.identifier == clientIdentifier {
+            connection.sendFrame(event)
+        }
+    }
 
     private let paths: InspectionRuntimePaths
     private let idleTimeout: TimeInterval
@@ -21,10 +32,11 @@ public final class InspectionSocketServer {
     private var socketIdentity: (device: dev_t, inode: ino_t)?
     private var lastActivity = ProcessInfo.processInfo.systemUptime
 
-    public init(paths: InspectionRuntimePaths, idleTimeout: TimeInterval = 300,
+    public init(paths: InspectionRuntimePaths, idleTimeout: TimeInterval = 300, instanceIdentifier: String = UUID().uuidString,
                 supportedMethods: [String] = InspectionCapabilities.methods, handler: @escaping Handler)
     {
         self.paths = paths
+        self.instanceIdentifier = instanceIdentifier
         self.idleTimeout = idleTimeout
         self.supportedMethods = supportedMethods
         self.handler = handler
@@ -144,6 +156,9 @@ public final class InspectionSocketServer {
             for connection in Array(self.clients.values) {
                 connection.expirePartialFrame()
             }
+            if self.hasExternalClients?() == true {
+                self.lastActivity = ProcessInfo.processInfo.systemUptime
+            }
             if self.clients.isEmpty, ProcessInfo.processInfo.systemUptime - self.lastActivity >= self.idleTimeout {
                 self.stop()
             }
@@ -206,7 +221,7 @@ private final class InspectionSocketConnection {
     private var incoming = Data()
     private var outgoing = Data()
     private var writtenCount = 0
-    private var task: Task<Void, Never>?
+    private var tasks: [String: Task<Void, Never>] = [:]
     private var deadline = ProcessInfo.processInfo.systemUptime + 30
     private var isClosed = false
 
@@ -228,8 +243,10 @@ private final class InspectionSocketConnection {
     func closeConnection() {
         guard !isClosed else { return }
         isClosed = true
-        task?.cancel()
-        task = nil
+        for task in tasks.values {
+            task.cancel()
+        }
+        tasks.removeAll()
         reader?.cancel()
         writer?.cancel()
         reader = nil
@@ -261,35 +278,41 @@ private final class InspectionSocketConnection {
             guard receivedCount > 0 else { closeConnection(); return }
             incoming.append(contentsOf: buffer.prefix(receivedCount))
             guard incoming.count <= InspectionSocketClient.maximumFrameSize else { closeConnection(); return }
-            if let terminator = incoming.firstIndex(of: 0x0A) {
-                guard task == nil, outgoing.isEmpty,
-                      incoming.distance(from: terminator, to: incoming.endIndex) == 1,
+            while let terminator = incoming.firstIndex(of: 0x0A) {
+                guard tasks.count < 32,
                       let request = try? JSONDecoder().decode(InspectionRequest.self, from: incoming.prefix(upTo: terminator)),
-                      request.kind == .request else { closeConnection(); return }
-                incoming.removeAll(keepingCapacity: true)
+                      request.kind == .request, !request.identifier.isEmpty,
+                      tasks[request.identifier] == nil else { closeConnection(); return }
+                incoming.removeSubrange(...terminator)
                 deadline = ProcessInfo.processInfo.systemUptime + 45
-                task = Task { [weak self] in
+                tasks[request.identifier] = Task { [weak self] in
                     guard let self, let handler = self.handler else { return }
                     let response = await handler(request)
                     guard !Task.isCancelled, !self.isClosed else { return }
-                    self.task = nil
-                    self.sendResponse(response)
+                    self.tasks.removeValue(forKey: request.identifier)
+                    self.sendFrame(response)
                 }
             }
         }
     }
 
-    private func sendResponse(_ response: InspectionResponse) {
-        guard let encoded = try? JSONEncoder().encode(response), encoded.count < InspectionSocketClient.maximumFrameSize else {
+    func sendFrame<Frame: Encodable>(_ frame: Frame) {
+        guard !isClosed, let encoded = try? JSONEncoder().encode(frame),
+              encoded.count < InspectionSocketClient.maximumFrameSize,
+              outgoing.count - writtenCount <= InspectionSocketClient.maximumFrameSize - encoded.count - 1
+        else {
             closeConnection()
             return
         }
-        outgoing = encoded
+        if writtenCount > 0 {
+            outgoing.removeFirst(writtenCount)
+            writtenCount = 0
+        }
+        outgoing.append(encoded)
         outgoing.append(0x0A)
-        writtenCount = 0
         deadline = ProcessInfo.processInfo.systemUptime + 30
         writeAvailableBytes()
-        if !outgoing.isEmpty, !isClosed {
+        if !outgoing.isEmpty, !isClosed, writer == nil {
             let writer = DispatchSource.makeWriteSource(fileDescriptor: descriptor, queue: .main)
             writer.setEventHandler { [weak self] in self?.writeAvailableBytes() }
             self.writer = writer
@@ -313,6 +336,7 @@ private final class InspectionSocketConnection {
             writtenCount += sentCount
         }
         outgoing.removeAll(keepingCapacity: false)
+        writtenCount = 0
         writer?.cancel()
         writer = nil
         deadline = ProcessInfo.processInfo.systemUptime + 300

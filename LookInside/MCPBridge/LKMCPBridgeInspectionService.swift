@@ -46,14 +46,14 @@ public final class LKMCPBridgeInspectionService {
     private func makeTargetInfo(for session: InspectionSession) -> LKMCPBridgeTargetInfo? {
         guard let appInfo = session.inspectableApp.appInfo else { return nil }
         return LKMCPBridgeTargetInfo(
-            targetIdentifier: String(appInfo.appInfoIdentifier),
+            targetIdentifier: InspectionSessionLookup.visibleSessions == nil ? String(appInfo.appInfoIdentifier) : session.sessionIdentifier,
             applicationName: appInfo.appName,
             bundleIdentifier: appInfo.appBundleIdentifier,
             deviceDescription: appInfo.deviceDescription,
             operatingSystemDescription: appInfo.osDescription,
             deviceKind: deviceKindString(for: appInfo.deviceType),
             serverVersion: Int(appInfo.serverVersion),
-            licenseState: "licensed"
+            licenseState: ConnectionManager.sharedInstance().isLicenseVerified(for: session.inspectableApp.channel) ? "licensed" : "basicOnly"
         )
     }
 

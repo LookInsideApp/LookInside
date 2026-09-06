@@ -93,6 +93,22 @@
     XCTAssertEqual(session.rawFlatItems.count, 2);
 }
 
+- (void)testQueuedCaptureOptionChangesRejectAnOutdatedExpectedHierarchy {
+    LKControlledInspectableApp *application = [LKControlledInspectableApp new];
+    LKInspectionSession *session = [[LKInspectionSession alloc] initWithInspectableApp:application];
+    [self captureHierarchy:session application:application];
+    [[session updateCaptureOptions:@{@"showBackingLayers": @YES} initiator:@"first-client"] subscribeNext:^(id value) {}];
+    __block NSError *secondError;
+    [[session updateCaptureOptions:@{@"showBackingLayers": @NO} initiator:@"second-client"] subscribeError:^(NSError *error) {
+        secondError = error;
+    }];
+    [application.responses.lastObject sendNext:[self hierarchyForApplication:application]];
+    [application.responses.lastObject sendCompleted];
+    XCTAssertEqual(secondError.code, LKInspectionSessionErrorStaleHierarchy);
+    XCTAssertEqual(application.requestTypes.count, 2);
+    XCTAssertEqualObjects(session.captureOptions[@"showBackingLayers"], @YES);
+}
+
 - (void)testDetailStreamsFinishBeforeTheNextRequestAndUpdateAttributesAndImages {
     LKControlledInspectableApp *application = [LKControlledInspectableApp new];
     LKInspectionSession *session = [[LKInspectionSession alloc] initWithInspectableApp:application];

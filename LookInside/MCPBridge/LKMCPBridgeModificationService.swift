@@ -22,6 +22,7 @@
 import AppKit
 import CoreGraphics
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor
@@ -189,7 +190,7 @@ public final class LKMCPBridgeModificationService {
         modification.setterSelector = setterSelector
         modification.attrType = attribute.attrType
         modification.value = nativeValue
-        modification.clientReadableVersion = LKHelper.lookinReadableVersion()
+        modification.clientReadableVersion = InspectionEnvironment.shared().clientReadableVersion
 
         // Round-trip through Peertalk. Raw entry preserves the
         // server-side error codes so we can map them precisely below.

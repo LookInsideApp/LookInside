@@ -1,4 +1,5 @@
 #import "LKInspectionSession.h"
+#import "LKInspectionModelArchive.h"
 #import "LKInspectionEnvironment.h"
 #import "LKInspectionRequestQueue.h"
 #import "LKInspectableApp.h"
@@ -13,7 +14,9 @@
 NSNotificationName const LKInspectionSessionDidOpenNotification = @"LKInspectionSessionDidOpenNotification";
 NSNotificationName const LKInspectionSessionDidCloseNotification = @"LKInspectionSessionDidCloseNotification";
 NSNotificationName const LKInspectionSessionDidReloadNotification = @"LKInspectionSessionDidReloadNotification";
+NSNotificationName const LKInspectionSessionDidUpdateNotification = @"LKInspectionSessionDidUpdateNotification";
 NSNotificationName const LKInspectionSessionDidDisconnectNotification = @"LKInspectionSessionDidDisconnectNotification";
+NSNotificationName const LKInspectionSessionDidReconnectNotification = @"LKInspectionSessionDidReconnectNotification";
 NSErrorDomain const LKInspectionSessionErrorDomain = @"LKInspectionSessionErrorDomain";
 
 static NSError *LKInspectionSessionError(LKInspectionSessionErrorCode code, NSString *message) {
@@ -28,65 +31,12 @@ static NSError *LKInspectionUnknownExecutionError(NSError *underlyingError) {
                               NSUnderlyingErrorKey: underlyingError}];
 }
 
-// The wire model normally omits screenshots from hierarchy archives. Preserve
-// them for local snapshots without changing that model's wire encoding policy.
-@interface LKInspectionSnapshotArchiverDelegate : NSObject <NSKeyedArchiverDelegate>
-@property(nonatomic, strong) NSMapTable<LookinDisplayItem *, NSNumber *> *originalImageEncoding;
-- (void)restoreImageEncoding;
-@end
-
-@implementation LKInspectionSnapshotArchiverDelegate
-- (instancetype)init {
-    if ((self = [super init])) {
-        _originalImageEncoding = [NSMapTable strongToStrongObjectsMapTable];
-    }
-    return self;
-}
-- (id)archiver:(NSKeyedArchiver *)archiver willEncodeObject:(id)object {
-    if ([object isKindOfClass:LookinDisplayItem.class] && ![self.originalImageEncoding objectForKey:object]) {
-        LookinDisplayItem *item = object;
-        [self.originalImageEncoding setObject:@(item.screenshotEncodeType) forKey:item];
-        item.screenshotEncodeType = LookinDisplayItemImageEncodeTypeImage;
-    }
-    return object;
-}
-- (void)restoreImageEncoding {
-    for (LookinDisplayItem *item in self.originalImageEncoding.keyEnumerator) {
-        item.screenshotEncodeType = [self.originalImageEncoding objectForKey:item].unsignedIntegerValue;
-    }
-}
-@end
-
-// Only trusted, already decoded model graphs enter this local copy operation.
-// The main thread owns the graph for the entire synchronous archive operation.
 static id LKInspectionCopyModel(id model, NSError **error) {
     if (!model) {
         return nil;
     }
-    LKInspectionSnapshotArchiverDelegate *archiveDelegate = [LKInspectionSnapshotArchiverDelegate new];
-    @try {
-        NSKeyedArchiver *encoder = [[NSKeyedArchiver alloc] initRequiringSecureCoding:NO];
-        encoder.delegate = archiveDelegate;
-        [encoder encodeObject:model forKey:NSKeyedArchiveRootObjectKey];
-        [encoder finishEncoding];
-        NSData *data = encoder.encodedData;
-        if (!data) {
-            return nil;
-        }
-        NSKeyedUnarchiver *decoder = [[NSKeyedUnarchiver alloc] initForReadingFromData:data error:error];
-        decoder.requiresSecureCoding = NO;
-        id result = [decoder decodeObjectForKey:NSKeyedArchiveRootObjectKey];
-        [decoder finishDecoding];
-        return result;
-    } @catch (NSException *exception) {
-        if (error) {
-            *error = LKInspectionSessionError(LKInspectionSessionErrorInvalidResponse,
-                                             exception.reason ?: @"The inspection model could not be copied.");
-        }
-        return nil;
-    } @finally {
-        [archiveDelegate restoreImageEncoding];
-    }
+    NSData *data = [LKInspectionModelArchive encodeModel:model error:error];
+    return data ? [LKInspectionModelArchive decodeData:data error:error] : nil;
 }
 
 static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
@@ -109,10 +59,12 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
 @property(nonatomic, strong, readwrite) NSDate *captureDate;
 @property(nonatomic, assign, readwrite) BOOL requiresRefresh;
 @property(nonatomic, copy, readwrite) NSString *lastReloadInitiator;
+@property(nonatomic, copy, readwrite) NSDictionary<NSString *, NSString *> *lastOperationContext;
 @property(nonatomic, copy, readwrite) NSString *connectionLossBannerMessage;
 @property(nonatomic, strong) LookinHierarchyInfo *cachedHierarchy;
 @property(nonatomic, copy) NSDictionary<NSNumber *, LookinDisplayItem *> *cachedItemsByObjectIdentifier;
 @property(nonatomic, copy) NSArray<LookinDisplayItemDetail *> *cachedDetails;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, LookinDisplayItemDetail *> *cachedAccumulatedDetails;
 @property(nonatomic, strong) LKInspectionRequestQueue *requestQueue;
 @property(nonatomic, strong) RACDisposable *channelSubscription;
 @property(nonatomic, strong) RACDisposable *reconnectSubscription;
@@ -121,17 +73,24 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
 @implementation LKInspectionSession
 
 - (instancetype)initWithInspectableApp:(LKInspectableApp *)inspectableApp {
+    LKInspectionEnvironment *environment = LKInspectionEnvironment.sharedEnvironment;
+    NSDictionary *options = environment.initialCaptureOptionsProvider
+        ? environment.initialCaptureOptionsProvider() : environment.initialCaptureOptions;
+    return [self initWithInspectableApp:inspectableApp captureOptions:options];
+}
+
+- (instancetype)initWithInspectableApp:(LKInspectableApp *)inspectableApp captureOptions:(NSDictionary<NSString *, id> *)captureOptions {
     NSParameterAssert(inspectableApp);
     NSAssert(NSThread.isMainThread, @"Inspection sessions must run on the main thread.");
     if ((self = [super init])) {
         _inspectableApp = inspectableApp;
         _sessionIdentifier = NSUUID.UUID.UUIDString;
         _connectionGeneration = 1;
-        LKInspectionEnvironment *environment = LKInspectionEnvironment.sharedEnvironment;
-        _captureOptions = environment.initialCaptureOptionsProvider
-            ? environment.initialCaptureOptionsProvider().copy : environment.initialCaptureOptions.copy;
+        _captureOptions = captureOptions.copy;
+        _cachedAccumulatedDetails = [NSMutableDictionary dictionary];
         _requiresRefresh = YES;
         _lastReloadInitiator = @"host";
+        _lastOperationContext = @{};
         _requestQueue = [LKInspectionRequestQueue new];
         _didReloadHierarchyInfo = [RACSubject subject];
         _didUpdateDetails = [RACSubject subject];
@@ -163,6 +122,46 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
     return LKInspectionCopyModel(self.cachedHierarchy, error);
 }
 
+- (void)applyMirroredHierarchy:(LookinHierarchyInfo *)hierarchy
+                      details:(NSArray<LookinDisplayItemDetail *> *)details
+                        state:(NSDictionary<NSString *, id> *)state {
+    NSAssert(NSThread.isMainThread, @"Inspection mirrors must run on the main thread.");
+    BOOL replacedHierarchy = hierarchy != nil && (!self.cachedHierarchy
+        || self.hierarchyRevision != [state[@"hierarchyRevision"] unsignedLongLongValue]
+        || self.connectionGeneration != [state[@"connectionGeneration"] unsignedLongLongValue]);
+    _sessionIdentifier = [state[@"sessionIdentifier"] copy];
+    self.connectionGeneration = [state[@"connectionGeneration"] unsignedLongLongValue];
+    self.hierarchyRevision = [state[@"hierarchyRevision"] unsignedLongLongValue];
+    self.captureOptions = state[@"captureOptions"] ?: @{};
+    self.captureDate = [state[@"captureDate"] isKindOfClass:NSNumber.class]
+        ? [NSDate dateWithTimeIntervalSinceReferenceDate:[state[@"captureDate"] doubleValue]] : nil;
+    self.requiresRefresh = [state[@"requiresRefresh"] boolValue];
+    self.lastReloadInitiator = state[@"lastReloadInitiator"] ?: @"host";
+    self.connectionLossBannerMessage = [state[@"connectionLossBannerMessage"] isKindOfClass:NSString.class]
+        ? state[@"connectionLossBannerMessage"] : nil;
+    if (hierarchy) {
+        self.cachedHierarchy = hierarchy;
+        self.cachedDetails = @[];
+        [self.cachedAccumulatedDetails removeAllObjects];
+        [self rebuildObjectIndex];
+        self.inspectableApp.appInfo = hierarchy.appInfo;
+    }
+    if (details) {
+        self.cachedDetails = details;
+        for (LookinDisplayItemDetail *detail in details) [self applyDetailToCache:detail];
+    }
+    if (replacedHierarchy) [self.didReloadHierarchyInfo sendNext:nil];
+    if (details.count) [self.didUpdateDetails sendNext:nil];
+}
+
+- (void)markMirrorDisconnected:(NSString *)message {
+    self.connectionLossBannerMessage = message;
+    self.requiresRefresh = YES;
+}
+
+- (void)retainClientReference {}
+- (void)releaseClientReference {}
+
 - (LookinHierarchyInfo *)rawHierarchyInfo {
     return [self readHierarchyWithError:nil];
 }
@@ -174,6 +173,10 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
 
 - (NSArray<LookinDisplayItemDetail *> *)latestDetails {
     return LKInspectionCopyModel(self.cachedDetails, NULL) ?: @[];
+}
+
+- (NSArray<LookinDisplayItemDetail *> *)accumulatedDetails {
+    return LKInspectionCopyModel(self.cachedAccumulatedDetails.allValues, NULL) ?: @[];
 }
 
 - (RACSignal *)refreshHierarchyWithInitiator:(NSString *)initiator {
@@ -208,12 +211,14 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
     NSAssert(NSThread.isMainThread, @"Inspection sessions must run on the main thread.");
     uint64_t expectedGeneration = self.connectionGeneration;
     uint64_t expectedRevision = self.hierarchyRevision;
+    NSDictionary<NSString *, NSString *> *(^contextProvider)(void) = LKInspectionEnvironment.sharedEnvironment.operationContextProvider;
+    NSDictionary<NSString *, NSString *> *operationContext = contextProvider ? contextProvider() : @{};
     return [self.requestQueue enqueueRequest:^RACSignal *{
         if (expectedGeneration != self.connectionGeneration) {
             return [RACSignal error:LKInspectionSessionError(LKInspectionSessionErrorStaleConnection,
                                                          @"The target connection changed before the operation started.")];
         }
-        if (requestType != LookinRequestTypeHierarchy && expectedRevision != self.hierarchyRevision) {
+        if ((requestType != LookinRequestTypeHierarchy || newOptions != nil) && expectedRevision != self.hierarchyRevision) {
             return [RACSignal error:LKInspectionSessionError(LKInspectionSessionErrorStaleHierarchy,
                                                          @"The hierarchy changed before the operation started. Query it again.")];
         }
@@ -229,6 +234,7 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
             requestPayload = parameters;
         }
         return [RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+            self.lastOperationContext = operationContext;
             NSMutableArray *responses = [NSMutableArray array];
             __block BOOL failed = NO;
             return [[self.inspectableApp performInspectionRequestWithType:requestType payload:requestPayload]
@@ -254,6 +260,7 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
                     failed = YES;
                     if (LKInspectionRequestMayMutateTarget(requestType)) {
                         self.requiresRefresh = YES;
+                        [[NSNotificationCenter defaultCenter] postNotificationName:LKInspectionSessionDidUpdateNotification object:self];
                     }
                     if (LKInspectionRequestMayMutateTarget(requestType)
                         && [error.domain isEqualToString:LookinErrorDomain]
@@ -292,6 +299,7 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
                         }
                         self.cachedHierarchy = independentResponses.firstObject;
                         self.cachedDetails = @[];
+                        [self.cachedAccumulatedDetails removeAllObjects];
                         [self rebuildObjectIndex];
                         self.captureOptions = options.copy;
                         self.captureDate = NSDate.date;
@@ -328,6 +336,7 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
                         if (LKInspectionRequestMayMutateTarget(requestType)) {
                             self.requiresRefresh = YES;
                         }
+                        [[NSNotificationCenter defaultCenter] postNotificationName:LKInspectionSessionDidUpdateNotification object:self];
                     }
                     // Observers never receive the instances just committed to the cache.
                     if (requestType != LookinRequestTypeHierarchyDetails) {
@@ -386,6 +395,24 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
         matchedItem.subitems = detail.subitems;
         [self rebuildObjectIndex];
     }
+    NSNumber *objectIdentifier = @(detail.displayItemOid);
+    LookinDisplayItemDetail *accumulated = self.cachedAccumulatedDetails[objectIdentifier];
+    if (!accumulated) {
+        accumulated = [LookinDisplayItemDetail new];
+        accumulated.displayItemOid = detail.displayItemOid;
+        self.cachedAccumulatedDetails[objectIdentifier] = accumulated;
+    }
+    if (detail.frameValue) accumulated.frameValue = detail.frameValue;
+    if (detail.boundsValue) accumulated.boundsValue = detail.boundsValue;
+    if (detail.hiddenValue) accumulated.hiddenValue = detail.hiddenValue;
+    if (detail.alphaValue) accumulated.alphaValue = detail.alphaValue;
+    if (detail.customDisplayTitle) accumulated.customDisplayTitle = detail.customDisplayTitle;
+    if (detail.danceUISource) accumulated.danceUISource = detail.danceUISource;
+    if (detail.groupScreenshot) accumulated.groupScreenshot = detail.groupScreenshot;
+    if (detail.soloScreenshot) accumulated.soloScreenshot = detail.soloScreenshot;
+    if (detail.attributesGroupList) accumulated.attributesGroupList = detail.attributesGroupList;
+    if (detail.customAttrGroupList) accumulated.customAttrGroupList = detail.customAttrGroupList;
+    if (detail.subitems) accumulated.subitems = detail.subitems;
 }
 
 - (void)replaceInspectableApp:(LKInspectableApp *)inspectableApp {
@@ -397,6 +424,7 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
     self.cachedHierarchy = nil;
     self.cachedItemsByObjectIdentifier = @{};
     self.cachedDetails = @[];
+    [self.cachedAccumulatedDetails removeAllObjects];
     self.captureDate = nil;
     self.requiresRefresh = YES;
     [self.inspectableApp bindInspectionSession:nil];
@@ -406,6 +434,8 @@ static BOOL LKInspectionRequestMayMutateTarget(uint32_t requestType) {
     [self.reconnectSubscription dispose];
     self.reconnectSubscription = nil;
     [self observeConnection];
+    self.lastOperationContext = @{};
+    [[NSNotificationCenter defaultCenter] postNotificationName:LKInspectionSessionDidReconnectNotification object:self];
 }
 
 - (void)observeConnection {

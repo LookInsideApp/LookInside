@@ -21,6 +21,7 @@
 
 import AppKit
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor
@@ -180,8 +181,12 @@ public final class LKMCPBridgeSearchService {
                     )
                 )
             }
-            var subtree: [LookinDisplayItem] = []
-            scopeRoot.enumerateSelfAndChildren { subtree.append($0) }
+            var subtree: [LookinDisplayItem] = [scopeRoot]
+            var cursor = 0
+            while cursor < subtree.count {
+                subtree.insert(contentsOf: subtree[cursor].subitems ?? [], at: cursor + 1)
+                cursor += 1
+            }
             searchScope = subtree
         } else {
             searchScope = allItems
@@ -249,8 +254,8 @@ public final class LKMCPBridgeSearchService {
         return LKMCPBridgeSearchQuery.Candidate(
             className: classChain.first ?? "",
             classChain: classChain,
-            title: item.title(),
-            subtitle: item.subtitle(),
+            title: InspectionNodeText.title(for: item),
+            subtitle: InspectionNodeText.subtitle(for: item),
             memoryAddresses: memoryAddresses
         )
     }
@@ -263,14 +268,16 @@ public final class LKMCPBridgeSearchService {
         // in-app `lookin_customDebugInfos` hook, so they go through the
         // same redaction gate as `attributes.read`'s textual values.
         let redactSecureContent = LKMCPBridgeSecureContentDetector.isSecure(displayItem: item)
-        let title = redactSecureContent ? nil : item.title()
-        let subtitle = redactSecureContent ? nil : item.subtitle()
+        let title = redactSecureContent ? nil : InspectionNodeText.title(for: item)
+        let subtitle = redactSecureContent ? nil : InspectionNodeText.subtitle(for: item)
 
         var ancestorIdentifiers: [String] = []
         var ancestorTitles: [String] = []
-        item.enumerateAncestors { ancestor, _ in
+        var nextAncestor = item.super
+        while let ancestor = nextAncestor {
             ancestorIdentifiers.append(InspectionSessionLookup.objectIdentifierString(for: ancestor))
             ancestorTitles.append(Self.pathComponentTitle(for: ancestor))
+            nextAncestor = ancestor.super
         }
         // `enumerateAncestors` walks upward; the wire order is root first
         // so the list reads like a path.

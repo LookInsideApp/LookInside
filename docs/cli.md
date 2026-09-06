@@ -17,7 +17,7 @@ lookinside_command='/Applications/LookInside.app/Contents/Resources/lookinside-c
 
 `--help`, `--version`, and `service status` never start a service. Other commands start the bundled service when the default socket is unavailable. This process runs as the current user and continues after the initiating command exits. There is no login item or system daemon to install.
 
-For this initial implementation, finish inspection and quit the graphical LookInside app before discovering targets from the CLI. The app and service coordinate exclusive ownership of target connections. A conflict returns an error instead of taking over another inspection.
+Development builds with shared inspection clients allow the CLI, MCP clients, and graphical LookInside app to inspect the same target together. The service owns the connection, capture settings, and committed hierarchy. A running older LookInside app that still owns its connections must finish its inspection before the new service can take ownership.
 
 ## Inspect a target
 
@@ -36,9 +36,9 @@ Copy the `targetIdentifier` from discovery, then copy the `sessionIdentifier` fr
 
 Use `UIButton` for a UIKit example. `views find` searches the reported class chain. Object identifiers come from hierarchy or search results. An optional `--object` on `screenshot` selects a particular node; otherwise the command captures the key window, falling back to the first root.
 
-The first read captures a hierarchy. Later reads reuse committed data until `hierarchy refresh` or `screenshot --fresh` requests another capture. Responses include `captureDate`, `fromCache`, `connectionGeneration`, and `hierarchyRevision` when relevant. Attribute and image details may be fetched on demand. A cached screenshot is not a promise that the target still renders those pixels.
+The first read captures a hierarchy. Concurrent first readers share that capture. Later reads reuse committed data until a client explicitly refreshes it. Responses include `captureDate`, `fromCache`, `connectionGeneration`, `hierarchyRevision`, and `requiresRefresh` when relevant. Attribute and image details may be fetched on demand. A cached screenshot is not a promise that the target still renders those pixels. Mutations through another client can mark the cache as requiring a refresh without changing its hierarchy revision.
 
-Sessions persist across CLI invocations. Closing a session while another connected client uses it returns `session.inUse`. Disconnecting one client releases its requests and references. An idle service exits after 300 seconds without connected clients; cached targets and sessions do not keep it alive. Restarting it invalidates all previous session identifiers. Discover targets and open a new session after a restart or target disconnection.
+Sessions persist across CLI invocations. Closing a session while another connected client uses it returns `session.inUse`. Closing a graphical window or detaching an MCP client releases only its own reference. An idle service exits after 300 seconds without connected clients; cached targets and sessions do not keep it alive. A target reconnection changes `connectionGeneration`; a service restart invalidates all previous session identifiers. Discover and open again after a service restart.
 
 ## Output and errors
 

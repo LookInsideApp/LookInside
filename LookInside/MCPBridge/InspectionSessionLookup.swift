@@ -7,11 +7,16 @@ import LookInsideInspectionCore
 
 @MainActor
 enum InspectionSessionLookup {
+    @TaskLocal static var visibleSessions: [InspectionSession]?
+
     static func enumerateSessions() -> [InspectionSession] {
-        InspectionSessionRegistry.shared().sessions
+        visibleSessions ?? InspectionSessionRegistry.shared().sessions
     }
 
     static func findSession(targetIdentifier: String) -> InspectionSession? {
+        if let session = enumerateSessions().first(where: { $0.sessionIdentifier == targetIdentifier }) {
+            return session
+        }
         guard let identifierValue = UInt(targetIdentifier) else { return nil }
         let matches = enumerateSessions().filter { session in
             session.inspectableApp.appInfo?.appInfoIdentifier == identifierValue

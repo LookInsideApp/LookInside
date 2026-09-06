@@ -218,7 +218,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     [self.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
 
     @weakify(self);
-    [[[[LKAppsManager sharedInstance] fetchAppInfosWithImage:YES localInfos:nil] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
+    [[[[LKInspectionServiceClient shared] discoverApplications] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
         @strongify(self);
         LKInspectableApp *targetApp = nil;
         if (targetBundleID.length > 0) {
@@ -256,7 +256,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     NSView *appItemView = [self.toolbarItemsMap objectForKey:LKToolBarIdentifier_App].view;
 
     @weakify(self);
-    [[[[LKAppsManager sharedInstance] fetchAppInfosWithImage:YES localInfos:nil] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
+    [[[[LKInspectionServiceClient shared] discoverApplications] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
         @strongify(self);
         LKMenuPopoverAppsListController *vc = [[LKMenuPopoverAppsListController alloc] initWithApps:apps source:source];
         NSPopover *popover = [[NSPopover alloc] init];
@@ -494,8 +494,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     // from "the fetch finished having delivered nothing".
     __block BOOL didSettleResult = NO;
     @weakify(self);
-    [[self.inspectionSession updateCaptureOptions:self.currentCaptureOptions
-                                       initiator:initiator == LKHierarchyReloadInitiatorAgent ? @"agent" : @"host"] subscribeNext:^(LookinHierarchyInfo *info) {
+    [[self.inspectionSession refreshHierarchyWithInitiator:initiator == LKHierarchyReloadInitiatorAgent ? @"agent" : @"host"] subscribeNext:^(LookinHierarchyInfo *info) {
         @strongify(self);
         if (!self) {
             // The session captured the hierarchy, but this graphical operation
@@ -939,3 +938,4 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
 }
 
 @end
+#import <LookInsideInspectionCore/LookInsideInspectionCore-Swift.h>

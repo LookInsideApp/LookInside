@@ -6,16 +6,23 @@ import LookInsideInspectionProtocol
 @MainActor
 final class InspectionServiceBackend {
     var instanceIdentifier = ""
+    var publish: ((InspectionEvent) -> Void)?
+    let transfers = InspectionTransferStore()
+    let compatibility = InspectionCompatibilityRoutes()
+    var authorizationRequest: ((InspectionValue) async throws -> InspectionValue)?
+    var observers: [NSObjectProtocol] = []
+    var pushSubscription: RACDisposable?
     private let discoverApplications: () async throws -> [InspectableApp]
-    private let isConnected: (InspectableApp) -> Bool
+    let isConnected: (InspectableApp) -> Bool
     private let prepareAuthorization: () throws -> Void
     private let authorizationFailure: () -> InspectionFailure
-    private var targets: [String: InspectableApp] = [:]
+    var targets: [String: InspectableApp] = [:]
     private var targetIdentifiers: [String: String] = [:]
-    private var sessions: [String: InspectionSession] = [:]
-    private var sessionTargets: [String: String] = [:]
-    private var sessionClients: [String: Set<String>] = [:]
+    var sessions: [String: InspectionSession] = [:]
+    var sessionTargets: [String: String] = [:]
+    var sessionClients: [String: Set<String>] = [:]
     private var discoveryTask: Task<Void, Error>?
+    private var initialCaptures: [String: Task<Void, Error>] = [:]
 
     init(discoverApplications: (() async throws -> [InspectableApp])? = nil,
          isConnected: @escaping (InspectableApp) -> Bool = { $0.channel?.isConnected == true },
@@ -26,7 +33,7 @@ final class InspectionServiceBackend {
         self.prepareAuthorization = prepareAuthorization
         self.authorizationFailure = authorizationFailure
         self.discoverApplications = discoverApplications ?? {
-            guard let signal = AppsManager.sharedInstance().fetchAppInfos(withImage: false, localInfos: []) else {
+            guard let signal = AppsManager.sharedInstance().fetchAppInfos(withImage: true, localInfos: []) else {
                 throw InspectionFailure.internalError
             }
             return try await InspectionSignalAwaiter.allValues(of: signal.timeout(20, on: RACScheduler.mainThread()), as: [InspectableApp].self).flatMap { $0 }
@@ -34,21 +41,34 @@ final class InspectionServiceBackend {
     }
 
     func disconnect(clientIdentifier: String) {
+        transfers.disconnect(owner: clientIdentifier)
         for sessionIdentifier in Array(sessionClients.keys) {
-            sessionClients[sessionIdentifier]?.remove(clientIdentifier)
+            sessionClients[sessionIdentifier] = sessionClients[sessionIdentifier]?.filter {
+                $0 != clientIdentifier && !$0.hasPrefix(clientIdentifier + ":")
+            }
         }
     }
 
     func stop() {
+        pushSubscription?.dispose()
+        pushSubscription = nil
+        for observer in observers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        observers.removeAll()
         discoveryTask?.cancel()
         discoveryTask = nil
+        for capture in initialCaptures.values {
+            capture.cancel()
+        }
+        initialCaptures.removeAll()
         sessions.removeAll()
         sessionTargets.removeAll()
         sessionClients.removeAll()
         targets.removeAll()
     }
 
-    func handle(_ request: InspectionRequest, clientIdentifier: String) async -> InspectionResponse {
+    func handleCommand(_ request: InspectionRequest, clientIdentifier: String) async -> InspectionResponse {
         var session: InspectionSession?
         var fromCache = true
         do {
@@ -73,7 +93,13 @@ final class InspectionServiceBackend {
                     }
                     session = existing
                 } else {
-                    session = InspectionSession(inspectableApp: application)
+                    if let options = request.parameters?["initialCaptureOptions"] {
+                        guard let dictionary = try JSONSerialization.jsonObject(with: JSONEncoder().encode(options)) as? [String: Any]
+                        else { throw InspectionFailure.invalidParameters }
+                        session = InspectionSession(inspectableApp: application, captureOptions: dictionary)
+                    } else {
+                        session = InspectionSession(inspectableApp: application)
+                    }
                 }
                 let openedSession = session!
                 sessions[openedSession.sessionIdentifier] = openedSession
@@ -113,8 +139,11 @@ final class InspectionServiceBackend {
                     guard capability == "swiftui" else { throw InspectionFailure.invalidParameters }
                     guard ConnectionManager.sharedInstance().isLicenseVerified(for: existing.inspectableApp.channel) else { throw authorizationFailure() }
                 }
-                if existing.captureDate == nil || request.method == "hierarchy.refresh" || request.parameters?["fresh"]?.booleanValue == true {
+                if request.method == "hierarchy.refresh" || request.parameters?["fresh"]?.booleanValue == true {
                     _ = try await existing.refreshHierarchy()
+                    fromCache = false
+                } else if existing.captureDate == nil {
+                    try await ensureInitialCapture(existing)
                     fromCache = false
                 }
                 result = try await read(request, session: existing, fromCache: &fromCache)
@@ -127,7 +156,24 @@ final class InspectionServiceBackend {
         }
     }
 
-    private func discover() async throws -> InspectionValue {
+    func ensureInitialCapture(_ session: InspectionSession, initiator: String = "host") async throws {
+        guard session.captureDate == nil else { return }
+        let identifier = session.sessionIdentifier
+        let capture: Task<Void, Error>
+        if let existing = initialCaptures[identifier] {
+            capture = existing
+        } else {
+            capture = Task {
+                defer { initialCaptures.removeValue(forKey: identifier) }
+                _ = try await InspectionSignalAwaiter.allValues(of: session.refreshHierarchy(initiator: initiator), as: LookinHierarchyInfo.self)
+            }
+            initialCaptures[identifier] = capture
+        }
+        try await capture.value
+        try Task.checkCancellation()
+    }
+
+    func discover() async throws -> InspectionValue {
         let pending: Task<Void, Error>
         if let discoveryTask {
             pending = discoveryTask
@@ -237,28 +283,28 @@ final class InspectionServiceBackend {
         return item
     }
 
-    private func sessionDescription(_ session: InspectionSession) -> InspectionValue {
+    func sessionDescription(_ session: InspectionSession) -> InspectionValue {
         .object(["sessionIdentifier": .string(session.sessionIdentifier), "targetIdentifier": .string(sessionTargets[session.sessionIdentifier] ?? ""),
                  "connected": .bool(isConnected(session.inspectableApp)), "connectionGeneration": .integer(Int64(session.connectionGeneration)),
                  "hierarchyRevision": .integer(Int64(session.hierarchyRevision))])
     }
 
-    private func metadata(session: InspectionSession?, fromCache: Bool) -> InspectionMetadata {
+    func metadata(session: InspectionSession?, fromCache: Bool) -> InspectionMetadata {
         InspectionMetadata(serviceInstanceIdentifier: instanceIdentifier, sessionIdentifier: session?.sessionIdentifier,
                            connectionGeneration: session?.connectionGeneration, hierarchyRevision: session?.hierarchyRevision,
-                           captureDate: session?.captureDate, fromCache: fromCache)
+                           captureDate: session?.captureDate, fromCache: fromCache, requiresRefresh: session?.requiresRefresh)
     }
 
-    private func requiredString(_ name: String, in request: InspectionRequest) throws -> String {
+    func requiredString(_ name: String, in request: InspectionRequest) throws -> String {
         guard let value = request.parameters?[name]?.stringValue, !value.isEmpty else { throw InspectionFailure.invalidParameters }
         return value
     }
 
-    private func missingSession() -> InspectionFailure {
+    func missingSession() -> InspectionFailure {
         InspectionFailure(code: "session.notFound", message: "The session does not belong to this service instance. Discover a target and open a session.")
     }
 
-    private func failure(for error: Error) -> InspectionFailure {
+    func failure(for error: Error) -> InspectionFailure {
         if let failure = error as? InspectionFailure {
             return failure
         }

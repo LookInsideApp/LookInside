@@ -10,7 +10,9 @@ NS_ASSUME_NONNULL_BEGIN
 FOUNDATION_EXPORT NSNotificationName const LKInspectionSessionDidOpenNotification NS_SWIFT_NAME(InspectionSession.didOpenNotification);
 FOUNDATION_EXPORT NSNotificationName const LKInspectionSessionDidCloseNotification NS_SWIFT_NAME(InspectionSession.didCloseNotification);
 FOUNDATION_EXPORT NSNotificationName const LKInspectionSessionDidReloadNotification NS_SWIFT_NAME(InspectionSession.didReloadNotification);
+FOUNDATION_EXPORT NSNotificationName const LKInspectionSessionDidUpdateNotification NS_SWIFT_NAME(InspectionSession.didUpdateNotification);
 FOUNDATION_EXPORT NSNotificationName const LKInspectionSessionDidDisconnectNotification NS_SWIFT_NAME(InspectionSession.didDisconnectNotification);
+FOUNDATION_EXPORT NSNotificationName const LKInspectionSessionDidReconnectNotification NS_SWIFT_NAME(InspectionSession.didReconnectNotification);
 FOUNDATION_EXPORT NSErrorDomain const LKInspectionSessionErrorDomain NS_SWIFT_NAME(InspectionSessionErrorDomain);
 
 typedef NS_ENUM(NSInteger, LKInspectionSessionErrorCode) {
@@ -29,6 +31,7 @@ NS_SWIFT_NAME(InspectionSession)
 @interface LKInspectionSession : NSObject
 
 - (instancetype)initWithInspectableApp:(LKInspectableApp *)inspectableApp;
+- (instancetype)initWithInspectableApp:(LKInspectableApp *)inspectableApp captureOptions:(NSDictionary<NSString *, id> *)captureOptions;
 @property(nonatomic, strong, readonly) LKInspectableApp *inspectableApp;
 @property(nonatomic, copy, readonly) NSString *sessionIdentifier;
 @property(nonatomic, assign, readonly) uint64_t connectionGeneration;
@@ -38,9 +41,13 @@ NS_SWIFT_NAME(InspectionSession)
 @property(nonatomic, assign, readonly) BOOL requiresRefresh;
 @property(nonatomic, copy, readonly, nullable) NSString *connectionLossBannerMessage;
 @property(nonatomic, copy, readonly) NSString *lastReloadInitiator;
+@property(nonatomic, copy, readonly) NSDictionary<NSString *, NSString *> *lastOperationContext;
 @property(nonatomic, strong, readonly) RACSubject *didReloadHierarchyInfo;
 @property(nonatomic, strong, readonly) RACSubject *didUpdateDetails;
 @property(nonatomic, copy, readonly) NSArray<LookinDisplayItemDetail *> *latestDetails;
+/// All confirmed detail fields since the current hierarchy was captured.
+/// Coalesced event consumers can catch up without losing earlier partial updates.
+@property(nonatomic, copy, readonly) NSArray<LookinDisplayItemDetail *> *accumulatedDetails;
 
 - (nullable LookinHierarchyInfo *)readHierarchyWithError:(NSError *_Nullable *_Nullable)error;
 @property(nonatomic, strong, readonly, nullable) LookinHierarchyInfo *rawHierarchyInfo;
@@ -53,6 +60,15 @@ NS_SWIFT_NAME(InspectionSession)
 /// The signal preserves raw remote error codes and streams values until completion.
 - (RACSignal *)requestWithType:(uint32_t)requestType payload:(nullable id)payload;
 - (void)replaceInspectableApp:(LKInspectableApp *)inspectableApp;
+
+/// Presentation mirrors adopt complete, verified service snapshots. These
+/// methods never send a Peertalk request or change the authoritative session.
+- (void)applyMirroredHierarchy:(nullable LookinHierarchyInfo *)hierarchy
+                      details:(nullable NSArray<LookinDisplayItemDetail *> *)details
+                        state:(NSDictionary<NSString *, id> *)state;
+- (void)markMirrorDisconnected:(NSString *)message;
+- (void)retainClientReference;
+- (void)releaseClientReference;
 
 @end
 

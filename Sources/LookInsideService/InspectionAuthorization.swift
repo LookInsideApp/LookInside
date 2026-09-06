@@ -10,6 +10,7 @@ import Security
 final class InspectionAuthorization {
     private(set) var isActivated = false
     private(set) var failure = InspectionFailure.licenseRequired
+    var onActivationChange: ((Bool) -> Void)?
     private let helperURL: URL
     private let socketPath: String
     private let stateURL: URL
@@ -45,17 +46,20 @@ final class InspectionAuthorization {
         }
     }
 
-    func prepare() throws {
+    func prepare(allowsUserInteraction: Bool = false) throws {
+        let previous = isActivated
+        defer { notifyActivationChange(previous: previous) }
         isActivated = false
         // A missing local license is a normal basic-inspection configuration.
         // No helper, network request, or trial is started in that case.
-        guard FileManager.default.fileExists(atPath: stateURL.path) else { failure = .licenseRequired; return }
+        guard allowsUserInteraction || FileManager.default.fileExists(atPath: stateURL.path) else { failure = .licenseRequired; return }
         do {
             let informationURL = helperURL.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Info.plist")
             guard FileManager.default.isExecutableFile(atPath: helperURL.path),
                   let data = try? Data(contentsOf: informationURL),
                   let information = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
-                  information["LookInsideSupportsNoninteractiveInspection"] as? Bool == true
+                  information["LookInsideSupportsNoninteractiveInspection"] as? Bool == true,
+                  !allowsUserInteraction || information["LookInsideSupportsServiceOwnedInteraction"] as? Bool == true
             else {
                 throw InspectionFailure(code: "license.helperUnavailable", message: "Install the current Auth Server through LookInside before using protected features from the CLI.")
             }
@@ -89,12 +93,50 @@ final class InspectionAuthorization {
             failure = .licenseRequired
         } catch let failure as InspectionFailure {
             self.failure = failure
-            if failure.code == "service.ownerConflict" {
+            if failure.code == "service.ownerConflict" || allowsUserInteraction {
                 throw failure
             }
         } catch {
             failure = InspectionFailure(code: "license.helperUnavailable", message: "The authorization helper could not be contacted. Open LookInside to repair the helper installation.")
+            if allowsUserInteraction {
+                throw failure
+            }
         }
+    }
+
+    func forward(_ envelope: InspectionValue) async throws -> InspectionValue {
+        guard var request = envelope.objectValue, let method = request["method"]?.stringValue,
+              ["health.ping", "license.check_access", "license.refresh_status", "ui.show_activation",
+               "ui.show_activation_prompt", "ui.show_license", "ui.show_alert"].contains(method)
+        else {
+            throw InspectionFailure.invalidParameters
+        }
+        let allowsUserInteraction = method.hasPrefix("ui.") || method == "license.refresh_status"
+        try prepare(allowsUserInteraction: allowsUserInteraction)
+        request["allow_user_interaction"] = .bool(allowsUserInteraction)
+        let data = try JSONEncoder().encode(InspectionValue.object(request))
+        let socketPath = socketPath
+        let responseData = try await Task.detached { [self] in
+            try InspectionSocketClient.exchangeUntilEnd(data, socketPath: socketPath, timeout: 25,
+                                                        validatePeer: validateHelperProcess)
+        }.value
+        let response = try JSONDecoder().decode(InspectionValue.self, from: responseData)
+        guard let object = response.objectValue, object["protocol_version"]?.integerValue == 1,
+              object["request_id"] == request["request_id"] else { throw InspectionFailure.internalError }
+        if method == "license.check_access" || method == "license.refresh_status",
+           let decision = object["payload"]?.objectValue?["decision"]?.stringValue
+        {
+            let previous = isActivated
+            isActivated = decision == "allow" || decision == "allow_with_warning"
+            notifyActivationChange(previous: previous)
+        }
+        return response
+    }
+
+    private func notifyActivationChange(previous: Bool) {
+        guard previous != isActivated else { return }
+        ConnectionManager.sharedInstance().authorizationStateDidChange()
+        onActivationChange?(isActivated)
     }
 
     private func proof(for challenge: [String: Any]) throws -> InspectionLicenseProof {
@@ -151,7 +193,7 @@ final class InspectionAuthorization {
         #endif
     }
 
-    private func validateHelperProcess(_ processIdentifier: pid_t) throws {
+    private nonisolated func validateHelperProcess(_ processIdentifier: pid_t) throws {
         #if !DEBUG
             var code: SecCode?
             guard SecCodeCopyGuestWithAttributes(nil, [kSecGuestAttributePid: processIdentifier] as CFDictionary, [], &code) == errSecSuccess, let code,
@@ -159,14 +201,14 @@ final class InspectionAuthorization {
         #endif
     }
 
-    private func helperRequirement() throws -> SecRequirement {
+    private nonisolated func helperRequirement() throws -> SecRequirement {
         var requirement: SecRequirement?
         let text = "anchor apple generic and identifier \"app.lookinside.LookInsideAuthServer\" and certificate leaf[subject.OU] = \"964G86XT2P\""
         guard SecRequirementCreateWithString(text as CFString, [], &requirement) == errSecSuccess, let requirement else { throw invalidHelper() }
         return requirement
     }
 
-    private func invalidHelper() -> InspectionFailure {
+    private nonisolated func invalidHelper() -> InspectionFailure {
         InspectionFailure(code: "license.invalidClient", message: "The Auth Server code signature does not match the trusted helper identity.")
     }
 }

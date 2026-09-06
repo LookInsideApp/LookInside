@@ -9,6 +9,7 @@ public struct InspectionMetadata: Codable, Sendable {
     public let hierarchyRevision: UInt64?
     public let captureDate: Date?
     public let fromCache: Bool?
+    public let requiresRefresh: Bool?
 
     public init(
         serviceInstanceIdentifier: String? = nil,
@@ -16,7 +17,8 @@ public struct InspectionMetadata: Codable, Sendable {
         connectionGeneration: UInt64? = nil,
         hierarchyRevision: UInt64? = nil,
         captureDate: Date? = nil,
-        fromCache: Bool? = nil
+        fromCache: Bool? = nil,
+        requiresRefresh: Bool? = nil
     ) {
         schemaVersion = Self.currentSchemaVersion
         self.serviceInstanceIdentifier = serviceInstanceIdentifier
@@ -25,6 +27,7 @@ public struct InspectionMetadata: Codable, Sendable {
         self.hierarchyRevision = hierarchyRevision
         self.captureDate = captureDate
         self.fromCache = fromCache
+        self.requiresRefresh = requiresRefresh
     }
 }
 
@@ -48,6 +51,12 @@ public enum InspectionCapabilities {
     public static let methods = [
         "service.status", "targets.discover", "sessions.open", "sessions.list", "sessions.close",
         "hierarchy.read", "hierarchy.refresh", "views.find", "attributes.read", "screenshot.read",
+        "ping", "targets.list", "targets.attach", "targets.detach", "targets.models",
+        "hierarchy.find", "details.read", "selectors.list", "invoke.method", "attribute.modify",
+        "sessions.retain", "sessions.release", "session.state", "session.events", "session.request",
+        "session.captureOptions", "hierarchy.capture", "hierarchy.details", "hierarchy.cachedDetails",
+        "transfer.begin", "transfer.append", "transfer.read", "transfer.release",
+        "authorization.request",
     ]
 
     public static func validate(_ status: InspectionResponse, supporting method: String) throws {

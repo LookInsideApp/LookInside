@@ -18,6 +18,7 @@
 
 import AppKit
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor

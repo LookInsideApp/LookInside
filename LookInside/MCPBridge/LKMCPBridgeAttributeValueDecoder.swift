@@ -21,10 +21,10 @@
 
 import CoreGraphics
 import Foundation
+import LookInsideInspectionCore
 
 @MainActor
 enum LKMCPBridgeAttributeValueDecoder {
-
     // MARK: - Errors
 
     enum DecodeError: Error {
@@ -113,9 +113,9 @@ enum LKMCPBridgeAttributeValueDecoder {
             throw DecodeError.shapeInvalid(reason: "integer value missing")
         }
         switch data {
-        case .integer(let value):
+        case let .integer(value):
             return NSNumber(value: value)
-        case .double(let value):
+        case let .double(value):
             // Tolerate Double when JSON decode coerced it; truncate.
             return NSNumber(value: Int64(value))
         default:
@@ -136,9 +136,9 @@ enum LKMCPBridgeAttributeValueDecoder {
             throw DecodeError.shapeInvalid(reason: "double value missing")
         }
         switch data {
-        case .double(let value):
+        case let .double(value):
             return NSNumber(value: value)
-        case .integer(let value):
+        case let .integer(value):
             return NSNumber(value: Double(value))
         default:
             throw DecodeError.shapeInvalid(reason: "double expects a JSON number")
@@ -152,7 +152,7 @@ enum LKMCPBridgeAttributeValueDecoder {
         guard expectedAttrType == .BOOL else {
             throw DecodeError.kindMismatch(wireKind: "bool", expectedAttrType: expectedAttrType)
         }
-        guard case .bool(let value)? = data else {
+        guard case let .bool(value)? = data else {
             throw DecodeError.shapeInvalid(reason: "bool expects a JSON boolean")
         }
         return NSNumber(value: value)
@@ -169,13 +169,13 @@ enum LKMCPBridgeAttributeValueDecoder {
             let wireKind: String
             switch allowedTypes.first {
             case .nsString: wireKind = "string"
-            case .sel:      wireKind = "selector"
-            case .class:    wireKind = "class"
-            default:        wireKind = "string"
+            case .sel: wireKind = "selector"
+            case .class: wireKind = "class"
+            default: wireKind = "string"
             }
             throw DecodeError.kindMismatch(wireKind: wireKind, expectedAttrType: expectedAttrType)
         }
-        guard case .string(let value)? = data else {
+        guard case let .string(value)? = data else {
             throw DecodeError.shapeInvalid(reason: "string-kind value expects a JSON string")
         }
         return value as NSString
@@ -196,15 +196,15 @@ enum LKMCPBridgeAttributeValueDecoder {
                 throw DecodeError.shapeInvalid(reason: "enum value missing")
             }
             switch data {
-            case .integer(let value):
+            case let .integer(value):
                 return NSNumber(value: value)
-            case .double(let value):
+            case let .double(value):
                 return NSNumber(value: Int64(value))
             default:
                 throw DecodeError.shapeInvalid(reason: "numeric enum expects a JSON integer")
             }
         case .enumString:
-            guard case .string(let value)? = data else {
+            guard case let .string(value)? = data else {
                 throw DecodeError.shapeInvalid(reason: "string enum expects a JSON string case name")
             }
             return value as NSString
@@ -295,17 +295,17 @@ enum LKMCPBridgeAttributeValueDecoder {
             throw DecodeError.kindMismatch(wireKind: "edgeInsets", expectedAttrType: expectedAttrType)
         }
         let object = try requireObject(data, fieldName: "edgeInsets")
-        let top    = try requireDouble(object["top"],    fieldName: "edgeInsets.top")
-        let left   = try requireDouble(object["left"],   fieldName: "edgeInsets.left")
+        let top = try requireDouble(object["top"], fieldName: "edgeInsets.top")
+        let left = try requireDouble(object["left"], fieldName: "edgeInsets.left")
         let bottom = try requireDouble(object["bottom"], fieldName: "edgeInsets.bottom")
-        let right  = try requireDouble(object["right"],  fieldName: "edgeInsets.right")
+        let right = try requireDouble(object["right"], fieldName: "edgeInsets.right")
         // UIEdgeInsets and NSEdgeInsets share memory layout: top / left
         // / bottom / right as four CGFloats. The server-side handler
         // reads back via a cross-platform `InsetsValue` helper that
         // accepts either objCType string.
         var insets: (CGFloat, CGFloat, CGFloat, CGFloat) = (CGFloat(top), CGFloat(left), CGFloat(bottom), CGFloat(right))
         return withUnsafeBytes(of: &insets) { rawBuffer -> NSValue in
-            return NSValue(bytes: rawBuffer.baseAddress!, objCType: "{UIEdgeInsets=dddd}")
+            NSValue(bytes: rawBuffer.baseAddress!, objCType: "{UIEdgeInsets=dddd}")
         }
     }
 
@@ -318,11 +318,11 @@ enum LKMCPBridgeAttributeValueDecoder {
         }
         let object = try requireObject(data, fieldName: "offset")
         let horizontal = try requireDouble(object["horizontal"], fieldName: "offset.horizontal")
-        let vertical   = try requireDouble(object["vertical"],   fieldName: "offset.vertical")
+        let vertical = try requireDouble(object["vertical"], fieldName: "offset.vertical")
         // UIOffset layout: two CGFloats.
         var offset: (CGFloat, CGFloat) = (CGFloat(horizontal), CGFloat(vertical))
         return withUnsafeBytes(of: &offset) { rawBuffer -> NSValue in
-            return NSValue(bytes: rawBuffer.baseAddress!, objCType: "{UIOffset=dd}")
+            NSValue(bytes: rawBuffer.baseAddress!, objCType: "{UIOffset=dd}")
         }
     }
 
@@ -336,9 +336,9 @@ enum LKMCPBridgeAttributeValueDecoder {
             throw DecodeError.kindMismatch(wireKind: "color", expectedAttrType: expectedAttrType)
         }
         let object = try requireObject(data, fieldName: "color")
-        let red   = try requireDouble(object["red"],   fieldName: "color.red")
+        let red = try requireDouble(object["red"], fieldName: "color.red")
         let green = try requireDouble(object["green"], fieldName: "color.green")
-        let blue  = try requireDouble(object["blue"],  fieldName: "color.blue")
+        let blue = try requireDouble(object["blue"], fieldName: "color.blue")
         let alpha = try requireDouble(object["alpha"], fieldName: "color.alpha")
         // Server reconstructs the platform-specific color via
         // `+[LookinColor lks_colorFromRGBAComponents:]`, which expects
@@ -357,7 +357,7 @@ enum LKMCPBridgeAttributeValueDecoder {
         _ data: LKMCPBridgeJSONValue?,
         fieldName: String
     ) throws -> [String: LKMCPBridgeJSONValue] {
-        guard case .object(let object)? = data else {
+        guard case let .object(object)? = data else {
             throw DecodeError.shapeInvalid(reason: "\(fieldName) expects a JSON object")
         }
         return object
@@ -371,9 +371,9 @@ enum LKMCPBridgeAttributeValueDecoder {
             throw DecodeError.shapeInvalid(reason: "\(fieldName) is missing")
         }
         switch data {
-        case .double(let value):
+        case let .double(value):
             return value
-        case .integer(let value):
+        case let .integer(value):
             return Double(value)
         default:
             throw DecodeError.shapeInvalid(reason: "\(fieldName) expects a JSON number")
@@ -386,7 +386,7 @@ enum LKMCPBridgeAttributeValueDecoder {
     ) -> NSValue {
         var copy = value
         return withUnsafeBytes(of: &copy) { rawBuffer -> NSValue in
-            return NSValue(bytes: rawBuffer.baseAddress!, objCType: objCType)
+            NSValue(bytes: rawBuffer.baseAddress!, objCType: objCType)
         }
     }
 }

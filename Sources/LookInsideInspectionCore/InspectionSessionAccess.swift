@@ -1,5 +1,9 @@
 import Foundation
 
+public enum InspectionOperationContext {
+    @TaskLocal public static var values: [String: String] = [:]
+}
+
 /// Window-independent inspection access. All model graphs stay on the main actor.
 @MainActor
 public protocol InspectionSessionAccess: AnyObject {

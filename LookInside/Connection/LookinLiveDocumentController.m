@@ -54,6 +54,17 @@
     };
 
     LookinLiveDocument *existing = [self liveDocumentForChannel:app.channel];
+    if (!existing) {
+        for (NSDocument *document in NSDocumentController.sharedDocumentController.documents) {
+            if (![document isKindOfClass:LookinLiveDocument.class]) continue;
+            LookinLiveDocument *liveDocument = (LookinLiveDocument *)document;
+            if ([liveDocument.inspectableApp.transportIdentifier isEqualToString:app.transportIdentifier]
+                && [liveDocument.inspectableApp.appInfo isEqualToAppInfo:app.appInfo]) {
+                existing = liveDocument;
+                break;
+            }
+        }
+    }
     if (existing) {
         // Q3=P: same channel already has a Live Doc, just bring it forward.
         [existing showWindows];

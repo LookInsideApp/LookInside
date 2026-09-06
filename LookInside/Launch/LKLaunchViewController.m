@@ -125,7 +125,7 @@
     }
     
     @weakify(self);
-    [[[[LKAppsManager sharedInstance] fetchAppInfosWithImage:YES localInfos:self.appInfos] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
+    [[[[LKInspectionServiceClient shared] discoverApplications] deliverOnMainThread] subscribeNext:^(NSArray<LKInspectableApp *> *apps) {
         @strongify(self);
         
         self.appInfos = [apps lookin_map:^id(NSUInteger idx, LKInspectableApp *value) {
@@ -294,3 +294,4 @@
 }
 
 @end
+#import <LookInsideInspectionCore/LookInsideInspectionCore-Swift.h>

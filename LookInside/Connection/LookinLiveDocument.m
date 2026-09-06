@@ -31,7 +31,8 @@ NSNotificationName const LookinLiveDocumentWillCloseNotification = @"LookinLiveD
         return nil;
     }
     if (self = [super init]) {
-        _inspectionSession = [LKInspectionSessionRegistry.sharedRegistry sessionForInspectableApp:app];
+        _inspectionSession = app.inspectionSession;
+        [_inspectionSession retainClientReference];
     }
     return self;
 }
@@ -154,6 +155,7 @@ NSNotificationName const LookinLiveDocumentWillCloseNotification = @"LookinLiveD
 }
 
 - (void)close {
+    [self.inspectionSession releaseClientReference];
     [[NSNotificationCenter defaultCenter] postNotificationName:LookinLiveDocumentWillCloseNotification object:self];
     [super close];
 }

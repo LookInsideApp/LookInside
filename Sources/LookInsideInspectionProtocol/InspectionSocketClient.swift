@@ -85,8 +85,13 @@ public enum InspectionSocketClient {
             guard receivedCount > 0 else { throw unavailable() }
             received.append(contentsOf: buffer.prefix(receivedCount))
             guard received.count <= maximumFrameSize else { throw invalidResponse() }
-            if !readsUntilEnd, let terminator = received.firstIndex(of: 0x0A) {
-                return Data(received.prefix(upTo: terminator))
+            while !readsUntilEnd, let terminator = received.firstIndex(of: 0x0A) {
+                let frame = Data(received.prefix(upTo: terminator))
+                received.removeSubrange(...terminator)
+                if let event = try? JSONDecoder().decode(InspectionEvent.self, from: frame), event.kind == .event {
+                    continue
+                }
+                return frame
             }
         }
     }

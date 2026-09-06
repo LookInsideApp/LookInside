@@ -1,6 +1,8 @@
 # Use LookInside with MCP clients
 
-LookInside 2.3.11 and later include a local [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server. It lets MCP-compatible AI clients inspect the iOS or macOS app that is open in LookInside.
+LookInside 2.3.11 and later include a local [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server for inspecting iOS and macOS apps.
+
+Development builds with the shared inspection service can discover and attach to targets without opening LookInside. This requires macOS 14 or later and a logged-in user session. The new discovery tools and shared-service behavior described below are not available merely because a published release includes MCP. Older releases without `discover_targets` still require opening LookInside, attaching the target, and keeping the app running.
 
 The server is bundled inside the signed LookInside app. There is no separate package to install and no API key or network endpoint to configure.
 
@@ -11,8 +13,8 @@ Make sure all of the following are true:
 1. Install an official LookInside 2.3.11 or later release as `/Applications/LookInside.app`.
 2. Add the [LookInside server package](https://github.com/LookInsideApp/LookInside-Release) to the Debug build of the app you want to inspect.
 3. Run the target app.
-4. Open LookInside and connect to the running app from the launch window.
-5. Keep LookInside running while the MCP client uses its tools.
+4. For a development build with the shared service, call `discover_targets`, then `attach_target`. The service starts on demand from the same app bundle.
+5. For an older release, open LookInside, connect to the target from the launch window, and keep LookInside running.
 
 Verify that the bundled executable is present:
 
@@ -103,21 +105,21 @@ After restarting or opening a new client session, ask the agent:
 A successful response looks like:
 
 ```text
-Host MCPBridge alive (LookInside 2.3.11).
+Inspection service alive (LookInside <version>).
 ```
 
 Then verify that the current inspection session is visible:
 
 > Use LookInside to list the attached targets. Report the app name, device, OS, and license state.
 
-`list_targets` returns an empty list when LookInside is running but has not opened a target. Return to the LookInside launch window, connect to the app, and retry.
+`list_targets` lists attached sessions and does not initiate discovery. In shared-service builds, call `discover_targets`, pass a discovery identifier to `attach_target`, then use the returned session identifier with inspection tools. In older releases, connect through the LookInside launch window.
 
 ## Recommended inspection workflow
 
 Agents get the most reliable results when they follow this order:
 
-1. Call `ping_host` to verify that LookInside is running.
-2. Call `list_targets` and choose a target whose `licenseState` allows inspection.
+1. Call `ping_host` to verify the inspection backend.
+2. Call `list_targets`; if needed, use `discover_targets` and `attach_target` to establish a session. Basic inspection remains available when a target reports `basicOnly`; protected SwiftUI features require activation.
 3. Call `refresh_hierarchy` if the user navigated, presented a sheet, or otherwise changed the target app since the last read.
 4. Use `take_screenshot` without an object identifier for a visual overview.
 5. Use `find_views` when looking for a specific class, label, or address. Prefer it over loading a large complete tree.
@@ -131,15 +133,16 @@ For example:
 
 ## Available tools
 
-| Area | Tools | Purpose |
-| --- | --- | --- |
-| Connection | `ping_host`, `list_targets` | Check the host and discover attached apps. |
-| Hierarchy | `get_hierarchy`, `find_views` | Read or search the current view tree. |
-| Details | `read_attributes`, `read_view_details`, `list_class_methods` | Inspect properties and available Objective-C selectors. |
-| Visuals | `take_screenshot` | Capture the key window or one view as PNG. |
-| Refresh | `refresh_hierarchy` | Reload the tree after the target UI changes. |
-| Snapshots | `capture_snapshot`, `list_snapshots`, `drop_snapshot`, `diff_snapshots` | Compare structure, frames, and visibility across two points in time. |
-| Mutation | `invoke_method`, `modify_attribute` | Call a zero-argument selector or change a supported attribute in the Debug app. |
+| Area                                   | Tools                                                                   | Purpose                                                                         |
+| -------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Connection                             | `ping_host`, `list_targets`                                             | Check the backend and list attached apps.                                       |
+| Session lifecycle (development builds) | `discover_targets`, `attach_target`, `detach_target`                    | Discover apps, join a shared session, or release this client's reference.       |
+| Hierarchy                              | `get_hierarchy`, `find_views`                                           | Read or search the current view tree.                                           |
+| Details                                | `read_attributes`, `read_view_details`, `list_class_methods`            | Inspect properties and available Objective-C selectors.                         |
+| Visuals                                | `take_screenshot`                                                       | Capture the key window or one view as PNG.                                      |
+| Refresh                                | `refresh_hierarchy`                                                     | Reload the tree after the target UI changes.                                    |
+| Snapshots                              | `capture_snapshot`, `list_snapshots`, `drop_snapshot`, `diff_snapshots` | Compare structure, frames, and visibility across two points in time.            |
+| Mutation                               | `invoke_method`, `modify_attribute`                                     | Call a zero-argument selector or change a supported attribute in the Debug app. |
 
 The MCP client receives each tool's complete input schema and description when it connects. Let the client use those schemas instead of guessing argument names or value shapes.
 
@@ -156,7 +159,15 @@ Example prompt:
 
 > Capture a LookInside hierarchy snapshot named `before`. Ask me to perform the interaction, then capture `after` and diff the two snapshots. Summarize added, removed, moved, resized, and visibility-changed views.
 
-Snapshots live only for the lifetime of that MCP server process. Capture both snapshots in the same client session.
+Snapshots live only for the lifetime of that MCP server process. Capture both snapshots in the same client session. Two MCP processes share inspection data but keep separate snapshot stores.
+
+## Shared inspection behavior
+
+The graphical app, CLI, and MCP clients share the latest complete hierarchy and capture settings. An explicit refresh updates the other clients; ordinary reads do not reset settings. Closing one window or detaching one MCP client does not close a session used by another client. The service exits after 300 seconds without connected clients.
+
+Subscribers receive changes caused by other clients, including another MCP process. These events report inspection operations and existing target pushes; they do not continuously monitor the target's UI. Method calls and attribute changes include `inspectionState` in shared-service builds. `requiresRefresh: true` means the operation completed without a new complete hierarchy capture. If an operation reports an unknown result, do not repeat it automatically.
+
+`LOOKINSIDE_MCP_SOCKET_PATH` overrides the socket explicitly and disables automatic service startup. Keep the entire matching app bundle together for default startup. An incompatible running backend fails explicitly; finish its clients and restart the matching installation. Existing configurations using the legacy Host socket remain usable when the new service can safely bind that address.
 
 ## Safety and privacy
 
@@ -169,13 +180,13 @@ Snapshots live only for the lifetime of that MCP server process. Capture both sn
 
 ## Troubleshooting
 
-| Symptom | What to check |
-| --- | --- |
-| The client cannot start `lookinside` | Confirm the command is an absolute path and the bundled executable passes the `test -x` check above. Official releases include it; a local source build may not. |
-| `ping_host` says LookInside is not running | Launch the same LookInside app bundle referenced by the MCP command, then retry. |
-| `list_targets` returns `[]` | Run the target app and connect to it from the LookInside launch window. Opening LookInside alone is not enough. |
-| A target reports a blocked license state | Resolve activation in the LookInside app, reconnect the target, and run `list_targets` again. |
-| Results describe the previous screen | Call `refresh_hierarchy`, then locate the views again instead of reusing old object identifiers. |
-| `read_attributes` reports uncached details | Call `read_view_details` for that object identifier, then retry. |
-| A screenshot is blank | Capture a descendant that performs the drawing; upper window, theme-frame, or hosting views can render no pixels by themselves. |
-| The server was added but does not appear | Restart or open a new MCP client session and use the client's MCP status command or panel. |
+| Symptom                                    | What to check                                                                                                                                                    |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The client cannot start `lookinside`       | Confirm the command is an absolute path and the bundled executable passes the `test -x` check above. Official releases include it; a local source build may not. |
+| `ping_host` cannot reach the backend       | Keep the matching app bundle intact and check any explicit socket override. Older releases require launching LookInside.                                         |
+| `list_targets` returns `[]`                | Run the target app, then use `discover_targets` and `attach_target` in shared-service builds; older releases use the launch window.                              |
+| A target reports a blocked license state   | Resolve activation in the LookInside app, reconnect the target, and run `list_targets` again.                                                                    |
+| Results describe the previous screen       | Call `refresh_hierarchy`, then locate the views again instead of reusing old object identifiers.                                                                 |
+| `read_attributes` reports uncached details | Call `read_view_details` for that object identifier, then retry.                                                                                                 |
+| A screenshot is blank                      | Capture a descendant that performs the drawing; upper window, theme-frame, or hosting views can render no pixels by themselves.                                  |
+| The server was added but does not appear   | Restart or open a new MCP client session and use the client's MCP status command or panel.                                                                       |

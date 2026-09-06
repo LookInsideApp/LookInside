@@ -13,6 +13,8 @@ NS_SWIFT_NAME(InspectionEnvironment)
 @property(nonatomic, copy) NSDictionary<NSString *, id> *initialCaptureOptions;
 @property(nonatomic, copy, nullable) NSDictionary<NSString *, id> *(^initialCaptureOptionsProvider)(void);
 @property(nonatomic, copy, nullable) BOOL (^licenseIsActivated)(void);
+/// Captured before a request enters the queue so events retain its original caller.
+@property(nonatomic, copy, nullable) NSDictionary<NSString *, NSString *> *(^operationContextProvider)(void);
 /// Embedders may provide ownership for an isolated transport environment.
 /// The default acquires the shared graphical/headless process lock.
 @property(nonatomic, copy, nullable) BOOL (^acquireConnectionOwnership)(NSError *_Nullable *_Nullable error);

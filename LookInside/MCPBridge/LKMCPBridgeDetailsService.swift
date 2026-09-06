@@ -24,6 +24,7 @@
 import AppKit
 import CoreGraphics
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor
@@ -170,7 +171,7 @@ public final class LKMCPBridgeDetailsService {
         // Build the RPC 203 task package. Single package — we already
         // cap the batch at 100 entries, so the host inspector's own
         // pixel/count packing thresholds never need to come into play.
-        let clientReadableVersion = LKHelper.lookinReadableVersion()
+        let clientReadableVersion = InspectionEnvironment.shared().clientReadableVersion
         let tasks = resolvedItems.map { resolved -> LookinStaticAsyncUpdateTask in
             let task = LookinStaticAsyncUpdateTask()
             task.oid = resolved.nativeOid

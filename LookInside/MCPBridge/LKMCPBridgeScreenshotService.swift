@@ -35,6 +35,7 @@
 import AppKit
 import CoreGraphics
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor
@@ -268,7 +269,7 @@ public final class LKMCPBridgeScreenshotService {
         task.attrRequest = .notNeed
         task.needBasisVisualInfo = false
         task.needSubitems = false
-        task.clientReadableVersion = LKHelper.lookinReadableVersion()
+        task.clientReadableVersion = InspectionEnvironment.shared().clientReadableVersion
 
         let package = LookinStaticAsyncUpdateTasksPackage()
         package.tasks = [task]
