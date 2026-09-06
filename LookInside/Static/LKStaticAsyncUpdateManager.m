@@ -76,6 +76,7 @@
 @property(nonatomic, strong) NSMutableArray<LKDetailUpdateRequest *> *succeededRequests;
 /// 已经发送出去、尚未结束的 request
 @property(nonatomic, strong) LKDetailUpdateRequest *ongoingRequest;
+@property(nonatomic, strong) RACDisposable *detailSubscription;
 
 @end
 
@@ -144,9 +145,10 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
     if (!self.ongoingRequest) {
         return;
     }
-    NSLog(@"AsyncUpdate - endUpdating");
-    // 这句会触发 sendTasks 方法里的 completed 事件，进而导致 delegate 被通知
-    [[self resolvedInspectableApp] cancelHierarchyDetailFetching];
+    [self.detailSubscription dispose];
+    self.detailSubscription = nil;
+    self.ongoingRequest = nil;
+    [self notifyTasksCountToDelegate];
 }
 
 - (NSArray<LookinStaticAsyncUpdateTask *> *)makeMaximumTasks {
@@ -313,7 +315,6 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
     __block NSUInteger receivedScreenshotsCount = 0;
     [[app fetchModificationPatchWithTasks:tasks] subscribeNext:^(LookinDisplayItemDetail *detail) {
         @strongify(self);
-        [self.dataSource modifyWithDisplayItemDetail:detail];
         
         if (detail.groupScreenshot) {
             receivedScreenshotsCount++;
@@ -431,7 +432,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
     NSLog(@"AsyncUpdate - Will send %@ tasks.", @(newTasks.count));
     
     @weakify(self);
-    [[app fetchHierarchyDetailWithTaskPackages:packages] subscribeNext:^(NSArray<LookinDisplayItemDetail *> *details) {
+    self.detailSubscription = [[app fetchHierarchyDetailWithTaskPackages:packages] subscribeNext:^(NSArray<LookinDisplayItemDetail *> *details) {
         @strongify(self);
         [details enumerateObjectsUsingBlock:^(LookinDisplayItemDetail * _Nonnull detail, NSUInteger idx, BOOL * _Nonnull stop) {
             if (detail.failureCode != LookinDisplayItemDetailFailureCodeNone) {
@@ -455,8 +456,6 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
                       failedItem.viewObject.memoryAddress ?: @"-",
                       failedItem.layerObject.rawClassName ?: @"-",
                       failedItem.layerObject.memoryAddress ?: @"-");
-            } else {
-                [self.dataSource modifyWithDisplayItemDetail:detail];
             }
         }];
         self.ongoingRequest.finishedTasksCount += details.count;
@@ -479,7 +478,7 @@ static BOOL LKCurrentHierarchyContainsSwiftUIItems(LKStaticHierarchyDataSource *
             [self.delegate detailUpdateReceivedError:error];
         }];
     } completed:^{
-        // 注意，用户手动取消请求后，也会走到这里
+        // Disposal stops this observer; only a complete stream reaches here.
         @strongify(self);
         if (self.ongoingRequest) {
             BOOL userCancel = (self.ongoingRequest.tasksTotalCount > self.ongoingRequest.finishedTasksCount);

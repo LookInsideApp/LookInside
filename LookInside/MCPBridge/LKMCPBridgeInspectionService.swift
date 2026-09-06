@@ -1,21 +1,14 @@
-// LKMCPBridgeInspectionService.swift
-//
-// Routes MCPBridge inspection requests to the host's per-window
-// `LookinLiveDocument` instances and converts the results to wire DTOs.
-//
-// All access to `NSDocumentController` and `LookinLiveDocument` happens on
-// the main thread; the public entry point is `@MainActor` so the bridge
-// connection handlers can `await` it from a background queue and get the
-// hop for free.
+// Reads inspection-session snapshots and converts them to bridge payloads.
+// The main actor owns every session; no document or window is required.
 
 import AppKit
 import CoreGraphics
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor
 public final class LKMCPBridgeInspectionService {
-
     private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Inspection")
 
     public init() {}
@@ -39,8 +32,8 @@ public final class LKMCPBridgeInspectionService {
     // MARK: - targets.list
 
     private func handleTargetsList(identifier: String) -> LKMCPBridgeResponse {
-        let documents = LKMCPBridgeLiveDocumentLookup.enumerateLiveDocuments()
-        let infos = documents.compactMap(makeTargetInfo(for:))
+        let sessions = InspectionSessionLookup.enumerateSessions()
+        let infos = sessions.compactMap(makeTargetInfo(for:))
         do {
             let payload = try encodeAsJSONValue(infos)
             return .success(identifier: identifier, result: .object(["targets": payload]))
@@ -50,8 +43,8 @@ public final class LKMCPBridgeInspectionService {
         }
     }
 
-    private func makeTargetInfo(for document: LookinLiveDocument) -> LKMCPBridgeTargetInfo? {
-        guard let appInfo = document.inspectableApp.appInfo else { return nil }
+    private func makeTargetInfo(for session: InspectionSession) -> LKMCPBridgeTargetInfo? {
+        guard let appInfo = session.inspectableApp.appInfo else { return nil }
         return LKMCPBridgeTargetInfo(
             targetIdentifier: String(appInfo.appInfoIdentifier),
             applicationName: appInfo.appName,
@@ -66,12 +59,12 @@ public final class LKMCPBridgeInspectionService {
 
     private func deviceKindString(for kind: LookinAppInfoDevice) -> String {
         switch kind {
-        case .simulator:   return "simulator"
-        case .iPad:        return "iPad"
-        case .others:      return "device"
-        case .mac:         return "mac"
+        case .simulator: return "simulator"
+        case .iPad: return "iPad"
+        case .others: return "device"
+        case .mac: return "mac"
         case .macCatalyst: return "macCatalyst"
-        @unknown default:  return "unknown"
+        @unknown default: return "unknown"
         }
     }
 
@@ -82,65 +75,65 @@ public final class LKMCPBridgeInspectionService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) -> LKMCPBridgeResponse {
         guard let parameters = parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
 
         let rootObjectIdentifier: String?
-        if case .string(let raw)? = parameters["rootObjectIdentifier"] {
+        if case let .string(raw)? = parameters["rootObjectIdentifier"] {
             rootObjectIdentifier = raw
         } else {
             rootObjectIdentifier = nil
         }
 
         let depth: Int?
-        if case .integer(let raw)? = parameters["depth"] {
+        if case let .integer(raw)? = parameters["depth"] {
             depth = Int(raw)
-        } else if case .double(let raw)? = parameters["depth"] {
+        } else if case let .double(raw)? = parameters["depth"] {
             depth = Int(raw)
         } else {
             depth = nil
         }
 
         let includeLayoutGuides: Bool
-        if case .bool(let raw)? = parameters["includeLayoutGuides"] {
+        if case let .bool(raw)? = parameters["includeLayoutGuides"] {
             includeLayoutGuides = raw
         } else {
             includeLayoutGuides = false
         }
 
         let includeCells: Bool
-        if case .bool(let raw)? = parameters["includeCells"] {
+        if case let .bool(raw)? = parameters["includeCells"] {
             includeCells = raw
         } else {
             includeCells = false
         }
 
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard let dataSource = document.hierarchyDataSource else {
+        guard session.captureDate != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
 
         let rootItems: [LookinDisplayItem]
         if let rootObjectIdentifier {
-            guard let scopedRoot = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
-                amongRoots: dataSource.rawFlatItems ?? [],
+            guard let scopedRoot = InspectionSessionLookup.findDisplayItem(
+                amongRoots: session.rawFlatItems ?? [],
                 matchingObjectIdentifier: rootObjectIdentifier
             ) else {
                 return .failure(
@@ -153,7 +146,7 @@ public final class LKMCPBridgeInspectionService {
             }
             rootItems = [scopedRoot]
         } else {
-            rootItems = LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document)
+            rootItems = InspectionSessionLookup.topLevelDisplayItems(in: session)
         }
 
         let nodes = rootItems.map { makeViewNode(from: $0, remainingDepth: depth, includeLayoutGuides: includeLayoutGuides, includeCells: includeCells) }
@@ -181,9 +174,9 @@ public final class LKMCPBridgeInspectionService {
     }
 
     private func makeViewNode(from item: LookinDisplayItem, remainingDepth: Int?, includeLayoutGuides: Bool, includeCells: Bool) -> LKMCPBridgeViewNode {
-        let identity = LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: item)
+        let identity = InspectionSessionLookup.objectIdentifierString(for: item)
         let className = item.displayingObject()?.classChainList?.first ?? ""
-        let frame = LKMCPBridgeRect(cgRect: LKMCPBridgeLiveDocumentLookup.rootSpaceFrame(for: item))
+        let frame = LKMCPBridgeRect(cgRect: InspectionSessionLookup.rootSpaceFrame(for: item))
         var subitems = item.subitems ?? []
         if includeLayoutGuides == false {
             // Default-off so existing agents' structural paths and snapshot
@@ -194,7 +187,7 @@ public final class LKMCPBridgeInspectionService {
             // Same reasoning as includeLayoutGuides, for cell nodes.
             subitems = subitems.filter { $0.resolvedNodeKind() != .cell }
         }
-        let childIdentifiers = subitems.map(LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for:))
+        let childIdentifiers = subitems.map(InspectionSessionLookup.objectIdentifierString(for:))
 
         let inlinedChildren: [LKMCPBridgeViewNode]?
         if let remainingDepth, remainingDepth <= 1 {
@@ -224,41 +217,41 @@ public final class LKMCPBridgeInspectionService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) -> LKMCPBridgeResponse {
         guard let parameters = parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"],
-              case .string(let objectIdentifier)? = parameters["objectIdentifier"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"],
+              case let .string(objectIdentifier)? = parameters["objectIdentifier"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
 
         let includeUserCustom: Bool
-        if case .bool(let raw)? = parameters["includeUserCustom"] {
+        if case let .bool(raw)? = parameters["includeUserCustom"] {
             includeUserCustom = raw
         } else {
             includeUserCustom = true
         }
 
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard document.hierarchyDataSource != nil else {
+        guard session.captureDate != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
 
-        guard let displayItem = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
-            amongRoots: LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document),
+        guard let displayItem = InspectionSessionLookup.findDisplayItem(
+            amongRoots: InspectionSessionLookup.topLevelDisplayItems(in: session),
             matchingObjectIdentifier: objectIdentifier
         ) else {
             return .failure(
@@ -285,7 +278,7 @@ public final class LKMCPBridgeInspectionService {
         let redactSecureContent = LKMCPBridgeSecureContentDetector.isSecure(displayItem: displayItem)
 
         let encodedGroups = rawGroups.map { group in
-            return encodeGroup(group, redactingSecureContent: redactSecureContent)
+            encodeGroup(group, redactingSecureContent: redactSecureContent)
         }
 
         do {
@@ -316,7 +309,7 @@ public final class LKMCPBridgeInspectionService {
     ) -> LKMCPBridgeAttributeGroup {
         let identifier = group.userCustomTitle ?? group.identifier
         let sections = (group.attrSections ?? []).map { section in
-            return encodeSection(section, redactingSecureContent: redactingSecureContent)
+            encodeSection(section, redactingSecureContent: redactingSecureContent)
         }
         return LKMCPBridgeAttributeGroup(
             identifier: identifier ?? "",
@@ -331,7 +324,7 @@ public final class LKMCPBridgeInspectionService {
         redactingSecureContent: Bool
     ) -> LKMCPBridgeAttributeSection {
         let attributes = (section.attributes ?? []).map { attribute in
-            return LKMCPBridgeAttributeEncoder.encode(
+            LKMCPBridgeAttributeEncoder.encode(
                 attribute,
                 redactingSecureContent: redactingSecureContent
             )

@@ -12,11 +12,8 @@
 //     plus `detailsCached: false`.
 //   - `details.read` sends RPC 203 to the inspected app, awaits the
 //     full streamed response (one frame per server-side task package),
-//     and surfaces every successful view's detail. The same routing
-//     also writes the response through
-//     `LKStaticHierarchyDataSource.modifyWithDisplayItemDetail:` so
-//     subsequent `attributes.read` calls see populated cache and the
-//     inspector UI reflects the new state.
+//     and surfaces every successful view's detail. InspectionSession commits
+//     the complete response to its cache and notifies graphical subscribers.
 //
 // Scope: v0.5 only fetches attribute groups (no screenshots, no
 // frame/bounds/hidden/alpha, no subitems). Screenshots get their
@@ -31,7 +28,6 @@ import os
 
 @MainActor
 public final class LKMCPBridgeDetailsService {
-
     /// Hard cap on per-call batch size. Matches the host inspector's
     /// own `packageMaxTasksCount` (see `LKStaticAsyncUpdateManager`).
     /// Larger batches are rejected at the wire boundary; agents that
@@ -39,6 +35,7 @@ public final class LKMCPBridgeDetailsService {
     private static let maximumObjectIdentifiersPerCall = 100
 
     // MARK: - Error code constants from LookinDefines.h
+
     //
     // See LKMCPBridgeInvocationService for the duplication rationale.
 
@@ -72,8 +69,8 @@ public final class LKMCPBridgeDetailsService {
     ) async -> LKMCPBridgeResponse {
         // Parameter extraction
         guard let parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"],
-              case .array(let identifierWireValues)? = parameters["objectIdentifiers"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"],
+              case let .array(identifierWireValues)? = parameters["objectIdentifiers"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
@@ -88,7 +85,7 @@ public final class LKMCPBridgeDetailsService {
             wireValues: identifierWireValues,
             limit: Self.maximumObjectIdentifiersPerCall
         ) {
-        case .success(let parsed):
+        case let .success(parsed):
             requestedIdentifiers = parsed.identifiers
             if parsed.droppedDuplicateCount > 0 {
                 Self.logger.debug(
@@ -97,7 +94,7 @@ public final class LKMCPBridgeDetailsService {
             }
         case .failure(.notAllStrings), .failure(.empty):
             return .failure(identifier: identifier, error: .invalidParameters)
-        case .failure(.tooMany(let distinctCount, let limit)):
+        case let .failure(.tooMany(distinctCount, limit)):
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -108,29 +105,29 @@ public final class LKMCPBridgeDetailsService {
         }
 
         let includeUserCustom: Bool
-        if case .bool(let raw)? = parameters["includeUserCustom"] {
+        if case let .bool(raw)? = parameters["includeUserCustom"] {
             includeUserCustom = raw
         } else {
             includeUserCustom = true
         }
 
-        // Live-document lookup
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        // Live-session lookup
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard document.hierarchyDataSource != nil else {
+        guard session.captureDate != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
@@ -139,18 +136,18 @@ public final class LKMCPBridgeDetailsService {
         // identifiers go into failedIdentifiers and skip the server
         // round-trip; the agent learns which oids vanished without the
         // request blowing up entirely.
-        let roots = LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document)
+        let roots = InspectionSessionLookup.topLevelDisplayItems(in: session)
         var resolvedItems: [(identifier: String, displayItem: LookinDisplayItem, nativeOid: UInt)] = []
         resolvedItems.reserveCapacity(requestedIdentifiers.count)
         var failedIdentifiers: [String] = []
 
         for requested in requestedIdentifiers {
-            guard let displayItem = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
+            guard let displayItem = InspectionSessionLookup.findDisplayItem(
                 amongRoots: roots,
                 matchingObjectIdentifier: requested
             ),
-                  let nativeOid = displayItem.displayingObject()?.oid,
-                  nativeOid != 0
+                let nativeOid = displayItem.displayingObject()?.oid,
+                nativeOid != 0
             else {
                 failedIdentifiers.append(requested)
                 continue
@@ -192,7 +189,7 @@ public final class LKMCPBridgeDetailsService {
         // Still go through awaitAllValues so the bridge stays robust
         // to future multi-package batching here without touching
         // the await semantics.
-        guard let signal = document.inspectableApp.rawFetchHierarchyDetail(withTaskPackages: [package]) else {
+        guard let signal = session.inspectableApp.rawFetchHierarchyDetail(withTaskPackages: [package]) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -261,12 +258,6 @@ public final class LKMCPBridgeDetailsService {
             uniquingKeysWith: { first, _ in first }
         )
 
-        // Resolve the concrete data source once. We thread it through
-        // the per-detail loop rather than walking back from each
-        // display item, because LookinDisplayItem has no back-reference
-        // to its owning document.
-        let staticDataSource = document.hierarchyDataSource
-
         var emittedDetails: [LKMCPBridgeViewDetail] = []
         emittedDetails.reserveCapacity(allDetails.count)
         var seenOids: Set<UInt> = []
@@ -293,7 +284,6 @@ public final class LKMCPBridgeDetailsService {
             // Merge the detail into the host's cache so the inspector
             // UI reflects the update and a follow-up attributes.read
             // hits the same data without re-fetching.
-            staticDataSource?.modify(with: detail)
 
             // Encode the attribute groups carried in this detail
             // through the read-side encoder so the wire shape matches
@@ -370,6 +360,9 @@ public final class LKMCPBridgeDetailsService {
     }
 
     private func mapDetailsError(_ error: NSError) -> LKMCPBridgeErrorPayload {
+        if let sessionError = InspectionSessionLookup.errorPayload(for: error, operation: "details") {
+            return sessionError
+        }
         switch error.code {
         case Self.lookinErrCodeObjectNotFound:
             return LKMCPBridgeErrorPayload(

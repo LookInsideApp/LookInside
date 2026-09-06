@@ -22,8 +22,8 @@ import os
 
 @MainActor
 public final class LKMCPBridgeSelectorService {
-
     // MARK: - Constants pulled from upstream LookinDefines.h
+
     //
     // Re-declared rather than imported for the same reason as in
     // `LKMCPBridgeInvocationService`: pulling LookinDefines.h into the
@@ -75,20 +75,20 @@ public final class LKMCPBridgeSelectorService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) async -> LKMCPBridgeResponse {
         guard let parameters = parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
 
         let requestedClassName: String?
-        if case .string(let raw)? = parameters["className"] {
+        if case let .string(raw)? = parameters["className"] {
             requestedClassName = raw
         } else {
             requestedClassName = nil
         }
 
         let requestedObjectIdentifier: String?
-        if case .string(let raw)? = parameters["objectIdentifier"] {
+        if case let .string(raw)? = parameters["objectIdentifier"] {
             requestedObjectIdentifier = raw
         } else {
             requestedObjectIdentifier = nil
@@ -105,14 +105,14 @@ public final class LKMCPBridgeSelectorService {
         }
 
         let includeArguments: Bool
-        if case .bool(let raw)? = parameters["includeArguments"] {
+        if case let .bool(raw)? = parameters["includeArguments"] {
             includeArguments = raw
         } else {
             includeArguments = false
         }
 
         let nameFilter: String?
-        if case .string(let raw)? = parameters["nameFilter"] {
+        if case let .string(raw)? = parameters["nameFilter"] {
             let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
             nameFilter = trimmed.isEmpty ? nil : trimmed
         } else {
@@ -121,9 +121,9 @@ public final class LKMCPBridgeSelectorService {
 
         let selectorLimit: Int
         switch parameters["limit"] {
-        case .integer(let raw)?:
+        case let .integer(raw)?:
             selectorLimit = Int(raw)
-        case .double(let raw)?:
+        case let .double(raw)?:
             selectorLimit = Int(raw)
         case nil:
             selectorLimit = Self.defaultSelectorLimit
@@ -140,12 +140,12 @@ public final class LKMCPBridgeSelectorService {
             )
         }
 
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
@@ -156,17 +156,17 @@ public final class LKMCPBridgeSelectorService {
         let resolvedClassName: String
         let resolvedClassChain: [String]?
         if let requestedObjectIdentifier {
-            guard document.hierarchyDataSource != nil else {
+            guard session.captureDate != nil else {
                 return .failure(
                     identifier: identifier,
                     error: LKMCPBridgeErrorPayload(
                         code: "hierarchy.notReady",
-                        message: "Live document has not loaded a hierarchy yet."
+                        message: "Live session has not loaded a hierarchy yet."
                     )
                 )
             }
-            guard let displayItem = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
-                amongRoots: LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document),
+            guard let displayItem = InspectionSessionLookup.findDisplayItem(
+                amongRoots: InspectionSessionLookup.topLevelDisplayItems(in: session),
                 matchingObjectIdentifier: requestedObjectIdentifier
             ) else {
                 return .failure(
@@ -206,7 +206,7 @@ public final class LKMCPBridgeSelectorService {
 
         // `hasArg` on the wire means "do not filter out selectors that
         // take arguments", so it maps straight onto `includeArguments`.
-        guard let signal = document.inspectableApp.fetchSelectorNames(
+        guard let signal = session.inspectableApp.fetchSelectorNames(
             withClass: resolvedClassName,
             hasArg: includeArguments
         ) else {

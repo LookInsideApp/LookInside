@@ -7,6 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ReactiveObjC.h"
+#import "LKInspectionSession.h"
 #import "LookinAppInfo.h"
 #import "LookinAttributeModification.h"
 #import "LookinCustomAttrModification.h"
@@ -14,13 +16,20 @@
 
 @class Lookin_PTChannel, LookinDisplayItemTrace, LookinInvocationRequest, LookinHierarchyInfo, LookinStaticAsyncUpdateTasksPackage, LookinStaticAsyncUpdateTask;
 
+NS_SWIFT_NAME(InspectableApp)
 @interface LKInspectableApp : NSObject
 
 @property(nonatomic, strong) NSError *serverVersionError;
 
 @property(nonatomic, strong) LookinAppInfo *appInfo;
 
-@property(nonatomic, weak) Lookin_PTChannel *channel;
+@property(nonatomic, strong) Lookin_PTChannel *channel;
+@property(nonatomic, copy) NSString *transportIdentifier;
+@property(nonatomic, strong, readonly) LKInspectionSession *inspectionSession;
+
+/// Raw transport seam. Session callers use the typed methods below.
+- (RACSignal *)performInspectionRequestWithType:(uint32_t)requestType payload:(id)payload;
+- (void)bindInspectionSession:(LKInspectionSession *)session;
 
 - (RACSignal *)fetchHierarchyData;
 
@@ -48,7 +57,6 @@
 /// completes when the full batch lands.
 - (RACSignal *)rawFetchHierarchyDetailWithTaskPackages:(NSArray<LookinStaticAsyncUpdateTasksPackage *> *)packages;
 
-- (void)cancelHierarchyDetailFetching;
 
 - (RACSignal *)fetchModificationPatchWithTasks:(NSArray<LookinStaticAsyncUpdateTask *> *)tasks;
 

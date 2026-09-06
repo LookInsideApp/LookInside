@@ -25,7 +25,6 @@ import os
 
 @MainActor
 public final class LKMCPBridgeSearchService {
-
     /// Default number of matches returned when the caller doesn't ask.
     /// Sized so a typical response stays well inside an agent's context
     /// budget while still showing enough of a broad query (say, every
@@ -59,8 +58,8 @@ public final class LKMCPBridgeSearchService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) -> LKMCPBridgeResponse {
         guard let parameters = parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"],
-              case .string(let rawQuery)? = parameters["query"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"],
+              case let .string(rawQuery)? = parameters["query"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
@@ -80,9 +79,11 @@ public final class LKMCPBridgeSearchService {
         }
 
         let fields: [LKMCPBridgeSearchQuery.Field]
-        if case .array(let rawFields)? = parameters["matchFields"] {
+        if case let .array(rawFields)? = parameters["matchFields"] {
             let names: [String] = rawFields.compactMap { value in
-                if case .string(let name) = value { return name }
+                if case let .string(name) = value {
+                    return name
+                }
                 return nil
             }
             guard names.count == rawFields.count else {
@@ -111,9 +112,9 @@ public final class LKMCPBridgeSearchService {
 
         let matchLimit: Int
         switch parameters["limit"] {
-        case .integer(let raw)?:
+        case let .integer(raw)?:
             matchLimit = Int(raw)
-        case .double(let raw)?:
+        case let .double(raw)?:
             matchLimit = Int(raw)
         case nil:
             matchLimit = Self.defaultMatchLimit
@@ -131,44 +132,43 @@ public final class LKMCPBridgeSearchService {
         }
 
         let includeHidden: Bool
-        if case .bool(let raw)? = parameters["includeHidden"] {
+        if case let .bool(raw)? = parameters["includeHidden"] {
             includeHidden = raw
         } else {
             includeHidden = true
         }
 
         let scopeObjectIdentifier: String?
-        if case .string(let raw)? = parameters["rootObjectIdentifier"] {
+        if case let .string(raw)? = parameters["rootObjectIdentifier"] {
             scopeObjectIdentifier = raw
         } else {
             scopeObjectIdentifier = nil
         }
 
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard let dataSource = document.hierarchyDataSource,
-              let allItems = dataSource.rawFlatItems
+        guard let allItems = session.rawFlatItems
         else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
 
         let searchScope: [LookinDisplayItem]
         if let scopeObjectIdentifier {
-            guard let scopeRoot = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
+            guard let scopeRoot = InspectionSessionLookup.findDisplayItem(
                 amongRoots: allItems,
                 matchingObjectIdentifier: scopeObjectIdentifier
             ) else {
@@ -269,7 +269,7 @@ public final class LKMCPBridgeSearchService {
         var ancestorIdentifiers: [String] = []
         var ancestorTitles: [String] = []
         item.enumerateAncestors { ancestor, _ in
-            ancestorIdentifiers.append(LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: ancestor))
+            ancestorIdentifiers.append(InspectionSessionLookup.objectIdentifierString(for: ancestor))
             ancestorTitles.append(Self.pathComponentTitle(for: ancestor))
         }
         // `enumerateAncestors` walks upward; the wire order is root first
@@ -280,11 +280,11 @@ public final class LKMCPBridgeSearchService {
         let pathComponents = ancestorTitles + [Self.pathComponentTitle(for: item)]
 
         return LKMCPBridgeSearchMatch(
-            objectIdentifier: LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: item),
+            objectIdentifier: InspectionSessionLookup.objectIdentifierString(for: item),
             className: item.displayingObject()?.classChainList?.first ?? "",
             title: title,
             subtitle: subtitle,
-            frame: LKMCPBridgeRect(cgRect: LKMCPBridgeLiveDocumentLookup.rootSpaceFrame(for: item)),
+            frame: LKMCPBridgeRect(cgRect: InspectionSessionLookup.rootSpaceFrame(for: item)),
             isHidden: item.isHidden,
             alpha: Double(item.alpha),
             depth: ancestorIdentifiers.count,
@@ -303,11 +303,9 @@ public final class LKMCPBridgeSearchService {
         return className.isEmpty ? "?" : className
     }
 
-    private static let validFieldList: String = {
-        return LKMCPBridgeSearchQuery.Field.allCases
-            .map(\.rawValue)
-            .joined(separator: ", ")
-    }()
+    private static let validFieldList: String = LKMCPBridgeSearchQuery.Field.allCases
+        .map(\.rawValue)
+        .joined(separator: ", ")
 
     // MARK: - Encoding helper (duplicated from InspectionService)
 

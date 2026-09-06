@@ -5,8 +5,8 @@
 // This is the bridge's first mutating route — it goes over Peertalk
 // (RPC 206 `LookinRequestType_InvokeMethod`) and can change the
 // inspected app's state. Read-only inspection routes live in
-// `LKMCPBridgeInspectionService`; they share the live-document /
-// display-item lookup through `LKMCPBridgeLiveDocumentLookup`.
+// `LKMCPBridgeInspectionService`; they share the live-session /
+// display-item lookup through `InspectionSessionLookup`.
 //
 // Selector blacklist mirrors `LKConsoleDataSource` (rejects selectors
 // containing `:` and `.`). The server enforces a hard zero-argument
@@ -20,8 +20,8 @@ import os
 
 @MainActor
 public final class LKMCPBridgeInvocationService {
-
     // MARK: - Constants pulled from upstream LookinDefines.h
+
     //
     // These are intentionally re-declared here rather than imported via
     // the bridging header: pulling LookinDefines.h into the bridging
@@ -80,9 +80,9 @@ public final class LKMCPBridgeInvocationService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) async -> LKMCPBridgeResponse {
         guard let parameters = parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"],
-              case .string(let objectIdentifier)? = parameters["objectIdentifier"],
-              case .string(let selector)? = parameters["selector"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"],
+              case let .string(objectIdentifier)? = parameters["objectIdentifier"],
+              case let .string(selector)? = parameters["selector"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
@@ -115,28 +115,28 @@ public final class LKMCPBridgeInvocationService {
             )
         }
 
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard document.hierarchyDataSource != nil else {
+        guard session.captureDate != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
 
-        guard let displayItem = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
-            amongRoots: LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document),
+        guard let displayItem = InspectionSessionLookup.findDisplayItem(
+            amongRoots: InspectionSessionLookup.topLevelDisplayItems(in: session),
             matchingObjectIdentifier: objectIdentifier
         ) else {
             return .failure(
@@ -148,7 +148,7 @@ public final class LKMCPBridgeInvocationService {
             )
         }
 
-        // The wire oid is hex-encoded; LKInspectableApp accepts the raw
+        // The wire oid is hex-encoded; InspectableApp accepts the raw
         // unsigned-long value. Re-derive it from the display item we
         // just resolved so we don't have to parse the wire string —
         // the display item already holds the canonical numeric oid.
@@ -172,7 +172,7 @@ public final class LKMCPBridgeInvocationService {
         // below — so we don't pre-check the channel from Swift (the
         // property is wrapped via FrameworkToolbox @dynamicMemberLookup
         // and isn't reachable on a key-path that we own).
-        guard let signal = document.inspectableApp.rawInvokeMethod(withOid: nativeOid, text: selector) else {
+        guard let signal = session.inspectableApp.rawInvokeMethod(withOid: nativeOid, text: selector) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -196,8 +196,8 @@ public final class LKMCPBridgeInvocationService {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
-                    code: "invoke.cancelled",
-                    message: "The invocation was cancelled before the target app produced a result."
+                    code: "invoke.executionUnknown",
+                    message: "Waiting was cancelled. The target may have executed the invocation; do not retry automatically."
                 )
             )
         } catch let error as NSError {
@@ -266,6 +266,9 @@ public final class LKMCPBridgeInvocationService {
     // MARK: - Error mapping
 
     private func mapInvocationError(_ error: NSError) -> LKMCPBridgeErrorPayload {
+        if let sessionError = InspectionSessionLookup.errorPayload(for: error, operation: "invoke") {
+            return sessionError
+        }
         switch error.code {
         case Self.lookinErrCodeObjectNotFound:
             return LKMCPBridgeErrorPayload(
@@ -299,6 +302,7 @@ public final class LKMCPBridgeInvocationService {
     }
 
     // MARK: - Encoding helper (duplicated from InspectionService)
+
     //
     // The two services share the same JSON round-trip helper but they
     // belong to different actor-isolated types, so we keep one copy per

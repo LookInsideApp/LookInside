@@ -9,7 +9,7 @@
 #import "LKWindowController.h"
 #import "LKMenuPopoverAppsListController.h"
 
-@class LKStaticViewController, LKStaticHierarchyDataSource, LKStaticAsyncUpdateManager, LKInspectableApp, RACSignal;
+@class LKStaticViewController, LKStaticHierarchyDataSource, LKStaticAsyncUpdateManager, LKInspectableApp, RACSignal, LKInspectionSession;
 
 /// Error domain for the refusals `-reloadHierarchySignal` raises on its own
 /// behalf. Errors forwarded from the Peertalk round-trip keep their original
@@ -64,6 +64,7 @@ typedef NS_ENUM(NSInteger, LKStaticWindowControllerReloadErrorCode) {
 /// 由 owner(LookinLiveDocument)注入的 inspectable app(weak)。Phase F 起所有
 /// RPC 路径完全依赖该字段,不再有兜底全局。
 @property(nonatomic, weak) LKInspectableApp *inspectableApp;
+@property(nonatomic, strong) LKInspectionSession *inspectionSession;
 
 /// LookinLiveDocument 创建 windowController 时使用,在标准 -init 之上把
 /// inspectableApp 注入到本 controller 与其 asyncUpdateManager 上,这样后续

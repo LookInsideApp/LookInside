@@ -1,38 +1,15 @@
-// LKMCPBridgeRefreshService.swift
-//
-// Handles the `hierarchy.refresh` bridge route: re-fetching the target
-// app's whole view tree (RPC 202) and handing it to the host's data
-// source, which is exactly what the inspector's toolbar reload button
-// does.
-//
-// Why this needs to exist at all: LookInside is a manual-refresh
-// inspector by design. Nothing polls the target and nothing pushes "the
-// UI changed" — the host's tree is whatever the last fetch produced. A
-// human closes that gap by clicking reload; before this route an agent
-// had no equivalent and could only read a snapshot that silently went
-// stale the moment the app navigated.
-//
-// This service is deliberately NOT folded into `LKMCPBridgeInspectionService`.
-// That service is pure cached reads with no RPC; refresh round-trips to
-// the target and mutates host state, and merging them would quietly
-// retire the "the read surface never emits RPC" property.
-//
-// The actual reload is not reimplemented here. It runs through
-// `-[LKStaticWindowController reloadHierarchySignal]`, the same method
-// the toolbar button now calls, so both paths share one re-entrancy gate
-// and one fetch chain. Duplicating the chain in Swift would have left two
-// copies to drift apart, and writing the window controller's private
-// `isFetchingHierarchy` flag from here would have meant this service
-// silently driving the host's toolbar enablement.
+// Refreshes the shared inspection session. Its complete hierarchy replaces the
+// cache before a response is returned; graphical clients subscribe independently.
 
 import AppKit
 import Foundation
+import LookInsideInspectionCore
 import os
 
 @MainActor
 public final class LKMCPBridgeRefreshService {
-
     // MARK: - Constants pulled from upstream LookinDefines.h
+
     //
     // Re-declared rather than imported, matching the other RPC-emitting
     // services: pulling LookinDefines.h into the bridging header would
@@ -70,57 +47,29 @@ public final class LKMCPBridgeRefreshService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) async -> LKMCPBridgeResponse {
         guard let parameters = parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
 
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard let windowController = document.staticWindowController else {
-            return .failure(
-                identifier: identifier,
-                error: LKMCPBridgeErrorPayload(
-                    code: "hierarchy.notReady",
-                    message: "Live document has no inspector window yet."
-                )
-            )
-        }
+        // Compare against the previous complete session snapshot.
+        let previousNodeCount = session.rawFlatItems?.count ?? 0
 
-        // Read the old size before starting: the data source is replaced
-        // in place during the reload, so after the fact there is nothing
-        // left to compare against.
-        let previousNodeCount = document.hierarchyDataSource?.rawFlatItems?.count ?? 0
-
-        // Stamps `lastReloadInitiator` on the window controller, which is
-        // what lets the event publisher label the resulting
-        // `hierarchy.reloaded` event as the caller's own echo rather than
-        // as news about the app.
-        guard let signal = windowController.reloadHierarchySignal(with: .agent) else {
-            return .failure(
-                identifier: identifier,
-                error: LKMCPBridgeErrorPayload(
-                    code: "refresh.internalError",
-                    message: "The inspector window returned no signal for the hierarchy reload."
-                )
-            )
-        }
+        let signal = session.refreshHierarchy(initiator: "agent")
 
         let startInstant = ContinuousClock.now
         do {
-            // The value is discarded: by the time it arrives the window
-            // controller has already handed it to the data source, and
-            // everything reported below is read back from there so the
-            // response describes the host's settled state rather than the
-            // wire payload.
+            // Completion means the session committed a complete snapshot.
             _ = try await LKMCPBridgeRACBridge.awaitFirstValue(of: signal, as: AnyObject.self)
         } catch RACBridgeError.completedWithoutValue {
             return .failure(
@@ -151,14 +100,14 @@ public final class LKMCPBridgeRefreshService {
         let durationMilliseconds = Int(elapsedComponents.seconds) * 1000
             + Int(elapsedComponents.attoseconds / 1_000_000_000_000_000)
 
-        let rootIdentifiers = LKMCPBridgeLiveDocumentLookup
-            .topLevelDisplayItems(in: document)
-            .map { LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: $0) }
+        let rootIdentifiers = InspectionSessionLookup
+            .topLevelDisplayItems(in: session)
+            .map { InspectionSessionLookup.objectIdentifierString(for: $0) }
 
         let result = LKMCPBridgeRefreshResult(
             targetIdentifier: targetIdentifier,
             rootObjectIdentifiers: rootIdentifiers,
-            nodeCount: document.hierarchyDataSource?.rawFlatItems?.count ?? 0,
+            nodeCount: session.rawFlatItems?.count ?? 0,
             previousNodeCount: previousNodeCount,
             durationMilliseconds: durationMilliseconds
         )
@@ -175,47 +124,10 @@ public final class LKMCPBridgeRefreshService {
     // MARK: - Error mapping
 
     private func mapRefreshError(_ error: NSError) -> LKMCPBridgeErrorPayload {
-        // Two domains reach here. The window controller's own domain means
-        // the host declined to start; `LookinErrorDomain` means the target
-        // app failed the fetch. Keeping them apart matters to the caller:
-        // the first is worth retrying in a moment, the second usually is
-        // not.
-        if error.domain == LKStaticWindowControllerReloadErrorDomain {
-            switch error.code {
-            case LKStaticWindowControllerReloadErrorCode.alreadyInProgress.rawValue:
-                return LKMCPBridgeErrorPayload(
-                    code: "refresh.alreadyInProgress",
-                    message: "A hierarchy reload is already running for this target — either a user clicked reload or another refresh call is still in flight. Retry once it settles."
-                )
-            case LKStaticWindowControllerReloadErrorCode.detailSyncInProgress.rawValue:
-                return LKMCPBridgeErrorPayload(
-                    code: "refresh.detailSyncInProgress",
-                    message: "The inspector is still syncing view details. Reloading now would discard that work; wait for it to finish."
-                )
-            case LKStaticWindowControllerReloadErrorCode.noInspectableApp.rawValue:
-                return LKMCPBridgeErrorPayload(
-                    code: "refresh.notAttached",
-                    message: "The inspector window is not attached to an app. Attach a target in LookInside and try again."
-                )
-            case LKStaticWindowControllerReloadErrorCode.windowClosed.rawValue:
-                return LKMCPBridgeErrorPayload(
-                    code: "refresh.windowClosed",
-                    message: "The inspector window closed while the hierarchy was being fetched, so the result was discarded."
-                )
-            case LKStaticWindowControllerReloadErrorCode.noResponse.rawValue:
-                return LKMCPBridgeErrorPayload(
-                    code: "refresh.disconnected",
-                    message: "The target app finished the hierarchy request without returning a hierarchy. The channel may have been closed mid-request."
-                )
-            default:
-                Self.logger.error("hierarchy.refresh received unmapped host refusal \(error.code, privacy: .public)")
-                return LKMCPBridgeErrorPayload(
-                    code: "refresh.internalError",
-                    message: "The inspector declined the reload for an unexpected reason (code \(error.code))."
-                )
-            }
+        if let sessionError = InspectionSessionLookup.errorPayload(for: error, operation: "refresh") {
+            return sessionError
         }
-
+        // Session errors above describe local state; these are remote errors.
         switch error.code {
         case Self.lookinErrCodeLicenseRequired:
             return .licenseRequired

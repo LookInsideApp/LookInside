@@ -16,13 +16,13 @@
 
 import CoreGraphics
 import Foundation
+import LookInsideInspectionCore
 
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 enum LKMCPBridgeAttributeEncoder {
-
     /// Encodes one host-side `LookinAttribute` into the wire DTO.
     ///
     /// - Parameter redactingSecureContent: when `true`, string-valued kinds
@@ -250,10 +250,10 @@ enum LKMCPBridgeAttributeEncoder {
         var transform = CGAffineTransform.identity
         nsValue.getValue(&transform, size: MemoryLayout<CGAffineTransform>.size)
         return .object([
-            "a":  .double(Double(transform.a)),
-            "b":  .double(Double(transform.b)),
-            "c":  .double(Double(transform.c)),
-            "d":  .double(Double(transform.d)),
+            "a": .double(Double(transform.a)),
+            "b": .double(Double(transform.b)),
+            "c": .double(Double(transform.c)),
+            "d": .double(Double(transform.d)),
             "tx": .double(Double(transform.tx)),
             "ty": .double(Double(transform.ty)),
         ])
@@ -266,10 +266,10 @@ enum LKMCPBridgeAttributeEncoder {
         var insets: (CGFloat, CGFloat, CGFloat, CGFloat) = (0, 0, 0, 0)
         nsValue.getValue(&insets, size: MemoryLayout.size(ofValue: insets))
         return .object([
-            "top":    .double(Double(insets.0)),
-            "left":   .double(Double(insets.1)),
+            "top": .double(Double(insets.0)),
+            "left": .double(Double(insets.1)),
             "bottom": .double(Double(insets.2)),
-            "right":  .double(Double(insets.3)),
+            "right": .double(Double(insets.3)),
         ])
     }
 
@@ -279,7 +279,7 @@ enum LKMCPBridgeAttributeEncoder {
         nsValue.getValue(&offset, size: MemoryLayout.size(ofValue: offset))
         return .object([
             "horizontal": .double(Double(offset.0)),
-            "vertical":   .double(Double(offset.1)),
+            "vertical": .double(Double(offset.1)),
         ])
     }
 
@@ -293,9 +293,9 @@ enum LKMCPBridgeAttributeEncoder {
             return nil
         }
         return .object([
-            "red":   .double(components[0].doubleValue),
+            "red": .double(components[0].doubleValue),
             "green": .double(components[1].doubleValue),
-            "blue":  .double(components[2].doubleValue),
+            "blue": .double(components[2].doubleValue),
             "alpha": .double(components[3].doubleValue),
         ])
     }
@@ -343,7 +343,7 @@ enum LKMCPBridgeAttributeEncoder {
 
     private static func constraintItemTypeString(_ itemType: LookinConstraintItemType) -> String {
         switch itemType {
-        case .`nil`: return "nil"
+        case .nil: return "nil"
         case .view: return "view"
         case .`self`: return "self"
         case .super: return "super"
@@ -417,7 +417,7 @@ enum LKMCPBridgeAttributeEncoder {
         let className = String(describing: type(of: object))
         let descriptionText = String(describing: object)
         return .object([
-            "className":  .string(className),
+            "className": .string(className),
             "description": .string(descriptionText),
         ])
     }
@@ -429,4 +429,3 @@ enum LKMCPBridgeAttributeEncoder {
         ])
     }
 }
-

@@ -7,6 +7,8 @@
 //
 
 #import "AppDelegate.h"
+#import <LookInsideInspectionCore/LookInsideInspectionCore.h>
+#import "LKSwiftUIHierarchyDisplayMode.h"
 #import "LKNavigationManager.h"
 #import "LKConnectionManager.h"
 #import "LKPreferenceManager.h"
@@ -26,6 +28,7 @@
 @implementation AppDelegate
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification {
+    [self configureInspectionEnvironment];
     [[LKAppMenuManager sharedInstance] setup];
     
     [RACObserve([LKPreferenceManager mainManager], appearanceType) subscribeNext:^(NSNumber *number) {
@@ -46,6 +49,16 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [LKConnectionManager sharedInstance];
+    [LKConnectionManager.sharedInstance.didReceivePush subscribeNext:^(RACTuple *message) {
+        if ([message.second unsignedIntValue] != LookinPush_SwiftUISupportDetected) return;
+        LKSwiftUISupportGatekeeper *gatekeeper = LKSwiftUISupportGatekeeper.sharedInstance;
+        [gatekeeper noteDetectedSwiftUISupport];
+        NSWindow *keyWindow = NSApp.keyWindow;
+        NSWindow *launchWindow = LKNavigationManager.sharedInstance.launchWindowController.window;
+        if (keyWindow && keyWindow != launchWindow) {
+            [gatekeeper promptForPendingDetectedSwiftUISupportIfNeededForWindow:keyWindow];
+        }
+    }];
     [[LKMCPBridgeServer sharedInstance] start];
     // Phase F: any documents opened during launch (Finder double-click,
     // Open With…) are already registered with NSDocumentController by the
@@ -112,6 +125,7 @@
 }
 
 - (void)_lk_activationStateDidChange:(NSNotification *)note {
+    [LKConnectionManager.sharedInstance authorizationStateDidChange];
     NSNumber *state = note.userInfo[@"activationState"];
     NSString *label;
     switch ((LKSwiftUISupportActivationState)state.integerValue) {
@@ -120,6 +134,46 @@
         case LKSwiftUISupportActivationStateActivated:    label = @"activated"; break;
     }
     NSLog(@"[LK-Activation] state changed -> %@ (raw=%@)", label, state);
+}
+
+- (void)configureInspectionEnvironment {
+    LKInspectionEnvironment *environment = LKInspectionEnvironment.sharedEnvironment;
+    environment.clientReadableVersion = LKHelper.lookinReadableVersion;
+    [RACObserve(LKPreferenceManager.mainManager, hierarchyRequestTimeoutInterval) subscribeNext:^(NSNumber *interval) {
+        environment.hierarchyRequestTimeoutInterval = interval.doubleValue;
+    }];
+    [RACObserve(LKPreferenceManager.mainManager, licenseHandshakeTimeoutInterval) subscribeNext:^(NSNumber *interval) {
+        environment.licenseHandshakeTimeoutInterval = interval.doubleValue;
+    }];
+    environment.initialCaptureOptionsProvider = ^NSDictionary *{
+        return @{
+            LookinParam_SwiftUIDisplayMode: @([LKSwiftUIHierarchyDisplayModeStore currentMode]),
+            @"showBackingLayers": @(LKPreferenceManager.mainManager.showBackingLayers.currentBOOLValue),
+        };
+    };
+    environment.licenseIsActivated = ^BOOL{
+        return LKSwiftUISupportGatekeeper.sharedInstance.activationState == LKSwiftUISupportActivationStateActivated;
+    };
+    environment.licenseProofForChallenge = ^NSDictionary *(NSDictionary *challenge, NSError **error) {
+        NSData *signature = nil;
+        NSData *intermediateCertificate = nil;
+        NSString *deviceIdentifier = nil;
+        BOOL didSign = [LKSwiftUISupportGatekeeper.sharedInstance
+            signChallengeWithNonce:challenge[@"nonce"]
+                  serverInstanceID:challenge[@"server_instance_id"]
+                         signature:&signature
+               intermediateCertDER:&intermediateCertificate
+                              udid:&deviceIdentifier
+                             error:error];
+        if (!didSign || signature.length == 0 || intermediateCertificate.length == 0) return nil;
+        return @{
+            @"nonce": challenge[@"nonce"],
+            @"server_instance_id": challenge[@"server_instance_id"],
+            @"signature": signature,
+            @"intermediate_cert_der": intermediateCertificate,
+            @"udid": deviceIdentifier ?: @"",
+        };
+    };
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {

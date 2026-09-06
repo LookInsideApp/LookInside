@@ -2,9 +2,9 @@
 //  Use this file to import your target's public headers that you would like to expose to Swift.
 //
 
-// ReactiveObjC underpins several host APIs that vend `RACSignal *` / `RACSubject *`;
-// import the umbrella here so any Swift consumer of those headers sees their types.
-#import "ReactiveObjC.h"
+// Import the complete module before client categories so its model and signal
+// types have the same module identity in Swift and Objective-C.
+#import <LookInsideInspectionCore/LookInsideInspectionCore.h>
 
 #import "LKPreferenceManager.h"
 #import "LKMessageManager.h"

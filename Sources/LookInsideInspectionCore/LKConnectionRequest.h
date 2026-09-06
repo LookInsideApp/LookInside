@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
+NS_SWIFT_NAME(ConnectionRequest)
 @interface LKConnectionRequest : NSObject
 
 @property(nonatomic, assign) uint32_t type;

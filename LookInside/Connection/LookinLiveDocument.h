@@ -2,27 +2,17 @@
 //  LookinLiveDocument.h
 //  LookInside
 //
-//  Phase B of multi-document support: NSDocument that owns a single live
-//  Peertalk inspection session against one LKInspectableApp. The document
-//  is "untitled" by default, never autosaves, and exposes Save As to export
-//  the current hierarchy snapshot as a `.lookin` archive.
+//  A graphical document retaining a shared inspection session. The document
+//  exports its presentation snapshot and does not own transport or reconnection.
 //
 
 #import <Cocoa/Cocoa.h>
 
-@class LKInspectableApp, LKStaticHierarchyDataSource, LKStaticAsyncUpdateManager, LKStaticWindowController;
+@class LKInspectableApp, LKStaticHierarchyDataSource, LKStaticAsyncUpdateManager, LKStaticWindowController, LKInspectionSession;
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// Posted (object = the document) once a Live Doc has been added to the
-/// shared document controller and its window controllers exist, so an
-/// observer can read `inspectableApp` / `hierarchyDataSource` right away.
-///
-/// `NSDocumentController` vends no such notification of its own, and the
-/// MCPBridge event publisher needs both a "a target attached" signal and a
-/// place to hook each document's own reload subject. Rather than have that
-/// publisher reach into the document controller, the two moments announce
-/// themselves.
+/// Posted after the graphical document and its window controllers are registered.
 extern NSNotificationName const LookinLiveDocumentDidOpenNotification;
 
 /// Posted (object = the document) at the start of `-close`, while the
@@ -32,18 +22,14 @@ extern NSNotificationName const LookinLiveDocumentWillCloseNotification;
 
 @interface LookinLiveDocument : NSDocument
 
-/// The inspectable app this document represents. Stable for callers in the
-/// sense that the document keeps its identity, but Phase D reconnect logic
-/// will swap the underlying `LKInspectableApp` (new channel + new
-/// LookinAppInfo) when the previous channel goes away and a matching app
-/// reappears. Public surface remains readonly; internal class extension
-/// declares the readwrite override.
+/// Owns inspection state before any window is constructed. Each window keeps
+/// independent presentation models copied from this session.
+@property(nonatomic, strong, readonly) LKInspectionSession *inspectionSession;
+
+/// The session's current target. Reconnection can replace the app and channel.
 @property(nonatomic, strong, readonly) LKInspectableApp *inspectableApp;
 
-/// Phase D: human-readable reason for the current connection loss, or nil
-/// when the doc is connected. Phase E will surface this as a banner in
-/// the window controller; Phase D leaves it as a side-channel for that
-/// upcoming UI work and for debugging in the meantime.
+/// The session's connection-loss message, displayed by the graphical adapter.
 @property(nonatomic, copy, readonly, nullable) NSString *connectionLossBannerMessage;
 
 /// Convenience accessor that returns the per-doc hierarchy data source owned
@@ -55,16 +41,10 @@ extern NSNotificationName const LookinLiveDocumentWillCloseNotification;
 /// before -makeWindowControllers has run.
 @property(nonatomic, weak, readonly, nullable) LKStaticAsyncUpdateManager *asyncUpdateManager;
 
-/// This document's window controller. Returns nil before
-/// -makeWindowControllers has run. Exposed so callers that need a whole
-/// window-level operation rather than one of its parts — the MCPBridge
-/// `hierarchy.refresh` route reaching -reloadHierarchySignal — do not have
-/// to re-derive it from `windowControllers`.
+/// The graphical window controller, or nil before makeWindowControllers.
 @property(nonatomic, weak, readonly, nullable) LKStaticWindowController *staticWindowController;
 
-/// Designated initializer. Returns nil with `outError` populated when `app`
-/// is nil. Phase B does not establish or validate the channel here; that is
-/// the caller's responsibility.
+/// Retains the target's session; the caller establishes the channel beforehand.
 - (nullable instancetype)initWithInspectableApp:(LKInspectableApp *)app
                                            error:(NSError *_Nullable *_Nullable)outError;
 

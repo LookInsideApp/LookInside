@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme LastUpgradeVersion="2640" version="1.7">
+  <BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES">
+    <BuildActionEntries>
+      <BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">
+        <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="1C0E00000000000000000001" BuildableName="LookInsideInspectionCore.framework" BlueprintName="LookInsideInspectionCore" ReferencedContainer="container:LookInside.xcodeproj"/>
+      </BuildActionEntry>
+    </BuildActionEntries>
+  </BuildAction>
+  <TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.PosixSpawn" shouldUseLaunchSchemeArgsEnv="YES">
+    <Testables>
+      <TestableReference skipped="NO" parallelizable="NO">
+        <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="1C0E0000000000000000000A" BuildableName="LookInsideInspectionCoreTests.xctest" BlueprintName="LookInsideInspectionCoreTests" ReferencedContainer="container:LookInside.xcodeproj"/>
+      </TestableReference>
+    </Testables>
+  </TestAction>
+  <LaunchAction buildConfiguration="Debug"/>
+  <ProfileAction buildConfiguration="Release"/>
+  <AnalyzeAction buildConfiguration="Debug"/>
+  <ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/>
+</Scheme>

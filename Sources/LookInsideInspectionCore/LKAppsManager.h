@@ -7,8 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ReactiveObjC.h"
 #import "LKInspectableApp.h"
 
+NS_SWIFT_NAME(AppsManager)
 @interface LKAppsManager : NSObject
 
 + (instancetype)sharedInstance;

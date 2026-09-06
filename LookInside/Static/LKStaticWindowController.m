@@ -7,6 +7,7 @@
 //
 
 #import "LKStaticWindowController.h"
+#import <LookInsideInspectionCore/LookInsideInspectionCore.h>
 #import "LKStaticViewController.h"
 #import "LKMenuPopoverSettingController.h"
 #import "LKStaticHierarchyDataSource.h"
@@ -56,6 +57,8 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
 @property(nonatomic, strong, readwrite) LKStaticAsyncUpdateManager *asyncUpdateManager;
 
 @property(nonatomic, assign, readwrite) LKHierarchyReloadInitiator lastReloadInitiator;
+@property(nonatomic, copy) NSArray<RACDisposable *> *inspectionSubscriptions;
+@property(nonatomic, assign) uint64_t renderedHierarchyRevision;
 
 @end
 
@@ -65,10 +68,59 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     if (self = [self init]) {
         // 由 LookinLiveDocument 调用,把 app 注入到本 wc 与其 asyncUpdateManager,
         // 这样所有 RPC 请求(reload、modify 等)都路由到该 app 的 channel。
-        self.inspectableApp = app;
-        self.asyncUpdateManager.inspectableApp = app;
+        self.inspectionSession = app.inspectionSession;
     }
     return self;
+}
+
+- (void)setInspectionSession:(LKInspectionSession *)inspectionSession {
+    if (_inspectionSession == inspectionSession) return;
+    for (RACDisposable *subscription in self.inspectionSubscriptions) [subscription dispose];
+    _inspectionSession = inspectionSession;
+    self.renderedHierarchyRevision = 0;
+    self.inspectableApp = inspectionSession.inspectableApp;
+    self.asyncUpdateManager.inspectableApp = inspectionSession.inspectableApp;
+    if (!inspectionSession) {
+        self.inspectionSubscriptions = @[];
+        return;
+    }
+    @weakify(self);
+    RACDisposable *hierarchySubscription = [inspectionSession.didReloadHierarchyInfo subscribeNext:^(id event) {
+        @strongify(self);
+        [self applySessionHierarchyKeepingState:YES];
+    }];
+    RACDisposable *detailsSubscription = [inspectionSession.didUpdateDetails subscribeNext:^(id event) {
+        @strongify(self);
+        for (LookinDisplayItemDetail *detail in self.inspectionSession.latestDetails) {
+            [self.hierarchyDataSource modifyWithDisplayItemDetail:detail];
+        }
+    }];
+    RACDisposable *connectionSubscription = [RACObserve(inspectionSession, inspectableApp) subscribeNext:^(LKInspectableApp *application) {
+        @strongify(self);
+        self.inspectableApp = application;
+        self.asyncUpdateManager.inspectableApp = application;
+        self.renderedHierarchyRevision = 0;
+    }];
+    self.inspectionSubscriptions = @[hierarchySubscription, detailsSubscription, connectionSubscription];
+    [self applySessionHierarchyKeepingState:NO];
+}
+
+- (void)applySessionHierarchyKeepingState:(BOOL)keepState {
+    LKInspectionSession *session = self.inspectionSession;
+    if (!session || self.renderedHierarchyRevision == session.hierarchyRevision) return;
+    LookinHierarchyInfo *hierarchy = [session readHierarchyWithError:NULL];
+    if (!hierarchy) return;
+    self.renderedHierarchyRevision = session.hierarchyRevision;
+    self.lastReloadInitiator = [session.lastReloadInitiator isEqualToString:@"agent"]
+        ? LKHierarchyReloadInitiatorAgent : LKHierarchyReloadInitiatorHost;
+    [self.hierarchyDataSource reloadWithHierarchyInfo:hierarchy keepState:keepState];
+}
+
+- (NSDictionary<NSString *, id> *)currentCaptureOptions {
+    return @{
+        LookinParam_SwiftUIDisplayMode: @([LKSwiftUIHierarchyDisplayModeStore currentMode]),
+        @"showBackingLayers": @(LKPreferenceManager.mainManager.showBackingLayers.currentBOOLValue),
+    };
 }
 
 - (instancetype)init {
@@ -442,12 +494,12 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     // from "the fetch finished having delivered nothing".
     __block BOOL didSettleResult = NO;
     @weakify(self);
-    [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
+    [[self.inspectionSession updateCaptureOptions:self.currentCaptureOptions
+                                       initiator:initiator == LKHierarchyReloadInitiatorAgent ? @"agent" : @"host"] subscribeNext:^(LookinHierarchyInfo *info) {
         @strongify(self);
         if (!self) {
-            // No data source left to hand the hierarchy to. Reporting
-            // success here would tell the caller the host holds this tree
-            // when nothing does.
+            // The session captured the hierarchy, but this graphical operation
+            // also requires its window to remain available for presentation.
             didSettleResult = YES;
             [resultSubject sendError:LKStaticWindowControllerReloadErrorMake(
                                          LKStaticWindowControllerReloadErrorWindowClosed,
@@ -455,7 +507,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
             return;
         }
         [self.viewController.progressView finishWithCompletion:nil];
-        [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:YES];
+        [self applySessionHierarchyKeepingState:YES];
         self.isFetchingHierarchy = NO;
 
         [LKPerformanceReporter.sharedInstance didFetchHierarchy];
@@ -739,9 +791,8 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     // all flow through here, so this is the single point that owns
     // wiring `app` into the per-instance graph (`asyncUpdateManager` is
     // what dispatches RPCs).
-    self.inspectableApp = app;
-    self.asyncUpdateManager.inspectableApp = app;
-    [self.hierarchyDataSource reloadWithHierarchyInfo:info keepState:keepState];
+    self.inspectionSession = app.inspectionSession;
+    [self applySessionHierarchyKeepingState:keepState];
 
     // Bump this bundle id to the front of the expansion-state LRU so that actively-inspected
     // apps don't get evicted just because the user hasn't toggled anything yet in this session.
@@ -760,10 +811,10 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
     NSString *priorSwiftUIID = priorSelection.customInfo.swiftUIDisplayItemID;
     BOOL priorWasSwiftUI = [priorSwiftUIID hasPrefix:@"swiftui:"];
 
-    [app cancelHierarchyDetailFetching];
+    [self.asyncUpdateManager endUpdating];
     [self.viewController.progressView animateToProgress:InitialIndicatorProgressWhenFetchHierarchy];
     @weakify(self);
-    [[app fetchHierarchyData] subscribeNext:^(LookinHierarchyInfo *info) {
+    [[self.inspectionSession updateCaptureOptions:self.currentCaptureOptions initiator:@"host"] subscribeNext:^(LookinHierarchyInfo *info) {
         @strongify(self);
         // Mode toggle keeps the same target app, so keepState=YES preserves
         // expansion / scroll where possible. Selection migration handled below.
@@ -881,6 +932,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
 }
 
 - (void)dealloc {
+    for (RACDisposable *subscription in self.inspectionSubscriptions) [subscription dispose];
     [NSNotificationCenter.defaultCenter removeObserver:self
                                                   name:LKSwiftUIHierarchyDisplayModeDidChangeNotification
                                                 object:nil];

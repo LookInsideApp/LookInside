@@ -6,6 +6,1091 @@
 	objectVersion = 100;
 	objects = {
 
+/* Inspection core and standalone tests */
+		1C0E00000000000000000810 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/InspectionCore/InspectionBridgeTests.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000811 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000810; };
+		1C0E00000000000000000812 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/InspectionSessionLookup.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000813 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000812; };
+		1C0E00000000000000000814 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeInspectionService.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000815 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000814; };
+		1C0E00000000000000000816 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeRefreshService.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000817 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000816; };
+		1C0E00000000000000000818 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeRACBridge.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000819 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000818; };
+		1C0E0000000000000000081A = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeFrame.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000081B = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000081A; };
+		1C0E0000000000000000081C = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeInspectionModels.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000081D = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000081C; };
+		1C0E0000000000000000081E = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeAttributeEncoder.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000081F = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000081E; };
+		1C0E00000000000000000820 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LookInside/MCPBridge/LKMCPBridgeSecureContentDetector.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000821 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000820; };
+		1C0E00000000000000000804 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "Tests/InspectionCore/LKInspectionTransportTests.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000805 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000804; };
+		1C0E00000000000000000800 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/LookInsideInspectionCore/InspectionSessionAccess.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000801 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000800; };
+		1C0E00000000000000000802 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/InspectionCore/InspectionSessionAccessTests.swift"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000803 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000802; };
+		1C0E00000000000000000017 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSArray+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSArray+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000018 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000017; };
+		1C0E00000000000000000019 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSControl+RACCommandSupport.m"; path = "LookInside/ReactiveObjC/NSControl+RACCommandSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000001A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000019; };
+		1C0E0000000000000000001B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSControl+RACTextSignalSupport.m"; path = "LookInside/ReactiveObjC/NSControl+RACTextSignalSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000001C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000001B; };
+		1C0E0000000000000000001D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSData+RACSupport.m"; path = "LookInside/ReactiveObjC/NSData+RACSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000001E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000001D; };
+		1C0E0000000000000000001F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSDictionary+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSDictionary+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000020 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000001F; };
+		1C0E00000000000000000021 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSEnumerator+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSEnumerator+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000022 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000021; };
+		1C0E00000000000000000023 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSFileHandle+RACSupport.m"; path = "LookInside/ReactiveObjC/NSFileHandle+RACSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000024 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000023; };
+		1C0E00000000000000000025 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSIndexSet+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSIndexSet+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000026 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000025; };
+		1C0E00000000000000000027 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSInvocation+RACTypeParsing.m"; path = "LookInside/ReactiveObjC/NSInvocation+RACTypeParsing.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000028 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000027; };
+		1C0E00000000000000000029 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSNotificationCenter+RACSupport.m"; path = "LookInside/ReactiveObjC/NSNotificationCenter+RACSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000002A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000029; };
+		1C0E0000000000000000002B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACAppKitBindings.m"; path = "LookInside/ReactiveObjC/NSObject+RACAppKitBindings.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000002C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000002B; };
+		1C0E0000000000000000002D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACDeallocating.m"; path = "LookInside/ReactiveObjC/NSObject+RACDeallocating.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000002E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000002D; };
+		1C0E0000000000000000002F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACDescription.m"; path = "LookInside/ReactiveObjC/NSObject+RACDescription.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000030 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000002F; };
+		1C0E00000000000000000031 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACKVOWrapper.m"; path = "LookInside/ReactiveObjC/NSObject+RACKVOWrapper.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000032 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000031; };
+		1C0E00000000000000000033 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACLifting.m"; path = "LookInside/ReactiveObjC/NSObject+RACLifting.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000034 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000033; };
+		1C0E00000000000000000035 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACPropertySubscribing.m"; path = "LookInside/ReactiveObjC/NSObject+RACPropertySubscribing.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000036 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000035; };
+		1C0E00000000000000000037 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+RACSelectorSignal.m"; path = "LookInside/ReactiveObjC/NSObject+RACSelectorSignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000038 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000037; };
+		1C0E00000000000000000039 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSOrderedSet+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSOrderedSet+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000003A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000039; };
+		1C0E0000000000000000003B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSSet+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSSet+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000003C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000003B; };
+		1C0E0000000000000000003D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSString+RACKeyPathUtilities.m"; path = "LookInside/ReactiveObjC/NSString+RACKeyPathUtilities.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000003E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000003D; };
+		1C0E0000000000000000003F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSString+RACSequenceAdditions.m"; path = "LookInside/ReactiveObjC/NSString+RACSequenceAdditions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000040 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000003F; };
+		1C0E00000000000000000041 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSString+RACSupport.m"; path = "LookInside/ReactiveObjC/NSString+RACSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000042 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000041; };
+		1C0E00000000000000000043 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSText+RACSignalSupport.m"; path = "LookInside/ReactiveObjC/NSText+RACSignalSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000044 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000043; };
+		1C0E00000000000000000045 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSURLConnection+RACSupport.m"; path = "LookInside/ReactiveObjC/NSURLConnection+RACSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000046 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000045; };
+		1C0E00000000000000000047 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSUserDefaults+RACSupport.m"; path = "LookInside/ReactiveObjC/NSUserDefaults+RACSupport.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000048 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000047; };
+		1C0E00000000000000000049 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACArraySequence.m"; path = "LookInside/ReactiveObjC/RACArraySequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000004A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000049; };
+		1C0E0000000000000000004B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACBehaviorSubject.m"; path = "LookInside/ReactiveObjC/RACBehaviorSubject.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000004C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000004B; };
+		1C0E0000000000000000004D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACBlockTrampoline.m"; path = "LookInside/ReactiveObjC/RACBlockTrampoline.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000004E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000004D; };
+		1C0E0000000000000000004F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACChannel.m"; path = "LookInside/ReactiveObjC/RACChannel.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000050 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000004F; };
+		1C0E00000000000000000051 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACCommand.m"; path = "LookInside/ReactiveObjC/RACCommand.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000052 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000051; };
+		1C0E00000000000000000053 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACCompoundDisposable.m"; path = "LookInside/ReactiveObjC/RACCompoundDisposable.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000054 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000053; };
+		1C0E00000000000000000055 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACDelegateProxy.m"; path = "LookInside/ReactiveObjC/RACDelegateProxy.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000056 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000055; };
+		1C0E00000000000000000057 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACDisposable.m"; path = "LookInside/ReactiveObjC/RACDisposable.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000058 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000057; };
+		1C0E00000000000000000059 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACDynamicSequence.m"; path = "LookInside/ReactiveObjC/RACDynamicSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000005A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000059; };
+		1C0E0000000000000000005B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACDynamicSignal.m"; path = "LookInside/ReactiveObjC/RACDynamicSignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000005C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000005B; };
+		1C0E0000000000000000005D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACEagerSequence.m"; path = "LookInside/ReactiveObjC/RACEagerSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000005E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000005D; };
+		1C0E0000000000000000005F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACEmptySequence.m"; path = "LookInside/ReactiveObjC/RACEmptySequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000060 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000005F; };
+		1C0E00000000000000000061 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACEmptySignal.m"; path = "LookInside/ReactiveObjC/RACEmptySignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000062 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000061; };
+		1C0E00000000000000000063 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACErrorSignal.m"; path = "LookInside/ReactiveObjC/RACErrorSignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000064 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000063; };
+		1C0E00000000000000000065 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACEvent.m"; path = "LookInside/ReactiveObjC/RACEvent.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000066 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000065; };
+		1C0E00000000000000000067 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACGroupedSignal.m"; path = "LookInside/ReactiveObjC/RACGroupedSignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000068 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000067; };
+		1C0E00000000000000000069 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACImmediateScheduler.m"; path = "LookInside/ReactiveObjC/RACImmediateScheduler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000006A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000069; };
+		1C0E0000000000000000006B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACIndexSetSequence.m"; path = "LookInside/ReactiveObjC/RACIndexSetSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000006C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000006B; };
+		1C0E0000000000000000006D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACKVOChannel.m"; path = "LookInside/ReactiveObjC/RACKVOChannel.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000006E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000006D; };
+		1C0E0000000000000000006F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACKVOProxy.m"; path = "LookInside/ReactiveObjC/RACKVOProxy.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000070 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000006F; };
+		1C0E00000000000000000071 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACKVOTrampoline.m"; path = "LookInside/ReactiveObjC/RACKVOTrampoline.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000072 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000071; };
+		1C0E00000000000000000073 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACMulticastConnection.m"; path = "LookInside/ReactiveObjC/RACMulticastConnection.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000074 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000073; };
+		1C0E00000000000000000075 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACPassthroughSubscriber.m"; path = "LookInside/ReactiveObjC/RACPassthroughSubscriber.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000076 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000075; };
+		1C0E00000000000000000077 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACQueueScheduler.m"; path = "LookInside/ReactiveObjC/RACQueueScheduler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000078 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000077; };
+		1C0E00000000000000000079 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACReplaySubject.m"; path = "LookInside/ReactiveObjC/RACReplaySubject.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000007A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000079; };
+		1C0E0000000000000000007B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACReturnSignal.m"; path = "LookInside/ReactiveObjC/RACReturnSignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000007C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000007B; };
+		1C0E0000000000000000007D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACScheduler.m"; path = "LookInside/ReactiveObjC/RACScheduler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000007E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000007D; };
+		1C0E0000000000000000007F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACScopedDisposable.m"; path = "LookInside/ReactiveObjC/RACScopedDisposable.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000080 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000007F; };
+		1C0E00000000000000000081 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSequence.m"; path = "LookInside/ReactiveObjC/RACSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000082 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000081; };
+		1C0E00000000000000000083 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSerialDisposable.m"; path = "LookInside/ReactiveObjC/RACSerialDisposable.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000084 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000083; };
+		1C0E00000000000000000085 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSignal+Operations.m"; path = "LookInside/ReactiveObjC/RACSignal+Operations.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000086 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000085; };
+		1C0E00000000000000000087 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSignal.m"; path = "LookInside/ReactiveObjC/RACSignal.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000088 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000087; };
+		1C0E00000000000000000089 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSignalSequence.m"; path = "LookInside/ReactiveObjC/RACSignalSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000008A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000089; };
+		1C0E0000000000000000008B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACStream.m"; path = "LookInside/ReactiveObjC/RACStream.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000008C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000008B; };
+		1C0E0000000000000000008D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACStringSequence.m"; path = "LookInside/ReactiveObjC/RACStringSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000008E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000008D; };
+		1C0E0000000000000000008F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSubject.m"; path = "LookInside/ReactiveObjC/RACSubject.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000090 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000008F; };
+		1C0E00000000000000000091 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSubscriber.m"; path = "LookInside/ReactiveObjC/RACSubscriber.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000092 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000091; };
+		1C0E00000000000000000093 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSubscriptingAssignmentTrampoline.m"; path = "LookInside/ReactiveObjC/RACSubscriptingAssignmentTrampoline.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000094 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000093; };
+		1C0E00000000000000000095 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACSubscriptionScheduler.m"; path = "LookInside/ReactiveObjC/RACSubscriptionScheduler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000096 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000095; };
+		1C0E00000000000000000097 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACTargetQueueScheduler.m"; path = "LookInside/ReactiveObjC/RACTargetQueueScheduler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000098 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000097; };
+		1C0E00000000000000000099 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACTestScheduler.m"; path = "LookInside/ReactiveObjC/RACTestScheduler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000009A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000099; };
+		1C0E0000000000000000009B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACTuple.m"; path = "LookInside/ReactiveObjC/RACTuple.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000009C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000009B; };
+		1C0E0000000000000000009D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACTupleSequence.m"; path = "LookInside/ReactiveObjC/RACTupleSequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000009E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000009D; };
+		1C0E0000000000000000009F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACUnarySequence.m"; path = "LookInside/ReactiveObjC/RACUnarySequence.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000A0 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000009F; };
+		1C0E000000000000000000A1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACUnit.m"; path = "LookInside/ReactiveObjC/RACUnit.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000A2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000A1; };
+		1C0E000000000000000000A3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACValueTransformer.m"; path = "LookInside/ReactiveObjC/RACValueTransformer.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000A4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000A3; };
+		1C0E000000000000000000A5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "RACEXTRuntimeExtensions.m"; path = "LookInside/ReactiveObjC/extobjc/RACEXTRuntimeExtensions.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000A6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000A5; };
+		1C0E000000000000000000A7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKInspectionEnvironment.m"; path = "Sources/LookInsideInspectionCore/LKInspectionEnvironment.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000A8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000A7; };
+		1C0E000000000000000000A9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKInspectionRequestQueue.m"; path = "Sources/LookInsideInspectionCore/LKInspectionRequestQueue.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000AA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000A9; };
+		1C0E000000000000000000AB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKInspectionSession.m"; path = "Sources/LookInsideInspectionCore/LKInspectionSession.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000AC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000AB; };
+		1C0E000000000000000000AD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKAppsManager.m"; path = "Sources/LookInsideInspectionCore/LKAppsManager.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000AE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000AD; };
+		1C0E000000000000000000AF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKConnectionManager.m"; path = "Sources/LookInsideInspectionCore/LKConnectionManager.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000B0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000AF; };
+		1C0E000000000000000000B1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKConnectionRequest.m"; path = "Sources/LookInsideInspectionCore/LKConnectionRequest.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000B2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000B1; };
+		1C0E000000000000000000B3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKInspectableApp.m"; path = "Sources/LookInsideInspectionCore/LKInspectableApp.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000B4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000B3; };
+		1C0E000000000000000000B5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "CALayer+Lookin.m"; path = "Sources/LookinCore/Category/CALayer+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000B6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000B5; };
+		1C0E000000000000000000B7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "Color+Lookin.m"; path = "Sources/LookinCore/Category/Color+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000B8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000B7; };
+		1C0E000000000000000000B9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "Image+Lookin.m"; path = "Sources/LookinCore/Category/Image+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000BA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000B9; };
+		1C0E000000000000000000BB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSArray+Lookin.m"; path = "Sources/LookinCore/Category/NSArray+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000BC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000BB; };
+		1C0E000000000000000000BD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSObject+Lookin.m"; path = "Sources/LookinCore/Category/NSObject+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000BE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000BD; };
+		1C0E000000000000000000BF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSSet+Lookin.m"; path = "Sources/LookinCore/Category/NSSet+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000C0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000BF; };
+		1C0E000000000000000000C1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSString+Lookin.m"; path = "Sources/LookinCore/Category/NSString+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000C2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000C1; };
+		1C0E000000000000000000C3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "NSValue+Lookin.m"; path = "Sources/LookinCore/Category/NSValue+Lookin.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000C4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000C3; };
+		1C0E000000000000000000C5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKS_MultiplatformAdapter.m"; path = "Sources/LookinCore/LKS_MultiplatformAdapter.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000C6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000C5; };
+		1C0E000000000000000000C7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAppInfo.m"; path = "Sources/LookinCore/LookinAppInfo.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000C8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000C7; };
+		1C0E000000000000000000C9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAttrIdentifiers.m"; path = "Sources/LookinCore/LookinAttrIdentifiers.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000CA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000C9; };
+		1C0E000000000000000000CB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAttribute.m"; path = "Sources/LookinCore/LookinAttribute.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000CC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000CB; };
+		1C0E000000000000000000CD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAttributeModification.m"; path = "Sources/LookinCore/LookinAttributeModification.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000CE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000CD; };
+		1C0E000000000000000000CF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAttributesGroup.m"; path = "Sources/LookinCore/LookinAttributesGroup.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000D0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000CF; };
+		1C0E000000000000000000D1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAttributesSection.m"; path = "Sources/LookinCore/LookinAttributesSection.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000D2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000D1; };
+		1C0E000000000000000000D3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinAutoLayoutConstraint.m"; path = "Sources/LookinCore/LookinAutoLayoutConstraint.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000D4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000D3; };
+		1C0E000000000000000000D5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinConnectionAttachment.m"; path = "Sources/LookinCore/LookinConnectionAttachment.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000D6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000D5; };
+		1C0E000000000000000000D7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinConnectionResponseAttachment.m"; path = "Sources/LookinCore/LookinConnectionResponseAttachment.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000D8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000D7; };
+		1C0E000000000000000000D9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinCustomAttrModification.m"; path = "Sources/LookinCore/LookinCustomAttrModification.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000DA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000D9; };
+		1C0E000000000000000000DB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinCustomDisplayItemInfo.m"; path = "Sources/LookinCore/LookinCustomDisplayItemInfo.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000DC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000DB; };
+		1C0E000000000000000000DD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinDashboardBlueprint.m"; path = "Sources/LookinCore/LookinDashboardBlueprint.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000DE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000DD; };
+		1C0E000000000000000000DF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinDisplayItem.m"; path = "Sources/LookinCore/LookinDisplayItem.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000E0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000DF; };
+		1C0E000000000000000000E1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinDisplayItemDetail.m"; path = "Sources/LookinCore/LookinDisplayItemDetail.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000E2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000E1; };
+		1C0E000000000000000000E3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinEventHandler.m"; path = "Sources/LookinCore/LookinEventHandler.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000E4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000E3; };
+		1C0E000000000000000000E5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinHierarchyFile.m"; path = "Sources/LookinCore/LookinHierarchyFile.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000E6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000E5; };
+		1C0E000000000000000000E7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinHierarchyInfo.m"; path = "Sources/LookinCore/LookinHierarchyInfo.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000E8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000E7; };
+		1C0E000000000000000000E9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinObject.m"; path = "Sources/LookinCore/LookinObject.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000EA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000E9; };
+		1C0E000000000000000000EB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinStaticAsyncUpdateTask.m"; path = "Sources/LookinCore/LookinStaticAsyncUpdateTask.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000EC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000EB; };
+		1C0E000000000000000000ED = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinTuple.m"; path = "Sources/LookinCore/LookinTuple.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000EE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000ED; };
+		1C0E000000000000000000EF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinWeakContainer.m"; path = "Sources/LookinCore/LookinWeakContainer.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000F0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000EF; };
+		1C0E000000000000000000F1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "Lookin_PTChannel.m"; path = "Sources/LookinCore/Peertalk/Lookin_PTChannel.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000F2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000F1; };
+		1C0E000000000000000000F3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "Lookin_PTProtocol.m"; path = "Sources/LookinCore/Peertalk/Lookin_PTProtocol.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000F4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000F3; };
+		1C0E000000000000000000F5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "Lookin_PTUSBHub.m"; path = "Sources/LookinCore/Peertalk/Lookin_PTUSBHub.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000F6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000F5; };
+		1C0E000000000000000000F7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookInsideServerLogger.m"; path = "Sources/LookinServerBase/LookInsideServerLogger.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000F8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000F7; };
+		1C0E000000000000000000F9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LookinIvarTrace.m"; path = "Sources/LookinServerBase/LookinIvarTrace.m"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000FA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000F9; };
+		1C0E000000000000000000FB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKInspectionEnvironment.h"; path = "Sources/LookInsideInspectionCore/LKInspectionEnvironment.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000FC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000FB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000000FD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKInspectionRequestQueue.h"; path = "Sources/LookInsideInspectionCore/LKInspectionRequestQueue.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000000FE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000FD; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000000FF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKInspectionSession.h"; path = "Sources/LookInsideInspectionCore/LKInspectionSession.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000100 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000000FF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000101 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKAppsManager.h"; path = "Sources/LookInsideInspectionCore/LKAppsManager.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000102 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000101; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000103 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKConnectionManager.h"; path = "Sources/LookInsideInspectionCore/LKConnectionManager.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000104 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000103; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000105 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKConnectionRequest.h"; path = "Sources/LookInsideInspectionCore/LKConnectionRequest.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000106 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000105; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000107 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKInspectableApp.h"; path = "Sources/LookInsideInspectionCore/LKInspectableApp.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000108 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000107; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000109 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LKS_MultiplatformAdapter.h"; path = "Sources/LookinCore/LKS_MultiplatformAdapter.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000010A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000109; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000010B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAppInfo.h"; path = "Sources/LookinCore/LookinAppInfo.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000010C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000010B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000010D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAttrIdentifiers.h"; path = "Sources/LookinCore/LookinAttrIdentifiers.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000010E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000010D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000010F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAttrType.h"; path = "Sources/LookinCore/LookinAttrType.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000110 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000010F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000111 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAttribute.h"; path = "Sources/LookinCore/LookinAttribute.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000112 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000111; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000113 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAttributeModification.h"; path = "Sources/LookinCore/LookinAttributeModification.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000114 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000113; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000115 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAttributesGroup.h"; path = "Sources/LookinCore/LookinAttributesGroup.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000116 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000115; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000117 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAttributesSection.h"; path = "Sources/LookinCore/LookinAttributesSection.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000118 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000117; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000119 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinAutoLayoutConstraint.h"; path = "Sources/LookinCore/LookinAutoLayoutConstraint.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000011A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000119; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000011B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinCodingValueType.h"; path = "Sources/LookinCore/LookinCodingValueType.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000011C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000011B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000011D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinConnectionAttachment.h"; path = "Sources/LookinCore/LookinConnectionAttachment.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000011E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000011D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000011F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinConnectionResponseAttachment.h"; path = "Sources/LookinCore/LookinConnectionResponseAttachment.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000120 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000011F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000121 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinCustomAttrModification.h"; path = "Sources/LookinCore/LookinCustomAttrModification.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000122 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000121; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000123 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinCustomDisplayItemInfo.h"; path = "Sources/LookinCore/LookinCustomDisplayItemInfo.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000124 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000123; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000125 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinDashboardBlueprint.h"; path = "Sources/LookinCore/LookinDashboardBlueprint.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000126 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000125; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000127 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinDefines.h"; path = "Sources/LookinCore/LookinDefines.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000128 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000127; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000129 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinDisplayItem.h"; path = "Sources/LookinCore/LookinDisplayItem.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000012A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000129; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000012B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinDisplayItemDetail.h"; path = "Sources/LookinCore/LookinDisplayItemDetail.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000012C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000012B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000012D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinEventHandler.h"; path = "Sources/LookinCore/LookinEventHandler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000012E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000012D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000012F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinHierarchyFile.h"; path = "Sources/LookinCore/LookinHierarchyFile.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000130 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000012F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000131 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinHierarchyInfo.h"; path = "Sources/LookinCore/LookinHierarchyInfo.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000132 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000131; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000133 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinObject.h"; path = "Sources/LookinCore/LookinObject.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000134 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000133; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000135 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinStaticAsyncUpdateTask.h"; path = "Sources/LookinCore/LookinStaticAsyncUpdateTask.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000136 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000135; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000137 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinTuple.h"; path = "Sources/LookinCore/LookinTuple.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000138 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000137; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000139 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinWeakContainer.h"; path = "Sources/LookinCore/LookinWeakContainer.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000013A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000139; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000013B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "CALayer+Lookin.h"; path = "Sources/LookinCore/Category/CALayer+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000013C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000013B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000013D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Color+Lookin.h"; path = "Sources/LookinCore/Category/Color+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000013E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000013D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000013F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Image+Lookin.h"; path = "Sources/LookinCore/Category/Image+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000140 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000013F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000141 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSArray+Lookin.h"; path = "Sources/LookinCore/Category/NSArray+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000142 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000141; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000143 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+Lookin.h"; path = "Sources/LookinCore/Category/NSObject+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000144 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000143; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000145 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSSet+Lookin.h"; path = "Sources/LookinCore/Category/NSSet+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000146 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000145; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000147 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+Lookin.h"; path = "Sources/LookinCore/Category/NSString+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000148 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000147; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000149 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSValue+Lookin.h"; path = "Sources/LookinCore/Category/NSValue+Lookin.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000014A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000149; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000014B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Lookin_PTChannel.h"; path = "Sources/LookinCore/Peertalk/Lookin_PTChannel.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000014C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000014B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000014D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Lookin_PTPrivate.h"; path = "Sources/LookinCore/Peertalk/Lookin_PTPrivate.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000014E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000014D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000014F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Lookin_PTProtocol.h"; path = "Sources/LookinCore/Peertalk/Lookin_PTProtocol.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000150 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000014F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000151 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Lookin_PTUSBHub.h"; path = "Sources/LookinCore/Peertalk/Lookin_PTUSBHub.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000152 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000151; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000153 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Peertalk.h"; path = "Sources/LookinCore/Peertalk/Peertalk.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000154 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000153; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000155 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookInsideServerLogger.h"; path = "Sources/LookinServerBase/LookInsideServerLogger.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000156 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000155; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000157 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookinIvarTrace.h"; path = "Sources/LookinServerBase/LookinIvarTrace.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000158 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000157; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000159 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSArray+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSArray+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000015A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000159; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000015B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSControl+RACCommandSupport.h"; path = "LookInside/ReactiveObjC/NSControl+RACCommandSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000015C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000015B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000015D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSControl+RACTextSignalSupport.h"; path = "LookInside/ReactiveObjC/NSControl+RACTextSignalSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000015E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000015D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000015F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSData+RACSupport.h"; path = "LookInside/ReactiveObjC/NSData+RACSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000160 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000015F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000161 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSDictionary+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSDictionary+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000162 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000161; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000163 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSEnumerator+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSEnumerator+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000164 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000163; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000165 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSFileHandle+RACSupport.h"; path = "LookInside/ReactiveObjC/NSFileHandle+RACSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000166 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000165; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000167 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSIndexSet+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSIndexSet+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000168 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000167; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000169 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSInvocation+RACTypeParsing.h"; path = "LookInside/ReactiveObjC/NSInvocation+RACTypeParsing.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000016A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000169; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000016B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSNotificationCenter+RACSupport.h"; path = "LookInside/ReactiveObjC/NSNotificationCenter+RACSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000016C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000016B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000016D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACAppKitBindings.h"; path = "LookInside/ReactiveObjC/NSObject+RACAppKitBindings.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000016E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000016D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000016F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACDeallocating.h"; path = "LookInside/ReactiveObjC/NSObject+RACDeallocating.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000170 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000016F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000171 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACDescription.h"; path = "LookInside/ReactiveObjC/NSObject+RACDescription.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000172 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000171; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000173 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACKVOWrapper.h"; path = "LookInside/ReactiveObjC/NSObject+RACKVOWrapper.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000174 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000173; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000175 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACLifting.h"; path = "LookInside/ReactiveObjC/NSObject+RACLifting.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000176 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000175; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000177 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACPropertySubscribing.h"; path = "LookInside/ReactiveObjC/NSObject+RACPropertySubscribing.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000178 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000177; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000179 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSObject+RACSelectorSignal.h"; path = "LookInside/ReactiveObjC/NSObject+RACSelectorSignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000017A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000179; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000017B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSOrderedSet+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSOrderedSet+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000017C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000017B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000017D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSSet+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSSet+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000017E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000017D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000017F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+RACKeyPathUtilities.h"; path = "LookInside/ReactiveObjC/NSString+RACKeyPathUtilities.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000180 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000017F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000181 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+RACSequenceAdditions.h"; path = "LookInside/ReactiveObjC/NSString+RACSequenceAdditions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000182 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000181; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000183 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+RACSupport.h"; path = "LookInside/ReactiveObjC/NSString+RACSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000184 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000183; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000185 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSText+RACSignalSupport.h"; path = "LookInside/ReactiveObjC/NSText+RACSignalSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000186 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000185; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000187 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSURLConnection+RACSupport.h"; path = "LookInside/ReactiveObjC/NSURLConnection+RACSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000188 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000187; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000189 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSUserDefaults+RACSupport.h"; path = "LookInside/ReactiveObjC/NSUserDefaults+RACSupport.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000018A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000189; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000018B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACAnnotations.h"; path = "LookInside/ReactiveObjC/RACAnnotations.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000018C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000018B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000018D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACArraySequence.h"; path = "LookInside/ReactiveObjC/RACArraySequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000018E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000018D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000018F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACBehaviorSubject.h"; path = "LookInside/ReactiveObjC/RACBehaviorSubject.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000190 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000018F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000191 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACBlockTrampoline.h"; path = "LookInside/ReactiveObjC/RACBlockTrampoline.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000192 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000191; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000193 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACChannel.h"; path = "LookInside/ReactiveObjC/RACChannel.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000194 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000193; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000195 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACCommand.h"; path = "LookInside/ReactiveObjC/RACCommand.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000196 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000195; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000197 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACCompoundDisposable.h"; path = "LookInside/ReactiveObjC/RACCompoundDisposable.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000198 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000197; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000199 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACCompoundDisposableProvider.h"; path = "LookInside/ReactiveObjC/RACCompoundDisposableProvider.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000019A = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000199; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000019B = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACDelegateProxy.h"; path = "LookInside/ReactiveObjC/RACDelegateProxy.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000019C = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000019B; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000019D = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACDisposable.h"; path = "LookInside/ReactiveObjC/RACDisposable.h"; sourceTree = SOURCE_ROOT; };
+		1C0E0000000000000000019E = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000019D; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E0000000000000000019F = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACDynamicSequence.h"; path = "LookInside/ReactiveObjC/RACDynamicSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001A0 = { isa = PBXBuildFile; fileRef = 1C0E0000000000000000019F; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001A1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACDynamicSignal.h"; path = "LookInside/ReactiveObjC/RACDynamicSignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001A2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001A1; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001A3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEXTKeyPathCoding.h"; path = "LookInside/ReactiveObjC/extobjc/RACEXTKeyPathCoding.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001A4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001A3; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001A5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEXTRuntimeExtensions.h"; path = "LookInside/ReactiveObjC/extobjc/RACEXTRuntimeExtensions.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001A6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001A5; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001A7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEXTScope.h"; path = "LookInside/ReactiveObjC/extobjc/RACEXTScope.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001A8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001A7; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001A9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEagerSequence.h"; path = "LookInside/ReactiveObjC/RACEagerSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001AA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001A9; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001AB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEmptySequence.h"; path = "LookInside/ReactiveObjC/RACEmptySequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001AC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001AB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001AD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEmptySignal.h"; path = "LookInside/ReactiveObjC/RACEmptySignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001AE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001AD; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001AF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACErrorSignal.h"; path = "LookInside/ReactiveObjC/RACErrorSignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001B0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001AF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001B1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACEvent.h"; path = "LookInside/ReactiveObjC/RACEvent.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001B2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001B1; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001B3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACGroupedSignal.h"; path = "LookInside/ReactiveObjC/RACGroupedSignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001B4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001B3; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001B5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACImmediateScheduler.h"; path = "LookInside/ReactiveObjC/RACImmediateScheduler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001B6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001B5; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001B7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACIndexSetSequence.h"; path = "LookInside/ReactiveObjC/RACIndexSetSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001B8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001B7; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001B9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACKVOChannel.h"; path = "LookInside/ReactiveObjC/RACKVOChannel.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001BA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001B9; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001BB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACKVOProxy.h"; path = "LookInside/ReactiveObjC/RACKVOProxy.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001BC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001BB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001BD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACKVOTrampoline.h"; path = "LookInside/ReactiveObjC/RACKVOTrampoline.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001BE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001BD; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001BF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACMulticastConnection+Private.h"; path = "LookInside/ReactiveObjC/RACMulticastConnection+Private.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001C0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001BF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001C1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACMulticastConnection.h"; path = "LookInside/ReactiveObjC/RACMulticastConnection.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001C2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001C1; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001C3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACPassthroughSubscriber.h"; path = "LookInside/ReactiveObjC/RACPassthroughSubscriber.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001C4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001C3; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001C5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACQueueScheduler+Subclass.h"; path = "LookInside/ReactiveObjC/RACQueueScheduler+Subclass.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001C6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001C5; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001C7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACQueueScheduler.h"; path = "LookInside/ReactiveObjC/RACQueueScheduler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001C8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001C7; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001C9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACReplaySubject.h"; path = "LookInside/ReactiveObjC/RACReplaySubject.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001CA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001C9; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001CB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACReturnSignal.h"; path = "LookInside/ReactiveObjC/RACReturnSignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001CC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001CB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001CD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACScheduler+Private.h"; path = "LookInside/ReactiveObjC/RACScheduler+Private.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001CE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001CD; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001CF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACScheduler+Subclass.h"; path = "LookInside/ReactiveObjC/RACScheduler+Subclass.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001D0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001CF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001D1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACScheduler.h"; path = "LookInside/ReactiveObjC/RACScheduler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001D2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001D1; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001D3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACScopedDisposable.h"; path = "LookInside/ReactiveObjC/RACScopedDisposable.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001D4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001D3; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001D5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSequence.h"; path = "LookInside/ReactiveObjC/RACSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001D6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001D5; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001D7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSerialDisposable.h"; path = "LookInside/ReactiveObjC/RACSerialDisposable.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001D8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001D7; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001D9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSignal+Operations.h"; path = "LookInside/ReactiveObjC/RACSignal+Operations.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001DA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001D9; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001DB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSignal.h"; path = "LookInside/ReactiveObjC/RACSignal.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001DC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001DB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001DD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSignalProvider.h"; path = "LookInside/ReactiveObjC/RACSignalProvider.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001DE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001DD; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001DF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSignalSequence.h"; path = "LookInside/ReactiveObjC/RACSignalSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001E0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001DF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001E1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACStream+Private.h"; path = "LookInside/ReactiveObjC/RACStream+Private.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001E2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001E1; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001E3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACStream.h"; path = "LookInside/ReactiveObjC/RACStream.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001E4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001E3; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001E5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACStringSequence.h"; path = "LookInside/ReactiveObjC/RACStringSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001E6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001E5; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001E7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSubject.h"; path = "LookInside/ReactiveObjC/RACSubject.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001E8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001E7; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001E9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSubscriber+Private.h"; path = "LookInside/ReactiveObjC/RACSubscriber+Private.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001EA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001E9; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001EB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSubscriber.h"; path = "LookInside/ReactiveObjC/RACSubscriber.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001EC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001EB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001ED = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSubscriptingAssignmentTrampoline.h"; path = "LookInside/ReactiveObjC/RACSubscriptingAssignmentTrampoline.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001EE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001ED; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001EF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACSubscriptionScheduler.h"; path = "LookInside/ReactiveObjC/RACSubscriptionScheduler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001F0 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001EF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001F1 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACTargetQueueScheduler.h"; path = "LookInside/ReactiveObjC/RACTargetQueueScheduler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001F2 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001F1; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001F3 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACTestScheduler.h"; path = "LookInside/ReactiveObjC/RACTestScheduler.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001F4 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001F3; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001F5 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACTuple.h"; path = "LookInside/ReactiveObjC/RACTuple.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001F6 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001F5; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001F7 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACTupleSequence.h"; path = "LookInside/ReactiveObjC/RACTupleSequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001F8 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001F7; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001F9 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACUnarySequence.h"; path = "LookInside/ReactiveObjC/RACUnarySequence.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001FA = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001F9; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001FB = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACUnit.h"; path = "LookInside/ReactiveObjC/RACUnit.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001FC = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001FB; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001FD = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACValueTransformer.h"; path = "LookInside/ReactiveObjC/RACValueTransformer.h"; sourceTree = SOURCE_ROOT; };
+		1C0E000000000000000001FE = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001FD; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E000000000000000001FF = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "RACmetamacros.h"; path = "LookInside/ReactiveObjC/extobjc/RACmetamacros.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000200 = { isa = PBXBuildFile; fileRef = 1C0E000000000000000001FF; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000201 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "ReactiveObjC.h"; path = "LookInside/ReactiveObjC/ReactiveObjC.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000202 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000201; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000203 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LookInsideInspectionCore.h"; path = "Sources/LookInsideInspectionCore/LookInsideInspectionCore.h"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000204 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000203; settings = { ATTRIBUTES = (Public,); }; };
+		1C0E00000000000000000205 = { isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "LKInspectionSessionTests.m"; path = "Tests/InspectionCore/LKInspectionSessionTests.m"; sourceTree = SOURCE_ROOT; };
+		1C0E00000000000000000206 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000205; };
+		1C0E0000000000000000000E = { isa = PBXGroup; children = (1C0E00000000000000000205,); name = InspectionCoreTests; sourceTree = "<group>"; };
+		1C0E00000000000000000006 = { isa = PBXGroup; children = (
+			1C0E00000000000000000810,
+			1C0E00000000000000000812,
+			1C0E00000000000000000814,
+			1C0E00000000000000000816,
+			1C0E00000000000000000818,
+			1C0E0000000000000000081A,
+			1C0E0000000000000000081C,
+			1C0E0000000000000000081E,
+			1C0E00000000000000000820,
+			1C0E00000000000000000804,
+			1C0E00000000000000000800,
+			1C0E00000000000000000802,
+				1C0E00000000000000000017,
+				1C0E00000000000000000019,
+				1C0E0000000000000000001B,
+				1C0E0000000000000000001D,
+				1C0E0000000000000000001F,
+				1C0E00000000000000000021,
+				1C0E00000000000000000023,
+				1C0E00000000000000000025,
+				1C0E00000000000000000027,
+				1C0E00000000000000000029,
+				1C0E0000000000000000002B,
+				1C0E0000000000000000002D,
+				1C0E0000000000000000002F,
+				1C0E00000000000000000031,
+				1C0E00000000000000000033,
+				1C0E00000000000000000035,
+				1C0E00000000000000000037,
+				1C0E00000000000000000039,
+				1C0E0000000000000000003B,
+				1C0E0000000000000000003D,
+				1C0E0000000000000000003F,
+				1C0E00000000000000000041,
+				1C0E00000000000000000043,
+				1C0E00000000000000000045,
+				1C0E00000000000000000047,
+				1C0E00000000000000000049,
+				1C0E0000000000000000004B,
+				1C0E0000000000000000004D,
+				1C0E0000000000000000004F,
+				1C0E00000000000000000051,
+				1C0E00000000000000000053,
+				1C0E00000000000000000055,
+				1C0E00000000000000000057,
+				1C0E00000000000000000059,
+				1C0E0000000000000000005B,
+				1C0E0000000000000000005D,
+				1C0E0000000000000000005F,
+				1C0E00000000000000000061,
+				1C0E00000000000000000063,
+				1C0E00000000000000000065,
+				1C0E00000000000000000067,
+				1C0E00000000000000000069,
+				1C0E0000000000000000006B,
+				1C0E0000000000000000006D,
+				1C0E0000000000000000006F,
+				1C0E00000000000000000071,
+				1C0E00000000000000000073,
+				1C0E00000000000000000075,
+				1C0E00000000000000000077,
+				1C0E00000000000000000079,
+				1C0E0000000000000000007B,
+				1C0E0000000000000000007D,
+				1C0E0000000000000000007F,
+				1C0E00000000000000000081,
+				1C0E00000000000000000083,
+				1C0E00000000000000000085,
+				1C0E00000000000000000087,
+				1C0E00000000000000000089,
+				1C0E0000000000000000008B,
+				1C0E0000000000000000008D,
+				1C0E0000000000000000008F,
+				1C0E00000000000000000091,
+				1C0E00000000000000000093,
+				1C0E00000000000000000095,
+				1C0E00000000000000000097,
+				1C0E00000000000000000099,
+				1C0E0000000000000000009B,
+				1C0E0000000000000000009D,
+				1C0E0000000000000000009F,
+				1C0E000000000000000000A1,
+				1C0E000000000000000000A3,
+				1C0E000000000000000000A5,
+				1C0E000000000000000000A7,
+				1C0E000000000000000000A9,
+				1C0E000000000000000000AB,
+				1C0E000000000000000000AD,
+				1C0E000000000000000000AF,
+				1C0E000000000000000000B1,
+				1C0E000000000000000000B3,
+				1C0E000000000000000000B5,
+				1C0E000000000000000000B7,
+				1C0E000000000000000000B9,
+				1C0E000000000000000000BB,
+				1C0E000000000000000000BD,
+				1C0E000000000000000000BF,
+				1C0E000000000000000000C1,
+				1C0E000000000000000000C3,
+				1C0E000000000000000000C5,
+				1C0E000000000000000000C7,
+				1C0E000000000000000000C9,
+				1C0E000000000000000000CB,
+				1C0E000000000000000000CD,
+				1C0E000000000000000000CF,
+				1C0E000000000000000000D1,
+				1C0E000000000000000000D3,
+				1C0E000000000000000000D5,
+				1C0E000000000000000000D7,
+				1C0E000000000000000000D9,
+				1C0E000000000000000000DB,
+				1C0E000000000000000000DD,
+				1C0E000000000000000000DF,
+				1C0E000000000000000000E1,
+				1C0E000000000000000000E3,
+				1C0E000000000000000000E5,
+				1C0E000000000000000000E7,
+				1C0E000000000000000000E9,
+				1C0E000000000000000000EB,
+				1C0E000000000000000000ED,
+				1C0E000000000000000000EF,
+				1C0E000000000000000000F1,
+				1C0E000000000000000000F3,
+				1C0E000000000000000000F5,
+				1C0E000000000000000000F7,
+				1C0E000000000000000000F9,
+				1C0E000000000000000000FB,
+				1C0E000000000000000000FD,
+				1C0E000000000000000000FF,
+				1C0E00000000000000000101,
+				1C0E00000000000000000103,
+				1C0E00000000000000000105,
+				1C0E00000000000000000107,
+				1C0E00000000000000000109,
+				1C0E0000000000000000010B,
+				1C0E0000000000000000010D,
+				1C0E0000000000000000010F,
+				1C0E00000000000000000111,
+				1C0E00000000000000000113,
+				1C0E00000000000000000115,
+				1C0E00000000000000000117,
+				1C0E00000000000000000119,
+				1C0E0000000000000000011B,
+				1C0E0000000000000000011D,
+				1C0E0000000000000000011F,
+				1C0E00000000000000000121,
+				1C0E00000000000000000123,
+				1C0E00000000000000000125,
+				1C0E00000000000000000127,
+				1C0E00000000000000000129,
+				1C0E0000000000000000012B,
+				1C0E0000000000000000012D,
+				1C0E0000000000000000012F,
+				1C0E00000000000000000131,
+				1C0E00000000000000000133,
+				1C0E00000000000000000135,
+				1C0E00000000000000000137,
+				1C0E00000000000000000139,
+				1C0E0000000000000000013B,
+				1C0E0000000000000000013D,
+				1C0E0000000000000000013F,
+				1C0E00000000000000000141,
+				1C0E00000000000000000143,
+				1C0E00000000000000000145,
+				1C0E00000000000000000147,
+				1C0E00000000000000000149,
+				1C0E0000000000000000014B,
+				1C0E0000000000000000014D,
+				1C0E0000000000000000014F,
+				1C0E00000000000000000151,
+				1C0E00000000000000000153,
+				1C0E00000000000000000155,
+				1C0E00000000000000000157,
+				1C0E00000000000000000159,
+				1C0E0000000000000000015B,
+				1C0E0000000000000000015D,
+				1C0E0000000000000000015F,
+				1C0E00000000000000000161,
+				1C0E00000000000000000163,
+				1C0E00000000000000000165,
+				1C0E00000000000000000167,
+				1C0E00000000000000000169,
+				1C0E0000000000000000016B,
+				1C0E0000000000000000016D,
+				1C0E0000000000000000016F,
+				1C0E00000000000000000171,
+				1C0E00000000000000000173,
+				1C0E00000000000000000175,
+				1C0E00000000000000000177,
+				1C0E00000000000000000179,
+				1C0E0000000000000000017B,
+				1C0E0000000000000000017D,
+				1C0E0000000000000000017F,
+				1C0E00000000000000000181,
+				1C0E00000000000000000183,
+				1C0E00000000000000000185,
+				1C0E00000000000000000187,
+				1C0E00000000000000000189,
+				1C0E0000000000000000018B,
+				1C0E0000000000000000018D,
+				1C0E0000000000000000018F,
+				1C0E00000000000000000191,
+				1C0E00000000000000000193,
+				1C0E00000000000000000195,
+				1C0E00000000000000000197,
+				1C0E00000000000000000199,
+				1C0E0000000000000000019B,
+				1C0E0000000000000000019D,
+				1C0E0000000000000000019F,
+				1C0E000000000000000001A1,
+				1C0E000000000000000001A3,
+				1C0E000000000000000001A5,
+				1C0E000000000000000001A7,
+				1C0E000000000000000001A9,
+				1C0E000000000000000001AB,
+				1C0E000000000000000001AD,
+				1C0E000000000000000001AF,
+				1C0E000000000000000001B1,
+				1C0E000000000000000001B3,
+				1C0E000000000000000001B5,
+				1C0E000000000000000001B7,
+				1C0E000000000000000001B9,
+				1C0E000000000000000001BB,
+				1C0E000000000000000001BD,
+				1C0E000000000000000001BF,
+				1C0E000000000000000001C1,
+				1C0E000000000000000001C3,
+				1C0E000000000000000001C5,
+				1C0E000000000000000001C7,
+				1C0E000000000000000001C9,
+				1C0E000000000000000001CB,
+				1C0E000000000000000001CD,
+				1C0E000000000000000001CF,
+				1C0E000000000000000001D1,
+				1C0E000000000000000001D3,
+				1C0E000000000000000001D5,
+				1C0E000000000000000001D7,
+				1C0E000000000000000001D9,
+				1C0E000000000000000001DB,
+				1C0E000000000000000001DD,
+				1C0E000000000000000001DF,
+				1C0E000000000000000001E1,
+				1C0E000000000000000001E3,
+				1C0E000000000000000001E5,
+				1C0E000000000000000001E7,
+				1C0E000000000000000001E9,
+				1C0E000000000000000001EB,
+				1C0E000000000000000001ED,
+				1C0E000000000000000001EF,
+				1C0E000000000000000001F1,
+				1C0E000000000000000001F3,
+				1C0E000000000000000001F5,
+				1C0E000000000000000001F7,
+				1C0E000000000000000001F9,
+				1C0E000000000000000001FB,
+				1C0E000000000000000001FD,
+				1C0E000000000000000001FF,
+				1C0E00000000000000000201,
+				1C0E00000000000000000203,
+			); name = LookInsideInspectionCore; sourceTree = "<group>"; };
+		1C0E00000000000000000002 = { isa = PBXFileReference; explicitFileType = wrapper.framework; path = LookInsideInspectionCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C0E0000000000000000000B = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = LookInsideInspectionCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		1C0E00000000000000000003 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+			1C0E00000000000000000801,
+				1C0E00000000000000000018,
+				1C0E0000000000000000001A,
+				1C0E0000000000000000001C,
+				1C0E0000000000000000001E,
+				1C0E00000000000000000020,
+				1C0E00000000000000000022,
+				1C0E00000000000000000024,
+				1C0E00000000000000000026,
+				1C0E00000000000000000028,
+				1C0E0000000000000000002A,
+				1C0E0000000000000000002C,
+				1C0E0000000000000000002E,
+				1C0E00000000000000000030,
+				1C0E00000000000000000032,
+				1C0E00000000000000000034,
+				1C0E00000000000000000036,
+				1C0E00000000000000000038,
+				1C0E0000000000000000003A,
+				1C0E0000000000000000003C,
+				1C0E0000000000000000003E,
+				1C0E00000000000000000040,
+				1C0E00000000000000000042,
+				1C0E00000000000000000044,
+				1C0E00000000000000000046,
+				1C0E00000000000000000048,
+				1C0E0000000000000000004A,
+				1C0E0000000000000000004C,
+				1C0E0000000000000000004E,
+				1C0E00000000000000000050,
+				1C0E00000000000000000052,
+				1C0E00000000000000000054,
+				1C0E00000000000000000056,
+				1C0E00000000000000000058,
+				1C0E0000000000000000005A,
+				1C0E0000000000000000005C,
+				1C0E0000000000000000005E,
+				1C0E00000000000000000060,
+				1C0E00000000000000000062,
+				1C0E00000000000000000064,
+				1C0E00000000000000000066,
+				1C0E00000000000000000068,
+				1C0E0000000000000000006A,
+				1C0E0000000000000000006C,
+				1C0E0000000000000000006E,
+				1C0E00000000000000000070,
+				1C0E00000000000000000072,
+				1C0E00000000000000000074,
+				1C0E00000000000000000076,
+				1C0E00000000000000000078,
+				1C0E0000000000000000007A,
+				1C0E0000000000000000007C,
+				1C0E0000000000000000007E,
+				1C0E00000000000000000080,
+				1C0E00000000000000000082,
+				1C0E00000000000000000084,
+				1C0E00000000000000000086,
+				1C0E00000000000000000088,
+				1C0E0000000000000000008A,
+				1C0E0000000000000000008C,
+				1C0E0000000000000000008E,
+				1C0E00000000000000000090,
+				1C0E00000000000000000092,
+				1C0E00000000000000000094,
+				1C0E00000000000000000096,
+				1C0E00000000000000000098,
+				1C0E0000000000000000009A,
+				1C0E0000000000000000009C,
+				1C0E0000000000000000009E,
+				1C0E000000000000000000A0,
+				1C0E000000000000000000A2,
+				1C0E000000000000000000A4,
+				1C0E000000000000000000A6,
+				1C0E000000000000000000A8,
+				1C0E000000000000000000AA,
+				1C0E000000000000000000AC,
+				1C0E000000000000000000AE,
+				1C0E000000000000000000B0,
+				1C0E000000000000000000B2,
+				1C0E000000000000000000B4,
+				1C0E000000000000000000B6,
+				1C0E000000000000000000B8,
+				1C0E000000000000000000BA,
+				1C0E000000000000000000BC,
+				1C0E000000000000000000BE,
+				1C0E000000000000000000C0,
+				1C0E000000000000000000C2,
+				1C0E000000000000000000C4,
+				1C0E000000000000000000C6,
+				1C0E000000000000000000C8,
+				1C0E000000000000000000CA,
+				1C0E000000000000000000CC,
+				1C0E000000000000000000CE,
+				1C0E000000000000000000D0,
+				1C0E000000000000000000D2,
+				1C0E000000000000000000D4,
+				1C0E000000000000000000D6,
+				1C0E000000000000000000D8,
+				1C0E000000000000000000DA,
+				1C0E000000000000000000DC,
+				1C0E000000000000000000DE,
+				1C0E000000000000000000E0,
+				1C0E000000000000000000E2,
+				1C0E000000000000000000E4,
+				1C0E000000000000000000E6,
+				1C0E000000000000000000E8,
+				1C0E000000000000000000EA,
+				1C0E000000000000000000EC,
+				1C0E000000000000000000EE,
+				1C0E000000000000000000F0,
+				1C0E000000000000000000F2,
+				1C0E000000000000000000F4,
+				1C0E000000000000000000F6,
+				1C0E000000000000000000F8,
+				1C0E000000000000000000FA,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E00000000000000000004 = { isa = PBXHeadersBuildPhase; buildActionMask = 2147483647; files = (
+				1C0E000000000000000000FC,
+				1C0E000000000000000000FE,
+				1C0E00000000000000000100,
+				1C0E00000000000000000102,
+				1C0E00000000000000000104,
+				1C0E00000000000000000106,
+				1C0E00000000000000000108,
+				1C0E0000000000000000010A,
+				1C0E0000000000000000010C,
+				1C0E0000000000000000010E,
+				1C0E00000000000000000110,
+				1C0E00000000000000000112,
+				1C0E00000000000000000114,
+				1C0E00000000000000000116,
+				1C0E00000000000000000118,
+				1C0E0000000000000000011A,
+				1C0E0000000000000000011C,
+				1C0E0000000000000000011E,
+				1C0E00000000000000000120,
+				1C0E00000000000000000122,
+				1C0E00000000000000000124,
+				1C0E00000000000000000126,
+				1C0E00000000000000000128,
+				1C0E0000000000000000012A,
+				1C0E0000000000000000012C,
+				1C0E0000000000000000012E,
+				1C0E00000000000000000130,
+				1C0E00000000000000000132,
+				1C0E00000000000000000134,
+				1C0E00000000000000000136,
+				1C0E00000000000000000138,
+				1C0E0000000000000000013A,
+				1C0E0000000000000000013C,
+				1C0E0000000000000000013E,
+				1C0E00000000000000000140,
+				1C0E00000000000000000142,
+				1C0E00000000000000000144,
+				1C0E00000000000000000146,
+				1C0E00000000000000000148,
+				1C0E0000000000000000014A,
+				1C0E0000000000000000014C,
+				1C0E0000000000000000014E,
+				1C0E00000000000000000150,
+				1C0E00000000000000000152,
+				1C0E00000000000000000154,
+				1C0E00000000000000000156,
+				1C0E00000000000000000158,
+				1C0E0000000000000000015A,
+				1C0E0000000000000000015C,
+				1C0E0000000000000000015E,
+				1C0E00000000000000000160,
+				1C0E00000000000000000162,
+				1C0E00000000000000000164,
+				1C0E00000000000000000166,
+				1C0E00000000000000000168,
+				1C0E0000000000000000016A,
+				1C0E0000000000000000016C,
+				1C0E0000000000000000016E,
+				1C0E00000000000000000170,
+				1C0E00000000000000000172,
+				1C0E00000000000000000174,
+				1C0E00000000000000000176,
+				1C0E00000000000000000178,
+				1C0E0000000000000000017A,
+				1C0E0000000000000000017C,
+				1C0E0000000000000000017E,
+				1C0E00000000000000000180,
+				1C0E00000000000000000182,
+				1C0E00000000000000000184,
+				1C0E00000000000000000186,
+				1C0E00000000000000000188,
+				1C0E0000000000000000018A,
+				1C0E0000000000000000018C,
+				1C0E0000000000000000018E,
+				1C0E00000000000000000190,
+				1C0E00000000000000000192,
+				1C0E00000000000000000194,
+				1C0E00000000000000000196,
+				1C0E00000000000000000198,
+				1C0E0000000000000000019A,
+				1C0E0000000000000000019C,
+				1C0E0000000000000000019E,
+				1C0E000000000000000001A0,
+				1C0E000000000000000001A2,
+				1C0E000000000000000001A4,
+				1C0E000000000000000001A6,
+				1C0E000000000000000001A8,
+				1C0E000000000000000001AA,
+				1C0E000000000000000001AC,
+				1C0E000000000000000001AE,
+				1C0E000000000000000001B0,
+				1C0E000000000000000001B2,
+				1C0E000000000000000001B4,
+				1C0E000000000000000001B6,
+				1C0E000000000000000001B8,
+				1C0E000000000000000001BA,
+				1C0E000000000000000001BC,
+				1C0E000000000000000001BE,
+				1C0E000000000000000001C0,
+				1C0E000000000000000001C2,
+				1C0E000000000000000001C4,
+				1C0E000000000000000001C6,
+				1C0E000000000000000001C8,
+				1C0E000000000000000001CA,
+				1C0E000000000000000001CC,
+				1C0E000000000000000001CE,
+				1C0E000000000000000001D0,
+				1C0E000000000000000001D2,
+				1C0E000000000000000001D4,
+				1C0E000000000000000001D6,
+				1C0E000000000000000001D8,
+				1C0E000000000000000001DA,
+				1C0E000000000000000001DC,
+				1C0E000000000000000001DE,
+				1C0E000000000000000001E0,
+				1C0E000000000000000001E2,
+				1C0E000000000000000001E4,
+				1C0E000000000000000001E6,
+				1C0E000000000000000001E8,
+				1C0E000000000000000001EA,
+				1C0E000000000000000001EC,
+				1C0E000000000000000001EE,
+				1C0E000000000000000001F0,
+				1C0E000000000000000001F2,
+				1C0E000000000000000001F4,
+				1C0E000000000000000001F6,
+				1C0E000000000000000001F8,
+				1C0E000000000000000001FA,
+				1C0E000000000000000001FC,
+				1C0E000000000000000001FE,
+				1C0E00000000000000000200,
+				1C0E00000000000000000202,
+				1C0E00000000000000000204,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E00000000000000000005 = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E0000000000000000000C = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+			1C0E00000000000000000811,
+			1C0E00000000000000000813,
+			1C0E00000000000000000815,
+			1C0E00000000000000000817,
+			1C0E00000000000000000819,
+			1C0E0000000000000000081B,
+			1C0E0000000000000000081D,
+			1C0E0000000000000000081F,
+			1C0E00000000000000000821,
+			1C0E00000000000000000805,
+			1C0E00000000000000000803,
+				1C0E00000000000000000206,
+			); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E00000000000000000207 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; };
+		1C0E00000000000000000208 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; };
+		1C0E00000000000000000209 = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; settings = { ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy,); }; };
+		1C0E00000000000000000012 = { isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""; dstSubfolderSpec = 10; files = (1C0E00000000000000000209,); name = "Embed Inspection Core"; runOnlyForDeploymentPostprocessing = 0; };
+		1C0E0000000000000000000D = { isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (1C0E00000000000000000208,); runOnlyForDeploymentPostprocessing = 0; };
+		1C0E00000000000000000014 = { isa = PBXContainerItemProxy; containerPortal = AA48F29321CC0CA50032EC2C; proxyType = 1; remoteGlobalIDString = 1C0E00000000000000000001; remoteInfo = LookInsideInspectionCore; };
+		1C0E00000000000000000016 = { isa = PBXContainerItemProxy; containerPortal = AA48F29321CC0CA50032EC2C; proxyType = 1; remoteGlobalIDString = 1C0E00000000000000000001; remoteInfo = LookInsideInspectionCore; };
+		1C0E00000000000000000013 = { isa = PBXTargetDependency; target = 1C0E00000000000000000001; targetProxy = 1C0E00000000000000000014; };
+		1C0E00000000000000000015 = { isa = PBXTargetDependency; target = 1C0E00000000000000000001; targetProxy = 1C0E00000000000000000016; };
+		1C0E00000000000000000008 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); DEFINES_MODULE = YES; CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO; ENABLE_MODULE_VERIFIER = NO; USE_HEADERMAP = NO; GCC_PRECOMPILE_PREFIX_HEADER = NO; GCC_PREFIX_HEADER = ""; HEADER_SEARCH_PATHS = (
+				"$(SRCROOT)/Sources/LookInsideInspectionCore",
+				"$(SRCROOT)/Sources/LookinCore",
+				"$(SRCROOT)/Sources/LookinCore/Category",
+				"$(SRCROOT)/Sources/LookinCore/Peertalk",
+				"$(SRCROOT)/Sources/LookinServerBase",
+				"$(SRCROOT)/LookInside/ReactiveObjC",
+			); INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks"; SKIP_INSTALL = YES; PRODUCT_NAME = LookInsideInspectionCore; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core"; OTHER_LDFLAGS = ("-framework", AppKit, "-framework", QuartzCore, "-framework", IOKit,); GCC_OPTIMIZATION_LEVEL = 0; ENABLE_TESTABILITY = YES; }; name = Debug; };
+		1C0E00000000000000000009 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); DEFINES_MODULE = YES; CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO; ENABLE_MODULE_VERIFIER = NO; USE_HEADERMAP = NO; GCC_PRECOMPILE_PREFIX_HEADER = NO; GCC_PREFIX_HEADER = ""; HEADER_SEARCH_PATHS = (
+				"$(SRCROOT)/Sources/LookInsideInspectionCore",
+				"$(SRCROOT)/Sources/LookinCore",
+				"$(SRCROOT)/Sources/LookinCore/Category",
+				"$(SRCROOT)/Sources/LookinCore/Peertalk",
+				"$(SRCROOT)/Sources/LookinServerBase",
+				"$(SRCROOT)/LookInside/ReactiveObjC",
+			); INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks"; SKIP_INSTALL = YES; PRODUCT_NAME = LookInsideInspectionCore; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core"; OTHER_LDFLAGS = ("-framework", AppKit, "-framework", QuartzCore, "-framework", IOKit,); }; name = Release; };
+		1C0E00000000000000000010 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); USE_HEADERMAP = NO; PRODUCT_NAME = LookInsideInspectionCoreTests; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core-tests"; TEST_HOST = ""; BUNDLE_LOADER = ""; FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PLATFORM_DIR)/Developer/Library/Frameworks",); LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@loader_path/../../../",); GCC_OPTIMIZATION_LEVEL = 0; }; name = Debug; };
+		1C0E00000000000000000011 = { isa = XCBuildConfiguration; buildSettings = { CLANG_ENABLE_MODULES = YES; CLANG_ENABLE_OBJC_ARC = YES; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = D5Q73692VW; ENABLE_HARDENED_RUNTIME = YES; GENERATE_INFOPLIST_FILE = YES; MACOSX_DEPLOYMENT_TARGET = 14.0; SDKROOT = macosx; SWIFT_VERSION = 5.0; GCC_PREPROCESSOR_DEFINITIONS = ("$(inherited)", "SHOULD_COMPILE_LOOKIN_SERVER=1",); USE_HEADERMAP = NO; PRODUCT_NAME = LookInsideInspectionCoreTests; PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.inspection-core-tests"; TEST_HOST = ""; BUNDLE_LOADER = ""; FRAMEWORK_SEARCH_PATHS = ("$(inherited)", "$(PLATFORM_DIR)/Developer/Library/Frameworks",); LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@loader_path/../../../",); }; name = Release; };
+		1C0E00000000000000000007 = { isa = XCConfigurationList; buildConfigurations = (1C0E00000000000000000008, 1C0E00000000000000000009,); defaultConfigurationName = Release; };
+		1C0E0000000000000000000F = { isa = XCConfigurationList; buildConfigurations = (1C0E00000000000000000010, 1C0E00000000000000000011,); defaultConfigurationName = Release; };
+		1C0E00000000000000000001 = { isa = PBXNativeTarget; buildConfigurationList = 1C0E00000000000000000007; buildPhases = (1C0E00000000000000000004, 1C0E00000000000000000003, 1C0E00000000000000000005,); buildRules = (); dependencies = (); name = LookInsideInspectionCore; productName = LookInsideInspectionCore; productReference = 1C0E00000000000000000002; productType = "com.apple.product-type.framework"; };
+		1C0E0000000000000000000A = { isa = PBXNativeTarget; buildConfigurationList = 1C0E0000000000000000000F; buildPhases = (1C0E0000000000000000000C, 1C0E0000000000000000000D,); buildRules = (); dependencies = (1C0E00000000000000000015,); name = LookInsideInspectionCoreTests; productName = LookInsideInspectionCoreTests; productReference = 1C0E0000000000000000000B; productType = "com.apple.product-type.bundle.unit-test"; };
+
+
 /* Begin PBXBuildFile section */
 		50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1CAA3D22E471EC006D9285 /* Security.framework */; };
 		50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9517A22C3AECA00A5F958 /* Quartz.framework */; };
@@ -96,10 +1181,6 @@
 				Common/Installer/LKInstallerFilesystem.swift,
 				Common/Installer/LKInstallerLogger.swift,
 				Common/Installer/LKInstallerProgressWindowController.swift,
-				Connection/LKAppsManager.m,
-				Connection/LKConnectionManager.m,
-				Connection/LKConnectionRequest.m,
-				Connection/LKInspectableApp.m,
 				Connection/LookinLiveDocument.m,
 				Connection/LookinLiveDocumentController.m,
 				Console/LKConsoleDataSource.m,
@@ -149,41 +1230,6 @@
 				Dashboard/Search/LKDashboardSearchMethodsDataSource.m,
 				Dashboard/Search/LKDashboardSearchMethodsView.m,
 				Dashboard/Search/LKDashboardSearchPropView.m,
-				"DerivedSource/LookinCore/Category/CALayer+Lookin.m",
-				"DerivedSource/LookinCore/Category/Color+Lookin.m",
-				"DerivedSource/LookinCore/Category/Image+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSArray+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSObject+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSSet+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSString+Lookin.m",
-				"DerivedSource/LookinCore/Category/NSValue+Lookin.m",
-				DerivedSource/LookinCore/LKS_MultiplatformAdapter.m,
-				DerivedSource/LookinCore/LookinAppInfo.m,
-				DerivedSource/LookinCore/LookinAttribute.m,
-				DerivedSource/LookinCore/LookinAttributeModification.m,
-				DerivedSource/LookinCore/LookinAttributesGroup.m,
-				DerivedSource/LookinCore/LookinAttributesSection.m,
-				DerivedSource/LookinCore/LookinAttrIdentifiers.m,
-				DerivedSource/LookinCore/LookinAutoLayoutConstraint.m,
-				DerivedSource/LookinCore/LookinConnectionAttachment.m,
-				DerivedSource/LookinCore/LookinConnectionResponseAttachment.m,
-				DerivedSource/LookinCore/LookinCustomAttrModification.m,
-				DerivedSource/LookinCore/LookinCustomDisplayItemInfo.m,
-				DerivedSource/LookinCore/LookinDashboardBlueprint.m,
-				DerivedSource/LookinCore/LookinDisplayItem.m,
-				DerivedSource/LookinCore/LookinDisplayItemDetail.m,
-				DerivedSource/LookinCore/LookinEventHandler.m,
-				DerivedSource/LookinCore/LookinHierarchyFile.m,
-				DerivedSource/LookinCore/LookinHierarchyInfo.m,
-				DerivedSource/LookinCore/LookinObject.m,
-				DerivedSource/LookinCore/LookinStaticAsyncUpdateTask.m,
-				DerivedSource/LookinCore/LookinTuple.m,
-				DerivedSource/LookinCore/LookinWeakContainer.m,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTChannel.m,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTProtocol.m,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTUSBHub.m,
-				DerivedSource/LookinServerBase/LookinIvarTrace.m,
-				DerivedSource/LookinServerBase/LookInsideServerLogger.m,
 				Export/LKExportAccessoryView.m,
 				Export/LKExportManager.m,
 				Hierarchy/LKDanceUIAttrMaker.m,
@@ -220,7 +1266,7 @@
 				MCPBridge/LKMCPBridgeInspectionService.swift,
 				MCPBridge/LKMCPBridgeInvocationService.swift,
 				MCPBridge/LKMCPBridgeListenSocket.swift,
-				MCPBridge/LKMCPBridgeLiveDocumentLookup.swift,
+				MCPBridge/InspectionSessionLookup.swift,
 				MCPBridge/LKMCPBridgeModificationService.swift,
 				MCPBridge/LKMCPBridgeObjectIdentifierList.swift,
 				MCPBridge/LKMCPBridgeRACBridge.swift,
@@ -240,80 +1286,6 @@
 				Preference/LKPreferenceWindowController.m,
 				PrivateDiscriminator/LKPrivateDiscriminatorSettingsWindowController.swift,
 				PrivateDiscriminator/LKPrivateDiscriminatorStore.swift,
-				ReactiveObjC/extobjc/RACEXTRuntimeExtensions.m,
-				"ReactiveObjC/NSArray+RACSequenceAdditions.m",
-				"ReactiveObjC/NSControl+RACCommandSupport.m",
-				"ReactiveObjC/NSControl+RACTextSignalSupport.m",
-				"ReactiveObjC/NSData+RACSupport.m",
-				"ReactiveObjC/NSDictionary+RACSequenceAdditions.m",
-				"ReactiveObjC/NSEnumerator+RACSequenceAdditions.m",
-				"ReactiveObjC/NSFileHandle+RACSupport.m",
-				"ReactiveObjC/NSIndexSet+RACSequenceAdditions.m",
-				"ReactiveObjC/NSInvocation+RACTypeParsing.m",
-				"ReactiveObjC/NSNotificationCenter+RACSupport.m",
-				"ReactiveObjC/NSObject+RACAppKitBindings.m",
-				"ReactiveObjC/NSObject+RACDeallocating.m",
-				"ReactiveObjC/NSObject+RACDescription.m",
-				"ReactiveObjC/NSObject+RACKVOWrapper.m",
-				"ReactiveObjC/NSObject+RACLifting.m",
-				"ReactiveObjC/NSObject+RACPropertySubscribing.m",
-				"ReactiveObjC/NSObject+RACSelectorSignal.m",
-				"ReactiveObjC/NSOrderedSet+RACSequenceAdditions.m",
-				"ReactiveObjC/NSSet+RACSequenceAdditions.m",
-				"ReactiveObjC/NSString+RACKeyPathUtilities.m",
-				"ReactiveObjC/NSString+RACSequenceAdditions.m",
-				"ReactiveObjC/NSString+RACSupport.m",
-				"ReactiveObjC/NSText+RACSignalSupport.m",
-				"ReactiveObjC/NSURLConnection+RACSupport.m",
-				"ReactiveObjC/NSUserDefaults+RACSupport.m",
-				ReactiveObjC/RACArraySequence.m,
-				ReactiveObjC/RACBehaviorSubject.m,
-				ReactiveObjC/RACBlockTrampoline.m,
-				ReactiveObjC/RACChannel.m,
-				ReactiveObjC/RACCommand.m,
-				ReactiveObjC/RACCompoundDisposable.m,
-				ReactiveObjC/RACCompoundDisposableProvider.d,
-				ReactiveObjC/RACDelegateProxy.m,
-				ReactiveObjC/RACDisposable.m,
-				ReactiveObjC/RACDynamicSequence.m,
-				ReactiveObjC/RACDynamicSignal.m,
-				ReactiveObjC/RACEagerSequence.m,
-				ReactiveObjC/RACEmptySequence.m,
-				ReactiveObjC/RACEmptySignal.m,
-				ReactiveObjC/RACErrorSignal.m,
-				ReactiveObjC/RACEvent.m,
-				ReactiveObjC/RACGroupedSignal.m,
-				ReactiveObjC/RACImmediateScheduler.m,
-				ReactiveObjC/RACIndexSetSequence.m,
-				ReactiveObjC/RACKVOChannel.m,
-				ReactiveObjC/RACKVOProxy.m,
-				ReactiveObjC/RACKVOTrampoline.m,
-				ReactiveObjC/RACMulticastConnection.m,
-				ReactiveObjC/RACPassthroughSubscriber.m,
-				ReactiveObjC/RACQueueScheduler.m,
-				ReactiveObjC/RACReplaySubject.m,
-				ReactiveObjC/RACReturnSignal.m,
-				ReactiveObjC/RACScheduler.m,
-				ReactiveObjC/RACScopedDisposable.m,
-				ReactiveObjC/RACSequence.m,
-				ReactiveObjC/RACSerialDisposable.m,
-				ReactiveObjC/RACSignal.m,
-				"ReactiveObjC/RACSignal+Operations.m",
-				ReactiveObjC/RACSignalProvider.d,
-				ReactiveObjC/RACSignalSequence.m,
-				ReactiveObjC/RACStream.m,
-				ReactiveObjC/RACStringSequence.m,
-				ReactiveObjC/RACSubject.m,
-				ReactiveObjC/RACSubscriber.m,
-				ReactiveObjC/RACSubscriptingAssignmentTrampoline.m,
-				ReactiveObjC/RACSubscriptionScheduler.m,
-				ReactiveObjC/RACTargetQueueScheduler.m,
-				ReactiveObjC/RACTestScheduler.m,
-				ReactiveObjC/RACTuple.m,
-				ReactiveObjC/RACTupleSequence.m,
-				ReactiveObjC/RACUnarySequence.m,
-				ReactiveObjC/RACUnit.m,
-				ReactiveObjC/RACValueTransformer.m,
 				Read/LKReadHierarchyController.m,
 				Read/LKReadHierarchyDataSource.m,
 				Read/LKReadViewController.m,
@@ -424,10 +1396,6 @@
 				"Base/LookinClient-Bridging-Header.h",
 				Base/Message/LookinMsgAttribute.h,
 				Base/Message/LookinMsgTargetAction.h,
-				Connection/LKAppsManager.h,
-				Connection/LKConnectionManager.h,
-				Connection/LKConnectionRequest.h,
-				Connection/LKInspectableApp.h,
 				Connection/LookinLiveDocument.h,
 				Connection/LookinLiveDocumentController.h,
 				Console/LKConsoleDataSource.h,
@@ -476,47 +1444,6 @@
 				Dashboard/Search/LKDashboardSearchMethodsDataSource.h,
 				Dashboard/Search/LKDashboardSearchMethodsView.h,
 				Dashboard/Search/LKDashboardSearchPropView.h,
-				"DerivedSource/LookinCore/Category/CALayer+Lookin.h",
-				"DerivedSource/LookinCore/Category/Color+Lookin.h",
-				"DerivedSource/LookinCore/Category/Image+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSArray+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSObject+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSSet+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSString+Lookin.h",
-				"DerivedSource/LookinCore/Category/NSValue+Lookin.h",
-				DerivedSource/LookinCore/include/LookinCore.h,
-				DerivedSource/LookinCore/LKS_MultiplatformAdapter.h,
-				DerivedSource/LookinCore/LookinAppInfo.h,
-				DerivedSource/LookinCore/LookinAttribute.h,
-				DerivedSource/LookinCore/LookinAttributeModification.h,
-				DerivedSource/LookinCore/LookinAttributesGroup.h,
-				DerivedSource/LookinCore/LookinAttributesSection.h,
-				DerivedSource/LookinCore/LookinAttrIdentifiers.h,
-				DerivedSource/LookinCore/LookinAttrType.h,
-				DerivedSource/LookinCore/LookinAutoLayoutConstraint.h,
-				DerivedSource/LookinCore/LookinCodingValueType.h,
-				DerivedSource/LookinCore/LookinConnectionAttachment.h,
-				DerivedSource/LookinCore/LookinConnectionResponseAttachment.h,
-				DerivedSource/LookinCore/LookinCustomAttrModification.h,
-				DerivedSource/LookinCore/LookinCustomDisplayItemInfo.h,
-				DerivedSource/LookinCore/LookinDashboardBlueprint.h,
-				DerivedSource/LookinCore/LookinDefines.h,
-				DerivedSource/LookinCore/LookinDisplayItem.h,
-				DerivedSource/LookinCore/LookinDisplayItemDetail.h,
-				DerivedSource/LookinCore/LookinEventHandler.h,
-				DerivedSource/LookinCore/LookinHierarchyFile.h,
-				DerivedSource/LookinCore/LookinHierarchyInfo.h,
-				DerivedSource/LookinCore/LookinObject.h,
-				DerivedSource/LookinCore/LookinStaticAsyncUpdateTask.h,
-				DerivedSource/LookinCore/LookinTuple.h,
-				DerivedSource/LookinCore/LookinWeakContainer.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTChannel.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTPrivate.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTProtocol.h,
-				DerivedSource/LookinCore/Peertalk/Lookin_PTUSBHub.h,
-				DerivedSource/LookinCore/Peertalk/Peertalk.h,
-				DerivedSource/LookinServerBase/LookinIvarTrace.h,
-				DerivedSource/LookinServerBase/LookInsideServerLogger.h,
 				Export/LKExportAccessoryView.h,
 				Export/LKExportManager.h,
 				Hierarchy/LKDanceUIAttrMaker.h,
@@ -540,95 +1467,6 @@
 				Other/LKVersionComparer.h,
 				Preference/LKPreferenceViewController.h,
 				Preference/LKPreferenceWindowController.h,
-				ReactiveObjC/extobjc/RACEXTKeyPathCoding.h,
-				ReactiveObjC/extobjc/RACEXTRuntimeExtensions.h,
-				ReactiveObjC/extobjc/RACEXTScope.h,
-				ReactiveObjC/extobjc/RACmetamacros.h,
-				"ReactiveObjC/NSArray+RACSequenceAdditions.h",
-				"ReactiveObjC/NSControl+RACCommandSupport.h",
-				"ReactiveObjC/NSControl+RACTextSignalSupport.h",
-				"ReactiveObjC/NSData+RACSupport.h",
-				"ReactiveObjC/NSDictionary+RACSequenceAdditions.h",
-				"ReactiveObjC/NSEnumerator+RACSequenceAdditions.h",
-				"ReactiveObjC/NSFileHandle+RACSupport.h",
-				"ReactiveObjC/NSIndexSet+RACSequenceAdditions.h",
-				"ReactiveObjC/NSInvocation+RACTypeParsing.h",
-				"ReactiveObjC/NSNotificationCenter+RACSupport.h",
-				"ReactiveObjC/NSObject+RACAppKitBindings.h",
-				"ReactiveObjC/NSObject+RACDeallocating.h",
-				"ReactiveObjC/NSObject+RACDescription.h",
-				"ReactiveObjC/NSObject+RACKVOWrapper.h",
-				"ReactiveObjC/NSObject+RACLifting.h",
-				"ReactiveObjC/NSObject+RACPropertySubscribing.h",
-				"ReactiveObjC/NSObject+RACSelectorSignal.h",
-				"ReactiveObjC/NSOrderedSet+RACSequenceAdditions.h",
-				"ReactiveObjC/NSSet+RACSequenceAdditions.h",
-				"ReactiveObjC/NSString+RACKeyPathUtilities.h",
-				"ReactiveObjC/NSString+RACSequenceAdditions.h",
-				"ReactiveObjC/NSString+RACSupport.h",
-				"ReactiveObjC/NSText+RACSignalSupport.h",
-				"ReactiveObjC/NSURLConnection+RACSupport.h",
-				"ReactiveObjC/NSUserDefaults+RACSupport.h",
-				ReactiveObjC/RACAnnotations.h,
-				ReactiveObjC/RACArraySequence.h,
-				ReactiveObjC/RACBehaviorSubject.h,
-				ReactiveObjC/RACBlockTrampoline.h,
-				ReactiveObjC/RACChannel.h,
-				ReactiveObjC/RACCommand.h,
-				ReactiveObjC/RACCompoundDisposable.h,
-				ReactiveObjC/RACCompoundDisposableProvider.h,
-				ReactiveObjC/RACDelegateProxy.h,
-				ReactiveObjC/RACDisposable.h,
-				ReactiveObjC/RACDynamicSequence.h,
-				ReactiveObjC/RACDynamicSignal.h,
-				ReactiveObjC/RACEagerSequence.h,
-				ReactiveObjC/RACEmptySequence.h,
-				ReactiveObjC/RACEmptySignal.h,
-				ReactiveObjC/RACErrorSignal.h,
-				ReactiveObjC/RACEvent.h,
-				ReactiveObjC/RACEXTKeyPathCoding.h,
-				ReactiveObjC/RACEXTRuntimeExtensions.h,
-				ReactiveObjC/RACEXTScope.h,
-				ReactiveObjC/RACGroupedSignal.h,
-				ReactiveObjC/RACImmediateScheduler.h,
-				ReactiveObjC/RACIndexSetSequence.h,
-				ReactiveObjC/RACKVOChannel.h,
-				ReactiveObjC/RACKVOProxy.h,
-				ReactiveObjC/RACKVOTrampoline.h,
-				ReactiveObjC/RACmetamacros.h,
-				ReactiveObjC/RACMulticastConnection.h,
-				"ReactiveObjC/RACMulticastConnection+Private.h",
-				ReactiveObjC/RACPassthroughSubscriber.h,
-				ReactiveObjC/RACQueueScheduler.h,
-				"ReactiveObjC/RACQueueScheduler+Subclass.h",
-				ReactiveObjC/RACReplaySubject.h,
-				ReactiveObjC/RACReturnSignal.h,
-				ReactiveObjC/RACScheduler.h,
-				"ReactiveObjC/RACScheduler+Private.h",
-				"ReactiveObjC/RACScheduler+Subclass.h",
-				ReactiveObjC/RACScopedDisposable.h,
-				ReactiveObjC/RACSequence.h,
-				ReactiveObjC/RACSerialDisposable.h,
-				ReactiveObjC/RACSignal.h,
-				"ReactiveObjC/RACSignal+Operations.h",
-				ReactiveObjC/RACSignalProvider.h,
-				ReactiveObjC/RACSignalSequence.h,
-				ReactiveObjC/RACStream.h,
-				"ReactiveObjC/RACStream+Private.h",
-				ReactiveObjC/RACStringSequence.h,
-				ReactiveObjC/RACSubject.h,
-				ReactiveObjC/RACSubscriber.h,
-				"ReactiveObjC/RACSubscriber+Private.h",
-				ReactiveObjC/RACSubscriptingAssignmentTrampoline.h,
-				ReactiveObjC/RACSubscriptionScheduler.h,
-				ReactiveObjC/RACTargetQueueScheduler.h,
-				ReactiveObjC/RACTestScheduler.h,
-				ReactiveObjC/RACTuple.h,
-				ReactiveObjC/RACTupleSequence.h,
-				ReactiveObjC/RACUnarySequence.h,
-				ReactiveObjC/RACUnit.h,
-				ReactiveObjC/RACValueTransformer.h,
-				ReactiveObjC/ReactiveObjC.h,
 				Read/LKReadHierarchyController.h,
 				Read/LKReadHierarchyDataSource.h,
 				Read/LKReadViewController.h,
@@ -686,6 +1524,7 @@
 		AA48F29821CC0CA50032EC2C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				1C0E00000000000000000207,
 				E9FE990C3026C657008692AF /* UIFoundation in Frameworks */,
 				50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */,
 				50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */,
@@ -718,6 +1557,8 @@
 			children = (
 				5011BBAE2F9754F0002DA475 /* Configuration */,
 				50EADFB32F71BFF200EBE063 /* LookInside */,
+				1C0E00000000000000000006,
+				1C0E0000000000000000000E,
 				AA48F29C21CC0CA50032EC2C /* Products */,
 				0A9FB6E904476A1F9D0BB82E /* Frameworks */,
 			);
@@ -727,6 +1568,8 @@
 			isa = PBXGroup;
 			children = (
 				AA48F29B21CC0CA50032EC2C /* LookInside.app */,
+				1C0E00000000000000000002,
+				1C0E0000000000000000000B,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -741,12 +1584,14 @@
 				50EADFB42F71C00C00EBE063 /* Sources */,
 				AA48F29821CC0CA50032EC2C /* Frameworks */,
 				AA48F29921CC0CA50032EC2C /* Resources */,
+				1C0E00000000000000000012,
 				5005F8FD2FA505DF00C0BB07 /* Build Authenticator at DEBUG */,
 				5005F8FE2FA505DF00C0BB07 /* Embed Injector Daemon */,
 				5005F8FF2FA505DF00C0BB07 /* Embed MCP CLI */,
 			);
 			buildRules = (
 			);
+			dependencies = (1C0E00000000000000000013,);
 			name = LookInside;
 			packageProductDependencies = (
 				E37B8D0C2F97B1B100600001 /* Demangling */,
@@ -810,6 +1655,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				1C0E00000000000000000001,
+				1C0E0000000000000000000A,
 				AA48F29A21CC0CA50032EC2C /* LookInside */,
 			);
 		};
@@ -1093,15 +1940,37 @@
 					"SHOULD_COMPILE_LOOKIN_SERVER=1",
 				);
 				GCC_WARN_SHADOW = NO;
+				USE_HEADERMAP = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)/LookInsideInspectionCore.framework/Headers",
 					"$(SRCROOT)/LookInside",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/include",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Category",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Peertalk",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
-					"$(SRCROOT)/LookInside/ReactiveObjC",
+					"$(SRCROOT)/LookInside/About",
+					"$(SRCROOT)/LookInside/Base",
+					"$(SRCROOT)/LookInside/Base/Category",
+					"$(SRCROOT)/LookInside/Base/InputSearch",
+					"$(SRCROOT)/LookInside/Base/Message",
+					"$(SRCROOT)/LookInside/Connection",
+					"$(SRCROOT)/LookInside/Console",
+					"$(SRCROOT)/LookInside/DanceScript",
+					"$(SRCROOT)/LookInside/Dashboard",
+					"$(SRCROOT)/LookInside/Dashboard/AttributeView",
+					"$(SRCROOT)/LookInside/Dashboard/AttributeView/Constraint",
+					"$(SRCROOT)/LookInside/Dashboard/AttributeView/JSON",
+					"$(SRCROOT)/LookInside/Dashboard/Search",
+					"$(SRCROOT)/LookInside/Export",
+					"$(SRCROOT)/LookInside/Hierarchy",
+					"$(SRCROOT)/LookInside/Launch",
+					"$(SRCROOT)/LookInside/Manager",
+					"$(SRCROOT)/LookInside/Measure",
+					"$(SRCROOT)/LookInside/Other",
+					"$(SRCROOT)/LookInside/Preference",
+					"$(SRCROOT)/LookInside/Read",
+					"$(SRCROOT)/LookInside/ShortCocoa",
+					"$(SRCROOT)/LookInside/Static",
+					"$(SRCROOT)/LookInside/Static/Preview",
+					"$(SRCROOT)/LookInside/SwiftUISupport",
+					"$(SRCROOT)/LookInside/Toolbar",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
@@ -1168,15 +2037,37 @@
 					"SHOULD_COMPILE_LOOKIN_SERVER=1",
 				);
 				GCC_WARN_SHADOW = NO;
+				USE_HEADERMAP = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)/LookInsideInspectionCore.framework/Headers",
 					"$(SRCROOT)/LookInside",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/include",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Category",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/Peertalk",
-					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
-					"$(SRCROOT)/LookInside/ReactiveObjC",
+					"$(SRCROOT)/LookInside/About",
+					"$(SRCROOT)/LookInside/Base",
+					"$(SRCROOT)/LookInside/Base/Category",
+					"$(SRCROOT)/LookInside/Base/InputSearch",
+					"$(SRCROOT)/LookInside/Base/Message",
+					"$(SRCROOT)/LookInside/Connection",
+					"$(SRCROOT)/LookInside/Console",
+					"$(SRCROOT)/LookInside/DanceScript",
+					"$(SRCROOT)/LookInside/Dashboard",
+					"$(SRCROOT)/LookInside/Dashboard/AttributeView",
+					"$(SRCROOT)/LookInside/Dashboard/AttributeView/Constraint",
+					"$(SRCROOT)/LookInside/Dashboard/AttributeView/JSON",
+					"$(SRCROOT)/LookInside/Dashboard/Search",
+					"$(SRCROOT)/LookInside/Export",
+					"$(SRCROOT)/LookInside/Hierarchy",
+					"$(SRCROOT)/LookInside/Launch",
+					"$(SRCROOT)/LookInside/Manager",
+					"$(SRCROOT)/LookInside/Measure",
+					"$(SRCROOT)/LookInside/Other",
+					"$(SRCROOT)/LookInside/Preference",
+					"$(SRCROOT)/LookInside/Read",
+					"$(SRCROOT)/LookInside/ShortCocoa",
+					"$(SRCROOT)/LookInside/Static",
+					"$(SRCROOT)/LookInside/Static/Preview",
+					"$(SRCROOT)/LookInside/SwiftUISupport",
+					"$(SRCROOT)/LookInside/Toolbar",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = LookInside;

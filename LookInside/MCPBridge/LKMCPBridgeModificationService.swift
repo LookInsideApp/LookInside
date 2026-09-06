@@ -26,8 +26,8 @@ import os
 
 @MainActor
 public final class LKMCPBridgeModificationService {
-
     // MARK: - Error code constants from LookinDefines.h
+
     //
     // See LKMCPBridgeInvocationService for the duplication rationale —
     // pulling LookinDefines.h into the bridging header would touch
@@ -64,39 +64,39 @@ public final class LKMCPBridgeModificationService {
     ) async -> LKMCPBridgeResponse {
         // Parameter extraction
         guard let parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"],
-              case .string(let objectIdentifier)? = parameters["objectIdentifier"],
-              case .string(let attributeIdentifier)? = parameters["attributeIdentifier"],
-              case .object(let valueObject)? = parameters["value"],
-              case .string(let wireKind)? = valueObject["kind"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"],
+              case let .string(objectIdentifier)? = parameters["objectIdentifier"],
+              case let .string(attributeIdentifier)? = parameters["attributeIdentifier"],
+              case let .object(valueObject)? = parameters["value"],
+              case let .string(wireKind)? = valueObject["kind"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
         let wireData = valueObject["data"]
 
-        // Live-document / display-item lookup
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        // Live-session / display-item lookup
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
 
-        guard document.hierarchyDataSource != nil else {
+        guard session.captureDate != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
 
-        guard let displayItem = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
-            amongRoots: LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document),
+        guard let displayItem = InspectionSessionLookup.findDisplayItem(
+            amongRoots: InspectionSessionLookup.topLevelDisplayItems(in: session),
             matchingObjectIdentifier: objectIdentifier
         ) else {
             return .failure(
@@ -154,7 +154,7 @@ public final class LKMCPBridgeModificationService {
                 wireData: wireData,
                 expectedAttrType: attribute.attrType
             )
-        } catch LKMCPBridgeAttributeValueDecoder.DecodeError.unsupportedKind(let kind) {
+        } catch let LKMCPBridgeAttributeValueDecoder.DecodeError.unsupportedKind(kind) {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -162,7 +162,7 @@ public final class LKMCPBridgeModificationService {
                     message: "Wire kind '\(kind)' is not supported for modification in this release. Supported kinds: integer, double, bool, string, selector, class, point, vector, size, rect, transform, edgeInsets, offset, color, enum."
                 )
             )
-        } catch LKMCPBridgeAttributeValueDecoder.DecodeError.kindMismatch(let wireKind, let expectedAttrType) {
+        } catch let LKMCPBridgeAttributeValueDecoder.DecodeError.kindMismatch(wireKind, expectedAttrType) {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -170,7 +170,7 @@ public final class LKMCPBridgeModificationService {
                     message: "Wire kind '\(wireKind)' does not match attribute's declared LookinAttrType (\(expectedAttrType.rawValue))."
                 )
             )
-        } catch LKMCPBridgeAttributeValueDecoder.DecodeError.shapeInvalid(let reason) {
+        } catch let LKMCPBridgeAttributeValueDecoder.DecodeError.shapeInvalid(reason) {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -195,7 +195,7 @@ public final class LKMCPBridgeModificationService {
         // server-side error codes so we can map them precisely below.
         // ObjC `rawSubmitInbuiltModification:` has no preposition, so
         // the Swift importer keeps the full name with `_:` label.
-        guard let signal = document.inspectableApp.rawSubmitInbuiltModification(modification) else {
+        guard let signal = session.inspectableApp.rawSubmitInbuiltModification(modification) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -222,8 +222,8 @@ public final class LKMCPBridgeModificationService {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
-                    code: "modify.cancelled",
-                    message: "The modification was cancelled before the target app produced a result."
+                    code: "modify.executionUnknown",
+                    message: "Waiting was cancelled. The target may have applied the modification; do not retry automatically."
                 )
             )
         } catch let error as NSError {
@@ -236,19 +236,14 @@ public final class LKMCPBridgeModificationService {
             return .failure(identifier: identifier, error: .internalError)
         }
 
-        // Merge the post-modification detail back into the host's cache, the
-        // same way `details.read` and `screenshot.read` do. Without this the
-        // inspector window keeps showing the pre-modification value, and a
-        // follow-up `attributes.read` serves the stale cached groups -- which
-        // directly contradicts the `effectiveAttribute` this call is about to
-        // return, with nothing to tell the agent which one is current.
+        // The session has committed the post-modification detail and notified
+        // graphical clients before this response is encoded.
         //
         // The host's own modification path additionally re-fetches a
         // screenshot (`LKDashboardViewController.m`). That is deliberately
         // not mirrored here: screenshots have their own route, and issuing
         // one per attribute write would put a render round-trip on the
         // critical path of every modification.
-        document.hierarchyDataSource?.modify(with: detail)
 
         // Find the effective post-layout attribute in the response.
         guard let effectiveAttribute = findAttribute(
@@ -339,7 +334,7 @@ public final class LKMCPBridgeModificationService {
             return true
         case (nil, _?), (_?, nil):
             return false
-        case (let lhsValue?, let rhsValue?):
+        case let (lhsValue?, rhsValue?):
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             let lhsData = (try? encoder.encode(lhsValue)) ?? Data()
@@ -349,6 +344,9 @@ public final class LKMCPBridgeModificationService {
     }
 
     private func mapModificationError(_ error: NSError) -> LKMCPBridgeErrorPayload {
+        if let sessionError = InspectionSessionLookup.errorPayload(for: error, operation: "modify") {
+            return sessionError
+        }
         switch error.code {
         case Self.lookinErrCodeObjectNotFound:
             return LKMCPBridgeErrorPayload(

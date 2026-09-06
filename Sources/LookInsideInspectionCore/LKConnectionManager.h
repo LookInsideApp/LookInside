@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "ReactiveObjC.h"
 
 @class Lookin_PTChannel;
 
@@ -20,6 +21,7 @@
  - 一台真机上的所有 app 共享同一批端口（在 Lookin 里是 47175 ~ 47179 这 5 个），比如依次启动“真机 A 的 app1”、“真机 A 的 app2”、“真机 B 的 app3”，则它们依次会占用 47175、47176、47175（注意不是 47177）这几个端口
  
  */
+NS_SWIFT_NAME(ConnectionManager)
 @interface LKConnectionManager : NSObject
 
 + (instancetype)sharedInstance;
@@ -29,11 +31,9 @@
 - (RACSignal *)tryToConnectAllPorts;
 
 /// 返回的 data 为 RACTuple<LookinConnectionResponseAttachment *, Lookin_PTChannel *>
-/// 在调用该方法发请求时，如果已有相同 type 的旧 request 尚未返回结果，则之前的旧 request 会被报告 Error，然后被丢弃
+/// Requests on one channel are serialized through their complete response streams.
 - (RACSignal *)requestWithType:(unsigned int)requestType data:(NSObject *)requestData channel:(Lookin_PTChannel *)channel;
 
-/// 取消先前使用 requestWithType:data:channel: 方法发送的尚未完成的 request，这个 request 会被报告为 completion
-- (void)cancelRequestWithType:(unsigned int)requestType channel:(Lookin_PTChannel *)channel;
 
 /// 如果发送的消息不需要 server 端回复，则请使用该方法而非 requestWithType:
 /// 如果此时 server 端不在前台或处于断点等模式，则 server 端可能无法收到该消息
@@ -44,5 +44,8 @@
 
 /// 收到了 server 端发送的 push 消息，tuple 分别为 channel, pushType, data
 @property(nonatomic, strong, readonly) RACSubject *didReceivePush;
+
+- (void)authorizationStateDidChange;
+- (NSString *)transportIdentifierForChannel:(Lookin_PTChannel *)channel;
 
 @end

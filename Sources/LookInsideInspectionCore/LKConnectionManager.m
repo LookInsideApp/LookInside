@@ -10,12 +10,16 @@
 #import "Lookin_PTChannel.h"
 #import "LookinDefines.h"
 #import "LookinConnectionResponseAttachment.h"
-#import "LKPreferenceManager.h"
+#import "LKInspectionEnvironment.h"
+#import "LKInspectionRequestQueue.h"
+#import "ReactiveObjC.h"
+#import "NSArray+Lookin.h"
+#import "NSSet+Lookin.h"
+#import "NSObject+Lookin.h"
+#import "LookinConnectionAttachment.h"
+#import <QuartzCore/QuartzCore.h>
 #import "LookinAppInfo.h"
 #import "LKConnectionRequest.h"
-#import "LKNavigationManager.h"
-#import "LKLaunchWindowController.h"
-#import "LookInside-Swift.h"
 
 static NSIndexSet * PushFrameTypeList(void) {
     static NSIndexSet *list;
@@ -43,7 +47,7 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     switch (requestType) {
         case LookinRequestTypeHierarchy:
         case LookinRequestTypeHierarchyDetails:
-            return LKPreferenceManager.mainManager.hierarchyRequestTimeoutInterval;
+            return LKInspectionEnvironment.sharedEnvironment.hierarchyRequestTimeoutInterval;
         default:
             return 5;
     }
@@ -53,6 +57,8 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 
 /// 已经发送但尚未收到全部回复的请求
 @property(nonatomic, strong) NSMutableSet<LKConnectionRequest *> *activeRequests;
+@property(nonatomic, strong) LKInspectionRequestQueue *inspectionRequestQueue;
+@property(nonatomic, assign) uint32_t nextRequestTag;
 
 /// YES once the license handshake has succeeded on this channel. Reset on
 /// channel end. Consulted by `requestWithType:data:channel:` before dispatching
@@ -68,6 +74,27 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 @end
 
 @implementation Lookin_PTChannel (LKConnection)
+
+- (LKInspectionRequestQueue *)inspectionRequestQueue {
+    LKInspectionRequestQueue *queue = [self lookin_getBindObjectForKey:@"inspectionRequestQueue"];
+    if (!queue) {
+        queue = [LKInspectionRequestQueue new];
+        [self lookin_bindObject:queue forKey:@"inspectionRequestQueue"];
+    }
+    return queue;
+}
+
+- (void)setInspectionRequestQueue:(LKInspectionRequestQueue *)queue {
+    [self lookin_bindObject:queue forKey:@"inspectionRequestQueue"];
+}
+
+- (uint32_t)nextRequestTag {
+    return [[self lookin_getBindObjectForKey:@"nextInspectionRequestTag"] unsignedIntValue];
+}
+
+- (void)setNextRequestTag:(uint32_t)requestTag {
+    [self lookin_bindObject:@(requestTag) forKey:@"nextInspectionRequestTag"];
+}
 
 - (void)setActiveRequests:(NSMutableSet<LKConnectionRequest *> *)activeRequests {
     [self lookin_bindObject:activeRequests forKey:@"activeRequest"];
@@ -202,9 +229,6 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
         self.allUSBPorts = [NSMutableArray array];
         
         [self _startListeningForUSBDevices];
-        [NSNotificationCenter.defaultCenter addObserverForName:LKSwiftUISupportGatekeeper.activationStateDidChangeNotificationName object:nil queue:nil usingBlock:^(__unused NSNotification *note) {
-            [self _handleActivationStateDidChange];
-        }];
     }
     return self;
 }
@@ -369,6 +393,14 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 }
 
 - (RACSignal *)requestWithType:(unsigned int)requestType data:(NSObject *)requestData channel:(Lookin_PTChannel *)channel {
+    NSAssert(NSThread.isMainThread, @"Inspection transport must run on the main thread.");
+    if (!channel) return [RACSignal error:LookinErr_NoConnect];
+    return [channel.inspectionRequestQueue enqueueRequest:^RACSignal *{
+        return [self unqueuedRequestWithType:requestType data:requestData channel:channel];
+    }];
+}
+
+- (RACSignal *)unqueuedRequestWithType:(unsigned int)requestType data:(NSObject *)requestData channel:(Lookin_PTChannel *)channel {
     return [RACSignal createSignal:^RACDisposable * _Nullable(id<RACSubscriber>  _Nonnull subscriber) {
         //        NSLog(@"LookinClient, level1 - will ping for request:%@, port:%@", @(type), @(channel.portNumber));
         NSTimeInterval timeoutInterval;
@@ -436,7 +468,8 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
         return;
     }
 
-    if ([LKSwiftUISupportGatekeeper sharedInstance].activationState != LKSwiftUISupportActivationStateActivated) {
+    BOOL (^licenseIsActivated)(void) = LKInspectionEnvironment.sharedEnvironment.licenseIsActivated;
+    if (!licenseIsActivated || !licenseIsActivated()) {
         if (completionBlock) completionBlock(NO);
         return;
     }
@@ -479,82 +512,45 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 }
 
 - (void)_performLicenseHandshakeOnChannel:(Lookin_PTChannel *)channel
-                                     succ:(void (^)(void))succBlock
-                                     fail:(void (^)(NSError *error))failBlock {
-    NSLog(@"LookInside - License: starting handshake on channel %p (sending 220 LicenseChallenge).", channel);
-    NSTimeInterval timeoutInterval = LKPreferenceManager.mainManager.licenseHandshakeTimeoutInterval;
-    [self _requestWithType:LookinRequestTypeLicenseChallenge channel:channel data:nil timeoutInterval:timeoutInterval succ:^(LookinConnectionResponseAttachment *challengeAttachment) {
-        if (challengeAttachment.error) {
-            NSLog(@"LookInside - License: 220 challenge errored: %@", challengeAttachment.error.localizedDescription);
-            if (failBlock) failBlock(challengeAttachment.error);
-            return;
-        }
-
-        NSDictionary *challenge = [challengeAttachment.data isKindOfClass:[NSDictionary class]] ? (NSDictionary *)challengeAttachment.data : nil;
-        NSData *nonce = [challenge[@"nonce"] isKindOfClass:[NSData class]] ? challenge[@"nonce"] : nil;
-        NSString *serverID = [challenge[@"server_instance_id"] isKindOfClass:[NSString class]] ? challenge[@"server_instance_id"] : nil;
-        if (nonce.length != 32 || serverID.length == 0) {
-            NSLog(@"LookInside - License: 220 challenge payload malformed (nonce_len=%lu, server_instance_id_len=%lu).", (unsigned long)nonce.length, (unsigned long)serverID.length);
-            if (failBlock) {
-                failBlock([NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Inner userInfo:@{NSLocalizedDescriptionKey:NSLocalizedString(@"License challenge payload is malformed.", nil)}]);
+                                     succ:(void (^)(void))success
+                                     fail:(void (^)(NSError *error))failure {
+    NSTimeInterval timeoutInterval = LKInspectionEnvironment.sharedEnvironment.licenseHandshakeTimeoutInterval;
+    [self _requestWithType:LookinRequestTypeLicenseChallenge channel:channel data:nil timeoutInterval:timeoutInterval
+        succ:^(LookinConnectionResponseAttachment *challengeAttachment) {
+            if (challengeAttachment.error) {
+                if (failure) failure(challengeAttachment.error);
+                return;
             }
-            return;
-        }
-        NSLog(@"LookInside - License: 220 challenge OK (server_instance_id=%@); requesting signature from auth helper.", serverID);
-
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-            NSError *signError = nil;
-            NSData *signature = nil;
-            NSData *intermediateCertDER = nil;
-            NSString *udid = nil;
-            BOOL ok = [[LKSwiftUISupportGatekeeper sharedInstance]
-                signChallengeWithNonce:nonce
-                      serverInstanceID:serverID
-                             signature:&signature
-                   intermediateCertDER:&intermediateCertDER
-                                  udid:&udid
-                                 error:&signError];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                if (!ok || signature.length == 0 || intermediateCertDER.length == 0) {
-                    NSString *detail = signError.localizedDescription ?: NSLocalizedString(@"License signing failed.", nil);
-                    NSLog(@"LookInside - License: auth helper sign_challenge failed: %@", detail);
-                    NSError *reportedError = [NSError errorWithDomain:LookinErrorDomain
-                                                                 code:LookinErrCode_LicenseRequired
-                                                             userInfo:@{
-                                                                 NSLocalizedDescriptionKey: NSLocalizedString(@"LookInside license verification failed.", nil),
-                                                                 NSLocalizedRecoverySuggestionErrorKey: detail,
-                                                             }];
-                    if (failBlock) failBlock(reportedError);
-                    return;
-                }
-                NSLog(@"LookInside - License: signature obtained (sig=%lub, intermediate=%lub, udid=%@); sending 221 LicenseVerify.", (unsigned long)signature.length, (unsigned long)intermediateCertDER.length, udid.length ? udid : @"<none>");
-
-                NSDictionary *verifyPayload = @{
-                    @"nonce":                 nonce,
-                    @"server_instance_id":    serverID,
-                    @"signature":             signature,
-                    @"intermediate_cert_der": intermediateCertDER,
-                    @"udid":                  udid ?: @"",
-                };
-                [self _requestWithType:LookinRequestTypeLicenseVerify channel:channel data:verifyPayload timeoutInterval:timeoutInterval succ:^(LookinConnectionResponseAttachment *verifyResponse) {
-                    if (verifyResponse.error) {
-                        NSLog(@"LookInside - License: 221 verify rejected by server: %@", verifyResponse.error.localizedDescription);
-                        if (failBlock) failBlock(verifyResponse.error);
+            NSDictionary *challenge = [challengeAttachment.data isKindOfClass:NSDictionary.class] ? challengeAttachment.data : nil;
+            if (![challenge[@"nonce"] isKindOfClass:NSData.class] || [challenge[@"nonce"] length] != 32
+                || ![challenge[@"server_instance_id"] isKindOfClass:NSString.class] || [challenge[@"server_instance_id"] length] == 0) {
+                if (failure) failure(LookinErr_Inner);
+                return;
+            }
+            NSDictionary *(^proofProvider)(NSDictionary *, NSError **) = LKInspectionEnvironment.sharedEnvironment.licenseProofForChallenge;
+            if (!proofProvider) {
+                if (failure) failure([NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_LicenseRequired userInfo:nil]);
+                return;
+            }
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+                NSError *proofError = nil;
+                NSDictionary *proof = proofProvider(challenge, &proofError);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (!proof) {
+                        if (failure) failure(proofError ?: LookinErr_Inner);
                         return;
                     }
-
-                    NSLog(@"LookInside - License: 221 verify accepted; channel %p marked licensed.", channel);
-                    if (succBlock) succBlock();
-                } fail:^(NSError *verifyError) {
-                    NSLog(@"LookInside - License: 221 verify transport error: %@", verifyError.localizedDescription);
-                    if (failBlock) failBlock(verifyError);
-                } completion:nil];
+                    [self _requestWithType:LookinRequestTypeLicenseVerify channel:channel data:proof timeoutInterval:timeoutInterval
+                        succ:^(LookinConnectionResponseAttachment *verification) {
+                            if (verification.error) {
+                                if (failure) failure(verification.error);
+                            } else if (success) {
+                                success();
+                            }
+                        } fail:failure completion:nil];
+                });
             });
-        });
-    } fail:^(NSError *challengeError) {
-        NSLog(@"LookInside - License: 220 challenge transport error: %@", challengeError.localizedDescription);
-        if (failBlock) failBlock(challengeError);
-    } completion:nil];
+        } fail:failure completion:nil];
 }
 
 - (NSError *)_checkServerVersionWithResponse:(LookinConnectionResponseAttachment *)pingResponse {
@@ -583,10 +579,10 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
 
 #pragma mark - Private
 
-- (void)_handleActivationStateDidChange {
+- (void)authorizationStateDidChange {
     NSArray<Lookin_PTChannel *> *channels = [self _connectedChannels];
-    LKSwiftUISupportActivationState state = [LKSwiftUISupportGatekeeper sharedInstance].activationState;
-    if (state != LKSwiftUISupportActivationStateActivated) {
+    BOOL (^licenseIsActivated)(void) = LKInspectionEnvironment.sharedEnvironment.licenseIsActivated;
+    if (!licenseIsActivated || !licenseIsActivated()) {
         [channels enumerateObjectsUsingBlock:^(Lookin_PTChannel *channel, __unused NSUInteger idx, __unused BOOL *stop) {
             channel.isLicenseVerified = NO;
         }];
@@ -600,22 +596,14 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     }];
 }
 
-- (void)_handlePushWithType:(uint32_t)type data:(NSObject *)data channel:(Lookin_PTChannel *)channel {
-    if (type != LookinPush_SwiftUISupportDetected) {
-        return;
+- (NSString *)transportIdentifierForChannel:(Lookin_PTChannel *)channel {
+    for (LKUSBConnectionPort *port in self.allUSBPorts) {
+        if (port.connectedChannel == channel) return [NSString stringWithFormat:@"usb:%@", port.deviceID];
     }
-
-    NSLog(@"LookinClient - received SwiftUI support detection push from channel:%@ data:%@", channel, data);
-    dispatch_async(dispatch_get_main_queue(), ^{
-        LKSwiftUISupportGatekeeper *gatekeeper = [LKSwiftUISupportGatekeeper sharedInstance];
-        [gatekeeper noteDetectedSwiftUISupport];
-
-        NSWindow *keyWindow = [NSApplication sharedApplication].keyWindow;
-        NSWindow *launchWindow = [LKNavigationManager sharedInstance].launchWindowController.window;
-        if (keyWindow && keyWindow != launchWindow) {
-            [gatekeeper promptForPendingDetectedSwiftUISupportIfNeededForWindow:keyWindow];
-        }
-    });
+    for (LKMacConnectionPort *port in self.allMacPorts) {
+        if (port.connectedChannel == channel) return @"mac";
+    }
+    return @"simulator";
 }
 
 - (NSArray<Lookin_PTChannel *> *)_connectedChannels {
@@ -652,26 +640,14 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
         }
         return;
     }
-    if (channel.activeRequests.count && requestType != LookinRequestTypePing) {
-        // 检查是否有相同 type 的旧请求尚在进行中，如果有则移除之前的旧请求（旧请求会被报告 error）
-        NSSet<LKConnectionRequest *> *requestsToBeDiscarded = [channel.activeRequests lookin_filter:^BOOL(LKConnectionRequest *obj) {
-            return (obj.type == requestType);
-        }];
-        [requestsToBeDiscarded enumerateObjectsUsingBlock:^(LKConnectionRequest * _Nonnull obj, BOOL * _Nonnull stop) {
-            if (obj.failBlock) {
-                NSError *error = [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Discard userInfo:@{NSLocalizedDescriptionKey:NSLocalizedString(@"The request is discarded due to a newer same request.", nil)}];
-                obj.failBlock(error);
-            }
-            [obj endTimeoutCount];
-            [channel.activeRequests removeObject:obj];
-            
-            NSLog(@"LookinClient - will discard request, type:%@, tag:%@", @(obj.type), @(obj.tag));
-        }];
-    }
-    
     LKConnectionRequest *request = [[LKConnectionRequest alloc] init];
     request.type = requestType;
-    request.tag = (uint32_t)[[NSDate date] timeIntervalSince1970];
+    do {
+        channel.nextRequestTag += 1;
+        request.tag = channel.nextRequestTag;
+    } while (request.tag == 0 || [channel.activeRequests lookin_firstFiltered:^BOOL(LKConnectionRequest *activeRequest) {
+        return activeRequest.tag == request.tag;
+    }]);
     request.succBlock = succBlock;
     request.failBlock = failBlock;
     request.completionBlock = completionBlock;
@@ -680,8 +656,9 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     request.timeoutBlock = ^(LKConnectionRequest *selfRequest) {
         @strongify(channel);
         NSError *error = [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Timeout userInfo:@{NSLocalizedDescriptionKey:NSLocalizedString(@"Request timeout", nil), NSLocalizedRecoverySuggestionErrorKey:LookinErrorText_Timeout}];
-        selfRequest.failBlock(error);
         [channel.activeRequests removeObject:selfRequest];
+        [selfRequest endTimeoutCount];
+        if (selfRequest.failBlock) selfRequest.failBlock(error);
     };
     
     LookinConnectionAttachment *attachment = [LookinConnectionAttachment new];
@@ -691,38 +668,23 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
     if (archiveError) {
         NSAssert(NO, @"");
     }
+    if (archiveError || !payload) {
+        if (failBlock) failBlock(archiveError ?: LookinErr_Inner);
+        return;
+    }
+    if (!channel.activeRequests) channel.activeRequests = [NSMutableSet set];
+    [channel.activeRequests addObject:request];
+    [request resetTimeoutCount];
     [channel sendFrameOfType:requestType tag:request.tag withPayload:payload callback:^(NSError *error) {
-//        NSLog(@"LookinClient - sendRequest, type:%@", @(requestType));
-        if (error) {
-            if (failBlock) {
-                NSError *error = [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_PeerTalk userInfo:@{NSLocalizedDescriptionKey:NSLocalizedString(@"The operation failed due to an inner error.", nil)}];
-                failBlock(error);
-            }
-        } else {
-            // 成功发出了该 request
-            if (!channel.activeRequests) {
-                channel.activeRequests = [NSMutableSet set];
-            }
-            [channel.activeRequests addObject:request];
-            [request resetTimeoutCount];
+        if (error && [channel.activeRequests containsObject:request]) {
+            [channel.activeRequests removeObject:request];
+            [request endTimeoutCount];
+            if (failBlock) failBlock([NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_PeerTalk
+                                                    userInfo:@{NSLocalizedDescriptionKey: error.localizedDescription}]);
         }
     }];
 }
 
-- (void)cancelRequestWithType:(unsigned int)requestType channel:(Lookin_PTChannel *)channel {
-    LKConnectionRequest *activeRequest = [channel.activeRequests lookin_firstFiltered:^BOOL(LKConnectionRequest *obj) {
-        return obj.type == requestType;
-    }];
-    if (!activeRequest) {
-        return;
-    }
-    [activeRequest endTimeoutCount];
-    [channel.activeRequests removeObject:activeRequest];
-    if (activeRequest.completionBlock) {
-        activeRequest.completionBlock();
-    }
-    NSLog(@"Lookin - 用户手动取消 request, type:%@", @(requestType));
-}
 
 - (void)_startListeningForUSBDevices {
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -788,7 +750,6 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
         
         RACTuple *tuple = [RACTuple tupleWithObjects:channel, @(type), unarchivedData, nil];
         [self.didReceivePush sendNext:tuple];
-        [self _handlePushWithType:type data:unarchivedData channel:channel];
         return;
     }
     
@@ -888,7 +849,13 @@ static NSTimeInterval LKRequestTimeoutIntervalForRequestType(unsigned int reques
         }
     }];
     [self.channelWillEnd sendNext:channel];
-    
+    [channel.inspectionRequestQueue invalidateWithError:LookinErr_NoConnect];
+    for (LKConnectionRequest *request in channel.activeRequests.copy) {
+        [request endTimeoutCount];
+        [channel.activeRequests removeObject:request];
+        if (request.failBlock) request.failBlock(LookinErr_NoConnect);
+    }
+    [self _finishLicenseHandshakeOnChannel:channel verified:NO];
     [channel close];
 }
 

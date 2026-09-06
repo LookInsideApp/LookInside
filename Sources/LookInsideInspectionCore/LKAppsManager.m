@@ -7,6 +7,8 @@
 //
 
 #import "LKAppsManager.h"
+#import "ReactiveObjC.h"
+#import "NSArray+Lookin.h"
 #import "Lookin_PTChannel.h"
 #import "LKConnectionManager.h"
 #import "LookinDefines.h"
@@ -92,6 +94,7 @@
                     LKInspectableApp *app = [[LKInspectableApp alloc] init];
                     app.serverVersionError = response.error;
                     app.channel = relatedChannel;
+                    app.transportIdentifier = [LKConnectionManager.sharedInstance transportIdentifierForChannel:relatedChannel];
                     return app;
                 } else {
                     LookinAppInfo *receivedInfo = response.data;
@@ -109,6 +112,7 @@
                     LKInspectableApp *app = [[LKInspectableApp alloc] init];
                     app.appInfo = receivedInfo;
                     app.channel = relatedChannel;
+                    app.transportIdentifier = [LKConnectionManager.sharedInstance transportIdentifierForChannel:relatedChannel];
                     return app;
                 }
             }

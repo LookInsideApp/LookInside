@@ -7,8 +7,8 @@
 // Why every mode goes through RPC 203 rather than RPC 201 `App`:
 //   RPC 201 with `needImages=YES` also carries a whole-app screenshot
 //   (`LookinAppInfo.screenshot`), but reaching it means driving
-//   `LKAppsManager.fetchAppInfosWithImage:localInfos:`, which re-scans
-//   *every* Peertalk port and rebuilds a fresh `LKInspectableApp` list
+//   AppsManager's discovery request, which re-scans
+//   *every* Peertalk port and rebuilds a fresh `InspectableApp` list
 //   for all connected apps. That is a heavyweight, side-effecting
 //   operation to perform for one picture, and the resulting screenshot
 //   is whatever the app looked like when the scan ran. Taking a `group`
@@ -21,9 +21,8 @@
 // on `LookinDisplayItem` whenever the inspector UI has rendered that
 // view. Those are served directly (`fromCache: true`) so repeat calls
 // stay cheap. On a miss the service issues RPC 203 with the matching
-// task type, merges the response back through
-// `LKStaticHierarchyDataSource.modifyWithDisplayItemDetail:` (same
-// side-effect `details.read` relies on) and encodes the fresh image.
+// task type. InspectionSession commits the complete response to its cache
+// and graphical subscribers before this service encodes the fresh image.
 //
 // Redaction: screenshots are pixels, and the host's secure-content
 // redactor only ever operated on attribute *strings*. A screenshot is
@@ -40,7 +39,6 @@ import os
 
 @MainActor
 public final class LKMCPBridgeScreenshotService {
-
     // MARK: - Configuration
 
     /// Default cap on the longest side of the returned image, in pixels.
@@ -59,6 +57,7 @@ public final class LKMCPBridgeScreenshotService {
     private static let minimumPixelDimension = 16
 
     // MARK: - Error code constants from LookinDefines.h
+
     //
     // See LKMCPBridgeInvocationService for the duplication rationale.
 
@@ -124,20 +123,20 @@ public final class LKMCPBridgeScreenshotService {
         parameters: [String: LKMCPBridgeJSONValue]?
     ) async -> LKMCPBridgeResponse {
         guard let parameters,
-              case .string(let targetIdentifier)? = parameters["targetIdentifier"]
+              case let .string(targetIdentifier)? = parameters["targetIdentifier"]
         else {
             return .failure(identifier: identifier, error: .invalidParameters)
         }
 
         let requestedObjectIdentifier: String?
-        if case .string(let raw)? = parameters["objectIdentifier"] {
+        if case let .string(raw)? = parameters["objectIdentifier"] {
             requestedObjectIdentifier = raw
         } else {
             requestedObjectIdentifier = nil
         }
 
         let mode: ScreenshotMode
-        if case .string(let raw)? = parameters["mode"] {
+        if case let .string(raw)? = parameters["mode"] {
             guard let parsed = ScreenshotMode(rawValue: raw) else {
                 return .failure(
                     identifier: identifier,
@@ -154,9 +153,9 @@ public final class LKMCPBridgeScreenshotService {
 
         let maximumPixelDimension: Int
         switch parameters["maximumPixelDimension"] {
-        case .integer(let raw)?:
+        case let .integer(raw)?:
             maximumPixelDimension = Int(raw)
-        case .double(let raw)?:
+        case let .double(raw)?:
             maximumPixelDimension = Int(raw)
         case .none, .some(.null):
             maximumPixelDimension = Self.defaultMaximumPixelDimension
@@ -175,31 +174,31 @@ public final class LKMCPBridgeScreenshotService {
             )
         }
 
-        // Live-document lookup
-        guard let document = LKMCPBridgeLiveDocumentLookup.findLiveDocument(targetIdentifier: targetIdentifier) else {
+        // Live-session lookup
+        guard let session = InspectionSessionLookup.findSession(targetIdentifier: targetIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.targetNotFound",
-                    message: "No live inspection document found for target identifier \(targetIdentifier)."
+                    message: "No inspection session found for target identifier \(targetIdentifier)."
                 )
             )
         }
-        guard document.hierarchyDataSource != nil else {
+        guard session.captureDate != nil else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
                     code: "hierarchy.notReady",
-                    message: "Live document has not loaded a hierarchy yet."
+                    message: "Live session has not loaded a hierarchy yet."
                 )
             )
         }
 
         // Resolve which display item to capture.
-        let roots = LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document)
+        let roots = InspectionSessionLookup.topLevelDisplayItems(in: session)
         let displayItem: LookinDisplayItem
         if let requestedObjectIdentifier {
-            guard let found = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
+            guard let found = InspectionSessionLookup.findDisplayItem(
                 amongRoots: roots,
                 matchingObjectIdentifier: requestedObjectIdentifier
             ) else {
@@ -229,7 +228,7 @@ public final class LKMCPBridgeScreenshotService {
             displayItem = keyWindowItem
         }
 
-        let resolvedObjectIdentifier = LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: displayItem)
+        let resolvedObjectIdentifier = InspectionSessionLookup.objectIdentifierString(for: displayItem)
         let containsSecureContent = Self.subtreeContainsSecureContent(rootDisplayItem: displayItem)
 
         // Fast path: the inspector UI already rendered this view, so the
@@ -274,7 +273,7 @@ public final class LKMCPBridgeScreenshotService {
         let package = LookinStaticAsyncUpdateTasksPackage()
         package.tasks = [task]
 
-        guard let signal = document.inspectableApp.rawFetchHierarchyDetail(withTaskPackages: [package]) else {
+        guard let signal = session.inspectableApp.rawFetchHierarchyDetail(withTaskPackages: [package]) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -324,7 +323,9 @@ public final class LKMCPBridgeScreenshotService {
                 matchingDetail = detail
                 break
             }
-            if matchingDetail != nil { break }
+            if matchingDetail != nil {
+                break
+            }
         }
 
         guard let detail = matchingDetail else {
@@ -348,7 +349,6 @@ public final class LKMCPBridgeScreenshotService {
 
         // Merge into the host cache so the inspector UI and any repeat
         // call see the same image without another round-trip.
-        document.hierarchyDataSource?.modify(with: detail)
 
         guard let renderedImage = mode.image(in: detail) else {
             // The server has real paths that return a detail with no
@@ -409,7 +409,7 @@ public final class LKMCPBridgeScreenshotService {
             sourcePixelWidth: encoded.sourcePixelWidth,
             sourcePixelHeight: encoded.sourcePixelHeight,
             byteCount: encoded.pngData.count,
-            frame: LKMCPBridgeRect(cgRect: LKMCPBridgeLiveDocumentLookup.rootSpaceFrame(for: displayItem)),
+            frame: LKMCPBridgeRect(cgRect: InspectionSessionLookup.rootSpaceFrame(for: displayItem)),
             servedFromCache: servedFromCache,
             containsSecureContent: containsSecureContent
         )
@@ -505,6 +505,9 @@ public final class LKMCPBridgeScreenshotService {
     }
 
     private func mapScreenshotError(_ error: NSError) -> LKMCPBridgeErrorPayload {
+        if let sessionError = InspectionSessionLookup.errorPayload(for: error, operation: "screenshot") {
+            return sessionError
+        }
         switch error.code {
         case Self.lookinErrCodeObjectNotFound:
             return LKMCPBridgeErrorPayload(

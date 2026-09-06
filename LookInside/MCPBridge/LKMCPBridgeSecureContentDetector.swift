@@ -23,9 +23,9 @@
 //   this detector can opt the UIKit case in.
 
 import Foundation
+import LookInsideInspectionCore
 
 enum LKMCPBridgeSecureContentDetector {
-
     /// Returns `true` when the given display item represents a view that
     /// the host should treat as carrying secure user input. When `true`,
     /// callers must replace any user-visible text strings on the item's

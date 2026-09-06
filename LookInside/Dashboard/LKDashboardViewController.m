@@ -340,7 +340,6 @@
             if (self.staticDataSource) {
                 LKDashboardTextControlEditingFlag.sharedInstance.shouldIgnoreTextEditingChangeEvent = YES;
                 // 用户通过回车键触发 endEditing -> 触发编辑 -> 走到这里 -> 这一句会触发 reload -> reload 触发 cardView removeFromSuperview -> 再次触发 editEditing，因此会导致连续修改两次（多 sync 一次图像数据），所以这里用标记位规避一下，懒得琢磨其它办法了
-                [self.staticDataSource modifyWithDisplayItemDetail:detail];
                 LKDashboardTextControlEditingFlag.sharedInstance.shouldIgnoreTextEditingChangeEvent = NO;
                 
                 if ([LookinDashboardBlueprint needPatchAfterModificationWithAttrID:attribute.identifier]) {
