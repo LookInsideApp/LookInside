@@ -34,7 +34,7 @@ struct InspectionProcessTests {
         #expect(!FileManager.default.fileExists(atPath: runtime.path))
         async let first = command(["targets", "discover"], executableURL: commandURL, environment: environment)
         async let second = command(["targets", "discover"], executableURL: commandURL, environment: environment)
-        let responses = try await[first, second]
+        let responses = try await [first, second]
         #expect(responses.allSatisfy { $0.status == 0 })
         let firstInstance = try envelope(responses[0].output)["serviceInstanceIdentifier"] as? String
         #expect(firstInstance != nil)
@@ -283,6 +283,185 @@ struct InspectionProcessTests {
         let health = try await waitForService(socketPath: socketPath)
         #expect(health.result?.objectValue?["processIdentifier"]?.integerValue == Int64(childIdentifier))
         #expect(getsid(childIdentifier) == childIdentifier)
+    }
+
+    @Test func `injection returns a verified session and repeated calls reuse it`() async throws {
+        try await withInjectionFixture("ready") { socketPath in
+            let injected = try await command(["inject", "--process-identifier", "12345", "--socket-path", socketPath])
+            #expect(injected.status == 0)
+            let result = try #require(try envelope(injected.output)["result"] as? [String: Any])
+            #expect(result["injectionStage"] as? String == "sessionReady")
+            #expect(result["processIdentifier"] as? Int == 12345)
+            let sessionIdentifier = try #require(result["sessionIdentifier"] as? String)
+            let hierarchy = try await command(["hierarchy", "read", "--session", sessionIdentifier, "--socket-path", socketPath])
+            #expect(hierarchy.status == 0)
+            let repeated = try await command(["inject", "--process-identifier", "12345", "--socket-path", socketPath])
+            #expect(repeated.status == 0)
+            #expect(try (envelope(repeated.output)["result"] as? [String: Any])?["sessionIdentifier"] as? String == sessionIdentifier)
+            let state = try injectionFixtureState(socketPath)
+            #expect(state["injections"] == .integer(1))
+            #expect(state["headless"] == .bool(true))
+        }
+    }
+
+    @Test(arguments: [
+        ("license", "injection.licenseRequired", Int32(5)),
+        ("missing", "injection.helperMissing", 3),
+        ("requiresApproval", "injection.approvalRequired", 3),
+        ("notRegistered", "injection.helperNotEnabled", 3),
+        ("unsupportedLocation", "injection.unsupportedLocation", 3),
+        ("framework", "injection.preparationRequired", 3),
+        ("changed", "injection.targetChanged", 4),
+        ("absent", "injection.targetNotFound", 4),
+    ])
+    func `failed preparation never submits injection`(_ scenario: String, _ errorCode: String, _ exitStatus: Int32) async throws {
+        try await withInjectionFixture(scenario) { socketPath in
+            let response = try await command(["inject", "--process-identifier", "12345", "--socket-path", socketPath])
+            #expect(response.status == exitStatus)
+            let error = try #require(try envelope(response.output)["error"] as? [String: Any])
+            #expect(error["code"] as? String == errorCode)
+            #expect((error["details"] as? [String: Any])?["injectionStage"] as? String == "notSubmitted")
+            #expect(try injectionFixtureState(socketPath)["injections"] == .integer(0))
+        }
+    }
+
+    @Test func `injector status does not activate a license or submit injection`() async throws {
+        try await withInjectionFixture("license") { socketPath in
+            let response = try await command(["injector", "status", "--socket-path", socketPath])
+            #expect(response.status == 0)
+            #expect(try (envelope(response.output)["result"] as? [String: Any])?["state"] as? String == "enabled")
+            #expect(try injectionFixtureState(socketPath)["injections"] == .integer(0))
+        }
+    }
+
+    @Test(arguments: [
+        ("oldServer", "injection.targetUnverified", "injected"),
+        ("otherProcess", "injection.discoveryTimeout", "injected"),
+        ("portReused", "injection.discoveryTimeout", "injected"),
+        ("reused", "injection.targetChanged", "injected"),
+        ("exited", "injection.targetNotFound", "injected"),
+        ("lostReply", "injection.helperTimeout", "submissionUnknown"),
+    ])
+    func `unverified injection never connects to a different process or resubmits`(_ scenario: String, _ errorCode: String, _ stage: String) async throws {
+        try await withInjectionFixture(scenario) { socketPath in
+            let request = InspectionRequest(identifier: UUID().uuidString, method: "injection.inject",
+                                            parameters: ["processIdentifier": .integer(12345), "waitTimeout": .double(0.2)])
+            let response = try await Task.detached {
+                try InspectionSocketClient.request(request, socketPath: socketPath, timeout: 3)
+            }.value
+            #expect(response.error?.code == errorCode)
+            #expect(response.error?.details?["injectionStage"] == .string(stage))
+            #expect(response.result == nil)
+            if ["oldServer", "otherProcess", "portReused", "lostReply"].contains(scenario) {
+                let repeated = try await Task.detached {
+                    try InspectionSocketClient.request(request, socketPath: socketPath, timeout: 3)
+                }.value
+                #expect(repeated.error?.code == "injection.targetUnverified")
+                #expect(repeated.error?.details?["injectionStage"] == .string(stage))
+            }
+            let state = try injectionFixtureState(socketPath)
+            #expect(state["injections"] == .integer(1))
+            #expect(state["sessions"] == .integer(0))
+        }
+    }
+
+    @Test func `concurrent callers submit only one injection for the same process`() async throws {
+        try await withInjectionFixture("delayed") { socketPath in
+            let request = InspectionRequest(identifier: UUID().uuidString, method: "injection.inject",
+                                            parameters: ["processIdentifier": .integer(12345)])
+            let first = Task.detached { try InspectionSocketClient.request(request, socketPath: socketPath, timeout: 5) }
+            defer { first.cancel() }
+            let deadline = ProcessInfo.processInfo.systemUptime + 2
+            while try injectionFixtureState(socketPath)["injections"] != .integer(1) {
+                try #require(ProcessInfo.processInfo.systemUptime < deadline)
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            let second = try await Task.detached { try InspectionSocketClient.request(request, socketPath: socketPath, timeout: 3) }.value
+            #expect(second.error?.code == "injection.alreadyInProgress")
+            #expect(try await first.value.result?.objectValue?["injectionStage"] == .string("sessionReady"))
+            #expect(try injectionFixtureState(socketPath)["injections"] == .integer(1))
+        }
+    }
+
+    @Test func `cancelling a submitted injection never makes it safe to replay`() async throws {
+        try await withInjectionFixture("cancelled") { socketPath in
+            let connection = InspectionServiceConnection()
+            try connection.connect(socketPath: socketPath)
+            let first = Task {
+                try await connection.request("injection.inject", parameters: ["processIdentifier": .integer(12345)])
+            }
+            let deadline = ProcessInfo.processInfo.systemUptime + 2
+            while try injectionFixtureState(socketPath)["injections"] != .integer(1) {
+                try #require(ProcessInfo.processInfo.systemUptime < deadline)
+                try await Task.sleep(for: .milliseconds(10))
+            }
+            first.cancel()
+            connection.close()
+            _ = await first.result
+            let request = InspectionRequest(identifier: UUID().uuidString, method: "injection.inject",
+                                            parameters: ["processIdentifier": .integer(12345), "waitTimeout": .double(0.2)])
+            // Wait for cancellation to cross the process boundary.
+            var repeated: InspectionResponse
+            repeat {
+                try await Task.sleep(for: .milliseconds(25))
+                repeated = try await Task.detached { try InspectionSocketClient.request(request, socketPath: socketPath, timeout: 3) }.value
+            } while repeated.error?.code == "injection.alreadyInProgress" && ProcessInfo.processInfo.systemUptime < deadline
+            #expect(repeated.error?.code == "injection.targetUnverified")
+            #expect(try injectionFixtureState(socketPath)["injections"] == .integer(1))
+        }
+    }
+
+    @Test func submittedInjectionDoesNotRestartServiceAfterLostReply() async throws {
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let socketPath = directory.appendingPathComponent("lookinside-inspection.sock").path
+        let fixture = Process()
+        fixture.executableURL = productsDirectory.appendingPathComponent("lookinside-service-fixture")
+        fixture.arguments = [socketPath, "--lose-service-reply"]
+        fixture.standardOutput = FileHandle.nullDevice
+        fixture.standardError = FileHandle.nullDevice
+        try fixture.run()
+        defer { stop(fixture) }
+        _ = try await waitForService(socketPath: socketPath)
+        var environment = ProcessInfo.processInfo.environment
+        environment["LOOKINSIDE_INSPECTION_RUNTIME_DIRECTORY"] = directory.path
+        // Leave the default startup path enabled. A replay attempt would fail
+        // with service.launchFailed because this test CLI is outside an App.
+        let response = try await command(["inject", "--process-identifier", "12345"], environment: environment)
+        let failure = try #require(try envelope(response.output)["error"] as? [String: Any])
+        #expect(response.status == 3)
+        #expect(failure["code"] as? String == "service.unavailable")
+        #expect((failure["details"] as? [String: Any])?["injectionStage"] as? String == "submissionUnknown")
+        try await waitForExit(fixture)
+        #expect(fixture.terminationStatus == 73)
+    }
+
+    @Test(arguments: ["0", "-1", "1", "2147483648"])
+    func `injection rejects invalid process identifiers before connecting`(_ identifier: String) async throws {
+        let response = try await command(["inject", "--process-identifier", identifier])
+        #expect(response.status == 2)
+        #expect(try (envelope(response.output)["error"] as? [String: Any])?["code"] as? String == "arguments.invalid")
+    }
+
+    private func injectionFixtureState(_ socketPath: String) throws -> [String: InspectionValue] {
+        try #require(InspectionSocketClient.request(InspectionRequest(identifier: UUID().uuidString, method: "fixture.state"),
+                                                    socketPath: socketPath).result?.objectValue)
+    }
+
+    private func withInjectionFixture(_ scenario: String, operation: (String) async throws -> Void) async throws {
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let socketPath = directory.appendingPathComponent("inspection.sock").path
+        let fixture = Process()
+        fixture.executableURL = productsDirectory.appendingPathComponent("lookinside-service-fixture")
+        fixture.arguments = [socketPath, "--injection", scenario]
+        fixture.standardOutput = FileHandle.nullDevice
+        fixture.standardError = FileHandle.nullDevice
+        fixture.standardInput = FileHandle.nullDevice
+        try fixture.run()
+        defer { stop(fixture) }
+        _ = try await waitForService(socketPath: socketPath)
+        try await operation(socketPath)
     }
 
     private func temporaryDirectory() throws -> URL {

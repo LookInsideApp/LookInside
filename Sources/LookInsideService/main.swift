@@ -34,6 +34,7 @@ struct ServiceArguments: ParsableCommand {
             }
             backend.instanceIdentifier = service.instanceIdentifier
             backend.authorizationRequest = { try await authorization.forward($0) }
+            backend.injection = InspectionInjection(environment: InspectionInjectionSystem.environment(authorization: authorization))
             var legacyService: InspectionSocketServer?
             defer { legacyService?.stop() }
             if socketPath == nil, ProcessInfo.processInfo.environment["LOOKINSIDE_INSPECTION_RUNTIME_DIRECTORY"] == nil {

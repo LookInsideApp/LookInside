@@ -27,6 +27,9 @@ typedef NS_ENUM(NSInteger, LookinAppInfoDevice) {
 
 /// 每次启动 app 时都会随机生成一个 appInfoIdentifier 直到 app 被 kill 掉
 @property(nonatomic, assign) NSUInteger appInfoIdentifier;
+/// Optional macOS process identity. Older peers and other platforms leave these nil.
+@property(nonatomic, copy) NSNumber *processIdentifier;
+@property(nonatomic, copy) NSString *processStartIdentifier;
 /// mac 端应该先读取该属性，如果为 YES 则表示应该使用之前保存的旧 appInfo 对象即可
 @property(nonatomic, assign) BOOL shouldUseCache;
 /// LookinServer 的版本

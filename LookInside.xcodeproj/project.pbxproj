@@ -5,6 +5,16 @@
 	};
 	objectVersion = 100;
 	objects = {
+		1F2000000000000000000001 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/LookInsideService/InspectionInjection.swift"; sourceTree = SOURCE_ROOT; };
+		1F2000000000000000000002 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/LookInsideService/InspectionInjectionSystem.swift"; sourceTree = SOURCE_ROOT; };
+		1F2000000000000000000003 = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Sources/LookInsideInspectionCore/InjectableFrameworkRepository.swift"; sourceTree = SOURCE_ROOT; };
+		1F2000000000000000000004 = { isa = PBXBuildFile; fileRef = 1F2000000000000000000001; };
+		1F2000000000000000000005 = { isa = PBXBuildFile; fileRef = 1F2000000000000000000001; };
+		1F2000000000000000000006 = { isa = PBXBuildFile; fileRef = 1F2000000000000000000002; };
+		1F2000000000000000000007 = { isa = PBXBuildFile; fileRef = 1F2000000000000000000003; };
+		1F2000000000000000000008 = { isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/MxIris-macOS-Library-Forks/SwiftyXPC"; requirement = { kind = upToNextMajorVersion; minimumVersion = "0.5.102"; }; };
+		1F2000000000000000000009 = { isa = XCSwiftPackageProductDependency; package = 1F2000000000000000000008; productName = SwiftyXPC; };
+		1F200000000000000000000A = { isa = PBXBuildFile; productRef = 1F2000000000000000000009; };
 		1E1F0000000000000000003D = { isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tests/Headless/InspectionSharedClientsTests.swift"; sourceTree = SOURCE_ROOT; };
 		1E1F0000000000000000003E = { isa = PBXBuildFile; fileRef = 1E1F0000000000000000003D; };
 		1E1F0000000000000000003F = { isa = PBXBuildFile; fileRef = 1C0E00000000000000000002; };
@@ -141,6 +151,7 @@
 			isa = "PBXSourcesBuildPhase";
 			buildActionMask = "2147483647";
 			files = (
+				1F2000000000000000000005,
 			1E1F0000000000000000000E,
 			1E1F00000000000000000010,
 			1E1F00000000000000000012,
@@ -559,6 +570,8 @@
 			isa = "PBXSourcesBuildPhase";
 			buildActionMask = "2147483647";
 			files = (
+				1F2000000000000000000004,
+				1F2000000000000000000006,
 			1E1F0000000000000000000F,
 			1E1F00000000000000000011,
 			1E1F00000000000000000013,
@@ -601,6 +614,7 @@
 			isa = "PBXFrameworksBuildPhase";
 			buildActionMask = "2147483647";
 			files = (
+				1F200000000000000000000A,
 				"1D1E0000000000000000001A",
 				"1D1E0000000000000000001B",
 				"1D1E0000000000000000001C",
@@ -689,6 +703,7 @@
 			productType = "com.apple.product-type.tool";
 			buildConfigurationList = "1D1E00000000000000000020";
 			packageProductDependencies = (
+				1F2000000000000000000009,
 				"1D1E00000000000000000002",
 			);
 			productName = "lookinside-service";
@@ -1877,6 +1892,7 @@
 		1C0E00000000000000000002 = { isa = PBXFileReference; explicitFileType = wrapper.framework; path = LookInsideInspectionCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C0E0000000000000000000B = { isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = LookInsideInspectionCoreTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1C0E00000000000000000003 = { isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (
+			1F2000000000000000000007,
 			1E1F0000000000000000003A,
 			1E1F0000000000000000003C,
 			1E1F00000000000000000037,
@@ -2744,6 +2760,9 @@
 		};
 		AA48F29221CC0CA50032EC2C = { "isa" = "PBXGroup"; "sourceTree" = "<group>"; "children" = ( "5011BBAE2F9754F0002DA475", "50EADFB32F71BFF200EBE063", "1C0E00000000000000000006", "1C0E0000000000000000000E", "AA48F29C21CC0CA50032EC2C", "0A9FB6E904476A1F9D0BB82E", "1D1E0000000000000000003D", "1E1F00000000000000000040", ); };
 		1E1F00000000000000000040 = { isa = PBXGroup; name = "Shared Inspection Clients"; sourceTree = "<group>"; children = (
+			1F2000000000000000000001,
+			1F2000000000000000000002,
+			1F2000000000000000000003,
 			1E1F00000000000000000036,
 			1E1F00000000000000000039,
 			1E1F00000000000000000001,
@@ -2805,6 +2824,7 @@
 		AA48F29321CC0CA50032EC2C = {
 			buildConfigurationList = "AA48F29621CC0CA50032EC2C";
 			packageReferences = (
+				1F2000000000000000000008,
 				"E37B8D0B2F97B1B100600001",
 				"E37B8D0F0F97B1B100600001",
 				"E37B8D202F97B1B100600001",

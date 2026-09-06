@@ -74,6 +74,10 @@ struct InspectionModelArchiveTests {
         hierarchy.displayItems = [root]
         hierarchy.appInfo = LookinAppInfo()
         hierarchy.appInfo.appInfoIdentifier = 808
+        hierarchy.appInfo.processIdentifier = 12345
+        hierarchy.appInfo.processStartIdentifier = "1700000000:123456"
+        child.soloScreenshotRegion = CGRect(x: 1, y: 2, width: 6, height: 4)
+        child.groupScreenshotRegion = CGRect(x: 3, y: 4, width: 8, height: 5)
         hierarchy.serverVersion = 900
         hierarchy.colorAlias = ["accent": [0.2, 0.4, 0.6, 0.8]]
         hierarchy.collapsedClassList = ["NSButton"]
@@ -111,6 +115,10 @@ struct InspectionModelArchiveTests {
         #expect(decodedChild.attributesGroupList.first?.isSwiftUIGroup == true)
         #expect(decodedChild.danceuiSource == "Example.swift:42")
         #expect(decoded.appInfo.appInfoIdentifier == 808)
+        #expect(decoded.appInfo.processIdentifier == 12345)
+        #expect(decoded.appInfo.processStartIdentifier == "1700000000:123456")
+        #expect(decodedChild.soloScreenshotRegion == child.soloScreenshotRegion)
+        #expect(decodedChild.groupScreenshotRegion == child.groupScreenshotRegion)
         #expect(decoded.collapsedClassList == ["NSButton"])
         #expect(decoded.serverVersion == 900)
         let decodedImageData = try #require(decodedChild.soloScreenshot.tiffRepresentation)

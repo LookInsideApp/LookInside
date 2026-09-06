@@ -14,6 +14,9 @@ extension InspectionServiceBackend {
         let owner = logicalIdentifier == clientIdentifier ? clientIdentifier : clientIdentifier + ":" + logicalIdentifier
         let context = ["clientIdentifier": logicalIdentifier, "operationIdentifier": request.identifier]
         return await InspectionOperationContext.$values.withValue(context) {
+            if ["injector.status", "injection.inject"].contains(request.method), let injection {
+                return await injection.handle(request, backend: self, owner: owner)
+            }
             if request.method.hasPrefix("transfer.") || Self.sharedMethods.contains(request.method) {
                 return await handleShared(request, connectionIdentifier: clientIdentifier, owner: owner)
             }

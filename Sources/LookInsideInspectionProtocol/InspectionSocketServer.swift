@@ -124,7 +124,9 @@ public final class InspectionSocketServer {
                     group.addTask { await self.handler(request, clientIdentifier) }
                     group.addTask {
                         try? await Task.sleep(for: .seconds(30))
-                        return .failure(identifier: request.identifier, error: InspectionFailure(code: "operation.timeout", message: "The inspection operation exceeded its deadline."))
+                        let details: [String: InspectionValue]? = request.method == "injection.inject"
+                            ? ["injectionStage": .string("submissionUnknown"), "operationIdentifier": .string(request.identifier)] : nil
+                        return .failure(identifier: request.identifier, error: InspectionFailure(code: "operation.timeout", message: "The inspection operation exceeded its deadline.", details: details))
                     }
                     let response = await group.next()!
                     group.cancelAll()

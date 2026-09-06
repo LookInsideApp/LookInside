@@ -111,10 +111,12 @@ public struct InspectionEvent: Sendable, Codable {
 public struct InspectionFailure: Sendable, Codable, Error, Equatable {
     public let code: String
     public let message: String
+    public let details: [String: InspectionValue]?
 
-    public init(code: String, message: String) {
+    public init(code: String, message: String, details: [String: InspectionValue]? = nil) {
         self.code = code
         self.message = message
+        self.details = details
     }
 
     public static let unknownMethod = InspectionFailure(

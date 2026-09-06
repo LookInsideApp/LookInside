@@ -7,7 +7,7 @@ import LookInsideInspectionProtocol
 struct InspectionCommand: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "lookinside-cli", abstract: "Inspect applications through LookInside's headless service.", version: "1",
-        subcommands: [ServiceCommand.self, TargetsCommand.self, SessionsCommand.self, HierarchyCommand.self, ViewsCommand.self, AttributesCommand.self, ScreenshotCommand.self]
+        subcommands: [ServiceCommand.self, TargetsCommand.self, SessionsCommand.self, HierarchyCommand.self, ViewsCommand.self, AttributesCommand.self, ScreenshotCommand.self, InjectorCommand.self, InjectCommand.self]
     )
 
     static func main() {
@@ -56,6 +56,7 @@ struct CommandOptions: ParsableArguments {
     func perform(method: String, parameters: [String: InspectionValue] = [:], startsService: Bool = true,
                  outputFile: String? = nil) throws
     {
+        var commandWasSubmitted = false
         do {
             let paths = try InspectionRuntimePaths(socketPath: socketPath)
             var parameters = parameters
@@ -70,6 +71,7 @@ struct CommandOptions: ParsableArguments {
                 if method == "service.status" {
                     return status
                 }
+                commandWasSubmitted = true
                 let response = try InspectionSocketClient.request(request, socketPath: paths.socketPath, timeout: timeout)
                 guard response.metadata?.serviceInstanceIdentifier == status.metadata?.serviceInstanceIdentifier else {
                     throw InspectionFailure(code: "service.restarted", message: "The service restarted during the command. Discover targets and open a new session.")
@@ -79,7 +81,7 @@ struct CommandOptions: ParsableArguments {
             var response: InspectionResponse
             do {
                 response = try sendCommand()
-            } catch let failure as InspectionFailure where failure.code == "service.unavailable" && startsService && socketPath == nil {
+            } catch let failure as InspectionFailure where failure.code == "service.unavailable" && !commandWasSubmitted && startsService && socketPath == nil {
                 let executableURL = Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0])
                 let serviceURL = try InspectionServiceLauncher.bundledServiceURL(executableURL: executableURL)
                 _ = try InspectionServiceLauncher.launch(executableURL: serviceURL)
@@ -114,7 +116,12 @@ struct CommandOptions: ParsableArguments {
                 throw ExitCode(InspectionExitStatus.code(for: failure))
             }
         } catch let failure as InspectionFailure {
-            try emit(InspectionResponse(identifier: "", result: nil, error: failure, metadata: InspectionMetadata()))
+            var reported = failure
+            if method == "injection.inject", commandWasSubmitted, failure.details == nil {
+                reported = InspectionFailure(code: failure.code, message: failure.message,
+                                             details: ["injectionStage": .string("submissionUnknown")])
+            }
+            try emit(InspectionResponse(identifier: "", result: nil, error: reported, metadata: InspectionMetadata()))
             throw ExitCode(InspectionExitStatus.code(for: failure))
         }
     }
@@ -144,6 +151,36 @@ struct ServiceCommand: ParsableCommand {
         mutating func run() throws {
             try options.perform(method: "service.status", startsService: false)
         }
+    }
+}
+
+struct InjectorCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(commandName: "injector", subcommands: [Status.self])
+    struct Status: ParsableCommand {
+        @OptionGroup var options: CommandOptions
+        mutating func run() throws {
+            try options.perform(method: "injector.status")
+        }
+    }
+}
+
+struct InjectCommand: ParsableCommand {
+    static let configuration = CommandConfiguration(commandName: "inject", abstract: "Inject the prepared LookInsideServer into a selected running macOS application and open its inspection session.")
+    @OptionGroup var options: CommandOptions
+    @Option(help: "The explicitly selected process identifier. The process must belong to the current user.")
+    var processIdentifier: Int32
+
+    mutating func validate() throws {
+        guard processIdentifier > 1 else { throw ValidationError("--process-identifier must identify a running application, greater than 1.") }
+        guard options.timeout >= 5 else { throw ValidationError("Injection requires --timeout of at least 5 seconds.") }
+        guard options.requireCapability == nil else { throw ValidationError("Use --require-capability when reading the returned inspection session.") }
+    }
+
+    mutating func run() throws {
+        try options.perform(method: "injection.inject", parameters: [
+            "processIdentifier": .integer(Int64(processIdentifier)),
+            "waitTimeout": .double(min(25, options.timeout - 1)),
+        ])
     }
 }
 

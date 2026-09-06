@@ -14,6 +14,9 @@
 #import "LKS_MultiplatformAdapter.h"
 
 #import <sys/sysctl.h>
+#if TARGET_OS_OSX
+#import <libproc.h>
+#endif
 
 #if TARGET_OS_MACCATALYST
 #import <objc/message.h>
@@ -92,6 +95,8 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
     newAppInfo.screenHeight = self.screenHeight;
     newAppInfo.screenScale = self.screenScale;
     newAppInfo.appInfoIdentifier = self.appInfoIdentifier;
+    newAppInfo.processIdentifier = self.processIdentifier;
+    newAppInfo.processStartIdentifier = self.processStartIdentifier;
     newAppInfo.cachedTimestamp = self.cachedTimestamp;
     return newAppInfo;
 }
@@ -119,6 +124,12 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
         self.screenHeight = [aDecoder decodeDoubleForKey:CodingKey_ScreenHeight];
         self.screenScale = [aDecoder decodeDoubleForKey:@"screenScale"];
         self.appInfoIdentifier = [aDecoder decodeIntegerForKey:@"appInfoIdentifier"];
+        if ([aDecoder containsValueForKey:@"processIdentifier"]) {
+            self.processIdentifier = [aDecoder decodeObjectOfClass:[NSNumber class] forKey:@"processIdentifier"];
+        }
+        if ([aDecoder containsValueForKey:@"processStartIdentifier"]) {
+            self.processStartIdentifier = [aDecoder decodeObjectOfClass:[NSString class] forKey:@"processStartIdentifier"];
+        }
         self.shouldUseCache = [aDecoder decodeBoolForKey:@"shouldUseCache"];
     }
     return self;
@@ -154,6 +165,8 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
     [aCoder encodeDouble:self.screenHeight forKey:CodingKey_ScreenHeight];
     [aCoder encodeDouble:self.screenScale forKey:@"screenScale"];
     [aCoder encodeInteger:self.appInfoIdentifier forKey:@"appInfoIdentifier"];
+    [aCoder encodeObject:self.processIdentifier forKey:@"processIdentifier"];
+    [aCoder encodeObject:self.processStartIdentifier forKey:@"processStartIdentifier"];
     [aCoder encodeBool:self.shouldUseCache forKey:@"shouldUseCache"];
 }
 
@@ -213,6 +226,13 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
 #endif
     info.appInfoIdentifier = selfIdentifier;
     info.appName = [self appName];
+#if TARGET_OS_OSX
+    struct proc_bsdinfo processInformation = {0};
+    if (proc_pidinfo(getpid(), PROC_PIDTBSDINFO, 0, &processInformation, sizeof(processInformation)) == sizeof(processInformation)) {
+        info.processIdentifier = @(getpid());
+        info.processStartIdentifier = [NSString stringWithFormat:@"%llu:%llu", processInformation.pbi_start_tvsec, processInformation.pbi_start_tvusec];
+    }
+#endif
 #if TARGET_OS_MACCATALYST
     // Ask the Mac for its own name. -[UIDevice name] is still consulted as a last resort so
     // the field is never empty, but on Catalyst it only ever answers @"iPad".

@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import LookInsideInspectionCore
 
 enum LKInjectableFrameworkInstallerError: LocalizedError {
     case downloadFailed(String)
@@ -63,7 +64,7 @@ enum LKInjectableFrameworkInstallerLayout {
     /// Hard floor — bundled-baseline server version this build of the client is
     /// known to be compatible with. If the GitHub latest-release lookup fails
     /// (rate limit, offline) the installer falls back to this version.
-    static let minimumServerVersion = "0.2.2"
+    static let minimumServerVersion = InjectableFrameworkRepository.minimumVersion
 
     static let repositoryOwner = "LookInsideApp"
     static let repositoryName = "LookInside-Release"
@@ -77,8 +78,7 @@ enum LKInjectableFrameworkInstallerLayout {
     static let frameworkBundleName = "LookInsideServer.framework"
 
     static var rootDirectoryURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/LookInside/InjectableFrameworks", isDirectory: true)
+        InjectableFrameworkRepository.rootDirectory
     }
 
     static func versionDirectoryURL(for version: String) -> URL {
@@ -172,6 +172,9 @@ final class LKInjectableFrameworkInstaller {
     }
 
     func verifyTeamIdentifier(of frameworkURL: URL) throws {
+        if (try? LKInstallerCodeSignature.teamIdentifier(atPath: Bundle.main.bundlePath)) != nil {
+            try InjectableFrameworkRepository.validate(frameworkURL)
+        }
         try LKInstallerCodeSignature.verifyTeamIdentifierMatchesHost(
             of: frameworkURL,
             unavailableErrorBuilder: { LKInjectableFrameworkInstallerError.teamIdentifierUnavailable($0) },
@@ -251,8 +254,12 @@ final class LKInjectableFrameworkInstaller {
         for index in 0 ..< count {
             let leftValue = index < leftParts.count ? leftParts[index] : 0
             let rightValue = index < rightParts.count ? rightParts[index] : 0
-            if leftValue < rightValue { return -1 }
-            if leftValue > rightValue { return 1 }
+            if leftValue < rightValue {
+                return -1
+            }
+            if leftValue > rightValue {
+                return 1
+            }
         }
         return 0
     }

@@ -441,6 +441,7 @@ verify_injector_bundle_layout() {
 	local plist_buddy="/usr/libexec/PlistBuddy"
 	local associated_bundle_identifier
 	local authorized_client
+	local authorized_service
 	local bundle_program
 	local label
 	local mach_service_enabled
@@ -464,6 +465,11 @@ verify_injector_bundle_layout() {
 	authorized_client="identifier \"${HOST_BUNDLE_IDENTIFIER}\" and anchor apple generic and certificate leaf[subject.OU] = \"${INJECTOR_AUTHORIZED_TEAM_ID}\""
 	strings "$injector_binary" | grep -F "$authorized_client" >/dev/null ||
 		fail "Injector binary SMAuthorizedClients does not authorize $HOST_BUNDLE_IDENTIFIER for team $INJECTOR_AUTHORIZED_TEAM_ID"
+	authorized_service="identifier \"com.lookinside-app.lookinside.service\" and anchor apple generic and certificate leaf[subject.OU] = \"${INJECTOR_AUTHORIZED_TEAM_ID}\""
+	strings "$injector_binary" | grep -F "$authorized_service" >/dev/null ||
+		fail "Injector binary does not authorize the inspection service"
+	strings "$injector_binary" | grep -F 'app.lookinside.injector.injectVerifiedApplication' >/dev/null ||
+		fail "Injector binary does not support verified command-line injection"
 }
 
 # The MCP server rides the host's release so it can never drift out of step

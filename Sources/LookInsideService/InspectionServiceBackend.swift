@@ -10,6 +10,7 @@ final class InspectionServiceBackend {
     let transfers = InspectionTransferStore()
     let compatibility = InspectionCompatibilityRoutes()
     var authorizationRequest: ((InspectionValue) async throws -> InspectionValue)?
+    var injection: InspectionInjection?
     var observers: [NSObjectProtocol] = []
     var pushSubscription: RACDisposable?
     private let discoverApplications: () async throws -> [InspectableApp]

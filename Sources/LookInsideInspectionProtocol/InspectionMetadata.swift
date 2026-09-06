@@ -35,6 +35,13 @@ public enum InspectionExitStatus {
     public static func code(for failure: InspectionFailure) -> Int32 {
         switch failure.code {
         case "arguments.invalid", "output.invalid", "dispatch.invalidParameters": 2
+        case "injection.helperMissing", "injection.helperNotEnabled", "injection.approvalRequired",
+             "injection.helperIncompatible", "injection.unsupportedLocation", "injection.preparationRequired",
+             "injection.frameworkUnavailable": 3
+        case "injection.targetNotFound", "injection.targetChanged", "injection.targetUnverified", "injection.denied": 4
+        case "injection.licenseRequired": 5
+        case "injection.discoveryTimeout", "injection.helperTimeout": 6
+        case "injection.alreadyInProgress", "injection.historyFull": 7
         case "service.unavailable", "service.incompatible", "service.launchFailed",
              "service.invalidPath", "service.invalidResponse": 3
         case "target.notFound", "session.notFound", "session.disconnected", "object.notFound": 4
@@ -56,7 +63,7 @@ public enum InspectionCapabilities {
         "sessions.retain", "sessions.release", "session.state", "session.events", "session.request",
         "session.captureOptions", "hierarchy.capture", "hierarchy.details", "hierarchy.cachedDetails",
         "transfer.begin", "transfer.append", "transfer.read", "transfer.release",
-        "authorization.request",
+        "authorization.request", "injector.status", "injection.inject",
     ]
 
     public static func validate(_ status: InspectionResponse, supporting method: String) throws {
