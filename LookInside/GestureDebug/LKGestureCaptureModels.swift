@@ -13,6 +13,14 @@ struct LKGestureCaptureBatch: Codable {
     var state: String
     var message: String
     var pollDurationMS: Double
+    var overlayStatus: LKGestureOverlayStatus?
+}
+
+struct LKGestureOverlayStatus: Codable {
+    var mode: String
+    var isEnabled: Bool
+    var regionCount: Int
+    var hostingViewCount: Int
 }
 
 struct LKGestureCaptureRecord: Codable, Identifiable {
@@ -43,6 +51,7 @@ struct LKGestureCaptureSnapshot: Codable, Identifiable {
     var bindings: [LKGestureCaptureBinding]
     var rawRecords: [LKGestureCaptureRecord]
     var complete: Bool
+    var responderTreeComplete: Bool?
     var warnings: [String]
 
     var title: String {

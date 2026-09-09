@@ -19,6 +19,7 @@ final class LKGestureDebugSession: ObservableObject {
     @Published var selectedNodeID: String?
     @Published var followsLatest = true
     @Published var overlayEnabled = true
+    @Published private(set) var overlayStatus: LKGestureOverlayStatus?
     @Published private(set) var appName = "No target"
     @Published private(set) var supported = false
 
@@ -85,6 +86,7 @@ final class LKGestureDebugSession: ObservableObject {
         recordCount = 0
         redactedCount = 0
         droppedCount = 0
+        overlayStatus = nil
         snapshots.removeAll()
         records.removeAll()
         selectedSnapshotID = nil
@@ -119,6 +121,7 @@ final class LKGestureDebugSession: ObservableObject {
         startTask = nil
         isRunning = false
         isStarting = false
+        overlayStatus = nil
         state = "stopped"
         if token != nil {
             message = "Capture stopped. Recorded events remain available."
@@ -139,12 +142,21 @@ final class LKGestureDebugSession: ObservableObject {
     }
 
     func updateOverlay() {
-        guard let app, let token = sessionID, isRunning else { return }
+        sendOverlayControl(clear: false)
+    }
+
+    func clearBorders() {
+        guard overlayStatus?.mode == "persistentObserved" else { return }
+        sendOverlayControl(clear: true)
+    }
+
+    private func sendOverlayControl(clear: Bool) {
+        guard let app, let token = sessionID, isRunning || isStarting else { return }
         let enabled = overlayEnabled
         Task { [weak self] in
             do {
                 let _: NSDictionary = try await LKMCPBridgeRACBridge.awaitFirstValue(
-                    of: app.controlGestureDebug(["command": "overlay", "sessionID": token, "enabled": enabled])
+                    of: app.controlGestureDebug(["command": "overlay", "sessionID": token, "enabled": enabled, "clear": clear])
                 )
             } catch {
                 guard self?.sessionID == token else { return }
@@ -195,6 +207,7 @@ final class LKGestureDebugSession: ObservableObject {
             redactedCount = batch.redactedCount
             droppedCount = batch.droppedCount
             pollDurationMS = batch.pollDurationMS
+            overlayStatus = batch.overlayStatus
             state = batch.state
             isStarting = state == "starting"
             isRunning = state == "waiting" || state == "capturing" || state == "redacted"
