@@ -29,6 +29,7 @@ NSToolbarItemIdentifier const LKToolBarIdentifier_Measure = @"17";
 NSToolbarItemIdentifier const LKToolBarIdentifier_Message = @"18";
 NSToolbarItemIdentifier const LKToolBarIdentifier_FastMode = @"19";
 NSToolbarItemIdentifier const LKToolBarIdentifier_SwiftUIMode = @"20";
+NSToolbarItemIdentifier const LKToolBarIdentifier_GestureDebug = @"21";
 
 
 static NSString * const Key_BindingPreferenceManager = @"PreferenceManager";
@@ -55,6 +56,14 @@ static NSString * const Key_BindingAppInfo = @"AppInfo";
 
 - (NSToolbarItem *)makeToolBarItemWithIdentifier:(NSToolbarItemIdentifier)identifier preferenceManager:(LKPreferenceManager *)manager {
     NSAssert(![identifier isEqualToString:LKToolBarIdentifier_AppInReadMode], @"请使用 makeAppInReadModeItemWithAppInfo: 方法");
+
+    if ([identifier isEqualToString:LKToolBarIdentifier_GestureDebug]) {
+        NSToolbarItem *item = [[NSToolbarItem alloc] initWithItemIdentifier:identifier];
+        item.label = NSLocalizedString(@"Gestures", nil);
+        item.toolTip = NSLocalizedString(@"Inspect SwiftUI responders and gesture events", nil);
+        item.image = [NSImage imageWithSystemSymbolName:@"hand.point.up.left" accessibilityDescription:item.label];
+        return item;
+    }
     
     if ([identifier isEqualToString:LKToolBarIdentifier_Measure]) {
         NSImage *image = NSImageMake(@"icon_measure");

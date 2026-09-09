@@ -24,6 +24,9 @@
 
 - (RACSignal *)fetchHierarchyData;
 
+/// Versioned controls for the optional SwiftUI gesture capture service.
+- (RACSignal *)controlGestureDebug:(NSDictionary *)parameters;
+
 - (RACSignal *)submitInbuiltModification:(LookinAttributeModification *)modification;
 
 /// Variant of `-submitInbuiltModification:` that surfaces the server's raw

@@ -15,6 +15,10 @@
 
 @implementation LKInspectableApp
 
+- (RACSignal *)controlGestureDebug:(NSDictionary *)parameters {
+    return [self _requestWithType:LookinRequestTypeGestureDebug data:parameters];
+}
+
 - (RACSignal *)fetchHierarchyData {
     /// Lookin 1.0.4 开始加入这个参数
     NSMutableDictionary *param = [NSMutableDictionary dictionaryWithDictionary:@{
