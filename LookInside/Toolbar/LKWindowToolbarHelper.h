@@ -22,6 +22,7 @@ extern NSToolbarItemIdentifier const LKToolBarIdentifier_Measure;
 extern NSToolbarItemIdentifier const LKToolBarIdentifier_Message;
 extern NSToolbarItemIdentifier const LKToolBarIdentifier_FastMode;
 extern NSToolbarItemIdentifier const LKToolBarIdentifier_SwiftUIMode;
+extern NSToolbarItemIdentifier const LKToolBarIdentifier_GestureDebug;
 
 @class LKPreferenceManager, LookinAppInfo;
 
