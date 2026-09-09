@@ -47,8 +47,10 @@ struct LKGestureDebugView: View {
             Label(session.appName, systemImage: "hand.point.up.left")
                 .font(.headline).lineLimit(1)
             Spacer()
-            Toggle("Recent bindings in app", isOn: $session.overlayEnabled)
-                .help("Show rectangles reported by recent event logs. Fill briefly indicates an observed binding, not current recognition state.")
+            Toggle("Gesture borders", isOn: $session.overlayEnabled)
+                .help("Interact with a region to reveal its reported borders. Borders persist until cleared; fill briefly indicates an observed binding.")
+            Button("Clear Borders") { session.clearBorders() }
+                .disabled(!session.isRunning || !session.overlayEnabled || session.overlayStatus?.mode != "persistentObserved")
             Button(session.isRunning || session.isStarting ? "Stop Capture" : "Start Capture") {
                 if session.isRunning || session.isStarting {
                     session.stop()
@@ -81,6 +83,10 @@ struct LKGestureDebugView: View {
             }
             if let latest = session.snapshots.last {
                 Text("Latest event arrived \(max(0, latest.receivedAt - latest.timestamp), specifier: "%.2f") s late · system query \(session.pollDurationMS, specifier: "%.0f") ms")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if let overlay = session.overlayStatus, overlay.isEnabled, session.isRunning {
+                Text("\(overlay.regionCount) borders in target app · Interact to reveal regions. Clear after layout changes.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             if session.state == "redacted" {
