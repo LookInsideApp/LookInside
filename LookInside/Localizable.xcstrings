@@ -1,22 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Loading capture…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading capture…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在载入捕获…"
-          }
-        }
-      }
-    },
     "" : {
 
     },
@@ -105,6 +89,7 @@
       }
     },
     "A race condition occurred implementing %@ on class %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -828,6 +813,7 @@
       }
     },
     "Connection to %@ lost. Trying to reconnect…" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -957,6 +943,7 @@
       }
     },
     "Current LookInside app is too old to open this document. Current LookInside app version is %@, but the document version is %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1457,6 +1444,7 @@
       }
     },
     "Fail to inspect this target app due to a version problem." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1553,6 +1541,7 @@
       }
     },
     "Failed to get target object in iOS app" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1633,6 +1622,7 @@
       }
     },
     "Failed to open the document." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2289,6 +2279,7 @@
       }
     },
     "Inspected app" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2449,6 +2440,7 @@
       }
     },
     "Invoke -rac_signalForSelector: again to override the implementation." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2690,6 +2682,7 @@
       }
     },
     "License challenge payload is malformed." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2706,6 +2699,7 @@
       }
     },
     "License signing failed." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2770,7 +2764,24 @@
         }
       }
     },
+    "Loading capture…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading capture…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在载入捕获…"
+          }
+        }
+      }
+    },
     "LookInside app version is too low." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3027,6 +3038,7 @@
       }
     },
     "LookInside license verification failed." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3413,6 +3425,7 @@
       }
     },
     "No matching signal found for value %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3734,6 +3747,7 @@
       }
     },
     "Perhaps the related object was deallocated. You can reload LookInside to get newest data." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3750,6 +3764,7 @@
       }
     },
     "Perhaps your iOS app is paused with breakpoint in Xcode, blocked by other tasks in main thread, or moved to background state." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3782,6 +3797,7 @@
       }
     },
     "Please update the embedded LookinServer integration in your target app to a newer version from this repository." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4134,6 +4150,7 @@
       }
     },
     "Request timeout" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4639,6 +4656,7 @@
       }
     },
     "Target app is linked with a higher version LookinServer.framework. Update this community build from the current repository source." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4657,7 +4675,11 @@
     "The app finished the hierarchy request without returning a hierarchy." : {
 
     },
+    "The Auth Server belongs to another inspection process. Stop that inspection before using protected features here." : {
+
+    },
     "The command is disabled and cannot be executed" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4674,6 +4696,7 @@
       }
     },
     "The document was created by a LookInside app with too old version. Current LookInside app version is %@, but the document version is %@." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4858,6 +4881,7 @@
       }
     },
     "The method was invoked successfully and no value was returned." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4890,6 +4914,7 @@
       }
     },
     "The operation failed because target iOS app has entered to the background state." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4906,6 +4931,7 @@
       }
     },
     "The operation failed due to an inner error." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4922,6 +4948,7 @@
       }
     },
     "The operation failed due to disconnection with the iOS app." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4954,6 +4981,7 @@
       }
     },
     "The request is discarded due to a newer same request." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
