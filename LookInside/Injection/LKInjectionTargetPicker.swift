@@ -101,6 +101,16 @@ final class LKInjectionTargetPicker: NSObject, RunningPickerTabViewController.De
         tabController.delegate = self
     }
 
+    /// Fetches a supplied process list again.
+    ///
+    /// Does nothing for the local picker, which keeps itself current on a
+    /// timer. A supplied source is loaded once when the picker appears,
+    /// because the library cannot know what a round trip to another machine
+    /// costs — so deciding when to spend it again is this caller's job.
+    func reloadProcesses() {
+        tabController.reloadProcesses()
+    }
+
     func present(in window: NSWindow?) {
         presentingWindow = window
         let panel = NSWindow(contentViewController: tabController)

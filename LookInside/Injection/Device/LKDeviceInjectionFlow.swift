@@ -219,14 +219,26 @@ final class LKDeviceInjectionFlow: NSObject {
 
     @MainActor
     private func pickTarget(on client: LKDeviceControlClient, window: NSWindow?) async -> Target? {
-        // The verdicts the device sent, kept so the picker's `shouldSelect` has
-        // an answer ready for the first row the user clicks.
-        let refusals = LKDeviceProcessRefusals()
+        // What the device last said, kept for two things the picker needs: an
+        // answer for `shouldSelect` ready before the first click, and
+        // something to show when a *refresh* fails.
+        let snapshot = LKDeviceProcessSnapshot()
 
         let itemSource = AnyRunningItemSource<RunningProcess> {
-            let processes = try await client.processList()
-            refusals.record(processes)
-            return processes.map(RunningProcess.init(deviceProcess:))
+            do {
+                let processes = try await client.processList()
+                snapshot.record(processes)
+                return processes.map(RunningProcess.init(deviceProcess:))
+            } catch {
+                // A failed *refresh* must not empty a list the user is reading,
+                // and must not be reported as a failure either — the picker's
+                // failure handler closes the sheet, so a single dropped poll
+                // would yank it out from under them. The first load has nothing
+                // to fall back on, so that one does throw and does get shown.
+                guard let lastKnown = snapshot.lastKnownProcesses() else { throw error }
+                snapshot.markStale()
+                return lastKnown.map(RunningProcess.init(deviceProcess:))
+            }
         }
 
         return await withCheckedContinuation { continuation in
@@ -234,29 +246,51 @@ final class LKDeviceInjectionFlow: NSObject {
                 deviceName: client.serialNumber,
                 processItemSource: itemSource,
                 refusalReasonForProcess: { processIdentifier in
-                    refusals.refusalReason(forProcessWithIdentifier: processIdentifier)
+                    snapshot.refusalReason(forProcessWithIdentifier: processIdentifier)
                 }
             )
             self.picker = picker
-            var hasResumed = false
-            picker.onConfirm = { [weak self] processIdentifier, name in
-                guard !hasResumed else { return }
-                hasResumed = true
-                self?.picker = nil
-                continuation.resume(returning: Target(processIdentifier: processIdentifier, name: name))
+
+            // The device's process table changes while the sheet is open — the
+            // whole point of driving this from the Mac is that the user is not
+            // touching the phone, so an app they launch there has to turn up
+            // here without them reopening anything. Matches the cadence the
+            // library's own local picker uses, which a measured round trip of
+            // 70–100 ms over USB easily affords.
+            let refreshTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] timer in
+                guard let self, let picker = self.picker else {
+                    timer.invalidate()
+                    return
+                }
+                // Stop polling a channel that has already failed once rather
+                // than hammering it; the list stays on screen, and picking a
+                // row will surface the real error.
+                guard !snapshot.isStale else {
+                    timer.invalidate()
+                    return
+                }
+                picker.reloadProcesses()
             }
-            picker.onCancel = { [weak self] in
+
+            var hasResumed = false
+            let finish: (Target?) -> Void = { [weak self] target in
                 guard !hasResumed else { return }
                 hasResumed = true
+                refreshTimer.invalidate()
                 self?.picker = nil
-                continuation.resume(returning: nil)
+                continuation.resume(returning: target)
+            }
+
+            picker.onConfirm = { processIdentifier, name in
+                finish(Target(processIdentifier: processIdentifier, name: name))
+            }
+            picker.onCancel = {
+                finish(nil)
             }
             picker.onProcessListFailure = { [weak self] error in
                 guard !hasResumed else { return }
-                hasResumed = true
-                self?.picker = nil
                 self?.presentAlert(error: error, window: window)
-                continuation.resume(returning: nil)
+                finish(nil)
             }
             picker.present(in: window)
         }
@@ -288,24 +322,48 @@ final class LKDeviceInjectionFlow: NSObject {
     }
 }
 
-/// The device's per-process verdicts, kept while a picker is open.
+/// What the device last reported, kept while a picker is open.
 ///
 /// A reference type with its own lock rather than state on the flow: the
 /// picker's item source is a `@Sendable` closure, so it cannot reach into
-/// main-actor state to record what it fetched, and the `shouldSelect` callback
-/// that reads it arrives on the main thread.
-private final class LKDeviceProcessRefusals: @unchecked Sendable {
+/// main-actor state to record what it fetched, and both readers — the
+/// `shouldSelect` callback and the refresh timer — arrive on the main thread.
+private final class LKDeviceProcessSnapshot: @unchecked Sendable {
     private let lock = NSLock()
+    private var processes: [LKDeviceControlProcess]?
     private var refusalByProcessIdentifier: [pid_t: String] = [:]
+    private var hasFailedARefresh = false
 
     func record(_ processes: [LKDeviceControlProcess]) {
         lock.lock()
         defer { lock.unlock() }
+        self.processes = processes
         refusalByProcessIdentifier = processes.reduce(into: [:]) { result, process in
             if let reason = process.injectability.refusalReason {
                 result[process.processIdentifier] = reason
             }
         }
+    }
+
+    /// The last list the device sent, or `nil` if it has never answered — which
+    /// is what separates a refresh worth absorbing from a first load worth
+    /// reporting.
+    func lastKnownProcesses() -> [LKDeviceControlProcess]? {
+        lock.lock()
+        defer { lock.unlock() }
+        return processes
+    }
+
+    func markStale() {
+        lock.lock()
+        defer { lock.unlock() }
+        hasFailedARefresh = true
+    }
+
+    var isStale: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return hasFailedARefresh
     }
 
     /// Why this row cannot be picked, or `nil` when it can.
