@@ -69,8 +69,15 @@ struct LKGestureCaptureNode: Codable, Identifiable {
     var attributeID: String?
     var phase: String?
     var geometry: LKGestureCaptureGeometry?
+    var contentShape: LKGestureContentShape?
     var detail: String
     var recordSequence: Int
+}
+
+struct LKGestureContentShape: Codable {
+    var typeName: String
+    var kind: String?
+    var source: String
 }
 
 struct LKGestureCaptureGeometry: Codable {

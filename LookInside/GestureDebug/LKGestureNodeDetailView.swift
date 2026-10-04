@@ -20,8 +20,23 @@ struct LKGestureNodeDetailView: View {
                 if let geometry = node.geometry {
                     field("Reported origin", "\(number(geometry.x)), \(number(geometry.y))")
                     field("Reported size", "\(number(geometry.width)) × \(number(geometry.height))")
-                    Text("SwiftUI global coordinates. The log does not supply an exact contentShape or a complete transform.")
+                    Text("SwiftUI global coordinates. The log does not supply a complete transform.")
                         .font(.caption).foregroundStyle(.secondary)
+                }
+                if let shape = node.contentShape {
+                    field("Interaction shape", shape.typeName)
+                    if let kind = shape.kind {
+                        field("Reconstructed shape", kind)
+                        Text(kind == "capsule"
+                            ? "Reconstructed from the logged type and bounds using Capsule's default style. The log omits the configured corner style."
+                            : "Reconstructed from the logged shape type and bounds. Transforms and touch hit-testing tolerance can affect the actual accepted area.")
+                            .font(.caption).foregroundStyle(.secondary)
+                        Text("Nested interaction shapes use dashed bounds when their combined path is unavailable.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text("Shape parameters or path are unavailable. The overlay shows dashed layout bounds without a hit-area fill.")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
                 }
                 if let address = node.address {
                     let events = snapshot.bindings.filter { $0.responderAddresses.contains(address) }.map(\.eventID)
