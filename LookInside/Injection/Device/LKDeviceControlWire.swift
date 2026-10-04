@@ -94,50 +94,37 @@ enum LKDeviceControlOutcome<Result: Codable & Hashable>: Codable, Hashable {
     }
 }
 
-/// Whether a device can inject, and when it cannot, why.
+/// What a device says about itself and whether it can inject.
 ///
-/// The reason is written by the device and shown as-is. Only that end knows its
-/// own entitlements, whether it has a payload, and whether it is allowed to
-/// stay resident in the background.
-enum LKDeviceControlCapability: Codable, Hashable {
-    case available
-    case unsupported(reason: String)
+/// A struct rather than an enum so the device's **name** can travel with the
+/// answer. This Mac's only other identifier for a device is the usbmuxd serial
+/// number — forty hex characters that tell a person nothing — and getting the
+/// real name from this side means a lockdownd session, which is a pairing
+/// record and a TLS handshake for one string. The device already knows it.
+///
+/// **The encoding is unchanged from when this was an enum**, which is what
+/// keeps the two ends compatible in both directions: absent
+/// ``unsupportedReason`` still means "can inject", an injector built before
+/// this sends no ``deviceName`` and a Mac built before it ignores the one it
+/// does not know.
+struct LKDeviceControlCapability: Codable, Hashable {
+    /// What to call this device. `nil` when the device could not read its own
+    /// name, or when the injector predates this field — the picker then falls
+    /// back to the serial number.
+    var deviceName: String?
 
-    private enum CodingKeys: String, CodingKey {
-        case unsupportedReason
-    }
+    /// Why this device cannot inject, or `nil` when it can. Written by the
+    /// device and shown as-is: only that end knows its own entitlements,
+    /// whether it has a payload, and whether it may stay resident.
+    var unsupportedReason: String?
 
-    init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        if let reason = try container.decodeIfPresent(String.self, forKey: .unsupportedReason) {
-            self = .unsupported(reason: reason)
-        } else {
-            self = .available
-        }
-    }
-
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        switch self {
-        case .available:
-            break
-        case .unsupported(let reason):
-            try container.encode(reason, forKey: .unsupportedReason)
-        }
+    init(deviceName: String? = nil, unsupportedReason: String? = nil) {
+        self.deviceName = deviceName
+        self.unsupportedReason = unsupportedReason
     }
 
     var isAvailable: Bool {
-        switch self {
-        case .available: true
-        case .unsupported: false
-        }
-    }
-
-    var unsupportedReason: String? {
-        switch self {
-        case .available: nil
-        case .unsupported(let reason): reason
-        }
+        unsupportedReason == nil
     }
 }
 

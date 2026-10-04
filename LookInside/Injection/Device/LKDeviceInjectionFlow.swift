@@ -30,6 +30,13 @@ final class LKDeviceInjectionFlow: NSObject {
     private struct ReachableDevice {
         let client: LKDeviceControlClient
         let capability: LKDeviceControlCapability
+
+        /// What to call it. The device's own name when it reported one,
+        /// otherwise the serial number — which is all this Mac can see of a
+        /// device, and is at least unambiguous.
+        var displayName: String {
+            capability.deviceName ?? client.serialNumber
+        }
     }
 
     @objc func startFromWindow(_ window: NSWindow?) {
@@ -79,7 +86,7 @@ final class LKDeviceInjectionFlow: NSObject {
 
         guard let chosen = await chooseDevice(among: usable, window: window) else { return }
 
-        guard let target = await pickTarget(on: chosen.client, window: window) else { return }
+        guard let target = await pickTarget(on: chosen, window: window) else { return }
 
         let result: LKDeviceControlInjectionResult
         do {
@@ -164,7 +171,7 @@ final class LKDeviceInjectionFlow: NSObject {
         unreachable: [LKAttachedDeviceMonitor.Device]
     ) -> String {
         let refusals = reachable.compactMap { device in
-            device.capability.unsupportedReason.map { "\(device.client.serialNumber):\n\($0)" }
+            device.capability.unsupportedReason.map { "\(device.displayName):\n\($0)" }
         }
         if !refusals.isEmpty {
             return refusals.joined(separator: "\n\n")
@@ -191,7 +198,7 @@ final class LKDeviceInjectionFlow: NSObject {
         )
         let devicePopUp = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 320, height: 25), pullsDown: false)
         for device in usable {
-            devicePopUp.addItem(withTitle: device.client.serialNumber)
+            devicePopUp.addItem(withTitle: device.displayName)
         }
         alert.accessoryView = devicePopUp
         alert.addButton(withTitle: NSLocalizedString("Continue", comment: ""))
@@ -218,7 +225,8 @@ final class LKDeviceInjectionFlow: NSObject {
     }
 
     @MainActor
-    private func pickTarget(on client: LKDeviceControlClient, window: NSWindow?) async -> Target? {
+    private func pickTarget(on device: ReachableDevice, window: NSWindow?) async -> Target? {
+        let client = device.client
         // What the device last said, kept for two things the picker needs: an
         // answer for `shouldSelect` ready before the first click, and
         // something to show when a *refresh* fails.
@@ -243,7 +251,7 @@ final class LKDeviceInjectionFlow: NSObject {
 
         return await withCheckedContinuation { continuation in
             let picker = LKInjectionTargetPicker(
-                deviceName: client.serialNumber,
+                deviceName: device.displayName,
                 processItemSource: itemSource,
                 refusalReasonForProcess: { processIdentifier in
                     snapshot.refusalReason(forProcessWithIdentifier: processIdentifier)
