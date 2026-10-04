@@ -78,13 +78,14 @@ final class LKAttachedDeviceMonitor {
         guard let identifier = notification.userInfo?["DeviceID"] as? NSNumber else { return }
         let properties = notification.userInfo?["Properties"] as? [String: Any]
 
-        // A simulator never shows up here, but a Mac paired over the network
-        // does, and reaching it is not what this feature is for — the injector
-        // is an iOS app on a cable.
-        if let connectionType = properties?["ConnectionType"] as? String, connectionType != "USB" {
-            return
-        }
-
+        // Deliberately **not** filtered by `ConnectionType`. A `Network` entry
+        // is an iOS device paired over Wi-Fi, not some other kind of machine,
+        // and usbmuxd's Connect reaches one exactly the same way — so filtering
+        // to `USB` would hide a jailbroken iPhone that happened to be off the
+        // cable. The host's own `LKConnectionManager` does not filter either,
+        // and this list has to agree with it: a device this skipped could still
+        // have its injected server found afterwards, which would read as the
+        // injector list being wrong.
         let serialNumber = properties?["SerialNumber"] as? String ?? identifier.stringValue
         guard !devices.contains(where: { $0.identifier == identifier }) else { return }
         devices.append(Device(identifier: identifier, serialNumber: serialNumber))
