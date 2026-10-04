@@ -82,6 +82,7 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
 - (id)copyWithZone:(NSZone *)zone {
     LookinAppInfo *newAppInfo = [[LookinAppInfo allocWithZone:zone] init];
     newAppInfo.appIcon = self.appIcon;
+    newAppInfo.gestureDebugProtocolVersion = self.gestureDebugProtocolVersion;
     newAppInfo.appName = self.appName;
     newAppInfo.deviceDescription = self.deviceDescription;
     newAppInfo.deviceModelIdentifier = self.deviceModelIdentifier;
@@ -102,6 +103,7 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
         self.serverVersion = [aDecoder decodeIntForKey:@"serverVersion"];
         self.serverReadableVersion = [aDecoder decodeObjectForKey:@"serverReadableVersion"];
         self.swiftEnabledInLookinServer = [aDecoder decodeIntForKey:@"swiftEnabledInLookinServer"];
+        self.gestureDebugProtocolVersion = [aDecoder decodeIntegerForKey:@"gestureDebugProtocolVersion"];
         NSData *screenshotData = [aDecoder decodeObjectForKey:CodingKey_Screenshot];
         self.screenshot = [[LookinImage alloc] initWithData:screenshotData];
         
@@ -128,6 +130,7 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
     [aCoder encodeInt:self.serverVersion forKey:@"serverVersion"];
     [aCoder encodeObject:self.serverReadableVersion forKey:@"serverReadableVersion"];
     [aCoder encodeInt:self.swiftEnabledInLookinServer forKey:@"swiftEnabledInLookinServer"];
+    [aCoder encodeInteger:self.gestureDebugProtocolVersion forKey:@"gestureDebugProtocolVersion"];
     
 #if TARGET_OS_IPHONE
     NSData *screenshotData = UIImagePNGRepresentation(self.screenshot);
@@ -199,6 +202,9 @@ static NSString *LookinAppInfoMacHostLocalizedName(void) {
     }
     
     LookinAppInfo *info = [[LookinAppInfo alloc] init];
+    if (@available(iOS 16.0, macOS 13.0, tvOS 16.0, *)) {
+        info.gestureDebugProtocolVersion = NSClassFromString(@"LKS_GestureDebugService") ? 1 : 0;
+    }
     info.serverReadableVersion = LOOKIN_SERVER_READABLE_VERSION;
 // Report Swift optimization as enabled whenever the Swift-aware build is
 // compiled in. The CocoaPods subspec path defines LOOKIN_SERVER_SWIFT_ENABLED;

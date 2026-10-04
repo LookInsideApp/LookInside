@@ -34,6 +34,7 @@
 #import "LKMessageManager.h"
 #import "LKHelper.h"
 #import "LKSwiftUIHierarchyDisplayMode.h"
+#import "LookInside-Swift.h"
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 NSErrorDomain const LKStaticWindowControllerReloadErrorDomain = @"LKStaticWindowControllerReloadErrorDomain";
@@ -47,6 +48,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
 @interface LKStaticWindowController () <NSToolbarDelegate, LKStaticAsyncUpdateManagerDelegate>
 
 @property(nonatomic, strong) NSMutableDictionary<NSString *, NSToolbarItem *> *toolbarItemsMap;
+@property(nonatomic, strong) LKGestureDebugWindowController *gestureDebugWindowController;
 
 /// 当拉取 hierarchy 和更新截图时，该属性为 YES
 @property(nonatomic, assign) BOOL isFetchingHierarchy;
@@ -311,7 +313,7 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
 }
 
 - (NSArray<NSToolbarItemIdentifier> *)toolbarDefaultItemIdentifiers:(NSToolbar *)toolbar {
-    NSMutableArray *ret = @[LKToolBarIdentifier_Reload, LKToolBarIdentifier_FastMode, LKToolBarIdentifier_App, LKToolBarIdentifier_SwiftUIMode, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Dimension, LKToolBarIdentifier_Rotation, LKToolBarIdentifier_Setting, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Scale, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Measure, LKToolBarIdentifier_Console].mutableCopy;
+    NSMutableArray *ret = @[LKToolBarIdentifier_Reload, LKToolBarIdentifier_FastMode, LKToolBarIdentifier_App, LKToolBarIdentifier_SwiftUIMode, LKToolBarIdentifier_GestureDebug, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Dimension, LKToolBarIdentifier_Rotation, LKToolBarIdentifier_Setting, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Scale, NSToolbarFlexibleSpaceItemIdentifier, LKToolBarIdentifier_Measure, LKToolBarIdentifier_Console].mutableCopy;
     if ([[[LKMessageManager sharedInstance] queryMessages] count] > 0) {
         [ret addObject:LKToolBarIdentifier_Message];
     }
@@ -330,6 +332,9 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
         if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_Reload]) {
             item.target = self;
             item.action = @selector(_handleReload);
+        } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_GestureDebug]) {
+            item.target = self;
+            item.action = @selector(_handleGestureDebug);
         } else if ([item.itemIdentifier isEqualToString:LKToolBarIdentifier_App]) {
             item.target = self;
             item.action = @selector(_handleApp);
@@ -369,6 +374,14 @@ static NSError *LKStaticWindowControllerReloadErrorMake(LKStaticWindowController
 }
 
 #pragma mark - Event Handler
+
+- (void)_handleGestureDebug {
+    if (!self.gestureDebugWindowController) {
+        self.gestureDebugWindowController = [[LKGestureDebugWindowController alloc] initWithOwner:self];
+    }
+    [self.gestureDebugWindowController showWindow:self];
+    [self.gestureDebugWindowController.window makeKeyAndOrderFront:self];
+}
 
 - (void)_handleReload {
     // The button carries two behaviors the shared core deliberately does

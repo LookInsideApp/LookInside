@@ -23,6 +23,7 @@ static NSIndexSet * PushFrameTypeList(void) {
     dispatch_once(&onceToken, ^{
         NSMutableIndexSet *set = [NSMutableIndexSet indexSet];
         [set addIndex:LookinPush_SwiftUISupportDetected];
+        [set addIndex:LookinPush_GestureDebug];
         list = set.copy;
     });
     return list;

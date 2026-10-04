@@ -86,6 +86,9 @@ enum {
     /// 许可证握手：客户端回传 intermediate 证书 + 对 nonce 的签名
     LookinRequestTypeLicenseVerify = 221,
 
+    /// Versioned SwiftUI gesture capture controls (start/stop/overlay/status).
+    LookinRequestTypeGestureDebug = 222,
+
     /// 从 LookinServer 1.2.7 & Lookin 1.0.7 开始，该属性被废弃、不再使用
     LookinPush_BringForwardScreenshotTask = 303,
     
@@ -94,6 +97,9 @@ enum {
 
     /// Server 在层级扫描期间检测到 SwiftUI hosting view
     LookinPush_SwiftUISupportDetected = 305,
+
+    /// JSON NSData carrying a versioned, bounded gesture capture batch.
+    LookinPush_GestureDebug = 306,
 };
 
 static NSString * const LookinParam_ViewLayerTag = @"tag";
