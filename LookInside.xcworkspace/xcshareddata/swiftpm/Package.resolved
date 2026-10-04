@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/Mx-Iris/RunningApplicationKit",
       "state" : {
-        "revision" : "8c64a39bbcbe96b7758afd0e2e0a9f3d82f7305a",
-        "version" : "0.3.3"
+        "revision" : "9ffb48aa92d9a6ebdd77bb696039112bd76034aa",
+        "version" : "0.7.0"
       }
     },
     {

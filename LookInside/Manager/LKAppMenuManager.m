@@ -39,6 +39,7 @@ static NSUInteger const kTag_OpenInNewWindow = 31;
 static NSUInteger const kTag_Export = 32;
 static NSUInteger const kTag_NewInspection = 33;
 static NSUInteger const kTag_AttachToRunningApp = 34;
+static NSUInteger const kTag_AttachToAppOnDevice = 35;
 
 static NSUInteger const kTag_GitHub = 57;
 static NSUInteger const kTag_Acknowledgements = 72;
@@ -144,6 +145,11 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     // Doc focused).
     [menu addItem:LKMenuItem(@"New Inspection…", nil, @"n", NSEventModifierFlagCommand, kTag_NewInspection)];
     [menu addItem:LKMenuItem(@"Attach to Running App…", nil, @"", 0, kTag_AttachToRunningApp)];
+    // The same thing for an app on a connected iPhone or iPad. A separate entry
+    // rather than a tab inside the existing picker: that picker's Applications
+    // list enumerates this Mac, and showing it beside a phone's process list
+    // would invite picking a pid from the wrong machine.
+    [menu addItem:LKMenuItem(@"Attach to App on Device…", nil, @"", 0, kTag_AttachToAppOnDevice)];
     [menu addItem:[NSMenuItem separatorItem]];
 
     [menu addItem:LKMenuItem(@"Open…", @selector(openDocument:), @"o", NSEventModifierFlagCommand, 0)];
@@ -359,6 +365,10 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
     menuItem_attachToRunningApp.target = self;
     menuItem_attachToRunningApp.action = @selector(_handleAttachToRunningApp);
 
+    NSMenuItem *menuItem_attachToAppOnDevice = [menu_file itemWithTag:kTag_AttachToAppOnDevice];
+    menuItem_attachToAppOnDevice.target = self;
+    menuItem_attachToAppOnDevice.action = @selector(_handleAttachToAppOnDevice);
+
     NSMenu *menu_view = [menu itemAtIndex:3].submenu;
     menu_view.autoenablesItems = NO;
     menu_view.delegate = self;
@@ -558,6 +568,18 @@ static NSMenuItem *LKSubmenuItem(NSString *title, NSMenu *submenu, NSInteger tag
         return;
     }
     [[LKInjectionFlow sharedInstance] startFromWindow:NSApp.keyWindow];
+}
+
+- (void)_handleAttachToAppOnDevice {
+    // File > Attach to App on Device… asks the LookInside Injector running on a
+    // connected iPhone or iPad for its list of running apps and has *it* do the
+    // injecting — there is no daemon and no framework download on this side,
+    // because the device carries its own payload. Driven from
+    // LKDeviceInjectionFlow on the Swift side.
+    if (![[LKSwiftUISupportGatekeeper sharedInstance] allowProtectedFeatureAccessForWindow:NSApp.keyWindow]) {
+        return;
+    }
+    [[LKDeviceInjectionFlow sharedInstance] startFromWindow:NSApp.keyWindow];
 }
 
 @end
