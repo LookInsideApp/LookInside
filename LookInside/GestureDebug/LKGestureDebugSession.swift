@@ -20,6 +20,8 @@ final class LKGestureDebugSession: ObservableObject {
     @Published var followsLatest = true
     @Published var overlayEnabled = true
     @Published private(set) var overlayStatus: LKGestureOverlayStatus?
+    @Published private(set) var nativeRegions: [LKNativeInteractionRegion] = []
+    @Published private var lastNativeRegions: [LKNativeInteractionRegion] = []
     @Published private(set) var appName = "No target"
     @Published private(set) var supported = false
 
@@ -33,6 +35,10 @@ final class LKGestureDebugSession: ObservableObject {
 
     var selectedSnapshot: LKGestureCaptureSnapshot? {
         snapshots.first { $0.id == selectedSnapshotID }
+    }
+
+    var canExport: Bool {
+        !records.isEmpty || !snapshots.isEmpty || !lastNativeRegions.isEmpty
     }
 
     init() {
@@ -69,6 +75,7 @@ final class LKGestureDebugSession: ObservableObject {
         supported = (app?.appInfo?.gestureDebugProtocolVersion ?? 0) >= 1
         snapshots.removeAll()
         records.removeAll()
+        lastNativeRegions.removeAll()
         selectedSnapshotID = nil
         selectedNodeID = nil
         message = supported
@@ -87,6 +94,8 @@ final class LKGestureDebugSession: ObservableObject {
         redactedCount = 0
         droppedCount = 0
         overlayStatus = nil
+        nativeRegions.removeAll()
+        lastNativeRegions.removeAll()
         snapshots.removeAll()
         records.removeAll()
         selectedSnapshotID = nil
@@ -122,6 +131,7 @@ final class LKGestureDebugSession: ObservableObject {
         isRunning = false
         isStarting = false
         overlayStatus = nil
+        nativeRegions.removeAll()
         state = "stopped"
         if token != nil {
             message = "Capture stopped. Recorded events remain available."
@@ -179,7 +189,7 @@ final class LKGestureDebugSession: ObservableObject {
     func archiveData() throws -> Data {
         let archive = LKGestureCaptureArchive(
             appName: appName, bundleIdentifier: app?.appInfo?.appBundleIdentifier ?? "",
-            sessionID: lastSessionID, snapshots: snapshots, records: records
+            sessionID: lastSessionID, snapshots: snapshots, records: records, nativeRegions: lastNativeRegions
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -207,6 +217,10 @@ final class LKGestureDebugSession: ObservableObject {
             droppedCount = batch.droppedCount
             pollDurationMS = batch.pollDurationMS
             overlayStatus = batch.overlayStatus
+            nativeRegions = batch.nativeRegions ?? []
+            if batch.state != "stopped", batch.state != "error" {
+                lastNativeRegions = nativeRegions
+            }
             state = batch.state
             isStarting = state == "starting"
             isRunning = state == "waiting" || state == "capturing" || state == "redacted"

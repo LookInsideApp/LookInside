@@ -14,6 +14,27 @@ struct LKGestureCaptureBatch: Codable {
     var message: String
     var pollDurationMS: Double
     var overlayStatus: LKGestureOverlayStatus?
+    var nativeRegions: [LKNativeInteractionRegion]?
+}
+
+struct LKNativeInteractionRegion: Codable, Identifiable {
+    var id: String
+    var source: String
+    var viewClass: String
+    var viewAddress: String
+    var windowAddress: String
+    var label: String
+    var handlers: [LKNativeInteractionHandler]
+    var geometry: LKGestureCaptureGeometry
+    var isActive: Bool
+    var geometryKind: String
+}
+
+struct LKNativeInteractionHandler: Codable {
+    var kind: String
+    var name: String
+    var target: String?
+    var events: UInt?
 }
 
 struct LKGestureOverlayStatus: Codable {
@@ -101,6 +122,7 @@ struct LKGestureCaptureArchive: Codable {
     var sessionID: String?
     var snapshots: [LKGestureCaptureSnapshot]
     var records: [LKGestureCaptureRecord]
+    var nativeRegions: [LKNativeInteractionRegion]?
 }
 
 struct LKGestureTreeItem: Identifiable {
