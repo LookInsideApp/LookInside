@@ -48,9 +48,9 @@ struct LKGestureDebugView: View {
                 .font(.headline).lineLimit(1)
             Spacer()
             Toggle("Gesture borders", isOn: $session.overlayEnabled)
-                .help("Interact with a region to reveal its reported borders. Borders persist until cleared; fill briefly indicates an observed binding.")
-            Button("Clear Borders") { session.clearBorders() }
-                .disabled(!session.isRunning || !session.overlayEnabled || session.overlayStatus?.mode != "persistentObserved")
+                .help("Show gesture regions on the current page. A translucent fill marks the current input binding.")
+            Button(session.overlayStatus?.mode == "livePage" ? "Refresh Borders" : "Clear Borders") { session.clearBorders() }
+                .disabled(!session.isRunning || !session.overlayEnabled)
             Button(session.isRunning || session.isStarting ? "Stop Capture" : "Start Capture") {
                 if session.isRunning || session.isStarting {
                     session.stop()
@@ -86,7 +86,9 @@ struct LKGestureDebugView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             if let overlay = session.overlayStatus, overlay.isEnabled, session.isRunning {
-                Text("\(overlay.regionCount) borders in target app · Interact to reveal regions. Clear after layout changes.")
+                Text(overlay.mode == "livePage"
+                    ? "\(overlay.regionCount) borders on the current page · Updates automatically with the page."
+                    : "\(overlay.regionCount) observed borders · Whole-page reading is unavailable on this runtime. Clear after page changes.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             if session.state == "redacted" {

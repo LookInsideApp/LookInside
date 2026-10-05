@@ -146,7 +146,6 @@ final class LKGestureDebugSession: ObservableObject {
     }
 
     func clearBorders() {
-        guard overlayStatus?.mode == "persistentObserved" else { return }
         sendOverlayControl(clear: true)
     }
 
