@@ -221,6 +221,8 @@
 				GestureDebug/LKGestureDebugWindowController.swift,
 				GestureDebug/LKGestureNodeDetailView.swift,
 				GestureDebug/LKNativeInteractionDetailView.swift,
+				GestureDebug/LKSuggestions.swift,
+				GestureDebug/LKSuggestionsView.swift,
 				MCPBridge/LKMCPBridgeAttributeValueDecoder.swift,
 				MCPBridge/LKMCPBridgeConnection.swift,
 				MCPBridge/LKMCPBridgeDetailsService.swift,

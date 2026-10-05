@@ -15,7 +15,7 @@ struct LKNativeInteractionDetailView: View {
                 .font(.caption).foregroundStyle(.secondary).padding(.horizontal, 12).padding(.bottom, 12)
             Divider()
             if regions.isEmpty {
-                Text(isRunning && overlayEnabled ? "No supported native interactions on this page. Native collection currently supports UIKit." : "Start capture with Gesture borders enabled to inspect native regions.")
+                Text(isRunning ? "No supported native interactions on this page. Native collection currently supports UIKit." : "Start capture to inspect native regions.")
                     .foregroundStyle(.secondary).padding()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
