@@ -3,6 +3,7 @@
 #endif
 
 #import "../LookinDefines.h"
+#import "../LookinHitTargetSize.h"
 #import "../LookinAppInfo.h"
 #import "../LookinAttribute.h"
 #import "../LookinAttributesGroup.h"

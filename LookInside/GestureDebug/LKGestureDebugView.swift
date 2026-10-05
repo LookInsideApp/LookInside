@@ -11,6 +11,7 @@ struct LKGestureDebugView: View {
         case gestures = "Gestures"
         case bindings = "Bindings"
         case native = "Native"
+        case suggestions = "Suggestions"
         case hitTest = "Hit Test"
         case raw = "Raw Log"
     }
@@ -29,7 +30,9 @@ struct LKGestureDebugView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(12)
-                    if section == .native {
+                    if section == .suggestions {
+                        LKSuggestionsView(report: session.suggestions, platform: session.suggestionPlatform)
+                    } else if section == .native {
                         LKNativeInteractionDetailView(regions: session.nativeRegions, isRunning: session.isRunning, overlayEnabled: session.overlayEnabled)
                     } else if let snapshot = session.selectedSnapshot {
                         snapshotContent(snapshot)
@@ -99,6 +102,15 @@ struct LKGestureDebugView: View {
             if !session.nativeRegions.isEmpty {
                 Text("\(session.nativeRegions.count) native controls / list rows · See Native for handler details.")
                     .font(.caption).foregroundStyle(.secondary)
+            }
+            if session.isRunning {
+                Button { section = .suggestions } label: {
+                    Label("Suggestions · \(session.suggestions.warnings.count) warnings · \(session.suggestions.inspectedCount) regions inspected",
+                          systemImage: "exclamationmark.triangle")
+                }
+                .buttonStyle(.link).font(.caption)
+                .foregroundStyle(session.suggestions.warnings.isEmpty ? Color.secondary : .orange)
+                .accessibilityIdentifier("gesture.suggestions.summary")
             }
             if session.state == "redacted" {
                 DisclosureGroup("Target Debug build configuration") {
@@ -181,7 +193,7 @@ struct LKGestureDebugView: View {
                     .padding(.horizontal, 14).padding(.bottom, 8)
             }
             switch section {
-            case .native: EmptyView()
+            case .native, .suggestions: EmptyView()
             case .responders: tree(snapshot.responders, snapshot: snapshot)
             case .gestures: tree(snapshot.gestures, snapshot: snapshot)
             case .bindings:

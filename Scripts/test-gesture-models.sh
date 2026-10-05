@@ -4,6 +4,8 @@ set -eu
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GESTURE_TEST_DIR="$(mktemp -d "${TMPDIR:-/tmp}/lookinside-gesture-models.XXXXXX")"
 trap 'rm -rf "$GESTURE_TEST_DIR"' EXIT
-swiftc -parse-as-library "$ROOT/LookInside/GestureDebug/LKGestureCaptureModels.swift" \
+swiftc -parse-as-library -import-objc-header "$ROOT/Sources/LookinCore/LookinHitTargetSize.h" \
+	"$ROOT/LookInside/GestureDebug/LKGestureCaptureModels.swift" \
+	"$ROOT/LookInside/GestureDebug/LKSuggestions.swift" \
 	"$ROOT/Tests/GestureDebug/LKGestureCaptureModelsTests.swift" -o "$GESTURE_TEST_DIR/gesture-models"
 "$GESTURE_TEST_DIR/gesture-models"

@@ -27,6 +27,7 @@
 #import "LookinDisplayItem+LookinClient.h"
 #import "LookinObject.h"
 #import "LookinAppInfo.h"
+#import "LookinHitTargetSize.h"
 #import "LookinHierarchyInfo.h"
 #import "LookinHierarchyFile.h"
 #import "LookinArchiveDocument.h"

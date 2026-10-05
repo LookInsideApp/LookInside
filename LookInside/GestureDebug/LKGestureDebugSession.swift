@@ -22,6 +22,9 @@ final class LKGestureDebugSession: ObservableObject {
     @Published private(set) var overlayStatus: LKGestureOverlayStatus?
     @Published private(set) var nativeRegions: [LKNativeInteractionRegion] = []
     @Published private var lastNativeRegions: [LKNativeInteractionRegion] = []
+    @Published private(set) var suggestions = LKSuggestionReport()
+    @Published private(set) var suggestionPlatform = LKSuggestionPlatform.unsupported
+    private var lastInteractions: LKInteractionSnapshot?
     @Published private(set) var appName = "No target"
     @Published private(set) var supported = false
 
@@ -38,7 +41,7 @@ final class LKGestureDebugSession: ObservableObject {
     }
 
     var canExport: Bool {
-        !records.isEmpty || !snapshots.isEmpty || !lastNativeRegions.isEmpty
+        !records.isEmpty || !snapshots.isEmpty || !lastNativeRegions.isEmpty || lastInteractions?.targets.isEmpty == false
     }
 
     init() {
@@ -72,6 +75,13 @@ final class LKGestureDebugSession: ObservableObject {
         self.app = app
         channel = app?.channel
         appName = app?.appInfo?.appName ?? "No target"
+        if let info = app?.appInfo {
+            suggestionPlatform = .resolve(deviceType: info.deviceType.rawValue, model: info.deviceModelIdentifier ?? "",
+                                          deviceName: info.deviceDescription ?? "", os: info.osDescription ?? "")
+        } else {
+            suggestionPlatform = .unsupported
+        }
+        lastInteractions = nil
         supported = (app?.appInfo?.gestureDebugProtocolVersion ?? 0) >= 1
         snapshots.removeAll()
         records.removeAll()
@@ -97,6 +107,8 @@ final class LKGestureDebugSession: ObservableObject {
         nativeRegions.removeAll()
         lastNativeRegions.removeAll()
         snapshots.removeAll()
+        lastInteractions = nil
+        suggestions.replace(with: nil, platform: suggestionPlatform, isCapturing: true)
         records.removeAll()
         selectedSnapshotID = nil
         selectedNodeID = nil
@@ -133,6 +145,7 @@ final class LKGestureDebugSession: ObservableObject {
         overlayStatus = nil
         nativeRegions.removeAll()
         state = "stopped"
+        suggestions.replace(with: nil, platform: suggestionPlatform, isCapturing: false)
         if token != nil {
             message = "Capture stopped. Recorded events remain available."
         }
@@ -189,7 +202,8 @@ final class LKGestureDebugSession: ObservableObject {
     func archiveData() throws -> Data {
         let archive = LKGestureCaptureArchive(
             appName: appName, bundleIdentifier: app?.appInfo?.appBundleIdentifier ?? "",
-            sessionID: lastSessionID, snapshots: snapshots, records: records, nativeRegions: lastNativeRegions
+            sessionID: lastSessionID, snapshots: snapshots, records: records, nativeRegions: lastNativeRegions,
+            interactions: lastInteractions, suggestionPlatform: suggestionPlatform
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -224,6 +238,10 @@ final class LKGestureDebugSession: ObservableObject {
             state = batch.state
             isStarting = state == "starting"
             isRunning = state == "waiting" || state == "capturing" || state == "redacted"
+            suggestions.replace(with: batch.interactions, platform: suggestionPlatform, isCapturing: isRunning || isStarting)
+            if isRunning || isStarting {
+                lastInteractions = batch.interactions
+            }
             message = gap ? "A capture batch was lost. Some event details may be incomplete." : batch.message
             if batch.state == "stopped" || batch.state == "error" {
                 isRunning = false
@@ -248,6 +266,7 @@ final class LKGestureDebugSession: ObservableObject {
                 selectedNodeID = nil
             }
         } catch {
+            suggestions.replace(with: nil, platform: suggestionPlatform, isCapturing: isRunning || isStarting)
             message = "Could not decode the target's gesture capture: \(error.localizedDescription)"
             state = "error"
         }

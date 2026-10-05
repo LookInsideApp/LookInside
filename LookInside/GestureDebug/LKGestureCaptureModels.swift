@@ -15,6 +15,7 @@ struct LKGestureCaptureBatch: Codable {
     var pollDurationMS: Double
     var overlayStatus: LKGestureOverlayStatus?
     var nativeRegions: [LKNativeInteractionRegion]?
+    var interactions: LKInteractionSnapshot?
 }
 
 struct LKNativeInteractionRegion: Codable, Identifiable {
@@ -123,6 +124,8 @@ struct LKGestureCaptureArchive: Codable {
     var snapshots: [LKGestureCaptureSnapshot]
     var records: [LKGestureCaptureRecord]
     var nativeRegions: [LKNativeInteractionRegion]?
+    var interactions: LKInteractionSnapshot?
+    var suggestionPlatform: LKSuggestionPlatform?
 }
 
 struct LKGestureTreeItem: Identifiable {
