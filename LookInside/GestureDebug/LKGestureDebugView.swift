@@ -10,6 +10,7 @@ struct LKGestureDebugView: View {
         case responders = "Responders"
         case gestures = "Gestures"
         case bindings = "Bindings"
+        case native = "Native"
         case hitTest = "Hit Test"
         case raw = "Raw Log"
     }
@@ -28,7 +29,9 @@ struct LKGestureDebugView: View {
                     }
                     .pickerStyle(.segmented)
                     .padding(12)
-                    if let snapshot = session.selectedSnapshot {
+                    if section == .native {
+                        LKNativeInteractionDetailView(regions: session.nativeRegions, isRunning: session.isRunning, overlayEnabled: session.overlayEnabled)
+                    } else if let snapshot = session.selectedSnapshot {
                         snapshotContent(snapshot)
                     } else {
                         emptyState
@@ -49,7 +52,7 @@ struct LKGestureDebugView: View {
             Spacer()
             Toggle("Gesture borders", isOn: $session.overlayEnabled)
                 .help("Show gesture regions on the current page. A translucent fill marks the current input binding.")
-            Button(session.overlayStatus?.mode == "livePage" ? "Refresh Borders" : "Clear Borders") { session.clearBorders() }
+            Button(session.overlayStatus?.mode == "persistentObserved" ? "Clear Borders" : "Refresh Borders") { session.clearBorders() }
                 .disabled(!session.isRunning || !session.overlayEnabled)
             Button(session.isRunning || session.isStarting ? "Stop Capture" : "Start Capture") {
                 if session.isRunning || session.isStarting {
@@ -61,7 +64,7 @@ struct LKGestureDebugView: View {
             .disabled(!session.supported)
             .keyboardShortcut("r", modifiers: .command)
             Button("Export…", action: export)
-                .disabled(session.records.isEmpty && session.snapshots.isEmpty)
+                .disabled(!session.canExport)
         }
         .padding(12)
     }
@@ -88,7 +91,13 @@ struct LKGestureDebugView: View {
             if let overlay = session.overlayStatus, overlay.isEnabled, session.isRunning {
                 Text(overlay.mode == "livePage"
                     ? "\(overlay.regionCount) borders on the current page · Updates automatically with the page."
-                    : "\(overlay.regionCount) observed borders · Whole-page reading is unavailable on this runtime. Clear after page changes.")
+                    : (overlay.mode == "nativePage"
+                        ? "\(session.nativeRegions.count) native borders on the current page · SwiftUI whole-page reading is unavailable on this runtime."
+                        : "\(overlay.regionCount) observed borders · Whole-page reading is unavailable on this runtime. Clear after page changes."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if !session.nativeRegions.isEmpty {
+                Text("\(session.nativeRegions.count) native controls / list rows · See Native for handler details.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             if session.state == "redacted" {
@@ -172,6 +181,7 @@ struct LKGestureDebugView: View {
                     .padding(.horizontal, 14).padding(.bottom, 8)
             }
             switch section {
+            case .native: EmptyView()
             case .responders: tree(snapshot.responders, snapshot: snapshot)
             case .gestures: tree(snapshot.gestures, snapshot: snapshot)
             case .bindings:
