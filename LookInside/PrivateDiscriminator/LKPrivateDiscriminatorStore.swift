@@ -1,7 +1,7 @@
 import AppKit
-import Combine
 import Foundation
 import LookInsidePrivateDiscriminator
+import Observation
 
 struct LKPrivateDiscriminatorModuleStatus: Identifiable, Hashable {
     let module: String
@@ -13,7 +13,9 @@ struct LKPrivateDiscriminatorModuleStatus: Identifiable, Hashable {
     let autosavedRecordCount: Int?
     let diagnostic: String?
 
-    var id: String { module }
+    var id: String {
+        module
+    }
 
     var sourceSummary: String {
         var parts: [String] = []
@@ -54,36 +56,43 @@ struct LKPrivateDiscriminatorInvalidDiagnostic: Identifiable, Hashable {
     let source: String
     let message: String
 
-    var id: String { module + ":" + source }
+    var id: String {
+        module + ":" + source
+    }
 }
 
+/// The private-discriminator indexes and settings. The settings window
+/// observes the state below through Observation.
 @objc(LKPrivateDiscriminatorStore)
-final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
+@Observable
+final class LKPrivateDiscriminatorStore: NSObject {
     @objc(shared) static let shared = LKPrivateDiscriminatorStore()
 
-    @Published private(set) var featureEnabled = false
-    @Published private(set) var autosaveEnabled = false
-    @Published private(set) var moduleStatuses: [LKPrivateDiscriminatorModuleStatus] = []
-    @Published private(set) var invalidDiagnostics: [LKPrivateDiscriminatorInvalidDiagnostic] = []
-    @Published private(set) var lastSettingsError: String?
-    @Published private(set) var isUpdatingDefaultLibrary = false
-    @Published private(set) var lastDefaultLibraryUpdateMessage: String?
+    private(set) var featureEnabled = false
+    private(set) var autosaveEnabled = false
+    private(set) var moduleStatuses: [LKPrivateDiscriminatorModuleStatus] = []
+    private(set) var invalidDiagnostics: [LKPrivateDiscriminatorInvalidDiagnostic] = []
+    private(set) var lastSettingsError: String?
+    private(set) var isUpdatingDefaultLibrary = false
+    private(set) var lastDefaultLibraryUpdateMessage: String?
 
-    @objc var isFeatureEnabled: Bool { featureEnabled }
+    @objc var isFeatureEnabled: Bool {
+        featureEnabled
+    }
 
     let storageDirectoryURL: URL
     let importedDirectoryURL: URL
     let autosavedDirectoryURL: URL
 
     private let configURL: URL
-    private var configuration = Configuration()
-    private var loadedIndexesByModule: [String: [LoadedModuleIndex]] = [:]
+    @ObservationIgnored private var configuration = Configuration()
+    @ObservationIgnored private var loadedIndexesByModule: [String: [LoadedModuleIndex]] = [:]
     private let verificationCache = PrivateDiscriminatorVerificationCache(bucketCount: 20)
-    private var activeGuessTasksByID: [String: Process] = [:]
-    private var guessStatesByID: [String: GuessState] = [:]
-    private var cancelledGuessIDs: Set<String> = []
+    @ObservationIgnored private var activeGuessTasksByID: [String: Process] = [:]
+    @ObservationIgnored private var guessStatesByID: [String: GuessState] = [:]
+    @ObservationIgnored private var cancelledGuessIDs: Set<String> = []
 
-    private override init() {
+    override private init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support", isDirectory: true)
         storageDirectoryURL = appSupport.appendingPathComponent("LookInside/private_disc", isDirectory: true)
@@ -241,7 +250,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
     }
 
     @objc(displayTitleForDisplayItem:fallback:)
-    func displayTitle(for item: LookinDisplayItem, fallback: String?) -> String? {
+    func displayTitle(for _: LookinDisplayItem, fallback: String?) -> String? {
         guard featureEnabled, let fallback, !fallback.isEmpty else {
             return fallback
         }
@@ -451,10 +460,10 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
             builders[module, default: ModuleStatusBuilder(module: module)].sourceFolderPath = sourcePath
         }
 
-        collectCSVFiles(in: importedDirectoryURL).forEach { module, url in
+        for (module, url) in collectCSVFiles(in: importedDirectoryURL) {
             builders[module, default: ModuleStatusBuilder(module: module)].importedCSVPath = url.path
         }
-        collectCSVFiles(in: autosavedDirectoryURL).forEach { module, url in
+        for (module, url) in collectCSVFiles(in: autosavedDirectoryURL) {
             builders[module, default: ModuleStatusBuilder(module: module)].autosavedCSVPath = url.path
         }
 
@@ -1001,7 +1010,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         DefaultLibraryModule(name: "SwiftUICore"),
     ]
 
-    private func promptForModuleName(defaultModule: String?, window: NSWindow?) -> String? {
+    private func promptForModuleName(defaultModule: String?, window _: NSWindow?) -> String? {
         let alert = NSAlert()
         alert.messageText = NSLocalizedString("Import Private Discriminator Module", comment: "")
         alert.informativeText = NSLocalizedString("Enter the Swift module name for this source folder.", comment: "")
@@ -1021,7 +1030,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         return module.isEmpty ? nil : module
     }
 
-    private func promptForSwiftPDGuessRequest(parsed: ParsedDiscriminator, window: NSWindow?) -> GuessRequest? {
+    private func promptForSwiftPDGuessRequest(parsed: ParsedDiscriminator, window _: NSWindow?) -> GuessRequest? {
         let defaultWords = Self.defaultGuessWords(for: parsed)
 
         let alert = NSAlert()
@@ -1133,7 +1142,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
         return nil
     }
 
-    private func presentSwiftPDGuessInstallAlert(window: NSWindow?) {
+    private func presentSwiftPDGuessInstallAlert(window _: NSWindow?) {
         let alert = NSAlert()
         alert.messageText = NSLocalizedString("swift-pd-guess is not installed", comment: "")
         alert.informativeText = NSLocalizedString(
@@ -1238,6 +1247,7 @@ final class LKPrivateDiscriminatorStore: NSObject, ObservableObject {
     private static var dashboardTitle: String {
         NSLocalizedString("Private Discriminator", comment: "")
     }
+
     private static let dashboardAttributeIdentifier = "lookinside.private_discriminator.field"
     private static let dashboardStateDidChangeNotification = Notification.Name("LKPrivateDiscriminatorDashboardStateDidChange")
 

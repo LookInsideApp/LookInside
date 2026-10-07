@@ -1,0 +1,384 @@
+{
+  "sourceLanguage" : "en",
+  "version" : "1.0",
+  "strings" : {
+    "%@ is ready on this Mac." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ is ready on this Mac." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%@ 已在本机激活。" } }
+      }
+    },
+    "Access ends on" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Access ends on" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "访问期限至" } }
+      }
+    },
+    "Access Granted" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Access Granted" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "授权成功" } }
+      }
+    },
+    "Access until" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Access until" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "可使用至" } }
+      }
+    },
+    "A new certificate will not be issued after expiry because this purchase was refunded." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A new certificate will not be issued after expiry because this purchase was refunded." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "购买已退款，到期后将无法签发新的证书。" } }
+      }
+    },
+    "A new certificate will not be issued after expiry because this subscription is canceled." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A new certificate will not be issued after expiry because this subscription is canceled." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅已取消，到期后将无法签发新的证书。" } }
+      }
+    },
+    "Activate" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activate" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "激活" } }
+      }
+    },
+    "Activate Full Version" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activate Full Version" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "激活正式版" } }
+      }
+    },
+    "Activated" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activated" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已激活" } }
+      }
+    },
+    "Activation Required" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activation Required" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "需要激活" } }
+      }
+    },
+    "Activate LookInside Pro from the LookInside Pro menu before using this feature." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activate LookInside Pro from the LookInside Pro menu before using this feature." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "使用此功能前，请从 LookInside Pro 菜单激活 LookInside Pro。" } }
+      }
+    },
+    "Communicating with authorization server…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Communicating with authorization server…" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在与授权服务器通信…" } }
+      }
+    },
+    "Current access remains available until" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Current access remains available until" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前访问有效期至" } }
+      }
+    },
+    "Done" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } }
+      }
+    },
+    "Email" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Email" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "邮箱" } }
+      }
+    },
+    "Cut" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cut" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "剪切" } }
+      }
+    },
+    "Copy" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制" } }
+      }
+    },
+    "Edit" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑" } }
+      }
+    },
+    "Ended on" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ended on" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "结束于" } }
+      }
+    },
+    "Keychain access to the license key was denied, so Pro features are paused." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keychain access to the license key was denied, so Pro features are paused." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "钥匙串拒绝了对许可证密钥的访问，Pro 功能已暂停。" } }
+      }
+    },
+    "Later" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Later" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "稍后" } }
+      }
+    },
+    "License" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "License" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "授权" } }
+      }
+    },
+    "License Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "License Key" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "许可证" } }
+      }
+    },
+    "License Expired" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "License Expired" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "许可证已过期" } }
+      }
+    },
+    "License Review Warning" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "License Review Warning" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "授权复核提醒" } }
+      }
+    },
+    "Licensed to" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Licensed to" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "授权给" } }
+      }
+    },
+    "License status becomes available after activation." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "License status becomes available after activation." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成激活后可查看授权状态。" } }
+      }
+    },
+    "LookInside Activation" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LookInside Activation" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "LookInside 激活" } }
+      }
+    },
+    "LookInside Pro is active for this machine." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LookInside Pro is active for this machine." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "LookInside Pro 已在本机激活。" } }
+      }
+    },
+    "LookInside needs to reach the activation server to keep your license active. Please connect to the internet — access will pause on %@." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LookInside needs to reach the activation server to keep your license active. Please connect to the internet — access will pause on %@." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "LookInside 需要联网刷新授权。请尽快接入网络，否则将于 %@ 暂停使用。" } }
+      }
+    },
+    "Never Expires" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Never Expires" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "永久有效" } }
+      }
+    },
+    "No license state is stored in the Auth Server." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No license state is stored in the Auth Server." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Auth Server 尚未保存许可证状态。" } }
+      }
+    },
+    "Notice" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Notice" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "提示" } }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "好" } }
+      }
+    },
+    "Paste" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "粘贴" } }
+      }
+    },
+    "Order ID" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Order ID" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订单号" } }
+      }
+    },
+    "Quit LookInside Activation" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quit LookInside Activation" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出 LookInside 激活" } }
+      }
+    },
+    "Refreshing license status…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Refreshing license status…" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在刷新授权状态…" } }
+      }
+    },
+    "Refresh the license state or complete activation again to restore access." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Refresh the license state or complete activation again to restore access." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新授权状态或重新完成激活即可恢复访问。" } }
+      }
+    },
+    "Renews on" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Renews on" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "下次续订" } }
+      }
+    },
+    "Select All" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Select All" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "全选" } }
+      }
+    },
+    "Start Trial" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start Trial" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "开始试用" } }
+      }
+    },
+    "This license has been activated on multiple devices. Usage may be reviewed manually." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This license has been activated on multiple devices. Usage may be reviewed manually." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此许可证已在多台设备上激活，使用情况可能会被人工复核。" } }
+      }
+    },
+    "Try Again" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Again" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "重试" } }
+      }
+    },
+    "Trial" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trial" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "试用" } }
+      }
+    },
+    "Trial mode — this Mac must stay online to keep %@ running." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trial mode — this Mac must stay online to keep %@ running." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "试用模式 — 本机需保持联网以继续运行 %@。" } }
+      }
+    },
+    "View Trial License" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "View Trial License" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "查看测试许可证" } }
+      }
+    },
+    "Started %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Started %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "始于 %@" } }
+      }
+    },
+    "Started %@ · Ended %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Started %@ · Ended %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "始于 %1$@ · 终于 %2$@" } }
+      }
+    },
+    "Started %@ · Ends %@ · %lld days left" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Started %@ · Ends %@ · %lld days left" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "始于 %1$@ · 至 %2$@ · 剩余 %3$lld 天" } }
+      }
+    },
+    "Subscription · Active" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscription · Active" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅 · 有效" } }
+      }
+    },
+    "Subscription · Canceled" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscription · Canceled" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅 · 已取消" } }
+      }
+    },
+    "Subscription · Expired" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscription · Expired" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅 · 已到期" } }
+      }
+    },
+    "Subscription · In Review" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscription · In Review" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅 · 审核中" } }
+      }
+    },
+    "Subscription · Refunded" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Subscription · Refunded" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "订阅 · 已退款" } }
+      }
+    },
+    "Trial Already Used" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trial Already Used" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本机已用过试用" } }
+      }
+    },
+    "Each Mac can only use the trial once. Activate a license to continue." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Each Mac can only use the trial once. Activate a license to continue." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每台 Mac 仅可使用一次试用。请激活正式版以继续使用。" } }
+      }
+    },
+    "Allow Access to Your License Key" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Access to Your License Key" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "允许访问许可证密钥" } }
+      }
+    },
+    "LookInside needs to use the license key saved when you activated. macOS will ask for keychain access next. Choose “Always Allow”, otherwise you will be asked again every time LookInside connects to an app." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LookInside needs to use the license key saved when you activated. macOS will ask for keychain access next. Choose “Always Allow”, otherwise you will be asked again every time LookInside connects to an app." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "LookInside 需要使用激活时保存的许可证密钥。接下来 macOS 会请求钥匙串访问权限，请选择“始终允许”，否则每次 LookInside 连接 App 时都会再次询问。" } }
+      }
+    },
+    "Not Now" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not Now" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "以后再说" } }
+      }
+    },
+    "Continue" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "继续" } }
+      }
+    },
+    "LookInside won’t use the license key until you continue, so Pro features are paused. Click Try Again when you’re ready." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LookInside won’t use the license key until you continue, so Pro features are paused. Click Try Again when you’re ready." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在你继续之前，LookInside 不会使用许可证密钥，Pro 功能已暂停。准备好后请点按“重试”。" } }
+      }
+    },
+    "macOS asks for keychain access each time LookInside connects to an app. Choose “Always Allow” to stop these requests." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "macOS asks for keychain access each time LookInside connects to an app. Choose “Always Allow” to stop these requests." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每次 LookInside 连接 App 时，macOS 都会请求钥匙串访问权限。选择“始终允许”即可不再询问。" } }
+      }
+    }
+  }
+}

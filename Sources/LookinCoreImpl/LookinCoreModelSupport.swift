@@ -1,0 +1,104 @@
+//
+//  LookinCoreModelSupport.swift
+//  LookinCore
+//
+//  Objective-C semantics the Swift implementations of the LookinCore model
+//  classes rely on.
+//
+
+#if SHOULD_COMPILE_LOOKIN_SERVER
+
+    import Foundation
+    #if SWIFT_PACKAGE
+        import LookinCore
+    #endif
+    #if canImport(UIKit)
+        import UIKit
+    #elseif os(macOS)
+        import AppKit
+    #endif
+
+    // MARK: Strings
+
+    // The originals compared and hashed NSString values through NSString
+    // (literal comparison, -[NSString hash]) and leaned on nil messaging
+    // (`[nil isEqualToString:]` is NO, `[nil hash]` is 0). Swift's String
+    // equality and hashing differ (canonical equivalence, per-process seeds),
+    // so these go through NSString explicitly.
+
+    /// `[lhs isEqualToString:rhs]`: NO when either side is nil.
+    func lookinStringsEqual(_ lhs: String?, _ rhs: String?) -> Bool {
+        guard let lhs, let rhs else {
+            return false
+        }
+        return (lhs as NSString).isEqual(to: rhs)
+    }
+
+    /// `string.hash`: -[NSString hash], or 0 for nil.
+    func lookinStringHash(_ string: String?) -> Int {
+        guard let string else {
+            return 0
+        }
+        return (string as NSString).hash
+    }
+
+    // MARK: Image data
+
+    // The encoders archive image data as the very NSData object the
+    // Objective-C API returned. UIImagePNGRepresentation answers an
+    // NSMutableData, which NSKeyedArchiver writes as an NSMutableData object,
+    // while the same bytes bridged through Swift's Data are written inline.
+    // These helpers reach the APIs without bridging, so the archives keep
+    // their structure (pinned by Tests/WireFormatGolden on iOS).
+
+    /// `-[UIImage lookin_data]` lives in LookinServer (UIImage+LookinServer.h)
+    /// and LookinCore does not link against the server, so it is sent
+    /// dynamically, as the original's import did; `-[NSImage lookin_data]`
+    /// (Image+Lookin.h) goes the same way so it is not bridged to Data.
+    @objc private protocol LookinScreenshotDataBridge {
+        func lookin_data() -> NSData?
+    }
+
+    /// `image.lookin_data` (PNG on iOS, TIFF on macOS); nil for a nil image.
+    func lookinScreenshotData(_ image: LookinImage?) -> NSData? {
+        guard let image else {
+            return nil
+        }
+        return unsafeBitCast(image, to: LookinScreenshotDataBridge.self).lookin_data()
+    }
+
+    #if canImport(UIKit)
+        private typealias LookinPNGRepresentationFunction = @convention(c) (UIImage) -> Unmanaged<NSData>?
+
+        /// `UIImagePNGRepresentation`, which Swift imports returning Data.
+        private let LookinPNGRepresentationFunctionPointer: LookinPNGRepresentationFunction? = {
+            // RTLD_DEFAULT, which Swift does not import on every platform.
+            let defaultHandle = UnsafeMutableRawPointer(bitPattern: -2)
+            guard let symbol = dlsym(defaultHandle, "UIImagePNGRepresentation") else {
+                return nil
+            }
+            return unsafeBitCast(symbol, to: LookinPNGRepresentationFunction.self)
+        }()
+
+        /// `UIImagePNGRepresentation(image)`; nil for a nil image.
+        func lookinPNGRepresentation(_ image: UIImage?) -> NSData? {
+            guard let image, let function = LookinPNGRepresentationFunctionPointer else {
+                return nil
+            }
+            return function(image)?.takeUnretainedValue()
+        }
+    #elseif os(macOS)
+        @objc private protocol LookinTIFFRepresentationBridge {
+            @objc(TIFFRepresentation) var lookinTIFFRepresentation: NSData? { get }
+        }
+
+        /// `image.TIFFRepresentation`; nil for a nil image.
+        func lookinTIFFRepresentation(_ image: NSImage?) -> NSData? {
+            guard let image else {
+                return nil
+            }
+            return unsafeBitCast(image, to: LookinTIFFRepresentationBridge.self).lookinTIFFRepresentation
+        }
+    #endif
+
+#endif

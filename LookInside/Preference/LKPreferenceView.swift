@@ -211,6 +211,8 @@ private struct TimeoutEditor: View {
     }()
 }
 
+/// Stays an ObservableObject: as an @Observable model the segmented pickers
+/// laid out narrower than before (the ui-snapshots preferences scene).
 @MainActor
 private final class LKPreferenceViewModel: ObservableObject {
     @Published private var appearanceType: Int
@@ -226,7 +228,7 @@ private final class LKPreferenceViewModel: ObservableObject {
 
     private let manager: LKPreferenceManager
 
-    init(manager: LKPreferenceManager = LKPreferenceManager.main()) {
+    init(manager: LKPreferenceManager = LKPreferenceManager.shared) {
         self.manager = manager
         appearanceType = manager.appearanceType.rawValue
         colorFormat = manager.rgbaFormat ? 0 : 1

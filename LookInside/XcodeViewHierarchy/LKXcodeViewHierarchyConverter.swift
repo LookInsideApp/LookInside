@@ -286,7 +286,8 @@ enum LKXcodeViewHierarchyConverter {
             // Xcode only credits owners that appear in the owner root group;
             // a window whose owner the capture never listed stays unowned.
             if let ownerIdentifier = windowNode.associatedIdentifiers(inGroup: vocabulary.windowOwnerGroup).first,
-               listedOwnerIdentifiers.contains(ownerIdentifier) {
+               listedOwnerIdentifiers.contains(ownerIdentifier)
+            {
                 windowIdentifiersByOwner[ownerIdentifier, default: []].append(windowIdentifier)
             } else {
                 unownedWindowIdentifiers.append(windowIdentifier)
@@ -349,7 +350,8 @@ enum LKXcodeViewHierarchyConverter {
         }
 
         for viewIdentifier in graph.rootIdentifiers(inGroup: vocabulary.viewGroup)
-        where !convertedViewIdentifiers.contains(viewIdentifier) {
+            where !convertedViewIdentifiers.contains(viewIdentifier)
+        {
             guard let viewNode = graph.node(viewIdentifier),
                   !viewNode.childIdentifiers.isEmpty,
                   isNode(viewNode, kindOfClassNamed: ClassName.touchBarView, graph: graph),
@@ -403,7 +405,8 @@ enum LKXcodeViewHierarchyConverter {
     ) {
         guard let windowNode = graph.node(windowIdentifier) else { return }
         for childIdentifier in windowNode.childIdentifiers
-        where graph.node(childIdentifier)?.groupingIdentifier == vocabulary.windowGroup {
+            where graph.node(childIdentifier)?.groupingIdentifier == vocabulary.windowGroup
+        {
             childWindowIdentifiers.append(childIdentifier)
             appendingChildWindowIdentifiers(
                 of: childIdentifier, graph: graph, vocabulary: vocabulary, into: &childWindowIdentifiers
@@ -419,7 +422,9 @@ enum LKXcodeViewHierarchyConverter {
         graph: LKXcodeViewHierarchyObjectGraph,
         vocabulary: Vocabulary
     ) -> Bool {
-        if isNode(windowNode, kindOfClassNamed: ClassName.systemOverlayWindow, graph: graph) { return true }
+        if isNode(windowNode, kindOfClassNamed: ClassName.systemOverlayWindow, graph: graph) {
+            return true
+        }
         guard let isInternal = windowNode.property(named: "internal")?.value.boolValue,
               let isVisible = windowNode.property(named: "visible")?.value.boolValue,
               isInternal || !isVisible
@@ -435,7 +440,9 @@ enum LKXcodeViewHierarchyConverter {
         graph: LKXcodeViewHierarchyObjectGraph,
         vocabulary: Vocabulary
     ) -> Bool {
-        if isNode(windowNode, kindOfClassNamed: ClassName.remoteKeyboardWindow, graph: graph) { return false }
+        if isNode(windowNode, kindOfClassNamed: ClassName.remoteKeyboardWindow, graph: graph) {
+            return false
+        }
         var pendingControllerIdentifiers = windowNode.associatedIdentifiers(inGroup: vocabulary.viewControllerGroup)
         var visited: Set<String> = []
         while !pendingControllerIdentifiers.isEmpty {
@@ -548,7 +555,8 @@ enum LKXcodeViewHierarchyConverter {
 
         if !vocabulary.windowOwnerIsSceneNode,
            let controllerIdentifier = windowNode.associatedIdentifiers(inGroup: vocabulary.windowOwnerGroup).first,
-           let controllerNode = graph.node(controllerIdentifier) {
+           let controllerNode = graph.node(controllerIdentifier)
+        {
             item.hostWindowControllerObject = makingLookinObject(for: controllerNode, graph: graph)
             context.windowControllerNode = controllerNode
         }
@@ -556,7 +564,8 @@ enum LKXcodeViewHierarchyConverter {
         // cards leave it out, since a window is not that controller's view
         // and a live session's Class and Relation cards do not list it.
         if let controllerIdentifier = windowNode.associatedIdentifiers(inGroup: vocabulary.viewControllerGroup).first,
-           let controllerNode = graph.node(controllerIdentifier) {
+           let controllerNode = graph.node(controllerIdentifier)
+        {
             item.hostViewControllerObject = makingLookinObject(for: controllerNode, graph: graph)
         }
 
@@ -646,7 +655,8 @@ enum LKXcodeViewHierarchyConverter {
         var context = LKXcodeViewHierarchyAttributeContext(role: .view, environment: environment)
         context.superviewNode = superviewNode
         if let controllerIdentifier = viewNode.associatedIdentifiers(inGroup: vocabulary.viewControllerGroup).first,
-           let controllerNode = graph.node(controllerIdentifier) {
+           let controllerNode = graph.node(controllerIdentifier)
+        {
             item.hostViewControllerObject = makingLookinObject(for: controllerNode, graph: graph)
             context.viewControllerNode = controllerNode
         }
@@ -718,7 +728,7 @@ enum LKXcodeViewHierarchyConverter {
         }
         let wrappedLayerNodes = associatedNode.childIdentifiers.compactMap(graph.node)
         let backingNode = wrappedLayerNodes.first { wrappedLayerNode in
-            guard case .objectReference(let delegate)? = wrappedLayerNode.property(named: "delegate")?.value else {
+            guard case let .objectReference(delegate)? = wrappedLayerNode.property(named: "delegate")?.value else {
                 return false
             }
             return delegate.objectIdentifier == node.objectIdentifier
@@ -941,7 +951,9 @@ enum LKXcodeViewHierarchyConverter {
         session: ConversionSession
     ) -> Bool {
         guard session.vocabulary.isAppKit else { return false }
-        if case .objectReference? = layerNode.property(named: "delegate")?.value { return false }
+        if case .objectReference? = layerNode.property(named: "delegate")?.value {
+            return false
+        }
         guard let parentIdentifier = session.topology.parentByLayerIdentifier[layerNode.objectIdentifier],
               session.topology.isHosted(parentIdentifier)
         else { return false }
@@ -1020,9 +1032,13 @@ enum LKXcodeViewHierarchyConverter {
     /// width) drive the inspector's toggle for hiding them.
     private static func looksSystemManaged(_ guideNode: LKXcodeViewHierarchyNode) -> Bool {
         let identifier = guideNode.property(named: "identifier")?.value.textValue ?? ""
-        if identifier.hasPrefix("UIView") || identifier.hasPrefix("NSView") { return true }
+        if identifier.hasPrefix("UIView") || identifier.hasPrefix("NSView") {
+            return true
+        }
         let systemIdentifiers = ["UIViewSafeAreaLayoutGuide", "UIViewLayoutMarginsGuide", "UIViewReadableContentGuide"]
-        if systemIdentifiers.contains(identifier) { return true }
+        if systemIdentifiers.contains(identifier) {
+            return true
+        }
         let className = guideNode.className ?? ""
         return className.hasPrefix("_") || className == "NSSafeAreaLayoutGuide"
     }
@@ -1082,13 +1098,15 @@ enum LKXcodeViewHierarchyConverter {
         if let frameComponents = node.property(named: "frame")?.value.numericComponents(expectedCount: 4) {
             item.frame = rect(from: frameComponents)
         } else if let fallbackComponents = fallbackNode?
-            .property(named: "frame")?.value.numericComponents(expectedCount: 4) {
+            .property(named: "frame")?.value.numericComponents(expectedCount: 4)
+        {
             item.frame = rect(from: fallbackComponents)
         }
         if let boundsComponents = node.property(named: "bounds")?.value.numericComponents(expectedCount: 4) {
             item.bounds = rect(from: boundsComponents)
         } else if let fallbackComponents = fallbackNode?
-            .property(named: "bounds")?.value.numericComponents(expectedCount: 4) {
+            .property(named: "bounds")?.value.numericComponents(expectedCount: 4)
+        {
             item.bounds = rect(from: fallbackComponents)
         } else {
             item.bounds = CGRect(origin: .zero, size: item.frame.size)
@@ -1109,7 +1127,7 @@ enum LKXcodeViewHierarchyConverter {
     /// The inspector paints this before a screenshot is available, so a node
     /// with no recovered pixels still reads as something rather than a hole.
     private static func applyingBackgroundColor(from layerNode: LKXcodeViewHierarchyNode, to item: LookinDisplayItem) {
-        guard case .color(let color)? = layerNode.property(named: "backgroundColor")?.value,
+        guard case let .color(color)? = layerNode.property(named: "backgroundColor")?.value,
               color.components.count >= 3
         else { return }
         let alpha = color.components.count >= 4 ? color.components[3] : 1
@@ -1130,7 +1148,9 @@ enum LKXcodeViewHierarchyConverter {
     /// The pointer an `objectID` spells, which is what Lookin's `oid` holds.
     static func objectIdentifierValue(_ objectIdentifier: String) -> UInt {
         var text = objectIdentifier
-        if text.hasPrefix("0x") || text.hasPrefix("0X") { text = String(text.dropFirst(2)) }
+        if text.hasPrefix("0x") || text.hasPrefix("0X") {
+            text = String(text.dropFirst(2))
+        }
         return UInt(text, radix: 16) ?? 0
     }
 
@@ -1152,7 +1172,9 @@ enum LKXcodeViewHierarchyConverter {
 }
 
 extension LKXcodeViewHierarchyConversionError: LocalizedError {
-    var errorDescription: String? { description }
+    var errorDescription: String? {
+        description
+    }
 }
 
 private extension Array where Element: Equatable {

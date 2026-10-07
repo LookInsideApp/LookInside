@@ -141,11 +141,11 @@ final class LKDeviceInjectionFlow: NSObject {
             let client = LKDeviceControlClient(
                 deviceIdentifier: attachedDevice.identifier,
                 serialNumber: attachedDevice.serialNumber,
-                usbHub: LKAttachedDeviceMonitor.shared.connectionHub
+                usbMuxClient: LKAttachedDeviceMonitor.shared.connectionClient
             )
             do {
                 try await client.connect()
-                reachable.append(ReachableDevice(client: client, capability: try await client.injectionCapability()))
+                try reachable.append(ReachableDevice(client: client, capability: await client.injectionCapability()))
             } catch {
                 // A refused connection is the ordinary answer for a device that
                 // has never had the injector opened, so it is not reported as a
@@ -265,19 +265,22 @@ final class LKDeviceInjectionFlow: NSObject {
             // here without them reopening anything. Matches the cadence the
             // library's own local picker uses, which a measured round trip of
             // 70–100 ms over USB easily affords.
+            // A main-run-loop timer fires on the main thread.
             let refreshTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] timer in
-                guard let self, let picker = self.picker else {
-                    timer.invalidate()
-                    return
+                MainActor.assumeIsolated {
+                    guard let self, let picker = self.picker else {
+                        timer.invalidate()
+                        return
+                    }
+                    // Stop polling a channel that has already failed once
+                    // rather than hammering it; the list stays on screen, and
+                    // picking a row will surface the real error.
+                    guard !snapshot.isStale else {
+                        timer.invalidate()
+                        return
+                    }
+                    picker.reloadProcesses()
                 }
-                // Stop polling a channel that has already failed once rather
-                // than hammering it; the list stays on screen, and picking a
-                // row will surface the real error.
-                guard !snapshot.isStale else {
-                    timer.invalidate()
-                    return
-                }
-                picker.reloadProcesses()
             }
 
             var hasResumed = false

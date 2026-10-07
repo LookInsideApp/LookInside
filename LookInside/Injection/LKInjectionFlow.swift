@@ -11,7 +11,7 @@ import Foundation
 ///    downloaded under `~/Library/Application Support/LookInside/InjectableFrameworks/`.
 /// 4. `LKInjectionService.attach(pid:dylibURL:)` — fires
 ///    `InjectApplicationRequest` at the root daemon over XPC.
-/// 5. Brief sleep so the target app's Peertalk listener can bind; the existing
+/// 5. Brief sleep so the target app's Server listener can bind; the existing
 ///    `LKLaunchViewController` 1.5s refresh tick then discovers the newly
 ///    inspectable app automatically.
 @objc(LKInjectionFlow)
@@ -234,7 +234,9 @@ final class LKInjectionFlow: NSObject {
 
 private extension LKInjectableFrameworkInstallerError {
     var isCancellation: Bool {
-        if case .cancelled = self { return true }
+        if case .cancelled = self {
+            return true
+        }
         return false
     }
 }

@@ -1,8 +1,7 @@
 import AppKit
 import Combine
 
-/// One capture belongs to one inspection window and one Peertalk channel.
-/// ObservableObject supports the host's macOS 13 deployment target.
+/// One capture belongs to one inspection window and one channel.
 @MainActor
 final class LKGestureDebugSession: ObservableObject {
     @Published private(set) var snapshots: [LKGestureCaptureSnapshot] = []
@@ -29,12 +28,12 @@ final class LKGestureDebugSession: ObservableObject {
     @Published private(set) var supported = false
 
     private var app: LKInspectableApp?
-    private var channel: Lookin_PTChannel?
+    private var channel: LKChannel?
     private var sessionID: String?
     private var lastSessionID: String?
     private var lastBatchSequence = 0
     private var startTask: Task<Void, Never>?
-    private var subscriptions: [RACDisposable] = []
+    private var subscriptions: [Task<Void, Never>] = []
 
     var selectedSnapshot: LKGestureCaptureSnapshot? {
         snapshots.first { $0.id == selectedSnapshotID }
@@ -45,28 +44,24 @@ final class LKGestureDebugSession: ObservableObject {
     }
 
     init() {
-        let manager = LKConnectionManager.sharedInstance()
-        if let disposable = manager?.didReceivePush?.subscribeNext({ [weak self] value in
-            guard let tuple = value as? RACTuple,
-                  let channel = tuple.first as? Lookin_PTChannel,
-                  (tuple.second as? NSNumber)?.uint32Value == 306,
-                  let data = tuple.third as? Data else { return }
-            Task { @MainActor [weak self] in self?.receive(data, from: channel) }
-        }) {
-            subscriptions.append(disposable)
-        }
-        if let disposable = manager?.channelWillEnd?.subscribeNext({ [weak self] value in
-            guard let ended = value as? Lookin_PTChannel else { return }
-            Task { @MainActor [weak self] in
-                guard let self, self.channel === ended else { return }
-                self.stop()
-                self.message = "The target disconnected. Reconnect it, then start a new capture."
-                self.state = "disconnected"
-                self.supported = false
+        let manager = LKConnectionManager.shared
+        let pushes = manager.pushEvents()
+        subscriptions.append(Task { [weak self] in
+            for await push in pushes {
+                guard push.type == UInt32(LookinPush_GestureDebug), let data = push.data as? Data else { continue }
+                self?.receive(data, from: push.channel)
             }
-        }) {
-            subscriptions.append(disposable)
-        }
+        })
+        let endedChannels = manager.channelWillEndEvents()
+        subscriptions.append(Task { [weak self] in
+            for await ended in endedChannels {
+                guard let self, channel === ended else { continue }
+                stop()
+                message = "The target disconnected. Reconnect it, then start a new capture."
+                state = "disconnected"
+                supported = false
+            }
+        })
     }
 
     func bind(to app: LKInspectableApp?) {
@@ -118,9 +113,7 @@ final class LKGestureDebugSession: ObservableObject {
         message = "Starting gesture capture…"
         startTask = Task { [weak self] in
             do {
-                let response: NSDictionary = try await LKMCPBridgeRACBridge.awaitFirstValue(
-                    of: app.controlGestureDebug(["command": "start", "sessionID": token, "overlay": self?.overlayEnabled ?? true])
-                )
+                let response = try await app.controlGestureDebug(["command": "start", "sessionID": token, "overlay": self?.overlayEnabled ?? true])
                 guard let self, sessionID == token, !Task.isCancelled else { return }
                 state = response["state"] as? String ?? "waiting"
                 isStarting = state == "starting"
@@ -153,9 +146,7 @@ final class LKGestureDebugSession: ObservableObject {
         // The stop request must outlive the panel that initiated it.
         Task { [weak self] in
             do {
-                let _: NSDictionary = try await LKMCPBridgeRACBridge.awaitFirstValue(
-                    of: app.controlGestureDebug(["command": "stop", "sessionID": token])
-                )
+                _ = try await app.controlGestureDebug(["command": "stop", "sessionID": token])
             } catch {
                 if self?.sessionID == nil, self?.channel === app.channel {
                     self?.message = "Could not confirm capture stopped: \(error.localizedDescription). Disconnect the target to end capture."
@@ -177,9 +168,7 @@ final class LKGestureDebugSession: ObservableObject {
         let enabled = overlayEnabled
         Task { [weak self] in
             do {
-                let _: NSDictionary = try await LKMCPBridgeRACBridge.awaitFirstValue(
-                    of: app.controlGestureDebug(["command": "overlay", "sessionID": token, "enabled": enabled, "clear": clear])
-                )
+                _ = try await app.controlGestureDebug(["command": "overlay", "sessionID": token, "enabled": enabled, "clear": clear])
             } catch {
                 guard self?.sessionID == token else { return }
                 self?.message = error.localizedDescription
@@ -213,12 +202,12 @@ final class LKGestureDebugSession: ObservableObject {
     func dispose() {
         stop()
         for subscription in subscriptions {
-            subscription.dispose()
+            subscription.cancel()
         }
         subscriptions.removeAll()
     }
 
-    private func receive(_ data: Data, from channel: Lookin_PTChannel) {
+    private func receive(_ data: Data, from channel: LKChannel) {
         guard channel === self.channel, let sessionID, data.count <= 4 * 1024 * 1024 else { return }
         do {
             let batch = try JSONDecoder().decode(LKGestureCaptureBatch.self, from: data)

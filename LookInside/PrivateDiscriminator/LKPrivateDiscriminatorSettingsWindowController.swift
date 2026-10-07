@@ -29,13 +29,13 @@ final class LKPrivateDiscriminatorSettingsWindowController: NSWindowController {
     }
 
     @available(*, unavailable)
-    required init?(coder: NSCoder) {
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
 private struct LKPrivateDiscriminatorSettingsRootView: View {
-    @ObservedObject private var store = LKPrivateDiscriminatorStore.shared
+    private var store = LKPrivateDiscriminatorStore.shared
     @State private var importError: String?
 
     var body: some View {

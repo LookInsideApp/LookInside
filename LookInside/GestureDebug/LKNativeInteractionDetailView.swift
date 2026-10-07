@@ -42,7 +42,7 @@ struct LKNativeInteractionDetailView: View {
                 }
             }
         }
-        .onChange(of: regions.map(\.id)) { ids in
+        .onChange(of: regions.map(\.id)) { _, ids in
             if let selection, !ids.contains(selection) {
                 self.selection = nil
             }

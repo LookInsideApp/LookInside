@@ -6,16 +6,16 @@ import AppKit
 /// tracks the same attaches for a different purpose (it turns each one into
 /// five server ports to probe) and keeps the result private.
 ///
-/// It runs its **own** `Lookin_PTUSBHub`. The shared hub posts attach
-/// notifications for already-connected devices when it starts listening — which
-/// the connection manager causes at launch — so an observer registered later
-/// sees nothing until the next replug. A private hub starts listening when this
-/// does, and therefore reports the devices that are already there.
+/// It runs its **own** `LookinUSBMuxClient`. usbmuxd answers a Listen request
+/// with one Attached broadcast per device already connected, and only on the
+/// socket that sent it — so the connection manager's subscription, opened at
+/// launch, says nothing to an observer that arrives later. A private client
+/// listens when this starts, and therefore reports the devices already there.
 @MainActor
 final class LKAttachedDeviceMonitor {
     struct Device: Hashable {
         /// usbmuxd's handle for the device. Not stable across replugs.
-        let identifier: NSNumber
+        let identifier: Int
 
         /// The device's serial number, which is what identifies it to a person.
         let serialNumber: String
@@ -26,13 +26,14 @@ final class LKAttachedDeviceMonitor {
     /// Attached devices, in the order they were reported.
     private(set) var devices: [Device] = []
 
-    private let usbHub = Lookin_PTUSBHub()
+    private let usbMuxClient = LookinUSBMuxClient(queue: .main)
     private var hasStartedListening = false
-    private var observers: [any NSObjectProtocol] = []
 
-    /// The hub a client should reach these devices through — the one that
-    /// enumerated them.
-    var connectionHub: Lookin_PTUSBHub { usbHub }
+    /// The usbmuxd client a control client should reach these devices
+    /// through — the one that enumerated them.
+    var connectionClient: LookinUSBMuxClient {
+        usbMuxClient
+    }
 
     private init() {}
 
@@ -50,49 +51,30 @@ final class LKAttachedDeviceMonitor {
         guard !hasStartedListening else { return }
         hasStartedListening = true
 
-        let notificationCenter = NotificationCenter.default
-        observers.append(
-            notificationCenter.addObserver(
-                forName: .Lookin_PTUSBDeviceDidAttach,
-                object: usbHub,
-                queue: .main
-            ) { [weak self] notification in
-                MainActor.assumeIsolated { self?.handleAttach(notification) }
-            }
-        )
-        observers.append(
-            notificationCenter.addObserver(
-                forName: .Lookin_PTUSBDeviceDidDetach,
-                object: usbHub,
-                queue: .main
-            ) { [weak self] notification in
-                MainActor.assumeIsolated { self?.handleDetach(notification) }
-            }
-        )
-
-        usbHub.listen(on: .main, onStart: nil, onEnd: nil)
+        usbMuxClient.startListening { [weak self] event in
+            MainActor.assumeIsolated { self?.handle(event) }
+        }
         try? await Task.sleep(nanoseconds: 300_000_000)
     }
 
-    private func handleAttach(_ notification: Notification) {
-        guard let identifier = notification.userInfo?["DeviceID"] as? NSNumber else { return }
-        let properties = notification.userInfo?["Properties"] as? [String: Any]
-
-        // Deliberately **not** filtered by `ConnectionType`. A `Network` entry
-        // is an iOS device paired over Wi-Fi, not some other kind of machine,
-        // and usbmuxd's Connect reaches one exactly the same way — so filtering
-        // to `USB` would hide a jailbroken iPhone that happened to be off the
-        // cable. The host's own `LKConnectionManager` does not filter either,
-        // and this list has to agree with it: a device this skipped could still
-        // have its injected server found afterwards, which would read as the
-        // injector list being wrong.
-        let serialNumber = properties?["SerialNumber"] as? String ?? identifier.stringValue
-        guard !devices.contains(where: { $0.identifier == identifier }) else { return }
-        devices.append(Device(identifier: identifier, serialNumber: serialNumber))
-    }
-
-    private func handleDetach(_ notification: Notification) {
-        guard let identifier = notification.userInfo?["DeviceID"] as? NSNumber else { return }
-        devices.removeAll { $0.identifier == identifier }
+    private func handle(_ event: LookinUSBMuxClient.Event) {
+        switch event {
+        case let .attached(identifier, properties):
+            // Deliberately **not** filtered by `ConnectionType`. A `Network`
+            // entry is an iOS device paired over Wi-Fi, not some other kind of
+            // machine, and usbmuxd's Connect reaches one exactly the same way —
+            // so filtering to `USB` would hide a jailbroken iPhone that
+            // happened to be off the cable. The host's own
+            // `LKConnectionManager` does not filter either, and this list has
+            // to agree with it: a device this skipped could still have its
+            // injected server found afterwards, which would read as the
+            // injector list being wrong.
+            let serialNumber = (properties["Properties"] as? [String: Any])?["SerialNumber"] as? String
+                ?? String(identifier)
+            guard !devices.contains(where: { $0.identifier == identifier }) else { return }
+            devices.append(Device(identifier: identifier, serialNumber: serialNumber))
+        case let .detached(identifier):
+            devices.removeAll { $0.identifier == identifier }
+        }
     }
 }

@@ -29,23 +29,38 @@ assert_contains 'run-name: ${{ github.event.client_payload.release_id }}'
 assert_contains 'SOURCE_REF="${{ github.event.client_payload.source_ref }}"'
 assert_contains 'BUILD_NUMBER="${{ github.event.client_payload.build_number }}"'
 assert_contains 'INJECTOR_REF="${{ github.event.client_payload.injector_ref }}"'
-assert_contains 'MCP_REF="${{ github.event.client_payload.mcp_ref }}"'
 assert_contains 'RELEASE_REF="${{ github.event.client_payload.release_ref }}"'
 assert_contains 'ref: ${{ needs.prepare.outputs.source_ref }}'
 assert_contains 'checkout --detach "${{ needs.prepare.outputs.injector_ref }}"'
-assert_contains 'checkout --detach "${{ needs.prepare.outputs.mcp_ref }}"'
+assert_absent 'LookInside-MCP'
 assert_contains 'token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}'
 assert_contains 'target_commitish: ${{ needs.prepare.outputs.source_ref }}'
 assert_contains 'if existing_target="$(gh api'
-assert_contains 'ref: ${{ needs.prepare.outputs.release_ref }}'
-assert_contains 'sync-auth-server-assets-to-web.sh'
-assert_contains 'public/downloads/auth-server'
+assert_contains 'sparse-checkout: sparkle'
+assert_contains 'bash Scripts/run-gitleaks.sh .'
+assert_contains 'bash Scripts/scan-private-keys.sh'
+assert_contains 'bash app/Scripts/scan-private-keys.sh dist'
+assert_contains 'bash app/Scripts/scan-private-keys.sh web/public'
+assert_contains 'bash Scripts/check-host-release-clean.sh --release-strict'
+assert_absent 'check-host-release-clean.sh --local-build'
+assert_absent 'sync-auth-server-assets-to-web.sh'
+assert_absent 'public/downloads/auth-server'
+assert_absent 'lookinside-auth-server'
+assert_absent 'release-tools'
 assert_contains 'Using parent-resolved Xcode version ${VERSION} (${BUILD_NUMBER}).'
 assert_contains 'without leading zeroes'
 assert_absent "workflow_dispatch:"
 assert_absent "tags:"
 assert_absent '2>/dev/null || true'
 assert_absent 'APPCAST_URL="https://lookinside-app.com/appcast.xml"'
+
+for workflow in "$root_dir"/.github/workflows/*.yml; do
+	if grep -F -- 'SECRETS_SOURCE_REPO' "$workflow" >/dev/null &&
+		! grep -F -- 'sparse-checkout: sparkle' "$workflow" >/dev/null; then
+		echo "$(basename "$workflow") checks out the secrets repository without sparse-checkout: sparkle" >&2
+		exit 1
+	fi
+done
 
 work_dir="$(mktemp -d "${TMPDIR:-/tmp}/lookinside-host-release-test.XXXXXX")"
 trap 'rm -rf "$work_dir"' EXIT

@@ -43,9 +43,9 @@ struct LKGestureDebugView: View {
                 .frame(minWidth: 620, maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .onChange(of: session.overlayEnabled) { _ in session.updateOverlay() }
-        .onChange(of: session.followsLatest) { _ in session.followLatest() }
-        .onChange(of: section) { _ in session.selectedNodeID = nil }
+        .onChange(of: session.overlayEnabled) { session.updateOverlay() }
+        .onChange(of: session.followsLatest) { session.followLatest() }
+        .onChange(of: section) { session.selectedNodeID = nil }
     }
 
     private var controls: some View {
@@ -164,12 +164,12 @@ struct LKGestureDebugView: View {
                         }.buttonStyle(.plain).id(snapshot.id)
                     }
                 }.listStyle(.plain)
-                    .onChange(of: session.snapshots.last?.id) { id in
+                    .onChange(of: session.snapshots.last?.id) { _, id in
                         if session.followsLatest, let id {
                             proxy.scrollTo(id, anchor: .top)
                         }
                     }
-                    .onChange(of: session.followsLatest) { follows in
+                    .onChange(of: session.followsLatest) { _, follows in
                         if follows, let id = session.snapshots.last?.id {
                             proxy.scrollTo(id, anchor: .top)
                         }

@@ -23,8 +23,6 @@ jobs:
       artifact_name: ${{ steps.context.outputs.artifact_name }}
       source_ref: ${{ steps.context.outputs.source_ref }}
       injector_ref: ${{ steps.context.outputs.injector_ref }}
-      mcp_ref: ${{ steps.context.outputs.mcp_ref }}
-      release_ref: ${{ steps.context.outputs.release_ref }}
 
     steps:
       - name: Validate Trigger Actor
@@ -42,7 +40,6 @@ jobs:
           BUILD_NUMBER="${{ github.event.client_payload.build_number }}"
           SOURCE_REF="${{ github.event.client_payload.source_ref }}"
           INJECTOR_REF="${{ github.event.client_payload.injector_ref }}"
-          MCP_REF="${{ github.event.client_payload.mcp_ref }}"
           RELEASE_REF="${{ github.event.client_payload.release_ref }}"
           PARENT_REPOSITORY="${{ github.event.client_payload.parent_repository }}"
           PARENT_REF="${{ github.event.client_payload.parent_ref }}"
@@ -65,7 +62,6 @@ jobs:
           [[ "$PARENT_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid parent SHA." >&2; exit 1; }
           [[ "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Host source SHA." >&2; exit 1; }
           [[ "$INJECTOR_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Injector source SHA." >&2; exit 1; }
-          [[ "$MCP_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid MCP source SHA." >&2; exit 1; }
           [[ "$RELEASE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Release source SHA." >&2; exit 1; }
           [[ "$RELEASE_ID" == "release/app/$VERSION@$PARENT_SHA/host" ]] || {
             echo "Release id does not identify the parent tag and commit." >&2
@@ -79,8 +75,6 @@ jobs:
             echo "artifact_name=LookInside-${VERSION}-release"
             echo "source_ref=${SOURCE_REF}"
             echo "injector_ref=${INJECTOR_REF}"
-            echo "mcp_ref=${MCP_REF}"
-            echo "release_ref=${RELEASE_REF}"
           } >>"${GITHUB_OUTPUT}"
 
   build_package:
@@ -100,6 +94,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.source_ref }}
+
+      - name: Scan Repository For Secrets
+        run: bash Scripts/run-gitleaks.sh .
 
       - name: Show Xcode Version
         run: xcodebuild -version
@@ -132,21 +129,6 @@ jobs:
             ../LookInside-Injector
           git -C ../LookInside-Injector checkout --detach "${{ needs.prepare.outputs.injector_ref }}"
           [[ "$(git -C ../LookInside-Injector rev-parse HEAD)" == "${{ needs.prepare.outputs.injector_ref }}" ]]
-
-      - name: Checkout MCP Server
-        env:
-          LOOKINSIDE_MCP_READ_TOKEN: ${{ secrets.LOOKINSIDE_PRIVATE_READ_TOKEN || secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.LOOKINSIDE_INJECTOR_READ_TOKEN }}
-        run: |
-          set -euo pipefail
-          if [[ -z "${LOOKINSIDE_MCP_READ_TOKEN}" ]]; then
-            echo "LOOKINSIDE_PRIVATE_READ_TOKEN, LOOKINSIDE_WEB_RELEASE_TOKEN, or LOOKINSIDE_INJECTOR_READ_TOKEN is required to checkout LookInside-MCP." >&2
-            exit 1
-          fi
-          git clone --no-checkout \
-            "https://x-access-token:${LOOKINSIDE_MCP_READ_TOKEN}@github.com/LookInsideApp/LookInside-MCP.git" \
-            ../LookInside-MCP
-          git -C ../LookInside-MCP checkout --detach "${{ needs.prepare.outputs.mcp_ref }}"
-          [[ "$(git -C ../LookInside-MCP rev-parse HEAD)" == "${{ needs.prepare.outputs.mcp_ref }}" ]]
 
       - name: Configure Private Package Access
         env:
@@ -185,6 +167,11 @@ jobs:
             --tag "${{ needs.prepare.outputs.build_version }}" \
             --stage archive-app
 
+      - name: Check Release Build For Debug Overrides
+        run: |
+          bash Scripts/check-host-release-clean.sh --release-strict \
+            "build/releases/${{ needs.prepare.outputs.build_version }}/LookInside.xcarchive"
+
       - name: Package Unsigned Archive
         run: |
           set -euo pipefail
@@ -192,6 +179,11 @@ jobs:
           tar -czf "${release_dir}/LookInside.xcarchive.tar.gz" \
             -C "${release_dir}" \
             LookInside.xcarchive
+
+      - name: Scan Unsigned Archive For Private Keys
+        run: |
+          bash Scripts/scan-private-keys.sh \
+            "build/releases/${{ needs.prepare.outputs.build_version }}/LookInside.xcarchive.tar.gz"
 
       - name: Upload Unsigned Artifacts
         uses: actions/upload-artifact@v4
@@ -263,6 +255,16 @@ jobs:
             --tag "${{ needs.prepare.outputs.build_version }}" \
             --stage notarize-app
 
+      - name: Scan Notarized App For Private Keys And Debug Overrides
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          release_dir="build/releases/${{ needs.prepare.outputs.build_version }}"
+          app_zips=("${release_dir}"/LookInside-*-macOS-app.zip)
+          [[ ${#app_zips[@]} -gt 0 ]] || { echo "No notarized app zip to scan." >&2; exit 1; }
+          bash Scripts/scan-private-keys.sh "${app_zips[@]}"
+          bash Scripts/check-host-release-clean.sh --release-strict "${app_zips[@]}"
+
       - name: Upload Notarized App
         uses: actions/upload-artifact@v4
         with:
@@ -277,6 +279,14 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      - name: Checkout Release Scripts
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          path: app
+          sparse-checkout: Scripts
+          persist-credentials: false
+
       - name: Download App Artifact
         uses: actions/download-artifact@v4
         with:
@@ -287,6 +297,9 @@ jobs:
         run: |
           cd dist
           shasum -a 256 ./*.zip > checksums.txt
+
+      - name: Scan Release Artifacts For Private Keys
+        run: bash app/Scripts/scan-private-keys.sh dist
 
       - name: Upload Notarized Artifacts
         uses: actions/upload-artifact@v4
@@ -393,42 +406,10 @@ jobs:
           ref: main
           path: secrets
           token: ${{ secrets.LOOKINSIDE_SECRETS_READ_TOKEN }}
-
-      - name: Checkout Release Tools
-        uses: actions/checkout@v4
-        with:
-          repository: LookInsideApp/LookInside-Release
-          ref: ${{ needs.prepare.outputs.release_ref }}
-          path: release-tools
-          token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
-
-      - name: Download Pinned Auth Server Publication
-        env:
-          GH_TOKEN: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
-        run: |
-          set -euo pipefail
-          mkdir -p auth-artifact
-          for asset in \
-            lookinside-auth-server.app.zip \
-            lookinside-auth-server.app.zip.sha256 \
-            lookinside-auth-server.app.zip.version; do
-            gh release download storage \
-              --repo LookInsideApp/LookInside-Release \
-              --pattern "$asset" \
-              --dir auth-artifact
-          done
-          [[ "$(tr -d '[:space:]' <auth-artifact/lookinside-auth-server.app.zip.version)" == "${{ needs.prepare.outputs.build_version }}" ]] || {
-            echo "Published Auth Server version does not match the app release." >&2
-            exit 1
-          }
-
-      - name: Stage Auth Server Metadata Into Web Repository
-        run: |
-          set -euo pipefail
-          bash release-tools/Scripts/sync-auth-server-assets-to-web.sh \
-            --web-dir web \
-            --asset auth-artifact/lookinside-auth-server.app.zip \
-            --url https://github.com/LookInsideApp/LookInside-Release/releases/download/storage/lookinside-auth-server.app.zip
+          sparse-checkout: sparkle
+          sparse-checkout-cone-mode: true
+          filter: blob:none
+          persist-credentials: false
 
       - name: Export GitHub Release Notes
         env:
@@ -477,13 +458,28 @@ jobs:
             --version "${{ needs.prepare.outputs.build_version }}" \
             --asset-download-url "$ASSET_DOWNLOAD_URL"
 
+      - name: Scan Web Changes For Private Keys
+        run: |
+          set -euo pipefail
+          bash app/Scripts/scan-private-keys.sh web/public
+          sparkle_key="$(tr -d '[:space:]' <"$RUNNER_TEMP/sparkle-private-ed-key.txt")"
+          [[ -n "$sparkle_key" ]] || { echo "Decrypted Sparkle private key is empty." >&2; exit 1; }
+          if grep -rqF -- "$sparkle_key" web; then
+            echo "The Sparkle private key was written into the Web repository." >&2
+            exit 1
+          fi
+
+      - name: Remove Sparkle Private Key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sparkle-private-ed-key.txt"
+
       - name: Commit Web Appcast
         working-directory: web
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/appcast.xml public/downloads/manifest.json public/downloads/auth-server public/downloads/lookinside
+          git add public/appcast.xml public/downloads/manifest.json public/downloads/lookinside
           if git diff --cached --quiet; then
             echo "No Web appcast changes to publish."
             exit 0

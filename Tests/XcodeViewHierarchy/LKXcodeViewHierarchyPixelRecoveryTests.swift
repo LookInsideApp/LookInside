@@ -115,7 +115,7 @@ struct LKXcodeViewHierarchyPixelRecoveryTests {
         flippedChild.bounds = CGRect(x: 0, y: 0, width: 100, height: 40)
         markingAsDrawingEverywhere(flippedChild)
         flippedChild.anchorPoint = .zero
-        flippedChild.position = CGPoint(x: 0, y: 60)   // the top 40 rows of the root
+        flippedChild.position = CGPoint(x: 0, y: 60) // the top 40 rows of the root
         flippedChild.isGeometryFlipped = true
         let band = CALayer()
         band.bounds = CGRect(x: 0, y: 0, width: 100, height: 20)
@@ -159,10 +159,10 @@ struct LKXcodeViewHierarchyPixelRecoveryTests {
     private static func testNestedLayersOfAYDownTreeKeepTheirOrderAtEveryDepth() {
         // Positions as UIKit archives them: y measured downwards.
         let root = coloredLayer(width: 100, height: 100, at: .zero, color: .white)
-        let levelOne = coloredLayer(width: 100, height: 40, at: .zero, color: .blue)                   // top of the root
-        let bandOne = coloredLayer(width: 100, height: 10, at: .zero, color: .red)                     // top of level one
-        let levelTwo = coloredLayer(width: 100, height: 20, at: CGPoint(x: 0, y: 20), color: .yellow)  // lower half of level one
-        let bandTwo = coloredLayer(width: 100, height: 5, at: .zero, color: .green)                    // top of level two
+        let levelOne = coloredLayer(width: 100, height: 40, at: .zero, color: .blue) // top of the root
+        let bandOne = coloredLayer(width: 100, height: 10, at: .zero, color: .red) // top of level one
+        let levelTwo = coloredLayer(width: 100, height: 20, at: CGPoint(x: 0, y: 20), color: .yellow) // lower half of level one
+        let bandTwo = coloredLayer(width: 100, height: 5, at: .zero, color: .green) // top of level two
         levelTwo.addSublayer(bandTwo)
         levelOne.addSublayer(bandOne)
         levelOne.addSublayer(levelTwo)
@@ -194,7 +194,7 @@ struct LKXcodeViewHierarchyPixelRecoveryTests {
     private static func testLayerImagesLeaveOutTheViewsBeneath() {
         let root = coloredLayer(width: 100, height: 100, at: .zero, color: .white)
         let hosted = coloredLayer(width: 100, height: 40, at: CGPoint(x: 0, y: 60), color: .red)
-        hosted.borderWidth = 1   // draws more than a plain fill, so it keeps an image of its own
+        hosted.borderWidth = 1 // draws more than a plain fill, so it keeps an image of its own
         let orphan = coloredLayer(width: 100, height: 40, at: .zero, color: .blue)
         root.addSublayer(hosted)
         root.addSublayer(orphan)
@@ -305,7 +305,7 @@ struct LKXcodeViewHierarchyPixelRecoveryTests {
         layer.bounds = CGRect(x: 0, y: 0, width: 6000, height: 4000)
         layer.contentsScale = 2
         layer.backgroundColor = NSColor.red.cgColor
-        layer.borderWidth = 1   // something to draw, so the plain-colour skip does not apply
+        layer.borderWidth = 1 // something to draw, so the plain-colour skip does not apply
         guard let data = LKXcodeViewHierarchyPixelRecovery.renderingPNG(
             of: layer, includingSublayers: true, isFlipped: false
         ) else { fail("a large opaque layer should still render") }
@@ -552,7 +552,9 @@ struct LKXcodeViewHierarchyPixelRecoveryTests {
         flippingContext: Bool
     ) -> RenderedOrientation? {
         let root = orientationFixture()
-        if shouldApplyGeometryFlip { applyGeometryFlip(to: root) }
+        if shouldApplyGeometryFlip {
+            applyGeometryFlip(to: root)
+        }
         guard let data = LKXcodeViewHierarchyPixelRecovery.renderingPNG(
             of: root, includingSublayers: true, isFlipped: flippingContext
         ), let bitmap = NSBitmapImageRep(data: data) else { return nil }

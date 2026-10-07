@@ -79,7 +79,9 @@ struct LKXcodeViewHierarchyLayerTopology {
         var current = layerIdentifier
         var visited: Set<String> = [current]
         while let parent = parentByLayerIdentifier[current] {
-            if parent == ancestorIdentifier { return current }
+            if parent == ancestorIdentifier {
+                return current
+            }
             guard visited.insert(parent).inserted else { return nil }
             current = parent
         }

@@ -1,37 +1,20 @@
 import AppKit
-import Darwin
 import Foundation
-
-private enum LKSwiftUISupportAuthServerConstants {
-    static let supportedProtocolVersion = 1
-
-    static let helperPathEnvironmentKey = "LOOKINSIDE_AUTH_SERVER_PATH"
-    static let helperSocketPathEnvironmentKey = "LOOKINSIDE_AUTH_SERVER_SOCKET_PATH"
-    static let helperClientProcessIDEnvironmentKey = "LOOKINSIDE_AUTH_SERVER_CLIENT_PID"
-
-    static let firstLaunchHealthTimeout: TimeInterval = 1.0
-    static let relaunchHealthTimeout: TimeInterval = 3.0
-    static let helperHealthPollInterval: useconds_t = 100_000
-    static let helperShutdownTimeout: TimeInterval = 3
-
-    static let activationStatePollingInterval: DispatchTimeInterval = .seconds(5)
-    static let activationStatePollingLeeway: DispatchTimeInterval = .milliseconds(500)
-}
-
-private enum LKSwiftUISupportHelperPresence {
-    case notDetermined
-    case spawned
-}
-
-private enum LKSwiftUISupportAuthServerInstallMode {
-    case userInitiated
-    case backgroundRefresh
-}
+import LookInsideActivation
+import LookInsideActivationUI
 
 @objc public enum LKSwiftUISupportActivationState: Int {
     case unknown
     case notActivated
     case activated
+
+    init(_ decision: ActivationAccessDecision?) {
+        guard let decision else {
+            self = .unknown
+            return
+        }
+        self = decision.grantsAccess ? .activated : .notActivated
+    }
 
     var lkDebugDescription: String {
         switch self {
@@ -42,1118 +25,22 @@ private enum LKSwiftUISupportAuthServerInstallMode {
     }
 }
 
-private struct LKSwiftUISupportAuthServerInstallation {
-    let executableURL: URL
-    let socketURL: URL
+private enum LKSwiftUISupportGatekeeperConstants {
+    /// How often the stored license state is re-evaluated, so a lease that runs
+    /// out while LookInside is open closes access without a user action.
+    static let monitoringInterval: Duration = .seconds(60)
 }
 
-private struct LKSwiftUISupportEmptyPayload: Codable {}
-
-private struct LKSwiftUISupportClientProcessPayload: Encodable {
-    let lookInsideProcessID: Int32
-
-    private enum CodingKeys: String, CodingKey {
-        case lookInsideProcessID = "lookinside_pid"
-    }
-}
-
-private struct LKSwiftUISupportSignChallengeRequestPayload: Encodable {
-    let nonce: String
-    let serverInstanceID: String
-
-    private enum CodingKeys: String, CodingKey {
-        case nonce
-        case serverInstanceID = "server_instance_id"
-    }
-}
-
-private struct LKSwiftUISupportSignChallengeResponsePayload: Decodable {
-    let signature: String
-    let intermediateCertDER: String
-    let udid: String
-
-    private enum CodingKeys: String, CodingKey {
-        case signature
-        case intermediateCertDER = "intermediate_cert_der"
-        case udid
-    }
-}
-
-private struct LKSwiftUISupportUserAlertPayload: Encodable {
-    let title: String
-    let message: String
-    let style: String
-}
-
-private struct LKSwiftUISupportAuthServerRequestEnvelope<Payload: Encodable>: Encodable {
-    let protocolVersion: Int
-    let requestID: String
-    let method: String
-    let payload: Payload
-
-    private enum CodingKeys: String, CodingKey {
-        case protocolVersion = "protocol_version"
-        case requestID = "request_id"
-        case method
-        case payload
-    }
-}
-
-private struct LKSwiftUISupportAuthServerResponseEnvelope<Payload: Decodable>: Decodable {
-    let protocolVersion: Int
-    let requestID: String
-    let ok: Bool
-    let payload: Payload?
-    let error: LKSwiftUISupportAuthServerErrorPayload?
-
-    private enum CodingKeys: String, CodingKey {
-        case protocolVersion = "protocol_version"
-        case requestID = "request_id"
-        case ok
-        case payload
-        case error
-    }
-}
-
-private struct LKSwiftUISupportAuthServerErrorPayload: Decodable, Error {
-    let code: String
-    let message: String
-}
-
-private struct LKSwiftUISupportAuthServerHealthPayload: Decodable {
-    let serverVersion: String
-    let protocolVersion: Int
-    let statusSummary: String
-
-    private enum CodingKeys: String, CodingKey {
-        case serverVersion = "server_version"
-        case protocolVersion = "protocol_version"
-        case statusSummary = "status_summary"
-    }
-}
-
-private struct LKSwiftUISupportAuthServerAccessDecisionPayload: Decodable {
-    enum Decision: String, Decodable {
-        case allow
-        case allowWithWarning = "allow_with_warning"
-        case block
-    }
-
-    let decision: Decision
-    let title: String
-    let message: String
-    let statusSummary: String?
-
-    private enum CodingKeys: String, CodingKey {
-        case decision
-        case title
-        case message
-        case statusSummary = "status_summary"
-    }
-
-    static var activationRequired: LKSwiftUISupportAuthServerAccessDecisionPayload {
-        LKSwiftUISupportAuthServerAccessDecisionPayload(
-            decision: .block,
-            title: NSLocalizedString("Activation Required", comment: ""),
-            message: NSLocalizedString("Activate LookInside Pro from the LookInside Pro menu before using this feature.", comment: ""),
-            statusSummary: NSLocalizedString("No local LookInside Pro license is stored on this Mac.", comment: "")
-        )
-    }
-}
-
-private enum LKSwiftUISupportAuthServerError: LocalizedError {
-    case helperMissing(String)
-    case incompatibleProtocol(expected: Int, found: Int)
-    case helperVersionMismatch(expected: String, found: String)
-    case socketPathInvalid(String)
-    case launchFailed(String)
-    case launchTimedOut(String)
-    case rpcTransport(String)
-    case rpcServer(code: String, message: String)
-    case invalidResponse(String)
-
-    var errorDescription: String? {
-        switch self {
-        case let .helperMissing(path):
-            return String(format: NSLocalizedString("LookInside Auth Server is not installed.\nExpected executable:\n%@", comment: ""), path)
-        case let .incompatibleProtocol(expected, found):
-            return String(format: NSLocalizedString("LookInside Auth Server protocol is incompatible.\nApp expects v%1$ld, helper provides v%2$ld.", comment: ""), expected, found)
-        case let .helperVersionMismatch(expected, found):
-            return String(format: NSLocalizedString("LookInside Auth Server version mismatch.\nExpected: %1$@\nFound: %2$@", comment: ""), expected, found)
-        case let .socketPathInvalid(path):
-            return String(format: NSLocalizedString("LookInside Auth Server socket path is too long for a Unix domain socket.\n%@", comment: ""), path)
-        case let .launchFailed(message):
-            return String(format: NSLocalizedString("LookInside Auth Server could not be launched.\n%@", comment: ""), message)
-        case let .launchTimedOut(path):
-            return String(format: NSLocalizedString("LookInside Auth Server did not respond after launch.\nSocket path:\n%@", comment: ""), path)
-        case let .rpcTransport(message):
-            return String(format: NSLocalizedString("LookInside Auth Server connection failed.\n%@", comment: ""), message)
-        case let .rpcServer(code, message):
-            return String(format: NSLocalizedString("LookInside Auth Server returned %1$@.\n%2$@", comment: ""), code, message)
-        case let .invalidResponse(message):
-            return String(format: NSLocalizedString("LookInside Auth Server returned an unreadable response.\n%@", comment: ""), message)
-        }
-    }
-}
-
-private final class LKSwiftUISupportAuthServerBridge {
-    private let lock = NSLock()
-    private var launchedProcess: Process?
-    private var lastPresentedErrorDescription: String?
-    private var helperPresence: LKSwiftUISupportHelperPresence = .notDetermined
-    private var activationState: LKSwiftUISupportActivationState = .unknown
-    private var activationStatusSummary: String?
-    private var activationStateRefreshInFlight = false
-    private var licenseStatusRefreshInFlight = false
-    private var activationStatePollingStarted = false
-    private var activationStatePollingTimer: DispatchSourceTimer?
-
-    var currentActivationState: LKSwiftUISupportActivationState {
-        lock.withLock { activationState }
-    }
-
-    private func recordAccessDecision(_ payload: LKSwiftUISupportAuthServerAccessDecisionPayload) {
-        let newState: LKSwiftUISupportActivationState
-        switch payload.decision {
-        case .allow, .allowWithWarning:
-            newState = .activated
-        case .block:
-            newState = .notActivated
-        }
-        var previousState: LKSwiftUISupportActivationState = .unknown
-        let shouldNotify: Bool = lock.withLock {
-            let previousStatusSummary = activationStatusSummary
-            let stateChanged = activationState != newState
-            let licenseMaterialMayHaveChanged = newState == .activated && previousStatusSummary != payload.statusSummary
-            guard stateChanged || licenseMaterialMayHaveChanged else { return false }
-            previousState = activationState
-            activationState = newState
-            activationStatusSummary = payload.statusSummary
-            return true
-        }
-        if shouldNotify {
-            LKSwiftUISupportLogger.authServer.info(
-                "activation state changed: \(previousState.lkDebugDescription, privacy: .public) -> \(newState.lkDebugDescription, privacy: .public) (decision=\(payload.decision.rawValue, privacy: .public))"
-            )
-            DispatchQueue.main.async {
-                NotificationCenter.default.post(
-                    name: LKSwiftUISupportGatekeeper.activationStateDidChangeNotification,
-                    object: LKSwiftUISupportGatekeeper.sharedInstance(),
-                    userInfo: ["activationState": NSNumber(value: newState.rawValue)]
-                )
-            }
-        }
-    }
-
-    private func recordLocalActivationRequired(_ probeResult: LKSwiftUISupportLocalLicenseProbeResult) {
-        LKSwiftUISupportLogger.authServer.info(
-            "local license probe result=\(probeResult.debugDescription, privacy: .public) action=notActivated"
-        )
-        recordAccessDecision(.activationRequired)
-    }
-
-    private func hasPersistedLocalLicenseMaterial() -> Bool {
-        let probeResult = LKSwiftUISupportLocalLicenseProbe.probe()
-        guard probeResult.hasPersistedLicenseMaterial else {
-            recordLocalActivationRequired(probeResult)
-            return false
-        }
-        return true
-    }
-
-    func startActivationStatePolling() {
-        let shouldStart: Bool = lock.withLock {
-            guard !activationStatePollingStarted else { return false }
-            activationStatePollingStarted = true
-            return true
-        }
-        guard shouldStart else { return }
-
-        let interval = LKSwiftUISupportAuthServerConstants.activationStatePollingInterval
-        LKSwiftUISupportLogger.authServer.info(
-            "activation state polling started (interval=\(String(describing: interval), privacy: .public))"
-        )
-
-        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
-        timer.schedule(
-            deadline: .now(),
-            repeating: interval,
-            leeway: LKSwiftUISupportAuthServerConstants.activationStatePollingLeeway
-        )
-        timer.setEventHandler { [weak self] in
-            self?.refreshActivationStateInBackground()
-        }
-        lock.withLock { activationStatePollingTimer = timer }
-        timer.resume()
-    }
-
-    func refreshActivationStateInBackground() {
-        let shouldStart: Bool = lock.withLock {
-            if activationStateRefreshInFlight {
-                return false
-            }
-            activationStateRefreshInFlight = true
-            return true
-        }
-        guard shouldStart else {
-            return
-        }
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            defer {
-                self?.lock.withLock { self?.activationStateRefreshInFlight = false }
-            }
-            guard let self else { return }
-            guard self.hasPersistedLocalLicenseMaterial() else {
-                return
-            }
-            let installation: LKSwiftUISupportAuthServerInstallation
-            do {
-                switch LKSwiftUISupportActivationStateRefreshPolicy.startupAction {
-                case .installAndLaunch:
-                    installation = try self.ensureInstalledAndRunning(
-                        window: nil,
-                        installMode: .backgroundRefresh
-                    )
-                case .launchInstalledHelper:
-                    installation = try self.ensureServerAvailable(
-                        using: self.resolveInstallation()
-                    )
-                }
-            } catch {
-                LKSwiftUISupportLogger.authServer.info(
-                    "activation state refresh setup failed: \(error.localizedDescription, privacy: .public)"
-                )
-                return
-            }
-            do {
-                let response = try self.sendRequest(
-                    method: "license.check_access",
-                    payload: LKSwiftUISupportEmptyPayload(),
-                    installation: installation,
-                    responseType: LKSwiftUISupportAuthServerAccessDecisionPayload.self
-                )
-                if let payload = response.payload {
-                    self.recordAccessDecision(payload)
-                }
-            } catch {
-                LKSwiftUISupportLogger.authServer.info(
-                    "activation state refresh failed: \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        }
-    }
-
-    func shutdownRuntime() {
-        guard let installation = try? resolveInstallation() else {
-            return
-        }
-
-        do {
-            _ = try sendRequest(
-                method: "server.shutdown",
-                payload: LKSwiftUISupportEmptyPayload(),
-                installation: installation,
-                responseType: LKSwiftUISupportEmptyPayload.self
-            )
-        } catch {
-            LKSwiftUISupportLogger.authServer.error(
-                "shutdown request failed: \(error.localizedDescription, privacy: .public)"
-            )
-        }
-
-        unlink(installation.socketURL.path + ".lock")
-        unlink(installation.socketURL.path)
-
-        let deadline = Date().addingTimeInterval(LKSwiftUISupportAuthServerConstants.helperShutdownTimeout)
-        while Date() < deadline {
-            let isRunning = lock.withLock {
-                launchedProcess?.isRunning == true
-            }
-            if isRunning == false {
-                break
-            }
-            usleep(50000)
-        }
-
-        lock.withLock {
-            if let launchedProcess, launchedProcess.isRunning {
-                launchedProcess.terminate()
-            }
-            self.launchedProcess = nil
-            self.helperPresence = .notDetermined
-        }
-    }
-
-    private func terminateHelperProcess() {
-        let process = lock.withLock { launchedProcess }
-        if let process, process.isRunning {
-            process.terminate()
-            let deadline = Date().addingTimeInterval(1)
-            while Date() < deadline, process.isRunning {
-                usleep(50000)
-            }
-            if process.isRunning {
-                kill(process.processIdentifier, SIGKILL)
-            }
-        }
-        if let installation = try? resolveInstallation() {
-            unlink(installation.socketURL.path + ".lock")
-            unlink(installation.socketURL.path)
-        }
-        lock.withLock {
-            self.launchedProcess = nil
-            self.helperPresence = .notDetermined
-        }
-    }
-
-    private func shouldTriggerRefresh(for error: Error) -> Bool {
-        switch error {
-        case LKSwiftUISupportAuthServerError.helperVersionMismatch,
-             LKSwiftUISupportAuthServerError.launchTimedOut,
-             LKSwiftUISupportAuthServerError.incompatibleProtocol,
-             LKSwiftUISupportAuthServerError.helperMissing:
-            return true
-        case let LKSwiftUISupportAuthServerError.rpcServer(code, _):
-            // Back-compat: the pre-timestamped stale helper on disk keeps
-            // emitting api_configuration_missing. A single refresh clears it.
-            return code == "api_configuration_missing"
-        default:
-            return false
-        }
-    }
-
-    func showActivationWindow(from window: NSWindow?) {
-        performVoidRequest(
-            method: "ui.show_activation",
-            payload: LKSwiftUISupportClientProcessPayload(
-                lookInsideProcessID: ProcessInfo.processInfo.processIdentifier
-            ),
-            from: window
-        )
-    }
-
-    func showActivationPrompt(from window: NSWindow?) {
-        let probeResult = LKSwiftUISupportLocalLicenseProbe.probe()
-        guard probeResult.hasPersistedLicenseMaterial else {
-            recordLocalActivationRequired(probeResult)
-            return
-        }
-        if currentActivationState == .unknown {
-            LKSwiftUISupportLogger.authServer.info(
-                "activation prompt skipped while local license material is present and state is unknown; refreshing in background"
-            )
-            refreshActivationStateInBackground()
-            return
-        }
-        performVoidRequest(
-            method: "ui.show_activation_prompt",
-            payload: LKSwiftUISupportClientProcessPayload(
-                lookInsideProcessID: ProcessInfo.processInfo.processIdentifier
-            ),
-            from: window
-        )
-    }
-
-    func showLicenseWindow(from window: NSWindow?) {
-        performVoidRequest(method: "ui.show_license", from: window)
-    }
-
-    func refreshLicenseStatus(from window: NSWindow?) {
-        guard hasPersistedLocalLicenseMaterial() else {
-            presentAccessAlert(
-                title: LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired.title,
-                detail: LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired.message,
-                window: window
-            )
-            return
-        }
-        let shouldStart: Bool = lock.withLock {
-            guard !licenseStatusRefreshInFlight else {
-                return false
-            }
-            licenseStatusRefreshInFlight = true
-            return true
-        }
-        guard shouldStart else {
-            return
-        }
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            defer {
-                self?.lock.withLock {
-                    self?.licenseStatusRefreshInFlight = false
-                }
-            }
-            guard let self else { return }
-
-            do {
-                let payload: LKSwiftUISupportAuthServerAccessDecisionPayload = try self.runWithAutoRefresh(window: window) { installation in
-                    let response = try self.sendRequest(
-                        method: "license.refresh_status",
-                        payload: LKSwiftUISupportEmptyPayload(),
-                        installation: installation,
-                        responseType: LKSwiftUISupportAuthServerAccessDecisionPayload.self
-                    )
-                    guard let payload = response.payload else {
-                        throw LKSwiftUISupportAuthServerError.invalidResponse("Missing access decision payload.")
-                    }
-                    return payload
-                }
-                self.recordAccessDecision(payload)
-                self.presentAccessAlert(title: payload.title, detail: payload.message, window: nil)
-            } catch {
-                if self.handleInstallerCancellation(error) {
-                    return
-                }
-                self.presentRuntimeAlert(
-                    title: NSLocalizedString("LookInside Auth Server Required", comment: ""),
-                    detail: error.localizedDescription,
-                    window: nil
-                )
-            }
-        }
-    }
-
-    func signChallenge(
-        nonce: Data,
-        serverInstanceID: String
-    ) throws -> (signature: Data, intermediateCertDER: Data, udid: String) {
-        let installation = try ensureInstalledAndRunning(window: nil)
-        let nonceHex = nonce.map { String(format: "%02x", $0) }.joined()
-        let response = try sendRequest(
-            method: "license.sign_challenge",
-            payload: LKSwiftUISupportSignChallengeRequestPayload(
-                nonce: nonceHex,
-                serverInstanceID: serverInstanceID
-            ),
-            installation: installation,
-            responseType: LKSwiftUISupportSignChallengeResponsePayload.self
-        )
-        guard let payload = response.payload else {
-            throw LKSwiftUISupportAuthServerError.invalidResponse("Missing sign-challenge payload.")
-        }
-        guard let signature = Data(base64Encoded: payload.signature),
-              let intermediateDER = Data(base64Encoded: payload.intermediateCertDER)
-        else {
-            throw LKSwiftUISupportAuthServerError.invalidResponse("Sign-challenge payload base64 decode failed.")
-        }
-        return (signature, intermediateDER, payload.udid)
-    }
-
-    func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
-        if Thread.isMainThread,
-           let mainThreadDecision = mainThreadProtectedFeatureAccessDecision(window: window, presentsAlerts: true)
-        {
-            return mainThreadDecision
-        }
-
-        guard hasPersistedLocalLicenseMaterial() else {
-            let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
-            presentAccessAlert(title: payload.title, detail: payload.message, window: window)
-            return false
-        }
-        do {
-            let payload = try checkProtectedFeatureAccess(window: window)
-
-            recordAccessDecision(payload)
-
-            switch payload.decision {
-            case .allow:
-                return true
-            case .allowWithWarning:
-                presentAccessAlert(title: payload.title, detail: payload.message, window: window, deduplicate: true)
-                return true
-            case .block:
-                presentAccessAlert(title: payload.title, detail: payload.message, window: window)
-                return false
-            }
-        } catch {
-            if handleInstallerCancellation(error) {
-                return false
-            }
-            if Thread.isMainThread, shouldTriggerRefresh(for: error) {
-                LKSwiftUISupportLogger.authServer.notice(
-                    "protected feature access scheduled background auth server refresh after error=\(error.localizedDescription, privacy: .public)"
-                )
-                refreshActivationStateInBackground()
-                presentLocalAlert(
-                    title: NSLocalizedString("LookInside Auth Server Updating", comment: ""),
-                    detail: NSLocalizedString("LookInside is preparing the local Auth Server. Try the action again after the update finishes.", comment: ""),
-                    window: window
-                )
-                return false
-            }
-            presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
-            return false
-        }
-    }
-
-    func canUseProtectedFeatureWithoutPrompt() -> Bool {
-        if Thread.isMainThread,
-           let mainThreadDecision = mainThreadProtectedFeatureAccessDecision(window: nil, presentsAlerts: false)
-        {
-            return mainThreadDecision
-        }
-
-        switch currentActivationState {
-        case .activated:
-            return true
-        case .notActivated:
-            if hasPersistedLocalLicenseMaterial() {
-                refreshActivationStateInBackground()
-            }
-            return false
-        case .unknown:
-            guard hasPersistedLocalLicenseMaterial() else {
-                return false
-            }
-            refreshActivationStateInBackground()
-            return true
-        }
-    }
-
-    private func mainThreadProtectedFeatureAccessDecision(window: NSWindow?, presentsAlerts: Bool) -> Bool? {
-        switch currentActivationState {
-        case .activated:
-            return true
-        case .notActivated:
-            guard hasPersistedLocalLicenseMaterial() else {
-                if presentsAlerts {
-                    let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
-                    presentAccessAlert(title: payload.title, detail: payload.message, window: window)
-                }
-                return false
-            }
-            LKSwiftUISupportLogger.authServer.info(
-                "protected feature denied from cached notActivated state on main thread; refreshing auth state in background"
-            )
-            refreshActivationStateInBackground()
-            return false
-        case .unknown:
-            guard hasPersistedLocalLicenseMaterial() else {
-                if presentsAlerts {
-                    let payload = LKSwiftUISupportAuthServerAccessDecisionPayload.activationRequired
-                    presentAccessAlert(title: payload.title, detail: payload.message, window: window)
-                }
-                return false
-            }
-            LKSwiftUISupportLogger.authServer.info(
-                "protected feature allowed from main thread using persisted local license material; refreshing auth state in background"
-            )
-            refreshActivationStateInBackground()
-            return true
-        }
-    }
-
-    private func checkProtectedFeatureAccess(window: NSWindow?) throws -> LKSwiftUISupportAuthServerAccessDecisionPayload {
-        let operation: (LKSwiftUISupportAuthServerInstallation) throws -> LKSwiftUISupportAuthServerAccessDecisionPayload = { installation in
-            let response = try self.sendRequest(
-                method: "license.check_access",
-                payload: LKSwiftUISupportEmptyPayload(),
-                installation: installation,
-                responseType: LKSwiftUISupportAuthServerAccessDecisionPayload.self
-            )
-            guard let payload = response.payload else {
-                throw LKSwiftUISupportAuthServerError.invalidResponse("Missing access decision payload.")
-            }
-            return payload
-        }
-
-        if Thread.isMainThread {
-            let installation = try ensureServerAvailable(using: resolveInstallation())
-            return try operation(installation)
-        }
-
-        return try runWithAutoRefresh(window: window, operation)
-    }
-
-    private func performVoidRequest(method: String, from window: NSWindow?) {
-        performVoidRequest(
-            method: method,
-            payload: LKSwiftUISupportEmptyPayload(),
-            from: window
-        )
-    }
-
-    private func performVoidRequest<RequestPayload: Encodable>(
-        method: String,
-        payload: RequestPayload,
-        from window: NSWindow?
-    ) {
-        do {
-            try runWithAutoRefresh(window: window) { installation in
-                _ = try self.sendRequest(
-                    method: method,
-                    payload: payload,
-                    installation: installation,
-                    responseType: LKSwiftUISupportEmptyPayload.self
-                )
-            }
-        } catch {
-            if handleInstallerCancellation(error) {
-                return
-            }
-            presentRuntimeAlert(title: NSLocalizedString("LookInside Auth Server Required", comment: ""), detail: error.localizedDescription, window: window)
-        }
-    }
-
-    private func handleInstallerCancellation(_ error: Error) -> Bool {
-        guard let installerError = error as? LKSwiftUISupportInstallerError,
-              case .cancelled = installerError
-        else {
-            return false
-        }
-        terminateHelperProcess()
-        recordAccessDecision(.activationRequired)
-        LKSwiftUISupportLogger.authServer.info("auth server install cancelled action=notActivated")
-        return true
-    }
-
-    private func runWithAutoRefresh<T>(
-        window: NSWindow?,
-        _ body: (LKSwiftUISupportAuthServerInstallation) throws -> T
-    ) throws -> T {
-        do {
-            let installation = try ensureInstalledAndRunning(window: window)
-            return try body(installation)
-        } catch {
-            guard shouldTriggerRefresh(for: error) else {
-                throw error
-            }
-            LKSwiftUISupportLogger.authServer.notice(
-                "auto-refresh triggered by error=\(error.localizedDescription, privacy: .public)"
-            )
-            terminateHelperProcess()
-            LKSwiftUISupportInstaller.shared.invalidate()
-            let installation = try ensureInstalledAndRunning(window: window)
-            return try body(installation)
-        }
-    }
-
-    private func ensureInstalledAndRunning(
-        window: NSWindow?,
-        installMode: LKSwiftUISupportAuthServerInstallMode = .userInitiated
-    ) throws -> LKSwiftUISupportAuthServerInstallation {
-        switch installMode {
-        case .userInitiated:
-            try LKSwiftUISupportInstaller.shared.ensureInstalled(presentingWindow: window)
-        case .backgroundRefresh:
-            try LKSwiftUISupportInstaller.shared.ensureInstalledWithoutUserInteraction()
-        }
-        let installation = try resolveInstallation()
-        return try ensureServerAvailable(using: installation)
-    }
-
-    private func ensureServerAvailable(
-        using installation: LKSwiftUISupportAuthServerInstallation
-    ) throws -> LKSwiftUISupportAuthServerInstallation {
-        let presence = lock.withLock { helperPresence }
-
-        if presence == .notDetermined {
-            try launchHelperIfNeeded(for: installation)
-            try waitForHealthyServer(
-                using: installation,
-                timeout: LKSwiftUISupportAuthServerConstants.firstLaunchHealthTimeout
-            )
-            lock.withLock { helperPresence = .spawned }
-            return installation
-        }
-
-        for attempt in 0 ..< 2 {
-            do {
-                try performHealthPing(using: installation)
-                return installation
-            } catch let error as LKSwiftUISupportAuthServerError {
-                if case .helperVersionMismatch = error {
-                    throw error
-                }
-                LKSwiftUISupportLogger.authServer.info(
-                    "health probe attempt \(attempt + 1) failed: \(error.localizedDescription, privacy: .public)"
-                )
-            } catch {
-                LKSwiftUISupportLogger.authServer.info(
-                    "health probe attempt \(attempt + 1) failed: \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        }
-
-        try launchHelperIfNeeded(for: installation)
-        try waitForHealthyServer(
-            using: installation,
-            timeout: LKSwiftUISupportAuthServerConstants.relaunchHealthTimeout
-        )
-        return installation
-    }
-
-    private func performHealthPing(
-        using installation: LKSwiftUISupportAuthServerInstallation
-    ) throws {
-        let response = try sendRequest(
-            method: "health.ping",
-            payload: LKSwiftUISupportEmptyPayload(),
-            installation: installation,
-            responseType: LKSwiftUISupportAuthServerHealthPayload.self
-        )
-        guard let payload = response.payload else {
-            throw LKSwiftUISupportAuthServerError.invalidResponse("Missing health payload.")
-        }
-        guard payload.protocolVersion == LKSwiftUISupportAuthServerConstants.supportedProtocolVersion else {
-            throw LKSwiftUISupportAuthServerError.incompatibleProtocol(
-                expected: LKSwiftUISupportAuthServerConstants.supportedProtocolVersion,
-                found: payload.protocolVersion
-            )
-        }
-        try enforceVersionMatch(payload: payload)
-    }
-
-    private func waitForHealthyServer(
-        using installation: LKSwiftUISupportAuthServerInstallation,
-        timeout: TimeInterval
-    ) throws {
-        let deadline = Date().addingTimeInterval(timeout)
-        var lastError: Error?
-
-        while Date() < deadline {
-            do {
-                try performHealthPing(using: installation)
-                return
-            } catch let error as LKSwiftUISupportAuthServerError {
-                if case .helperVersionMismatch = error {
-                    throw error
-                }
-                lastError = error
-                usleep(LKSwiftUISupportAuthServerConstants.helperHealthPollInterval)
-            } catch {
-                lastError = error
-                usleep(LKSwiftUISupportAuthServerConstants.helperHealthPollInterval)
-            }
-        }
-
-        if let lastError {
-            LKSwiftUISupportLogger.authServer.error(
-                "launch health check failed: \(lastError.localizedDescription, privacy: .public)"
-            )
-        }
-        throw LKSwiftUISupportAuthServerError.launchTimedOut(installation.socketURL.path)
-    }
-
-    private func enforceVersionMatch(payload: LKSwiftUISupportAuthServerHealthPayload) throws {
-        #if DEBUG
-            if LKSwiftUISupportInstallerLayout.debugLocalAuthRepositoryURL != nil {
-                return
-            }
-        #endif
-
-        guard Thread.isMainThread == false else {
-            return
-        }
-
-        let published: String?
-        published = LKSwiftUISupportInstaller.shared.fetchPublishedVersion()
-        guard let published else {
-            return
-        }
-        guard published == payload.serverVersion else {
-            LKSwiftUISupportLogger.authServer.notice(
-                "helper version mismatch expected=\(published, privacy: .public) found=\(payload.serverVersion, privacy: .public)"
-            )
-            throw LKSwiftUISupportAuthServerError.helperVersionMismatch(
-                expected: published,
-                found: payload.serverVersion
-            )
-        }
-    }
-
-    private func resolveInstallation() throws -> LKSwiftUISupportAuthServerInstallation {
-        let environment = ProcessInfo.processInfo.environment
-        let fileManager = FileManager.default
-
-        let executableURL = LKSwiftUISupportAuthServerPathPolicy.executableURL(
-            environment: environment,
-            overrideKey: LKSwiftUISupportAuthServerConstants.helperPathEnvironmentKey,
-            defaultURL: LKSwiftUISupportInstallerLayout.installedExecutableURL
-        )
-
-        guard fileManager.fileExists(atPath: executableURL.path) else {
-            throw LKSwiftUISupportAuthServerError.helperMissing(executableURL.path)
-        }
-
-        let socketURL = LKSwiftUISupportAuthServerPathPolicy.socketURL(
-            environment: environment,
-            overrideKey: LKSwiftUISupportAuthServerConstants.helperSocketPathEnvironmentKey,
-            defaultURL: LKSwiftUISupportInstallerLayout.installedSocketURL
-        )
-
-        return LKSwiftUISupportAuthServerInstallation(
-            executableURL: executableURL,
-            socketURL: socketURL
-        )
-    }
-
-    private func launchHelperIfNeeded(for installation: LKSwiftUISupportAuthServerInstallation) throws {
-        let shouldLaunch = lock.withLock {
-            if let launchedProcess, launchedProcess.isRunning {
-                return false
-            }
-
-            let process = Process()
-            process.executableURL = installation.executableURL
-            let clientProcessID = ProcessInfo.processInfo.processIdentifier
-            process.arguments = [
-                "--socket-path", installation.socketURL.path,
-                "--lookinside-pid", "\(clientProcessID)",
-            ]
-
-            var environment = LKSwiftUISupportAuthServerPathPolicy.launchEnvironment(
-                from: ProcessInfo.processInfo.environment,
-                helperPathKey: LKSwiftUISupportAuthServerConstants.helperPathEnvironmentKey,
-                helperVersionKey: "LOOKINSIDE_AUTH_SERVER_VERSION"
-            )
-            environment[LKSwiftUISupportAuthServerConstants.helperSocketPathEnvironmentKey] = installation.socketURL.path
-            environment[LKSwiftUISupportAuthServerConstants.helperClientProcessIDEnvironmentKey] = "\(clientProcessID)"
-            process.environment = environment
-            process.terminationHandler = { [weak self] _ in
-                self?.lock.withLock {
-                    self?.launchedProcess = nil
-                    self?.helperPresence = .notDetermined
-                }
-            }
-            self.launchedProcess = process
-            return true
-        }
-
-        guard shouldLaunch else {
-            return
-        }
-
-        do {
-            let process = lock.withLock { launchedProcess }
-            try process?.run()
-        } catch {
-            lock.withLock {
-                self.launchedProcess = nil
-            }
-            throw LKSwiftUISupportAuthServerError.launchFailed(error.localizedDescription)
-        }
-    }
-
-    private func sendRequest<RequestPayload: Encodable, ResponsePayload: Decodable>(
-        method: String,
-        payload: RequestPayload,
-        installation: LKSwiftUISupportAuthServerInstallation,
-        responseType _: ResponsePayload.Type
-    ) throws -> LKSwiftUISupportAuthServerResponseEnvelope<ResponsePayload> {
-        let request = LKSwiftUISupportAuthServerRequestEnvelope(
-            protocolVersion: LKSwiftUISupportAuthServerConstants.supportedProtocolVersion,
-            requestID: UUID().uuidString.lowercased(),
-            method: method,
-            payload: payload
-        )
-        let start = Date()
-        LKSwiftUISupportLogger.authServer.info(
-            "rpc-start method=\(method, privacy: .public) request_id=\(request.requestID, privacy: .public) socket=\(installation.socketURL.path, privacy: .public)"
-        )
-        do {
-            let requestData = try Self.jsonEncoder.encode(request)
-            let responseData = try Self.sendSocketRequest(
-                requestData,
-                to: installation.socketURL.path
-            )
-
-            let response = try Self.jsonDecoder.decode(
-                LKSwiftUISupportAuthServerResponseEnvelope<ResponsePayload>.self,
-                from: responseData
-            )
-
-            guard response.protocolVersion == LKSwiftUISupportAuthServerConstants.supportedProtocolVersion else {
-                throw LKSwiftUISupportAuthServerError.incompatibleProtocol(
-                    expected: LKSwiftUISupportAuthServerConstants.supportedProtocolVersion,
-                    found: response.protocolVersion
-                )
-            }
-
-            if response.ok == false {
-                let payload = response.error ?? .init(code: "unknown_error", message: "The helper did not provide an error payload.")
-                throw LKSwiftUISupportAuthServerError.rpcServer(code: payload.code, message: payload.message)
-            }
-
-            let durationMs = Int(Date().timeIntervalSince(start) * 1000)
-            LKSwiftUISupportLogger.authServer.info(
-                "rpc-ok method=\(method, privacy: .public) request_id=\(request.requestID, privacy: .public) duration_ms=\(durationMs, privacy: .public)"
-            )
-            return response
-        } catch {
-            let durationMs = Int(Date().timeIntervalSince(start) * 1000)
-            let code: String
-            if case let LKSwiftUISupportAuthServerError.rpcServer(errorCode, _) = error {
-                code = errorCode
-            } else {
-                code = "client_error"
-            }
-            LKSwiftUISupportLogger.authServer.error(
-                "rpc-fail method=\(method, privacy: .public) request_id=\(request.requestID, privacy: .public) code=\(code, privacy: .public) duration_ms=\(durationMs, privacy: .public) error=\(error.localizedDescription, privacy: .public)"
-            )
-            throw error
-        }
-    }
-
-    private func presentRuntimeAlert(title: String, detail: String, window: NSWindow?) {
-        presentAlert(title: title, detail: detail, window: window, deduplicate: true)
-    }
-
-    private func presentAccessAlert(title: String, detail: String, window: NSWindow?, deduplicate: Bool = false) {
-        presentAlert(title: title, detail: detail, window: window, deduplicate: deduplicate)
-    }
-
-    private func presentLocalAlert(title: String, detail: String, window: NSWindow?) {
-        DispatchQueue.main.async {
-            let alert = NSAlert()
-            alert.messageText = title
-            alert.informativeText = detail
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
-            if let window {
-                alert.beginSheetModal(for: window, completionHandler: nil)
-            } else {
-                alert.runModal()
-            }
-        }
-    }
-
-    private func presentAlert(title: String, detail: String, window _: NSWindow?, deduplicate: Bool) {
-        if deduplicate {
-            let shouldPresent = lock.withLock {
-                if lastPresentedErrorDescription == detail {
-                    return false
-                }
-                lastPresentedErrorDescription = detail
-                return true
-            }
-
-            guard shouldPresent else {
-                return
-            }
-        }
-
-        presentAuthenticatorAlert(title: title, detail: detail)
-    }
-
-    private func presentAuthenticatorAlert(title: String, detail: String) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self else { return }
-            do {
-                let installation = try self.ensureServerAvailable(
-                    using: self.resolveInstallation()
-                )
-                _ = try self.sendRequest(
-                    method: "ui.show_alert",
-                    payload: LKSwiftUISupportUserAlertPayload(
-                        title: title,
-                        message: detail,
-                        style: "warning"
-                    ),
-                    installation: installation,
-                    responseType: LKSwiftUISupportEmptyPayload.self
-                )
-            } catch {
-                LKSwiftUISupportLogger.authServer.error(
-                    "authenticator alert delivery failed: \(error.localizedDescription, privacy: .public)"
-                )
-            }
-        }
-    }
-
-    private static let jsonEncoder: JSONEncoder = {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = [.sortedKeys]
-        return encoder
-    }()
-
-    private static let jsonDecoder: JSONDecoder = {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }()
-
-    private static func sendSocketRequest(_ data: Data, to socketPath: String) throws -> Data {
-        let fileManager = FileManager.default
-        let socketDirectory = URL(fileURLWithPath: socketPath).deletingLastPathComponent()
-        try fileManager.createDirectory(at: socketDirectory, withIntermediateDirectories: true)
-
-        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
-        guard fd >= 0 else {
-            throw LKSwiftUISupportAuthServerError.rpcTransport(String(cString: strerror(errno)))
-        }
-
-        defer {
-            close(fd)
-        }
-
-        var address = sockaddr_un()
-        #if os(macOS)
-            address.sun_len = UInt8(MemoryLayout<sockaddr_un>.stride)
-        #endif
-        address.sun_family = sa_family_t(AF_UNIX)
-
-        let pathBytes = socketPath.utf8CString
-        let maxPathLength = MemoryLayout.size(ofValue: address.sun_path)
-        guard pathBytes.count <= maxPathLength else {
-            throw LKSwiftUISupportAuthServerError.socketPathInvalid(socketPath)
-        }
-
-        withUnsafeMutablePointer(to: &address.sun_path) { pointer in
-            let destination = UnsafeMutableRawPointer(pointer).assumingMemoryBound(to: CChar.self)
-            destination.initialize(repeating: 0, count: maxPathLength)
-            pathBytes.withUnsafeBufferPointer { buffer in
-                guard let baseAddress = buffer.baseAddress else {
-                    return
-                }
-                _ = strncpy(destination, baseAddress, maxPathLength - 1)
-            }
-        }
-
-        let connectResult = withUnsafePointer(to: &address) { pointer in
-            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                connect(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.stride))
-            }
-        }
-
-        guard connectResult == 0 else {
-            throw LKSwiftUISupportAuthServerError.rpcTransport(String(cString: strerror(errno)))
-        }
-
-        let handle = FileHandle(fileDescriptor: fd, closeOnDealloc: false)
-        do {
-            try handle.write(contentsOf: data)
-            Darwin.shutdown(fd, SHUT_WR)
-            guard let responseData = try handle.readToEnd(), responseData.isEmpty == false else {
-                throw LKSwiftUISupportAuthServerError.invalidResponse("The helper closed the connection without a payload.")
-            }
-            return responseData
-        } catch {
-            throw LKSwiftUISupportAuthServerError.rpcTransport(error.localizedDescription)
-        }
-    }
-}
-
-private extension NSLock {
-    func withLock<T>(_ work: () throws -> T) rethrows -> T {
-        lock()
-        defer { unlock() }
-        return try work()
-    }
-}
-
+/// Gate in front of LookInside Pro features, backed by the in-process
+/// activation runtime (`LookInsideActivation`).
+///
+/// The Objective-C surface is the one the Auth helper bridge had, so the
+/// connection, menu, launch and static-update code call it unchanged. The
+/// runtime reads and writes the helper's `state.json` and keychain key; this
+/// class never launches, updates or removes the helper.
 @objcMembers
 public final class LKSwiftUISupportGatekeeper: NSObject {
-    private static let shared = LKSwiftUISupportGatekeeper()
-    private let runtimeBridge = LKSwiftUISupportAuthServerBridge()
-    private let activationPromptLock = NSLock()
-    private var hasPendingDetectedSwiftUISupportPrompt = false
-    private var hasPromptedForDetectedSwiftUISupport = false
-    private var hasPendingDetectionPrompt = false
-    private var hasInstalledKeyWindowObserver = false
+    private static let shared = LKSwiftUISupportGatekeeper(runtime: ActivationRuntime())
 
     public static let activationStateDidChangeNotification = Notification.Name(
         "LKSwiftUISupportActivationStateDidChangeNotification"
@@ -1163,24 +50,412 @@ public final class LKSwiftUISupportGatekeeper: NSObject {
         activationStateDidChangeNotification.rawValue as NSString
     }
 
-    override private init() {
+    /// Posted on the main thread when license handshakes that were held back
+    /// may start: the first window appeared, the keychain explainer's
+    /// Continue let the held-back handshakes run, Try Again cleared the wait
+    /// after a refused keychain prompt, or that wait ended. Connected channels that are not licensed should
+    /// handshake again.
+    public static let licenseHandshakeAvailabilityDidChangeNotification = Notification.Name(
+        "LKSwiftUISupportLicenseHandshakeAvailabilityDidChangeNotification"
+    )
+
+    public static var licenseHandshakeAvailabilityDidChangeNotificationName: NSString {
+        licenseHandshakeAvailabilityDidChangeNotification.rawValue as NSString
+    }
+
+    private let runtime: ActivationRuntime
+    private let stateLock = NSLock()
+    private var publishedState: LKSwiftUISupportActivationState
+    private var publishedStatusSummary: String?
+    private var stateRefreshInFlight = false
+    private var licenseStatusRefreshInFlight = false
+    private var lastPresentedWarning: String?
+    private var decisionObservation: ActivationObservation?
+    private var signingObservation: ActivationObservation?
+    private var handshakeGeneration: Int?
+    /// `false` without an app around the gatekeeper (tests, the end-to-end
+    /// harness): no keychain explainer is shown.
+    private let presentsKeychainExplainer: Bool
+
+    private let activationPromptLock = NSLock()
+    private var hasPendingDetectedSwiftUISupportPrompt = false
+    private var hasPromptedForDetectedSwiftUISupport = false
+    private var hasPendingDetectionPrompt = false
+    private var hasInstalledKeyWindowObserver = false
+    private var firstWindowObserver: NSObjectProtocol?
+
+    @MainActor private var cachedWindowCoordinator: ActivationWindowCoordinator?
+
+    /// Creates a gatekeeper over `runtime`. The app uses `sharedInstance()`,
+    /// which runs on the standard (helper-compatible) configuration; tests
+    /// pass a runtime with an isolated state directory and keychain.
+    init(runtime: ActivationRuntime, monitorsState: Bool = true) {
+        self.runtime = runtime
+        let initialDecision = runtime.lastDecision
+        publishedState = LKSwiftUISupportActivationState(initialDecision)
+        publishedStatusSummary = initialDecision?.statusSummary
+        presentsKeychainExplainer = monitorsState
         super.init()
-        runtimeBridge.startActivationStatePolling()
+        LKSwiftUISupportLogger.activation.info(
+            // Logger interpolations are escaping autoclosures.
+            // swiftformat:disable:next redundantSelf
+            "activation runtime ready, state=\(self.publishedState.lkDebugDescription, privacy: .public)"
+        )
+        decisionObservation = runtime.addDecisionObserver { [weak self] decision in
+            self?.recordDecision(decision)
+        }
+        signingObservation = runtime.addSigningStatusObserver { [weak self] status in
+            self?.recordSigningStatus(status)
+        }
+        if monitorsState {
+            runtime.startMonitoring(interval: LKSwiftUISupportGatekeeperConstants.monitoringInterval)
+            allowSigningAfterFirstWindow()
+        } else {
+            // Without an app around it (tests, the end-to-end harness) there
+            // is no window to wait for.
+            runtime.noteFirstWindowShown()
+        }
+    }
+
+    /// License handshakes and silent renewal sign with the license key. For
+    /// a key the 2.3.x helper created, the first use raises a login-keychain
+    /// prompt, which must not appear while LookInside is still launching.
+    /// Both are held back until a window has been shown (renewal also waits
+    /// for the runtime's launch delay).
+    private func allowSigningAfterFirstWindow() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            if NSApp?.windows.contains(where: { $0.isVisible }) == true {
+                self.runtime.noteFirstWindowShown()
+                return
+            }
+            self.firstWindowObserver = NotificationCenter.default.addObserver(
+                forName: NSWindow.didBecomeKeyNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                guard let self, let observer = self.firstWindowObserver else { return }
+                NotificationCenter.default.removeObserver(observer)
+                self.firstWindowObserver = nil
+                self.runtime.noteFirstWindowShown()
+            }
+        }
+    }
+
+    /// Posts the handshake-availability notification when held-back
+    /// handshakes may start, and shows the keychain explainer when an
+    /// automatic use of the license key waits for it.
+    private func recordSigningStatus(_ status: ActivationSigningStatus) {
+        if status.needsKeychainAccessExplainer, presentsKeychainExplainer {
+            presentKeychainAccessExplainer()
+        }
+        let shouldNotify: Bool = stateLock.withLock {
+            defer { handshakeGeneration = status.handshakeGeneration }
+            guard let handshakeGeneration else { return false }
+            return handshakeGeneration != status.handshakeGeneration
+        }
+        guard shouldNotify else { return }
+        LKSwiftUISupportLogger.activation.info(
+            "license handshakes may start again (generation \(status.handshakeGeneration, privacy: .public))"
+        )
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: Self.licenseHandshakeAvailabilityDidChangeNotification, object: self)
+        }
+    }
+
+    /// For a license key the 2.3.x helper created, macOS asks before
+    /// LookInside may use it. The runtime asks for this explainer on the
+    /// first automatic use (a handshake or silent renewal), which only
+    /// happens after the first window appeared. It is a panel over the main
+    /// window that does not take keyboard focus.
+    private func presentKeychainAccessExplainer() {
+        let runtime = runtime
+        onMain { coordinator in
+            guard runtime.signingStatus.needsKeychainAccessExplainer else { return }
+            let window = NSApp.mainWindow ?? NSApp.keyWindow ?? NSApp.windows.first { $0.isVisible }
+            LKSwiftUISupportLogger.activation.info("showing the keychain access explainer")
+            coordinator.showKeychainAccessExplainer(over: window)
+        }
     }
 
     @objc public class func sharedInstance() -> LKSwiftUISupportGatekeeper {
         shared
     }
 
+    // MARK: - State
+
+    public var activationState: LKSwiftUISupportActivationState {
+        stateLock.withLock { publishedState }
+    }
+
+    /// Re-evaluates the stored license state off the main thread. Posts the
+    /// state-change notification when the result differs.
+    public func refreshActivationStateInBackground() {
+        let shouldStart: Bool = stateLock.withLock {
+            guard !stateRefreshInFlight else { return false }
+            stateRefreshInFlight = true
+            return true
+        }
+        guard shouldStart else { return }
+        let runtime = runtime
+        Task.detached(priority: .utility) { [weak self] in
+            await runtime.currentDecision()
+            self?.stateLock.withLock { self?.stateRefreshInFlight = false }
+        }
+    }
+
+    /// Stops the periodic re-evaluation when LookInside quits. The activation
+    /// state on disk is left as it is.
     @objc(shutdownRuntime)
     public func shutdownRuntime() {
-        runtimeBridge.shutdownRuntime()
+        runtime.stopMonitoring()
     }
+
+    private func recordDecision(_ decision: ActivationAccessDecision) {
+        let newState = LKSwiftUISupportActivationState(decision)
+        var previousState = LKSwiftUISupportActivationState.unknown
+        let shouldNotify: Bool = stateLock.withLock {
+            let stateChanged = publishedState != newState
+            let licenseMaterialMayHaveChanged = newState == .activated
+                && publishedStatusSummary != decision.statusSummary
+            guard stateChanged || licenseMaterialMayHaveChanged else { return false }
+            previousState = publishedState
+            publishedState = newState
+            publishedStatusSummary = decision.statusSummary
+            return true
+        }
+        guard shouldNotify else { return }
+        LKSwiftUISupportLogger.activation.info(
+            "activation state changed: \(previousState.lkDebugDescription, privacy: .public) -> \(newState.lkDebugDescription, privacy: .public) (decision=\(decision.decision.rawValue, privacy: .public))"
+        )
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(
+                name: Self.activationStateDidChangeNotification,
+                object: self,
+                userInfo: ["activationState": NSNumber(value: newState.rawValue)]
+            )
+        }
+    }
+
+    // MARK: - Protected features
+
+    /// Callers include reloads and connection flows, so the alert for a
+    /// warning or a block is a sheet on `window` and never a modal loop.
+    @objc(allowProtectedFeatureAccessForWindow:)
+    public func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
+        let decision = accessDecisionForSynchronousCaller()
+        switch decision.decision {
+        case .allow:
+            return true
+        case .allowWithWarning:
+            presentWarningOnce(title: decision.title, message: decision.message, window: window)
+            return true
+        case .block:
+            presentAlert(
+                title: decision.title,
+                message: decision.message,
+                style: .warning,
+                presentation: .attached(to: window)
+            )
+            return false
+        }
+    }
+
+    @objc(canUseProtectedFeatureWithoutPrompt)
+    public func canUseProtectedFeatureWithoutPrompt() -> Bool {
+        accessDecisionForSynchronousCaller().grantsAccess
+    }
+
+    /// The main thread answers from the last published decision and refreshes
+    /// it in the background; other threads wait for a fresh evaluation, which
+    /// is local and does not touch the network.
+    private func accessDecisionForSynchronousCaller() -> ActivationAccessDecision {
+        if Thread.isMainThread, let decision = runtime.lastDecision {
+            refreshActivationStateInBackground()
+            return decision
+        }
+        return evaluateDecisionBlocking()
+    }
+
+    private func evaluateDecisionBlocking() -> ActivationAccessDecision {
+        let runtime = runtime
+        let box = LKSwiftUISupportDecisionBox()
+        let semaphore = DispatchSemaphore(value: 0)
+        Task.detached(priority: .userInitiated) {
+            box.decision = await runtime.currentDecision()
+            semaphore.signal()
+        }
+        semaphore.wait()
+        return box.decision ?? runtime.lastDecision ?? Self.activationRequiredDecision
+    }
+
+    private static var activationRequiredDecision: ActivationAccessDecision {
+        ActivationAccessDecision(
+            decision: .block,
+            title: NSLocalizedString("Activation Required", comment: ""),
+            message: NSLocalizedString(
+                "Activate LookInside Pro from the LookInside Pro menu before using this feature.",
+                comment: ""
+            ),
+            statusSummary: nil
+        )
+    }
+
+    // MARK: - License handshake (220 / 221)
+
+    /// `YES` when a license handshake may start on `channelID` now. It may
+    /// not before LookInside shows its first window, before the user
+    /// confirmed the keychain explainer for a key LookInside did not create
+    /// (this call then asks for the explainer), while automatic signing
+    /// waits after a refused keychain prompt (an hour, then a day, until Try
+    /// Again in the license window), or after a handshake failed on this
+    /// channel until it reconnects, the activation changes or the denial
+    /// wait ends. Every handshake attempt, including a retry with a fresh
+    /// challenge, asks first. A request on a channel without a handshake
+    /// still runs; the Server then withholds the Pro features.
+    @objc(shouldStartLicenseHandshakeOnChannel:)
+    public func shouldStartLicenseHandshake(onChannel channelID: String) -> Bool {
+        runtime.allowsLicenseHandshake(onChannel: channelID)
+    }
+
+    /// Records that the Server on `channelID` rejected the 221 or sent a
+    /// malformed 220, so the handshake is not repeated on that channel.
+    @objc(noteLicenseHandshakeFailedOnChannel:)
+    public func noteLicenseHandshakeFailed(onChannel channelID: String) {
+        runtime.noteLicenseHandshakeFailed(onChannel: channelID)
+    }
+
+    /// Forgets `channelID` after it disconnected.
+    @objc(licenseHandshakeChannelDidEnd:)
+    public func licenseHandshakeChannelDidEnd(_ channelID: String) {
+        runtime.noteLicenseHandshakeChannelEnded(channelID)
+    }
+
+    /// Signs `nonce || server_instance_id.utf8` with this Mac's intermediate
+    /// key. On success writes the RSA-PKCS1v15-SHA256 signature to
+    /// `signatureOut`, the DER-encoded intermediate certificate to
+    /// `intermediateCertDEROut`, and the device UDID to `udidOut`. Returns
+    /// `NO` and populates `error` when the license is not activated, the
+    /// lease has expired, the request is malformed, the signing policy holds
+    /// the key back or signing fails.
+    ///
+    /// Blocks until the signature is ready; call it off the main thread.
+    @objc(signChallengeWithNonce:serverInstanceID:signature:intermediateCertDER:udid:error:)
+    public func signChallenge(
+        nonce: Data,
+        serverInstanceID: String,
+        signature signatureOut: AutoreleasingUnsafeMutablePointer<NSData?>,
+        intermediateCertDER intermediateCertDEROut: AutoreleasingUnsafeMutablePointer<NSData?>,
+        udid udidOut: AutoreleasingUnsafeMutablePointer<NSString?>
+    ) throws {
+        try signChallenge(
+            nonce: nonce,
+            serverInstanceID: serverInstanceID,
+            channelID: nil,
+            signature: signatureOut,
+            intermediateCertDER: intermediateCertDEROut,
+            udid: udidOut,
+            keyUseDuration: nil
+        )
+    }
+
+    /// `signChallengeWithNonce:serverInstanceID:signature:...` for the
+    /// handshake on `channelID`: a signing that fails there is not repeated
+    /// on that channel. `keyUseDuration`, when given, receives how long the
+    /// key took in its turn (the keychain's time, including a prompt),
+    /// without the time this call waited behind other uses of the key.
+    @objc(signChallengeWithNonce:serverInstanceID:channelID:signature:intermediateCertDER:udid:keyUseDuration:error:)
+    public func signChallenge(
+        nonce: Data,
+        serverInstanceID: String,
+        channelID: String?,
+        signature signatureOut: AutoreleasingUnsafeMutablePointer<NSData?>,
+        intermediateCertDER intermediateCertDEROut: AutoreleasingUnsafeMutablePointer<NSData?>,
+        udid udidOut: AutoreleasingUnsafeMutablePointer<NSString?>,
+        keyUseDuration keyUseDurationOut: UnsafeMutablePointer<TimeInterval>?
+    ) throws {
+        let result: ActivationChallengeSignature
+        do {
+            let measured = try runtime.signChallengeMeasuredBlocking(
+                nonce: nonce,
+                serverInstanceID: serverInstanceID,
+                channel: channelID
+            )
+            result = measured.signature
+            keyUseDurationOut?.pointee = measured.keyUseDuration
+        } catch let error as ActivationError {
+            LKSwiftUISupportLogger.activation.error(
+                "sign_challenge failed code=\(error.errorCode, privacy: .public)"
+            )
+            throw error
+        }
+        signatureOut.pointee = result.signature as NSData
+        intermediateCertDEROut.pointee = result.intermediateCertificateDER as NSData
+        udidOut.pointee = result.udid as NSString
+    }
+
+    // MARK: - Windows
 
     @objc(showActivationWindow)
     public func showActivationWindow() {
-        runtimeBridge.showActivationWindow(from: NSApp.keyWindow)
+        onMain { coordinator in
+            Task { await coordinator.showActivationWindow() }
+        }
     }
+
+    @objc(showLicenseWindow)
+    public func showLicenseWindow() {
+        onMain { coordinator in
+            Task { await coordinator.showLicenseWindow() }
+        }
+    }
+
+    /// Fetches the license status from the activation service, shows it in
+    /// the license window and reports the result in an alert.
+    @objc(refreshLicenseStatus)
+    public func refreshLicenseStatus() {
+        let shouldStart: Bool = stateLock.withLock {
+            guard !licenseStatusRefreshInFlight else { return false }
+            licenseStatusRefreshInFlight = true
+            return true
+        }
+        guard shouldStart else { return }
+
+        let runtime = runtime
+        onMain { [weak self] coordinator in
+            Task { @MainActor in
+                defer {
+                    self?.stateLock.withLock { self?.licenseStatusRefreshInFlight = false }
+                }
+                guard await runtime.hasLicenseMaterial() else {
+                    let decision = Self.activationRequiredDecision
+                    coordinator.showAlert(
+                        ActivationAlert(title: decision.title, message: decision.message, style: .warning)
+                    )
+                    return
+                }
+                do {
+                    let decision = try await coordinator.refreshLicenseStatus()
+                    coordinator.showAlert(
+                        ActivationAlert(title: decision.title, message: decision.message, style: .warning)
+                    )
+                } catch {
+                    LKSwiftUISupportLogger.activation.error(
+                        "license status refresh failed: \(error.localizedDescription, privacy: .public)"
+                    )
+                    coordinator.showAlert(
+                        ActivationAlert(
+                            title: NSLocalizedString("Unable to Refresh License Status", comment: ""),
+                            message: error.localizedDescription,
+                            style: .warning
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    // MARK: - SwiftUI detection prompt
 
     @objc(promptForDetectedSwiftUISupportIfNeededForWindow:)
     public func promptForDetectedSwiftUISupportIfNeeded(window: NSWindow?) {
@@ -1257,58 +532,110 @@ public final class LKSwiftUISupportGatekeeper: NSObject {
         return NSStringFromClass(type(of: wc)) == "LKStaticWindowController"
     }
 
+    /// Shown as a sheet on the inspector window that triggered it. As in
+    /// 2.3.x, a Mac without stored license material (no activation, lease
+    /// or trial) gets no automatic prompt; the LookInside Pro menu still
+    /// opens the activation window.
     private func presentSwiftUISupportActivationPrompt(window: NSWindow?) {
-        runtimeBridge.showActivationPrompt(from: window)
+        let runtime = runtime
+        Task { [weak self, weak window] in
+            guard await runtime.hasLicenseMaterial() else {
+                LKSwiftUISupportLogger.activation.info(
+                    "activation prompt skipped: no local license material"
+                )
+                return
+            }
+            self?.onMain { [weak self] coordinator in
+                guard self?.activationState != .activated else { return }
+                coordinator.showActivationPrompt(presentation: .attached(to: window))
+            }
+        }
     }
 
-    @objc(showLicenseWindow)
-    public func showLicenseWindow() {
-        runtimeBridge.showLicenseWindow(from: NSApp.keyWindow)
+    // MARK: - Alerts
+
+    /// A warning that still grants access is shown once per message.
+    private func presentWarningOnce(title: String, message: String, window: NSWindow?) {
+        let shouldPresent: Bool = stateLock.withLock {
+            guard lastPresentedWarning != message else { return false }
+            lastPresentedWarning = message
+            return true
+        }
+        guard shouldPresent else { return }
+        presentAlert(title: title, message: message, style: .warning, presentation: .attached(to: window))
     }
 
-    @objc(refreshLicenseStatus)
-    public func refreshLicenseStatus() {
-        runtimeBridge.refreshLicenseStatus(from: NSApp.keyWindow)
+    private func presentAlert(
+        title: String,
+        message: String,
+        style: ActivationAlert.Style,
+        presentation: ActivationAlertPresentation
+    ) {
+        onMain { coordinator in
+            coordinator.showAlert(
+                ActivationAlert(title: title, message: message, style: style),
+                presentation: presentation
+            )
+        }
     }
 
-    @objc(allowProtectedFeatureAccessForWindow:)
-    public func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
-        runtimeBridge.allowProtectedFeatureAccess(for: window)
+    // MARK: - Main thread
+
+    /// Runs `work` on the main thread with the activation window coordinator.
+    /// Always asynchronous, so callers on any thread return before an alert or
+    /// window appears.
+    private func onMain(_ work: @escaping @MainActor (ActivationWindowCoordinator) -> Void) {
+        DispatchQueue.main.async { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                work(self.windowCoordinator())
+            }
+        }
     }
 
-    @objc(canUseProtectedFeatureWithoutPrompt)
-    public func canUseProtectedFeatureWithoutPrompt() -> Bool {
-        runtimeBridge.canUseProtectedFeatureWithoutPrompt()
-    }
-
-    public var activationState: LKSwiftUISupportActivationState {
-        runtimeBridge.currentActivationState
-    }
-
-    public func refreshActivationStateInBackground() {
-        runtimeBridge.refreshActivationStateInBackground()
-    }
-
-    /// Requests a signature over `nonce || server_instance_id.utf8` from the
-    /// local Auth helper. On success writes the RSA-PKCS1v15-SHA256 signature
-    /// to `signatureOut`, the DER-encoded intermediate certificate to
-    /// `intermediateCertDEROut`, and the device UDID to `udidOut`. Returns
-    /// `NO` and populates `error` on any failure (no helper, socket error,
-    /// license not activated, signing failed, etc.).
-    @objc(signChallengeWithNonce:serverInstanceID:signature:intermediateCertDER:udid:error:)
-    public func signChallenge(
-        nonce: Data,
-        serverInstanceID: String,
-        signature signatureOut: AutoreleasingUnsafeMutablePointer<NSData?>,
-        intermediateCertDER intermediateCertDEROut: AutoreleasingUnsafeMutablePointer<NSData?>,
-        udid udidOut: AutoreleasingUnsafeMutablePointer<NSString?>
-    ) throws {
-        let result = try runtimeBridge.signChallenge(
-            nonce: nonce,
-            serverInstanceID: serverInstanceID
-        )
-        signatureOut.pointee = result.signature as NSData
-        intermediateCertDEROut.pointee = result.intermediateCertDER as NSData
-        udidOut.pointee = result.udid as NSString
+    @MainActor
+    private func windowCoordinator() -> ActivationWindowCoordinator {
+        if let cachedWindowCoordinator {
+            return cachedWindowCoordinator
+        }
+        let coordinator = ActivationWindowCoordinator(runtime: runtime)
+        cachedWindowCoordinator = coordinator
+        return coordinator
     }
 }
+
+private final class LKSwiftUISupportDecisionBox: @unchecked Sendable {
+    var decision: ActivationAccessDecision?
+}
+
+#if DEBUG
+    public extension LKSwiftUISupportGatekeeper {
+        /// DEBUG end-to-end hook (LKDebugE2EDump.swift): creates the license key
+        /// in the test file keychain and returns a certificate request for
+        /// it. See `ActivationRuntime.debugMakeTestKeyCertificateSigningRequestPEM`.
+        @objc(debugMakeTestKeyCertificateSigningRequestPEMWithCommonName:error:)
+        func debugMakeTestKeyCertificateSigningRequestPEM(commonName: String) throws -> String {
+            try runtime.debugMakeTestKeyCertificateSigningRequestPEM(commonName: commonName)
+        }
+
+        /// DEBUG end-to-end hook (LKDebugE2EDump.swift): the Host runs behind
+        /// other apps there, so its window never becomes key. The dump calls
+        /// this once a Host window is visible, the condition this gatekeeper
+        /// itself accepts when it is created after the first window.
+        @objc(debugNoteFirstWindowShown)
+        func debugNoteFirstWindowShown() {
+            runtime.noteFirstWindowShown()
+        }
+
+        /// DEBUG UI snapshot hook (LKDebugUISnapshots.swift): the activation
+        /// window with its model restored from the activation state, as
+        /// `showActivationWindow()` prepares it, but not presented: the
+        /// snapshot shows it without activating the app or floating it.
+        @MainActor
+        internal func debugPreparedActivationWindow() async -> NSWindow {
+            let coordinator = windowCoordinator()
+            await runtime.restoreActivationModel()
+            return coordinator.activationWindow
+        }
+    }
+#endif

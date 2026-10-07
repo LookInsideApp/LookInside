@@ -30,24 +30,30 @@ func inflatingGzipIfNeeded(_ payload: Data) -> Data? {
         cursor += 2 + extraLength
     }
     if flags & 0x08 != 0 {
-        while cursor < bytes.count, bytes[cursor] != 0 { cursor += 1 }
+        while cursor < bytes.count, bytes[cursor] != 0 {
+            cursor += 1
+        }
         cursor += 1
     }
     if flags & 0x10 != 0 {
-        while cursor < bytes.count, bytes[cursor] != 0 { cursor += 1 }
+        while cursor < bytes.count, bytes[cursor] != 0 {
+            cursor += 1
+        }
         cursor += 1
     }
-    if flags & 0x02 != 0 { cursor += 2 }
+    if flags & 0x02 != 0 {
+        cursor += 2
+    }
     guard cursor < bytes.count - 8 else { return nil }
 
-    let deflateBytes = Array(bytes[cursor..<(bytes.count - 8)])
+    let deflateBytes = Array(bytes[cursor ..< (bytes.count - 8)])
     let trailer = bytes.suffix(4)
     let declaredSize = trailer.enumerated().reduce(0) { partial, element in
         partial | (Int(element.element) << (8 * element.offset))
     }
 
     var capacity = max(declaredSize, 64 * 1024)
-    for _ in 0..<6 {
+    for _ in 0 ..< 6 {
         var destination = [UInt8](repeating: 0, count: capacity)
         let writtenCount = deflateBytes.withUnsafeBufferPointer { source in
             destination.withUnsafeMutableBufferPointer { target in
@@ -58,10 +64,10 @@ func inflatingGzipIfNeeded(_ payload: Data) -> Data? {
                 )
             }
         }
-        if writtenCount > 0 && writtenCount < capacity {
-            return Data(destination[0..<writtenCount])
+        if writtenCount > 0, writtenCount < capacity {
+            return Data(destination[0 ..< writtenCount])
         }
-        if writtenCount == capacity && capacity == declaredSize {
+        if writtenCount == capacity, capacity == declaredSize {
             return Data(destination)
         }
         capacity *= 2
@@ -166,10 +172,14 @@ func suppressingPoisoningLayers<Result>(under layer: CALayer, perform body: () -
             candidate.isHidden = true
             hiddenLayers.append(candidate)
         }
-        for sublayer in candidate.sublayers ?? [] { collect(sublayer) }
+        for sublayer in candidate.sublayers ?? [] {
+            collect(sublayer)
+        }
     }
     collect(layer)
-    defer { for hidden in hiddenLayers { hidden.isHidden = false } }
+    defer { for hidden in hiddenLayers {
+        hidden.isHidden = false
+    } }
     return body()
 }
 
@@ -212,17 +222,23 @@ func measuringOpaqueCoverage(of layer: CALayer, includingSublayers: Bool) -> Dou
 func gatheringStatistics(for layer: CALayer, into statistics: inout RecoveryStatistics) {
     statistics.layerCount += 1
     statistics.classHistogram[String(describing: type(of: layer)), default: 0] += 1
-    if layer.contents != nil { statistics.layersWithContents += 1 }
+    if layer.contents != nil {
+        statistics.layersWithContents += 1
+    }
 
     let groupCoverage = measuringOpaqueCoverage(of: layer, includingSublayers: true)
     if groupCoverage < 0 {
         statistics.layersWithZeroArea += 1
     } else {
-        if groupCoverage > 0 { statistics.layersWithNonEmptyGroupRender += 1 }
+        if groupCoverage > 0 {
+            statistics.layersWithNonEmptyGroupRender += 1
+        }
         let suppressedCoverage = suppressingPoisoningLayers(under: layer) {
             measuringOpaqueCoverage(of: layer, includingSublayers: true)
         }
-        if suppressedCoverage > 0 { statistics.layersWithNonEmptyGroupRenderWithSuppression += 1 }
+        if suppressedCoverage > 0 {
+            statistics.layersWithNonEmptyGroupRenderWithSuppression += 1
+        }
         if measuringOpaqueCoverage(of: layer, includingSublayers: false) > 0 {
             statistics.layersWithNonEmptySoloRender += 1
         }
@@ -238,10 +254,10 @@ func writingPreviewImage(of layer: CALayer, to fileURL: URL) {
     let height = Int(layer.bounds.height.rounded())
     guard width > 0, height > 0,
           let context = CGContext(
-            data: nil, width: width, height: height,
-            bitsPerComponent: 8, bytesPerRow: width * 4,
-            space: CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+              data: nil, width: width, height: height,
+              bitsPerComponent: 8, bytesPerRow: width * 4,
+              space: CGColorSpaceCreateDeviceRGB(),
+              bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
           )
     else { return }
     context.translateBy(x: -layer.bounds.origin.x, y: -layer.bounds.origin.y)
@@ -313,7 +329,7 @@ for bundlePath in arguments.dropFirst() {
     let renderableDenominator = max(totals.layerCount - totals.layersWithZeroArea, 1)
     print("  TOTAL archives decoded: \(successfulArchiveCount)/\(archives.count)")
     print("  TOTAL layers: \(totals.layerCount) "
-          + "(zero-area \(totals.layersWithZeroArea), renderable \(renderableDenominator))")
+        + "(zero-area \(totals.layersWithZeroArea), renderable \(renderableDenominator))")
     print("  layers carrying contents: \(totals.layersWithContents)")
     print(String(format: "  group render non-empty: %d (%.1f%% of renderable)",
                  totals.layersWithNonEmptyGroupRender,

@@ -135,7 +135,8 @@ enum LKXcodeViewHierarchyPixelRecovery {
                let region = drawingRegion(of: layer, hiding: []),
                let groupImage = renderingPNG(
                    of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped
-               ) {
+               )
+            {
                 groupByObjectIdentifier[objectIdentifier] = groupImage
                 if region.isPartial {
                     groupRegionByObjectIdentifier[objectIdentifier] = region.relativeRect
@@ -149,7 +150,8 @@ enum LKXcodeViewHierarchyPixelRecovery {
                let region = drawingRegion(of: layer, hiding: hostedDescendants),
                let excludingImage = renderingPNG(
                    of: layer, includingSublayers: true, hiding: hostedDescendants, region: region.rect, isFlipped: isFlipped
-               ) {
+               )
+            {
                 groupExcludingHostedViewsByObjectIdentifier[objectIdentifier] = excludingImage
                 if region.isPartial {
                     groupExcludingHostedViewsRegionByObjectIdentifier[objectIdentifier] = region.relativeRect
@@ -284,10 +286,16 @@ enum LKXcodeViewHierarchyPixelRecovery {
             layer.sublayers = nil
         }
         let layersHiddenForRender = hiddenLayers.filter { !$0.isHidden }
-        for hiddenLayer in layersHiddenForRender { hiddenLayer.isHidden = true }
+        for hiddenLayer in layersHiddenForRender {
+            hiddenLayer.isHidden = true
+        }
         defer {
-            if let detachedSublayers { layer.sublayers = detachedSublayers }
-            for hiddenLayer in layersHiddenForRender { hiddenLayer.isHidden = false }
+            if let detachedSublayers {
+                layer.sublayers = detachedSublayers
+            }
+            for hiddenLayer in layersHiddenForRender {
+                hiddenLayer.isHidden = false
+            }
         }
 
         context.scaleBy(x: scale, y: scale)
@@ -342,7 +350,8 @@ enum LKXcodeViewHierarchyPixelRecovery {
         else { return false }
         if let backgroundColor = layer.backgroundColor,
            let colorSpace = backgroundColor.colorSpace,
-           colorSpace.model == .pattern {
+           colorSpace.model == .pattern
+        {
             return false
         }
         return true
@@ -361,9 +370,9 @@ enum LKXcodeViewHierarchyPixelRecovery {
         let bytesPerRow = context.bytesPerRow
         let buffer = pixels.bindMemory(to: UInt8.self, capacity: bytesPerRow * height)
 
-        for row in 0..<height {
+        for row in 0 ..< height {
             let rowStart = row * bytesPerRow
-            for column in 0..<width where buffer[rowStart + column * 4 + 3] != 0 {
+            for column in 0 ..< width where buffer[rowStart + column * 4 + 3] != 0 {
                 return true
             }
         }

@@ -56,7 +56,7 @@ enum LKXcodeViewHierarchyLayerArchive {
         for objectIdentifier in graph.nodesByIdentifier.keys.sorted() {
             guard let node = graph.node(objectIdentifier),
                   let property = node.property(named: propertyName),
-                  case .binaryData(let archiveData) = property.value
+                  case let .binaryData(archiveData) = property.value
             else { continue }
 
             if let tree = decodingLayerTree(from: archiveData, rootObjectIdentifier: objectIdentifier) {
@@ -168,7 +168,7 @@ enum LKXcodeViewHierarchyLayerAlignment {
         for capturedChild in capturedChildren {
             let capturedGeometry = geometry(ofCapturedLayer: capturedChild, graph: graph)
             var matchIndex: Int?
-            for index in searchStart..<archivedChildren.count {
+            for index in searchStart ..< archivedChildren.count {
                 if matches(capturedGeometry: capturedGeometry, archivedLayer: archivedChildren[index]) {
                     matchIndex = index
                     break

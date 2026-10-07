@@ -2,8 +2,7 @@ import Foundation
 import os
 
 enum LKSwiftUISupportLogger {
-    static let authServer = Logger(subsystem: subsystem, category: "AuthServer")
-    static let installer = Logger(subsystem: subsystem, category: "Installer")
+    static let activation = Logger(subsystem: subsystem, category: "Activation")
 
     private static let subsystem = "com.lookinside.app"
 }

@@ -3,18 +3,18 @@ import Foundation
 /// Talks to the LookInside injector running on one attached iOS device.
 ///
 /// The transport is the one the host already uses to reach a LookInside server
-/// on a device — `Lookin_PTChannel` over usbmuxd — pointed at the injector's own
-/// port instead of the server's range. Nothing here touches a network
+/// on a device — a `LookinFrameChannel` over a usbmuxd tunnel — pointed at the
+/// injector's own port instead of the server's range. Nothing here touches a network
 /// interface: usbmuxd carries the bytes over the cable and dials 127.0.0.1
 /// inside the device, so the feature needs no Wi-Fi, no pairing beyond what
 /// Xcode already set up, and no change to anybody's network configuration.
 ///
-/// `@MainActor` because `Lookin_PTChannel.channelWithDelegate:` binds the
-/// channel to the main queue's protocol object, so every delegate callback
-/// arrives there. Making that explicit is cheaper than defending the pending
-/// table with a lock that would only ever be taken from one thread.
+/// `@MainActor` because the usbmuxd client and the frame channel are both
+/// given the main queue, so every callback arrives there. Making that explicit
+/// is cheaper than defending the pending table with a lock that would only
+/// ever be taken from one thread.
 @MainActor
-final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
+final class LKDeviceControlClient {
     /// Why a request did not produce an answer.
     enum Failure: LocalizedError {
         /// usbmuxd would not connect. By far the most common cause is the
@@ -24,15 +24,6 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
 
         /// The channel closed while a request was in flight.
         case channelEnded
-
-        /// Peertalk would not hand out a channel at all.
-        ///
-        /// Not reachable in practice — the factory allocates and returns, and
-        /// the optional is only an artefact of Peertalk's headers carrying no
-        /// nullability annotations. Stated as a case rather than force
-        /// unwrapped, so an impossible state is reported instead of crashing
-        /// the app.
-        case channelUnavailable
 
         /// The device accepted the request and never answered.
         case timedOut(command: LKDeviceControlCommand)
@@ -57,17 +48,12 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
                     "The connection to the injector on the device closed before it answered.",
                     comment: ""
                 )
-            case .channelUnavailable:
-                NSLocalizedString(
-                    "LookInside could not open a USB connection to the device.",
-                    comment: ""
-                )
             case .timedOut:
                 NSLocalizedString(
                     "The injector on the device accepted the request and did not answer it.",
                     comment: ""
                 )
-            case .deviceReported(let message):
+            case let .deviceReported(message):
                 message
             case .malformedAnswer:
                 NSLocalizedString(
@@ -81,7 +67,7 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
     /// usbmuxd's identifier for the device, as it appears in the attach
     /// notification. Not stable across replugs, which is why the serial number
     /// is what gets shown to the user.
-    let deviceIdentifier: NSNumber
+    let deviceIdentifier: Int
 
     /// The device's serial number, used as its name in the interface.
     ///
@@ -91,58 +77,69 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
     /// unambiguous identifier beats a pretty one.
     let serialNumber: String
 
-    /// The usbmuxd connection these channels are opened through.
-    ///
-    /// The monitor's own hub rather than `Lookin_PTUSBHub.sharedHub`, and for a
-    /// reason worth keeping: the shared hub posts its attach notifications for
-    /// already-connected devices only when it *starts* listening, which the
-    /// host's connection manager triggers at launch. A monitor built later
-    /// would see nothing until the next replug, so it runs a hub of its own —
-    /// and a client reaching a device that hub enumerated should go through the
-    /// same one.
-    private let usbHub: Lookin_PTUSBHub
+    /// The usbmuxd client the tunnel is opened through: the monitor's own,
+    /// the one that enumerated the device (see `LKAttachedDeviceMonitor` for
+    /// why it does not share the connection manager's).
+    private let usbMuxClient: LookinUSBMuxClient
 
-    private var channel: Lookin_PTChannel?
+    private var channel: LookinFrameChannel?
 
     /// Requests sent and not yet answered, by frame tag.
     private var pendingByFrameTag: [UInt32: (Result<Data, Failure>) -> Void] = [:]
 
-    /// Tags start at 1 because Peertalk reserves 0 for "no tag".
+    /// Tags start at 1 because the frame format reserves 0 for "no tag".
     private var nextFrameTag: UInt32 = 1
 
-    init(deviceIdentifier: NSNumber, serialNumber: String, usbHub: Lookin_PTUSBHub) {
+    init(deviceIdentifier: Int, serialNumber: String, usbMuxClient: LookinUSBMuxClient) {
         self.deviceIdentifier = deviceIdentifier
         self.serialNumber = serialNumber
-        self.usbHub = usbHub
-        super.init()
+        self.usbMuxClient = usbMuxClient
     }
 
     // MARK: - Connecting
 
     func connect() async throws {
-        // Swift imports `+[Lookin_PTChannel channelWithDelegate:]` as an
-        // initializer, the way it does `+[NSString stringWithFormat:]`. That
-        // factory is the one to use rather than `init()`: it binds the channel
-        // to the main queue's protocol object — which is what puts every
-        // delegate callback on the main thread, and therefore what makes this
-        // class's `@MainActor` isolation true rather than hopeful.
-        guard let newChannel = Lookin_PTChannel(delegate: self) else {
-            throw Failure.channelUnavailable
-        }
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
-            newChannel.connect(
-                toPort: LKDeviceControlWire.portNumber,
-                overUSBHub: usbHub,
-                deviceID: deviceIdentifier
-            ) { error in
-                if let error {
-                    newChannel.close()
+        let tunnel: (fileDescriptor: Int32, initialBytes: Data) = try await withCheckedThrowingContinuation { continuation in
+            usbMuxClient.connect(deviceID: deviceIdentifier, port: UInt16(LKDeviceControlWire.portNumber)) { result in
+                switch result {
+                case let .success(tunnel):
+                    continuation.resume(returning: tunnel)
+                case let .failure(error):
                     continuation.resume(throwing: Failure.couldNotConnect(underlying: error))
-                } else {
-                    continuation.resume()
                 }
             }
         }
+        // Any payload size, as the server channel takes: a process list can
+        // run long, and the device is the injector this build was paired with.
+        let newChannel = LookinFrameChannel(
+            fileDescriptor: tunnel.fileDescriptor,
+            queue: .main,
+            maxPayloadSize: .max,
+            initialBytes: tunnel.initialBytes
+        )
+        // Only answers are expected here. A frame of any other type is refused
+        // rather than read: this channel's requests all travel the other way,
+        // so one arriving would mean the two ends had swapped roles.
+        newChannel.shouldAcceptFrame = { header in
+            header.type == LKDeviceControlWire.responseFrameType
+        }
+        newChannel.onFrame = { [weak self] frame in
+            // The channel calls back on the main queue, so this is already the
+            // main thread; `MainActor.assumeIsolated` states that rather than
+            // hopping and letting answers arrive out of order.
+            MainActor.assumeIsolated {
+                guard let self, let pending = self.pendingByFrameTag.removeValue(forKey: frame.tag) else { return }
+                pending(.success(frame.payload))
+            }
+        }
+        newChannel.onEnd = { [weak self, weak newChannel] _ in
+            MainActor.assumeIsolated {
+                guard let self, let newChannel, self.channel === newChannel else { return }
+                self.channel = nil
+                self.failAllPending(with: .channelEnded)
+            }
+        }
+        newChannel.start()
         channel = newChannel
     }
 
@@ -196,7 +193,7 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
     private func send<Result: Codable & Hashable>(
         _ command: LKDeviceControlCommand,
         processIdentifier: pid_t? = nil,
-        expecting resultType: Result.Type,
+        expecting _: Result.Type,
         timeout: TimeInterval
     ) async throws -> Result {
         guard let channel, channel.isConnected else {
@@ -225,14 +222,16 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
                 pending(.failure(.timedOut(command: command)))
             }
 
-            channel.sendFrame(
-                ofType: LKDeviceControlWire.requestFrameType,
+            channel.send(
+                type: LKDeviceControlWire.requestFrameType,
                 tag: frameTag,
-                withPayload: (requestData as NSData).createReferencingDispatchData()
+                payload: requestData
             ) { [weak self] error in
                 guard let error else { return }
-                guard let self, let pending = pendingByFrameTag.removeValue(forKey: frameTag) else { return }
-                pending(.failure(.couldNotConnect(underlying: error)))
+                MainActor.assumeIsolated {
+                    guard let self, let pending = self.pendingByFrameTag.removeValue(forKey: frameTag) else { return }
+                    pending(.failure(.couldNotConnect(underlying: error)))
+                }
             }
         }
 
@@ -243,9 +242,9 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
             throw Failure.malformedAnswer(command: command, underlying: error)
         }
         switch outcome {
-        case .succeeded(let result):
+        case let .succeeded(result):
             return result
-        case .failed(let message):
+        case let .failed(message):
             throw Failure.deviceReported(message: message)
         }
     }
@@ -255,47 +254,6 @@ final class LKDeviceControlClient: NSObject, Lookin_PTChannelDelegate {
         pendingByFrameTag.removeAll()
         for complete in pending.values {
             complete(.failure(failure))
-        }
-    }
-
-    // MARK: - Lookin_PTChannelDelegate
-
-    /// Only answers are expected here. A frame of any other type is refused
-    /// rather than read: this channel's requests all travel the other way, so
-    /// one arriving would mean the two ends had swapped roles.
-    nonisolated func ioFrameChannel(
-        _: Lookin_PTChannel!,
-        shouldAcceptFrameOfType type: UInt32,
-        tag _: UInt32,
-        payloadSize _: UInt32
-    ) -> Bool {
-        type == LKDeviceControlWire.responseFrameType
-    }
-
-    nonisolated func ioFrameChannel(
-        _: Lookin_PTChannel!,
-        didReceiveFrameOfType _: UInt32,
-        tag: UInt32,
-        payload: Lookin_PTData!
-    ) {
-        // Peertalk binds this channel to the main queue, so this is already the
-        // main thread; `MainActor.assumeIsolated` states that rather than
-        // hopping and letting answers arrive out of order.
-        let answer: Data = if let payload, payload.length > 0, let bytes = payload.data {
-            Data(bytes: bytes, count: payload.length)
-        } else {
-            Data()
-        }
-        MainActor.assumeIsolated {
-            guard let pending = pendingByFrameTag.removeValue(forKey: tag) else { return }
-            pending(.success(answer))
-        }
-    }
-
-    nonisolated func ioFrameChannel(_: Lookin_PTChannel!, didEndWithError _: Error!) {
-        MainActor.assumeIsolated {
-            channel = nil
-            failAllPending(with: .channelEnded)
         }
     }
 }

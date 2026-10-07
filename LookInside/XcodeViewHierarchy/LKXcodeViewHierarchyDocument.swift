@@ -45,9 +45,13 @@ enum LKXcodeViewHierarchyImporter {
         isCancelled: () -> Bool = { false }
     ) throws -> LKXcodeViewHierarchyImportedCapture {
         let bundle = try LKXcodeViewHierarchyBundleReader.reading(contentsOf: url)
-        if isCancelled() { throw CancellationError() }
+        if isCancelled() {
+            throw CancellationError()
+        }
         let screenshots = LKXcodeViewHierarchyPixelRecovery.recovering(from: bundle.graph, isCancelled: isCancelled)
-        if isCancelled() { throw CancellationError() }
+        if isCancelled() {
+            throw CancellationError()
+        }
         return LKXcodeViewHierarchyImportedCapture(bundle: bundle, screenshots: screenshots)
     }
 
@@ -69,7 +73,9 @@ enum LKXcodeViewHierarchyImporter {
         isCancelled: () -> Bool = { false }
     ) throws -> LookinHierarchyFile {
         let capture = try importingCapture(at: url, isCancelled: isCancelled)
-        if isCancelled() { throw CancellationError() }
+        if isCancelled() {
+            throw CancellationError()
+        }
         return try makingHierarchyFile(from: capture, showingBackingLayers: showingBackingLayers)
     }
 }
@@ -85,13 +91,13 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
 
     /// Validates the package and starts the import, returning before the
     /// import finishes so the window can open on its placeholder.
-    override func read(from url: URL, ofType typeName: String) throws {
+    override func read(from url: URL, ofType _: String) throws {
         try LKXcodeViewHierarchyBundleReader.validatingBundle(at: url)
         importTask?.cancel()
         importTask = Task.detached(priority: .userInitiated) { [weak self] in
             let outcome: Result<LKXcodeViewHierarchyImportedCapture, Error>
             do {
-                outcome = .success(try LKXcodeViewHierarchyImporter.importingCapture(at: url) { Task.isCancelled })
+                outcome = try .success(LKXcodeViewHierarchyImporter.importingCapture(at: url) { Task.isCancelled })
             } catch {
                 outcome = .failure(error)
             }
@@ -122,7 +128,7 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
         rebuildTask = Task.detached(priority: .userInitiated) { [weak self] in
             let outcome: Result<LookinHierarchyFile, Error>
             do {
-                outcome = .success(try LKXcodeViewHierarchyImporter.makingHierarchyFile(
+                outcome = try .success(LKXcodeViewHierarchyImporter.makingHierarchyFile(
                     from: importedCapture, showingBackingLayers: showingBackingLayers
                 ))
             } catch {
@@ -140,12 +146,12 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
         if let windowController = windowControllers.first as? LKReadWindowController {
             return windowController.preferenceManager.showBackingLayers.currentBOOLValue
         }
-        return LKPreferenceManager.main().showBackingLayers.currentBOOLValue
+        return LKPreferenceManager.shared.showBackingLayers.currentBOOLValue
     }
 
     /// The task has to be created where `close()` can cancel it, on the
     /// main thread; the superclass's concurrent path would call `read` elsewhere.
-    override class func canConcurrentlyReadDocuments(ofType typeName: String) -> Bool {
+    override class func canConcurrentlyReadDocuments(ofType _: String) -> Bool {
         false
     }
 
@@ -153,10 +159,10 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
     private func finishingImport(with outcome: Result<LKXcodeViewHierarchyImportedCapture, Error>) {
         importTask = nil
         switch outcome {
-        case .success(let capture):
+        case let .success(capture):
             importedCapture = capture
             rebuildHierarchyFile(showingBackingLayers: showsBackingLayersPreference)
-        case .failure(let error):
+        case let .failure(error):
             presentingFailure(error)
         }
     }
@@ -165,10 +171,10 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
     private func finishingRebuild(with outcome: Result<LookinHierarchyFile, Error>) {
         rebuildTask = nil
         switch outcome {
-        case .success(let file):
+        case let .success(file):
             // The window controller observes this and builds the reader in place.
             hierarchyFile = file
-        case .failure(let error):
+        case let .failure(error):
             presentingFailure(error)
         }
     }

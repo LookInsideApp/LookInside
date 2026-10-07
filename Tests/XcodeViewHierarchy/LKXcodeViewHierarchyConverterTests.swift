@@ -105,7 +105,7 @@ struct LKXcodeViewHierarchyConverterTests {
                "top-level kinds mismatch: \(rootItems.map(\.nodeKind.rawValue))")
         expect(rootItems.map(\.representedAsKeyWindow) == [true, false, false, false, false],
                "only the application's key window is marked key")
-        expect(rootItems[1].hostWindowControllerObject?.oid == 0xc1,
+        expect(rootItems[1].hostWindowControllerObject?.oid == 0xC1,
                "a controller-owned window row carries its controller")
         expect(rootItems[2].hostWindowControllerObject == nil,
                "an unowned window row carries no controller")
@@ -132,7 +132,7 @@ struct LKXcodeViewHierarchyConverterTests {
         let file = convert(uiKitSidebarFixture())
         let rootItems = file.hierarchyInfo.displayItems ?? []
 
-        expect(rootItems.map(displayedObjectIdentifier) == [0xf2, 0xf1, 0x4],
+        expect(rootItems.map(displayedObjectIdentifier) == [0xF2, 0xF1, 0x4],
                "top level should be the key window's scene, the other scene, then the sceneless window; got \(rootItems.map(displayedObjectIdentifier).map { String($0, radix: 16) })")
         expect(rootItems.map(\.nodeKind) == [.windowScene, .windowScene, .window],
                "top-level kinds mismatch: \(rootItems.map(\.nodeKind.rawValue))")
@@ -317,7 +317,7 @@ struct LKXcodeViewHierarchyConverterTests {
               let constraints = constraintsAttribute.value as? [LookinAutoLayoutConstraint]
         else { fail("a view with constraints gets a constraints row carrying LookinAutoLayoutConstraint values") }
 
-        expect(constraints.map(\.constraintOid) == [0xd1, 0xd2, 0xd4],
+        expect(constraints.map(\.constraintOid) == [0xD1, 0xD2, 0xD4],
                "the active constraints naming the view, in identifier order; got \(constraints.map { String($0.constraintOid, radix: 16) })")
         expect(constraints.map(\.effective) == [true, false, false],
                "only the constraint the capture lists as affecting the view is effective; got \(constraints.map(\.effective))")
@@ -326,8 +326,8 @@ struct LKXcodeViewHierarchyConverterTests {
         expect(constraints.map(\.secondItemType) == [.`nil`, .super, .`self`],
                "second item types mismatch: \(constraints.map(\.secondItemType.rawValue))")
         expect(constraints[0].firstAttribute == 7 && constraints[0].constant == 100 && constraints[0].priority == 1000
-               && constraints[0].relation == .equal && constraints[0].secondItem == nil,
-               "width constraint fields mismatch")
+            && constraints[0].relation == .equal && constraints[0].secondItem == nil,
+            "width constraint fields mismatch")
         expect(constraints[1].secondItem?.oid == 0x10 && constraints[1].constant == 8 && constraints[1].relation == .greaterThanOrEqual,
                "superview constraint fields mismatch")
         expect(constraints[2].firstItem?.classChainList == ["UILayoutGuide", "NSObject"] && constraints[2].identifier == "guide-leading",
@@ -338,8 +338,8 @@ struct LKXcodeViewHierarchyConverterTests {
                "sizing priorities ride along once the card exists")
         let rootView = item(withObjectIdentifier: 0x10, in: file)
         expect((attribute(LookinAttr_AutoLayout_Constraints_Constraints, of: rootView)?.value as? [LookinAutoLayoutConstraint])?
-            .map(\.constraintOid) == [0xd2],
-               "the superview lists the same constraint from its own side")
+            .map(\.constraintOid) == [0xD2],
+            "the superview lists the same constraint from its own side")
     }
 
     // MARK: - Layer nodes
@@ -789,7 +789,7 @@ struct LKXcodeViewHierarchyConverterTests {
         return builder.build()
     }
 
-    private static let imageBytes = Data([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00])
+    private static let imageBytes = Data([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00])
 
     /// A UIKit capture with the class table filled in and one of each kind
     /// of value the cards read: scene `0xf1` → window `0x1` → root view
@@ -982,7 +982,9 @@ struct LKXcodeViewHierarchyConverterTests {
     private static func item(withObjectIdentifier identifier: UInt, in file: LookinHierarchyFile) -> LookinDisplayItem {
         var found: LookinDisplayItem?
         walk(file.hierarchyInfo.displayItems ?? []) { item in
-            if found == nil, displayedObjectIdentifier(item) == identifier { found = item }
+            if found == nil, displayedObjectIdentifier(item) == identifier {
+                found = item
+            }
         }
         guard let found else { fail("no node with object identifier 0x\(String(identifier, radix: 16))") }
         return found
@@ -991,7 +993,9 @@ struct LKXcodeViewHierarchyConverterTests {
     private static func attribute(_ identifier: String, of item: LookinDisplayItem?) -> LookinAttribute? {
         for group in item?.attributesGroupList ?? [] {
             for section in group.attrSections ?? [] {
-                if let attribute = section.attributes?.first(where: { $0.identifier == identifier }) { return attribute }
+                if let attribute = section.attributes?.first(where: { $0.identifier == identifier }) {
+                    return attribute
+                }
             }
         }
         return nil
@@ -1197,8 +1201,12 @@ struct LKXcodeViewHierarchyConverterTests {
         additionalGroups: [[String: Any]]? = nil
     ) -> [String: Any] {
         var object: [String: Any] = ["objectID": objectIdentifier, "className": className]
-        if let childGroup { object["childGroup"] = childGroup }
-        if let additionalGroups { object["additionalGroups"] = additionalGroups }
+        if let childGroup {
+            object["childGroup"] = childGroup
+        }
+        if let additionalGroups {
+            object["additionalGroups"] = additionalGroups
+        }
         return object
     }
 

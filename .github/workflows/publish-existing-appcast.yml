@@ -79,6 +79,9 @@ jobs:
           shasum -a 256 "$app_zip" | tee dist/checksums.txt
           echo "app_zip=$app_zip" >> "$GITHUB_OUTPUT"
 
+      - name: Scan App Zip For Private Keys
+        run: bash app/Scripts/scan-private-keys.sh "${{ steps.artifact.outputs.app_zip }}"
+
       - name: Validate Sparkle Publishing Secrets
         env:
           LOOKINSIDE_WEB_RELEASE_TOKEN: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}
@@ -105,6 +108,10 @@ jobs:
           ref: main
           path: secrets
           token: ${{ secrets.LOOKINSIDE_SECRETS_READ_TOKEN }}
+          sparse-checkout: sparkle
+          sparse-checkout-cone-mode: true
+          filter: blob:none
+          persist-credentials: false
 
       - name: Export GitHub Release Notes
         env:
@@ -151,6 +158,21 @@ jobs:
             --release-notes-file "$RUNNER_TEMP/release-notes.md" \
             --version "${{ inputs.version }}" \
             --asset-download-url "${{ inputs.asset_download_url }}"
+
+      - name: Scan Web Changes For Private Keys
+        run: |
+          set -euo pipefail
+          bash app/Scripts/scan-private-keys.sh web/public
+          sparkle_key="$(tr -d '[:space:]' <"$RUNNER_TEMP/sparkle-private-ed-key.txt")"
+          [[ -n "$sparkle_key" ]] || { echo "Decrypted Sparkle private key is empty." >&2; exit 1; }
+          if grep -rqF -- "$sparkle_key" web; then
+            echo "The Sparkle private key was written into the Web repository." >&2
+            exit 1
+          fi
+
+      - name: Remove Sparkle Private Key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/sparkle-private-ed-key.txt"
 
       - name: Commit Web Appcast
         working-directory: web
