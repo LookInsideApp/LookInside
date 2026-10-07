@@ -16,6 +16,12 @@ LookInside continues the work of [Lookin](https://lookin.work/), the original iO
 3. Run your app.
 4. Open LookInside on your Mac and pick the running app.
 
+## Use it with AI agents
+
+LookInside 2.3.11 and later include a local MCP server for Codex, Claude, Cursor, Windsurf, VS Code, and other MCP clients. Agents can inspect hierarchies, attributes, screenshots, and UI changes through the app you already opened in LookInside.
+
+See the [MCP configuration and usage guide](docs/mcp.md).
+
 ## What you can inspect
 
 - UIKit, AppKit, and SwiftUI view trees

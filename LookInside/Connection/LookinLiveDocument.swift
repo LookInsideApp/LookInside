@@ -13,6 +13,16 @@ import AppKit
 
 @objc(LookinLiveDocument)
 final class LookinLiveDocument: NSDocument {
+    /// Posted (object: the document) once `LookinLiveDocumentController`
+    /// added the document and made its window controllers, so observers can
+    /// read `inspectableApp` and `hierarchyDataSource` at once.
+    /// `NSDocumentController` has no such notification of its own.
+    static let didOpenNotification = Notification.Name("LookinLiveDocumentDidOpenNotification")
+
+    /// Posted (object: the document) at the start of `close()`, while the
+    /// document is still whole.
+    static let willCloseNotification = Notification.Name("LookinLiveDocumentWillCloseNotification")
+
     /// The app this document inspects. Replaced by a new `LKInspectableApp`
     /// (new channel and app info) when the app reconnects. Observable with
     /// KVO.
@@ -51,7 +61,7 @@ final class LookinLiveDocument: NSDocument {
     }
 
     /// Nil before `makeWindowControllers()` ran.
-    private var staticWindowController: LKStaticWindowController? {
+    var staticWindowController: LKStaticWindowController? {
         windowControllers.first as? LKStaticWindowController
     }
 
@@ -127,6 +137,9 @@ final class LookinLiveDocument: NSDocument {
     }
 
     override func close() {
+        // Before any teardown, so observers can still read the app info and
+        // the data source.
+        NotificationCenter.default.post(name: Self.willCloseNotification, object: self)
         channelEndTask?.cancel()
         channelEndTask = nil
         reconnectTask?.cancel()

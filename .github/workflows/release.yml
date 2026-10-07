@@ -23,6 +23,7 @@ jobs:
       artifact_name: ${{ steps.context.outputs.artifact_name }}
       source_ref: ${{ steps.context.outputs.source_ref }}
       injector_ref: ${{ steps.context.outputs.injector_ref }}
+      mcp_ref: ${{ steps.context.outputs.mcp_ref }}
 
     steps:
       - name: Validate Trigger Actor
@@ -40,6 +41,7 @@ jobs:
           BUILD_NUMBER="${{ github.event.client_payload.build_number }}"
           SOURCE_REF="${{ github.event.client_payload.source_ref }}"
           INJECTOR_REF="${{ github.event.client_payload.injector_ref }}"
+          MCP_REF="${{ github.event.client_payload.mcp_ref }}"
           RELEASE_REF="${{ github.event.client_payload.release_ref }}"
           PARENT_REPOSITORY="${{ github.event.client_payload.parent_repository }}"
           PARENT_REF="${{ github.event.client_payload.parent_ref }}"
@@ -62,6 +64,7 @@ jobs:
           [[ "$PARENT_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid parent SHA." >&2; exit 1; }
           [[ "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Host source SHA." >&2; exit 1; }
           [[ "$INJECTOR_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Injector source SHA." >&2; exit 1; }
+          [[ "$MCP_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid MCP source SHA." >&2; exit 1; }
           [[ "$RELEASE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Release source SHA." >&2; exit 1; }
           [[ "$RELEASE_ID" == "release/app/$VERSION@$PARENT_SHA/host" ]] || {
             echo "Release id does not identify the parent tag and commit." >&2
@@ -75,6 +78,7 @@ jobs:
             echo "artifact_name=LookInside-${VERSION}-release"
             echo "source_ref=${SOURCE_REF}"
             echo "injector_ref=${INJECTOR_REF}"
+            echo "mcp_ref=${MCP_REF}"
           } >>"${GITHUB_OUTPUT}"
 
   build_package:
@@ -129,6 +133,21 @@ jobs:
             ../LookInside-Injector
           git -C ../LookInside-Injector checkout --detach "${{ needs.prepare.outputs.injector_ref }}"
           [[ "$(git -C ../LookInside-Injector rev-parse HEAD)" == "${{ needs.prepare.outputs.injector_ref }}" ]]
+
+      - name: Checkout MCP Server
+        env:
+          LOOKINSIDE_MCP_READ_TOKEN: ${{ secrets.LOOKINSIDE_PRIVATE_READ_TOKEN || secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.LOOKINSIDE_INJECTOR_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${LOOKINSIDE_MCP_READ_TOKEN}" ]]; then
+            echo "LOOKINSIDE_PRIVATE_READ_TOKEN, LOOKINSIDE_WEB_RELEASE_TOKEN, or LOOKINSIDE_INJECTOR_READ_TOKEN is required to checkout LookInside-MCP." >&2
+            exit 1
+          fi
+          git clone --no-checkout \
+            "https://x-access-token:${LOOKINSIDE_MCP_READ_TOKEN}@github.com/LookInsideApp/LookInside-MCP.git" \
+            ../LookInside-MCP
+          git -C ../LookInside-MCP checkout --detach "${{ needs.prepare.outputs.mcp_ref }}"
+          [[ "$(git -C ../LookInside-MCP rev-parse HEAD)" == "${{ needs.prepare.outputs.mcp_ref }}" ]]
 
       - name: Configure Private Package Access
         env:

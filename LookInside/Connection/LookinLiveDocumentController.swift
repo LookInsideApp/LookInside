@@ -34,6 +34,9 @@ final class LookinLiveDocumentController: NSObject {
         NSDocumentController.shared.addDocument(document)
         document.makeWindowControllers()
         document.showWindows()
+        // After makeWindowControllers(), so observers can reach the data
+        // source, which lives on the window controller.
+        NotificationCenter.default.post(name: LookinLiveDocument.didOpenNotification, object: document)
         return (document, false)
     }
 

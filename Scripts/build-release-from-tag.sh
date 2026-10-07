@@ -456,6 +456,19 @@ verify_injector_bundle_layout() {
 		fail "Injector binary SMAuthorizedClients does not authorize $HOST_BUNDLE_IDENTIFIER for team $INJECTOR_AUTHORIZED_TEAM_ID"
 }
 
+# The MCP server rides the host's release so it can never drift out of step
+# with the MCPBridge protocol the host speaks. A release that quietly shipped
+# without it would present as "the MCP integration disappeared in this
+# version" to every user who configured their agent against the bundled path.
+verify_mcp_cli_bundle_layout() {
+	local app_path="$1"
+	local mcp_binary="$app_path/Contents/Resources/lookinside-mcp"
+
+	[[ -f "$mcp_binary" ]] || fail "MCP server binary is missing: $mcp_binary"
+	[[ -x "$mcp_binary" ]] || fail "MCP server binary is not executable: $mcp_binary"
+	is_mach_o_file "$mcp_binary" || fail "MCP server binary is not Mach-O: $mcp_binary"
+}
+
 package_cli() {
 	local cli_binary="$1"
 	local cli_zip="$2"
@@ -548,6 +561,9 @@ sign_app_bundle() {
 
 	log "Verifying bundled injector daemon"
 	verify_injector_bundle_layout "$app_path"
+
+	log "Verifying bundled MCP server"
+	verify_mcp_cli_bundle_layout "$app_path"
 
 	remove_legacy_code_resources "$app_path"
 
