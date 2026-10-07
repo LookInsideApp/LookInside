@@ -251,8 +251,12 @@ final class LKInjectableFrameworkInstaller {
         for index in 0 ..< count {
             let leftValue = index < leftParts.count ? leftParts[index] : 0
             let rightValue = index < rightParts.count ? rightParts[index] : 0
-            if leftValue < rightValue { return -1 }
-            if leftValue > rightValue { return 1 }
+            if leftValue < rightValue {
+                return -1
+            }
+            if leftValue > rightValue {
+                return 1
+            }
         }
         return 0
     }

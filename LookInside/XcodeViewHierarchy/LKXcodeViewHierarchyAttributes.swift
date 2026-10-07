@@ -93,7 +93,7 @@ final class LKXcodeViewHierarchyConstraintIndex {
             else { continue }
             var itemIdentifiers: Set<String> = []
             for endpointPropertyName in Self.endpointPropertyNames {
-                guard case .objectReference(let reference)? = constraintNode.property(named: endpointPropertyName)?.value
+                guard case let .objectReference(reference)? = constraintNode.property(named: endpointPropertyName)?.value
                 else { continue }
                 itemIdentifiers.insert(reference.objectIdentifier)
             }
@@ -109,7 +109,9 @@ final class LKXcodeViewHierarchyConstraintIndex {
     }
 
     private static func isConstraint(_ node: LKXcodeViewHierarchyNode, graph: LKXcodeViewHierarchyObjectGraph) -> Bool {
-        if node.groupingIdentifier?.hasSuffix("." + constraintClassName) == true { return true }
+        if node.groupingIdentifier?.hasSuffix("." + constraintClassName) == true {
+            return true
+        }
         guard let className = node.className else { return false }
         return graph.classChain(forClassName: className).contains(constraintClassName)
     }
@@ -165,7 +167,8 @@ enum LKXcodeViewHierarchyAttributes {
             // The server drops an Auto Layout card that holds only sizing
             // priorities; a view with no constraints gets no card.
             if catalogGroup.identifier == LookinAttrGroup_AutoLayout,
-               !sections.contains(where: { $0.identifier == LookinAttrSec_AutoLayout_Constraints }) {
+               !sections.contains(where: { $0.identifier == LookinAttrSec_AutoLayout_Constraints })
+            {
                 continue
             }
             if !sections.isEmpty {
@@ -209,7 +212,7 @@ enum LKXcodeViewHierarchyAttributes {
             guard context.role == .windowScene,
                   let keyWindowIdentifier = context.environment.keyWindowIdentifier,
                   let keyWindowClassName = context.sceneWindowNodes
-                      .first(where: { $0.objectIdentifier == keyWindowIdentifier })?.className
+                  .first(where: { $0.objectIdentifier == keyWindowIdentifier })?.className
             else { return nil }
             return makingAttribute(identifier, .nsString, keyWindowClassName as NSString)
 
@@ -281,7 +284,9 @@ enum LKXcodeViewHierarchyAttributes {
         for sourceNode in sourceNodes {
             guard let sourceNode else { continue }
             for propertyName in specification.properties {
-                if let property = sourceNode.property(named: propertyName) { return property }
+                if let property = sourceNode.property(named: propertyName) {
+                    return property
+                }
             }
         }
         return nil
@@ -300,7 +305,7 @@ enum LKXcodeViewHierarchyAttributes {
         propertyName: String,
         graph: LKXcodeViewHierarchyObjectGraph
     ) -> LKXcodeViewHierarchyNode? {
-        guard case .objectReference(let reference)? = node.property(named: propertyName)?.value else { return nil }
+        guard case let .objectReference(reference)? = node.property(named: propertyName)?.value else { return nil }
         return graph.node(reference.objectIdentifier)
     }
 
@@ -331,7 +336,7 @@ enum LKXcodeViewHierarchyAttributes {
             return (.nsString, text as NSString)
 
         case .color:
-            guard case .color(let color) = value, let components = rgbaComponents(of: color) else { return nil }
+            guard case let .color(color) = value, let components = rgbaComponents(of: color) else { return nil }
             return (.uiColor, components as NSArray)
 
         case .rect:
@@ -362,23 +367,23 @@ enum LKXcodeViewHierarchyAttributes {
             return (.double, NSNumber(value: components[1]))
 
         case .fontName:
-            guard case .font(let font) = value else { return nil }
+            guard case let .font(font) = value else { return nil }
             return (.nsString, font.fontName as NSString)
 
         case .fontSize:
-            guard case .font(let font) = value else { return nil }
+            guard case let .font(font) = value else { return nil }
             return (.double, NSNumber(value: font.pointSize))
 
         case .imageName:
-            guard case .image(let image) = value, let imageName = image.metadata?.imageName, !imageName.isEmpty
+            guard case let .image(image) = value, let imageName = image.metadata?.imageName, !imageName.isEmpty
             else { return nil }
             return (.nsString, imageName as NSString)
 
         case .imageData:
-            guard case .image(let image) = value else { return nil }
+            guard case let .image(image) = value else { return nil }
             return (.customObj, image.encodedData as NSData)
 
-        case .maskBit(let bit):
+        case let .maskBit(bit):
             guard let integerValue = integerValue(of: value) else { return nil }
             return (.BOOL, NSNumber(value: (UInt64(bitPattern: integerValue) & bit) != 0))
         }
@@ -395,10 +400,10 @@ enum LKXcodeViewHierarchyAttributes {
 
     private static func integerValue(of value: LKXcodeViewHierarchyValue) -> Int64? {
         switch value {
-        case .integer(let integer): return integer
-        case .unsignedInteger(let unsigned): return Int64(bitPattern: unsigned)
-        case .number(let number): return Int64(exactly: number.rounded())
-        case .boolean(let flag): return flag ? 1 : 0
+        case let .integer(integer): return integer
+        case let .unsignedInteger(unsigned): return Int64(bitPattern: unsigned)
+        case let .number(number): return Int64(exactly: number.rounded())
+        case let .boolean(flag): return flag ? 1 : 0
         default: return nil
         }
     }
@@ -511,7 +516,7 @@ enum LKXcodeViewHierarchyAttributes {
     }
 
     private static func delegateDescription(of node: LKXcodeViewHierarchyNode) -> String? {
-        guard case .objectReference(let reference)? = node.property(named: "delegate")?.value else { return nil }
+        guard case let .objectReference(reference)? = node.property(named: "delegate")?.value else { return nil }
         return "(\(reference.className) *) delegate"
     }
 
@@ -546,7 +551,9 @@ enum LKXcodeViewHierarchyAttributes {
         return constraintIdentifiers.compactMap { constraintIdentifier in
             guard let constraintNode = graph.node(constraintIdentifier) else { return nil }
             // The whole product ignores inactive constraints, as the server does.
-            if constraintNode.property(named: ConstraintProperty.active)?.value.boolValue == false { return nil }
+            if constraintNode.property(named: ConstraintProperty.active)?.value.boolValue == false {
+                return nil
+            }
 
             let firstAttribute = integerProperty(constraintNode, ConstraintProperty.firstAttribute) ?? 0
             let secondAttribute = integerProperty(constraintNode, ConstraintProperty.secondAttribute) ?? 0
@@ -582,7 +589,7 @@ enum LKXcodeViewHierarchyAttributes {
     /// 37 — private ones it has no name for. Captures so far use 32, 33, 36
     /// and 37 among the private values, all of which it accepts.
     private static func isRepresentableAttribute(_ attribute: Int) -> Bool {
-        !((21...31).contains(attribute) || attribute > 37)
+        !((21 ... 31).contains(attribute) || attribute > 37)
     }
 
     private static func affectingConstraintIdentifiers(of node: LKXcodeViewHierarchyNode) -> Set<String> {
@@ -591,7 +598,9 @@ enum LKXcodeViewHierarchyAttributes {
             guard let text = node.property(named: propertyName)?.value.textValue else { continue }
             for identifier in text.split(separator: ",") {
                 let trimmed = identifier.trimmingCharacters(in: .whitespaces)
-                if !trimmed.isEmpty { identifiers.insert(trimmed) }
+                if !trimmed.isEmpty {
+                    identifiers.insert(trimmed)
+                }
             }
         }
         return identifiers
@@ -611,7 +620,7 @@ enum LKXcodeViewHierarchyAttributes {
         graph: LKXcodeViewHierarchyObjectGraph,
         context: LKXcodeViewHierarchyAttributeContext
     ) -> (object: LookinObject?, type: LookinConstraintItemType) {
-        guard case .objectReference(let reference)? = constraintNode.property(named: propertyName)?.value else {
+        guard case let .objectReference(reference)? = constraintNode.property(named: propertyName)?.value else {
             return (nil, .`nil`)
         }
         let object = LookinObject()
@@ -625,7 +634,8 @@ enum LKXcodeViewHierarchyAttributes {
         } else if reference.objectIdentifier == context.superviewNode?.objectIdentifier {
             type = .super
         } else if object.classChainList?.contains(where: ChainEnd.layoutGuide.contains) == true
-                    || reference.className.hasSuffix("LayoutGuide") {
+            || reference.className.hasSuffix("LayoutGuide")
+        {
             type = .layoutGuide
         } else {
             type = .view

@@ -43,7 +43,7 @@ enum LKInjectionDaemonNextStep: Equatable {
     case reportUnsupportedStatus(Int)
 }
 
-struct LKInjectionDaemonReadiness {
+enum LKInjectionDaemonReadiness {
     static func nextStep(for status: LKInjectionDaemonStatusSnapshot) -> LKInjectionDaemonNextStep {
         switch status {
         case .enabled:

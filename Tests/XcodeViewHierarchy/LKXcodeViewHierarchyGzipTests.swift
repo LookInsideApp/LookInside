@@ -54,7 +54,7 @@ struct LKXcodeViewHierarchyGzipTests {
         var original = Data()
         original.reserveCapacity(3 * 1024 * 1024)
         // Semi-repetitive content: compresses well, but not to a degenerate stream.
-        for index in 0..<60_000 {
+        for index in 0 ..< 60000 {
             original.append(Data("{\"objectID\":\"0x\(String(index, radix: 16))\",\"className\":\"UIView\"},".utf8))
         }
         expect(original.count > 1024 * 1024, "fixture should exceed the stream buffer")
@@ -120,9 +120,15 @@ struct LKXcodeViewHierarchyGzipTests {
         extraField: Data? = nil
     ) -> Data {
         var flags: UInt8 = 0
-        if extraField != nil { flags |= 0x04 }
-        if originalName != nil { flags |= 0x08 }
-        if comment != nil { flags |= 0x10 }
+        if extraField != nil {
+            flags |= 0x04
+        }
+        if originalName != nil {
+            flags |= 0x08
+        }
+        if comment != nil {
+            flags |= 0x10
+        }
 
         var member = Data([0x1F, 0x8B, 0x08, flags, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03])
         if let extraField {
@@ -166,7 +172,7 @@ struct LKXcodeViewHierarchyGzipTests {
             }
         }
         guard writtenCount > 0 else { fail("fixture compression produced no output") }
-        return Data(destination[0..<writtenCount])
+        return Data(destination[0 ..< writtenCount])
     }
 
     // MARK: - Helpers

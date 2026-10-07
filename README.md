@@ -11,16 +11,10 @@ LookInside continues the work of [Lookin](https://lookin.work/), the original iO
 
 ## Use it
 
-1. Download LookInside from the [Releases page](https://github.com/LookInsideApp/LookInside/releases).
+1. Download LookInside from the [Releases page](https://github.com/LookInsideApp/LookInside/releases). It runs on macOS 14 or later.
 2. Add the server package to the app you want to inspect.
 3. Run your app.
 4. Open LookInside on your Mac and pick the running app.
-
-## Use it with AI agents
-
-LookInside 2.3.11 and later include a local MCP server for Codex, Claude, Cursor, Windsurf, VS Code, and other MCP clients. Agents can inspect hierarchies, attributes, screenshots, and UI changes through the app you already opened in LookInside.
-
-See the [MCP configuration and usage guide](docs/mcp.md).
 
 ## What you can inspect
 
@@ -28,6 +22,12 @@ See the [MCP configuration and usage guide](docs/mcp.md).
 - Frames, layers, screenshots, and resolved properties
 - SwiftUI modifiers and layout details
 - Live property changes while your app is running
+
+## Activation
+
+SwiftUI inspection needs LookInside Pro, as a trial or a license. Activation runs inside LookInside itself; it no longer installs a separate helper app. The activation code is part of this repository.
+
+If you activated an earlier version, your activation carries over. The first time the new version uses your existing activation key, macOS asks for your login keychain password. Choose **Always Allow** so it does not ask again. Going back to an earlier version keeps working too.
 
 ## Add the server package
 

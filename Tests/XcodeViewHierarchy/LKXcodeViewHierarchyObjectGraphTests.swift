@@ -432,8 +432,12 @@ struct LKXcodeViewHierarchyObjectGraphTests {
         additionalGroups: [[String: Any]]? = nil
     ) -> [String: Any] {
         var object: [String: Any] = ["objectID": objectIdentifier, "className": className]
-        if let childGroup { object["childGroup"] = childGroup }
-        if let additionalGroups { object["additionalGroups"] = additionalGroups }
+        if let childGroup {
+            object["childGroup"] = childGroup
+        }
+        if let additionalGroups {
+            object["additionalGroups"] = additionalGroups
+        }
         return object
     }
 

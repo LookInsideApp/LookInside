@@ -44,11 +44,11 @@ enum LKXcodeViewHierarchyBundleReadingError: Error, CustomStringConvertible {
 
     var description: String {
         switch self {
-        case .notADirectory(let url):
+        case let .notADirectory(url):
             return "\(url.lastPathComponent) is not a view hierarchy package"
-        case .missingResponses(let url):
+        case let .missingResponses(url):
             return "\(url.lastPathComponent) has no RequestResponses directory"
-        case .noUsableResponses(let url):
+        case let .noUsableResponses(url):
             return "\(url.lastPathComponent) contains no readable capture responses"
         }
     }
@@ -121,7 +121,9 @@ enum LKXcodeViewHierarchyBundleReader {
             .sorted { leadingName, trailingName in
                 let leadingIndex = responseIndex(fromFileName: leadingName)
                 let trailingIndex = responseIndex(fromFileName: trailingName)
-                if leadingIndex != trailingIndex { return leadingIndex < trailingIndex }
+                if leadingIndex != trailingIndex {
+                    return leadingIndex < trailingIndex
+                }
                 return leadingName < trailingName
             }
             .map { responsesURL.appendingPathComponent($0) }
@@ -170,8 +172,12 @@ enum LKXcodeViewHierarchyBundleReader {
     /// `DocumentVersion` ships as a string, but a plist rewrite could make it a
     /// number; accept either rather than lose the field.
     private static func stringValue(_ rawValue: Any?) -> String? {
-        if let text = rawValue as? String { return text }
-        if let number = rawValue as? NSNumber { return number.stringValue }
+        if let text = rawValue as? String {
+            return text
+        }
+        if let number = rawValue as? NSNumber {
+            return number.stringValue
+        }
         return nil
     }
 }
@@ -179,5 +185,7 @@ enum LKXcodeViewHierarchyBundleReader {
 /// Shown by the document when an import fails, so the wording must be the
 /// user-facing one rather than "The operation couldn't be completed".
 extension LKXcodeViewHierarchyBundleReadingError: LocalizedError {
-    var errorDescription: String? { description }
+    var errorDescription: String? {
+        description
+    }
 }

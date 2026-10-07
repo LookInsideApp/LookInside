@@ -29,7 +29,7 @@ enum LKXcodeViewHierarchyGzipError: Error, CustomStringConvertible {
         switch self {
         case .truncatedHeader:
             return "gzip header is truncated"
-        case .unsupportedCompressionMethod(let method):
+        case let .unsupportedCompressionMethod(method):
             return "gzip compression method \(method) is not DEFLATE"
         case .truncatedPayload:
             return "gzip payload ends before its trailer"
@@ -70,7 +70,7 @@ enum LKXcodeViewHierarchyGzip {
         let bytes = [UInt8](payload)
         let deflateStart = try deflateStreamOffset(in: bytes)
         guard bytes.count >= deflateStart + 8 else { throw LKXcodeViewHierarchyGzipError.truncatedPayload }
-        let deflateBytes = bytes[deflateStart..<(bytes.count - 8)]
+        let deflateBytes = bytes[deflateStart ..< (bytes.count - 8)]
         return try inflatingRawDeflate(Array(deflateBytes))
     }
 
@@ -104,7 +104,9 @@ enum LKXcodeViewHierarchyGzip {
 
     private static func offsetPastNulTerminatedField(in bytes: [UInt8], from start: Int) throws -> Int {
         var cursor = start
-        while cursor < bytes.count, bytes[cursor] != 0 { cursor += 1 }
+        while cursor < bytes.count, bytes[cursor] != 0 {
+            cursor += 1
+        }
         guard cursor < bytes.count else { throw LKXcodeViewHierarchyGzipError.truncatedHeader }
         return cursor + 1
     }

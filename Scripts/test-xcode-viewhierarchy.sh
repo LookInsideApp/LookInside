@@ -3,11 +3,11 @@ set -eu
 
 # Host-side tests for reading Xcode-exported .viewhierarchy documents.
 #
-# Same shape as test-mcp-bridge.sh: compile the unit under test together with
-# its test file into a standalone binary and run it. The parsing layer is
-# deliberately Foundation-only so it can be covered this way; the pixel
-# recovery and conversion layers pull in QuartzCore and the ObjC model and are
-# exercised against real captures instead.
+# Compile the unit under test together with its test file into a standalone
+# binary and run it. The parsing layer is deliberately Foundation-only so it
+# can be covered this way; the pixel recovery and conversion layers pull in
+# QuartzCore and the ObjC model and are exercised against real captures
+# instead.
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMPDIR="${TMPDIR:-/tmp}/lookinside-xcode-viewhierarchy-tests.$$"
@@ -61,14 +61,17 @@ swiftc -parse-as-library \
 LOOKIN_CORE_DIR="$ROOT/Sources/LookinCore"
 # LookinDisplayItem pulls one header from the server base sources.
 LOOKIN_SERVER_BASE_DIR="$ROOT/Sources/LookinServerBase"
+# The Swift `@objc @implementation` of the LookinCore model classes.
+LOOKIN_CORE_IMPL_DIR="$ROOT/Sources/LookinCoreImpl"
 # The app's deployment target; against the bare SDK the model's window
 # capture call is already obsoleted.
 DEPLOYMENT_TARGET=14.0
 mkdir -p "$TMPDIR/lookin-core"
-for source_file in "$LOOKIN_CORE_DIR"/*.m "$LOOKIN_CORE_DIR"/Category/*.m "$LOOKIN_SERVER_BASE_DIR"/*.m; do
+for source_file in "$LOOKIN_CORE_DIR"/*.m "$LOOKIN_CORE_DIR"/Shim/*.m "$LOOKIN_SERVER_BASE_DIR"/*.m; do
+	[ -e "$source_file" ] || continue
 	xcrun clang -c -fobjc-arc -w -DSHOULD_COMPILE_LOOKIN_SERVER=1 \
 		-mmacosx-version-min="$DEPLOYMENT_TARGET" \
-		-I "$LOOKIN_CORE_DIR" -I "$LOOKIN_CORE_DIR/include" -I "$LOOKIN_CORE_DIR/Category" \
+		-I "$LOOKIN_CORE_DIR" -I "$LOOKIN_CORE_DIR/include" \
 		-I "$LOOKIN_SERVER_BASE_DIR" \
 		"$source_file" -o "$TMPDIR/lookin-core/$(basename "$source_file" .m).o"
 done
@@ -76,7 +79,8 @@ swiftc -parse-as-library \
 	-target "$(uname -m)-apple-macos$DEPLOYMENT_TARGET" \
 	-import-objc-header "$TEST_DIR/LKXcodeViewHierarchyConverterTests-Bridging-Header.h" \
 	-Xcc -DSHOULD_COMPILE_LOOKIN_SERVER=1 \
-	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" -Xcc -I"$LOOKIN_CORE_DIR/Category" \
+	-D SHOULD_COMPILE_LOOKIN_SERVER -D LOOKIN_CORE_STANDALONE \
+	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" \
 	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
 	"$SOURCE_DIR/LKXcodeViewHierarchyGzip.swift" \
 	"$SOURCE_DIR/LKXcodeViewHierarchyValue.swift" \
@@ -88,6 +92,7 @@ swiftc -parse-as-library \
 	"$SOURCE_DIR/LKXcodeViewHierarchyAttributeCatalog.swift" \
 	"$SOURCE_DIR/LKXcodeViewHierarchyAttributes.swift" \
 	"$SOURCE_DIR/LKXcodeViewHierarchyConverter.swift" \
+	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
 	"$TEST_DIR/LKXcodeViewHierarchyConverterTests.swift" \
 	"$TMPDIR"/lookin-core/*.o \
 	-framework AppKit -framework QuartzCore \

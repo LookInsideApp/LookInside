@@ -47,7 +47,7 @@ struct LKSuggestionsView: View {
             }
         }
         .padding(14)
-        .onChange(of: report.warnings.map(\.id)) { ids in
+        .onChange(of: report.warnings.map(\.id)) { _, ids in
             if let selectedID, !ids.contains(selectedID) {
                 self.selectedID = nil
             }

@@ -15,7 +15,6 @@ import UIFoundationToolbox
 /// a model this macOS does not declare (hardware newer than the host OS, or a VM).
 @objc(LKDeviceIconProvider)
 final class LKDeviceIconProvider: NSObject {
-
     /// Height of the device icon in the window toolbar, matching the legacy
     /// `icon_*_small` assets (32 pixels at 2x).
     @objc static let toolbarPointSize: CGFloat = 16
@@ -41,7 +40,8 @@ final class LKDeviceIconProvider: NSObject {
     static func deviceIcon(forAppInfo appInfo: LookinAppInfo?, pointSize: CGFloat) -> NSImage? {
         guard let appInfo,
               let modelIdentifier = appInfo.deviceModelIdentifier,
-              modelIdentifier.isEmpty == false else {
+              modelIdentifier.isEmpty == false
+        else {
             return nil
         }
         if appInfo.deviceType == .simulator {
@@ -53,7 +53,8 @@ final class LKDeviceIconProvider: NSObject {
     /// The full-colour CoreTypes icon for a physical device.
     private static func hardwareIcon(forModelIdentifier modelIdentifier: String, pointSize: CGFloat) -> NSImage? {
         guard let icon = NSWorkspace.shared.box.declaredDeviceIcon(forModelIdentifier: modelIdentifier),
-              let resizedIcon = icon.copy() as? NSImage else {
+              let resizedIcon = icon.copy() as? NSImage
+        else {
             return nil
         }
         // Resize a copy: NSWorkspace vends a shared multi-representation icns, and setting
@@ -73,7 +74,8 @@ final class LKDeviceIconProvider: NSObject {
         }
         let symbolConfiguration = NSImage.SymbolConfiguration(pointSize: pointSize, weight: .regular)
         guard let configuredIcon = symbolIcon.withSymbolConfiguration(symbolConfiguration),
-              configuredIcon.size.width > 0, configuredIcon.size.height > 0 else {
+              configuredIcon.size.width > 0, configuredIcon.size.height > 0
+        else {
             return nil
         }
         // Draw the symbol into a square box of exactly `pointSize`, filling the same

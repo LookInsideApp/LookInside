@@ -24,7 +24,8 @@ enum LKDeviceControlWire {
     /// apps.
     static let portNumber: Int32 = 47180
 
-    /// Peertalk frame types. 0 is Peertalk's own end-of-stream marker.
+    /// Frame types. 0 is the frame format's own end-of-stream marker (the
+    /// format is Peertalk's, byte for byte, which the injector still speaks).
     static let requestFrameType: UInt32 = 1
     static let responseFrameType: UInt32 = 2
 }
@@ -79,16 +80,16 @@ enum LKDeviceControlOutcome<Result: Codable & Hashable>: Codable, Hashable {
         if let failureMessage = try container.decodeIfPresent(String.self, forKey: .failureMessage) {
             self = .failed(message: failureMessage)
         } else {
-            self = .succeeded(try container.decode(Result.self, forKey: .result))
+            self = try .succeeded(container.decode(Result.self, forKey: .result))
         }
     }
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
-        case .succeeded(let result):
+        case let .succeeded(result):
             try container.encode(result, forKey: .result)
-        case .failed(let message):
+        case let .failed(message):
             try container.encode(message, forKey: .failureMessage)
         }
     }
@@ -178,7 +179,7 @@ enum LKDeviceControlInjectability: Codable, Hashable {
         case .requiresRootOnTarget:
             self = .requiresRootOnTarget
         case .notInjectable:
-            self = .notInjectable(reason: try container.decode(String.self, forKey: .reason))
+            self = try .notInjectable(reason: container.decode(String.self, forKey: .reason))
         }
     }
 
@@ -189,7 +190,7 @@ enum LKDeviceControlInjectability: Codable, Hashable {
             try container.encode(Kind.injectable, forKey: .kind)
         case .requiresRootOnTarget:
             try container.encode(Kind.requiresRootOnTarget, forKey: .kind)
-        case .notInjectable(let reason):
+        case let .notInjectable(reason):
             try container.encode(Kind.notInjectable, forKey: .kind)
             try container.encode(reason, forKey: .reason)
         }
@@ -212,7 +213,7 @@ enum LKDeviceControlInjectability: Codable, Hashable {
                 "That process runs as root, and the injector on the device does not — it cannot take a root process's task port whatever entitlements it carries.",
                 comment: ""
             )
-        case .notInjectable(let reason):
+        case let .notInjectable(reason):
             reason
         }
     }
@@ -248,13 +249,13 @@ enum LKDeviceControlInjectionResult: Codable, Hashable {
         case .injected:
             self = .injected
         case .taskPortUnavailable:
-            self = .taskPortUnavailable(reason: try container.decode(String.self, forKey: .reason))
+            self = try .taskPortUnavailable(reason: container.decode(String.self, forKey: .reason))
         case .targetRefusedPayload:
-            self = .targetRefusedPayload(reason: try container.decode(String.self, forKey: .reason))
+            self = try .targetRefusedPayload(reason: container.decode(String.self, forKey: .reason))
         case .failed:
-            self = .failed(
-                code: try container.decode(Int.self, forKey: .code),
-                reason: try container.decode(String.self, forKey: .reason)
+            self = try .failed(
+                code: container.decode(Int.self, forKey: .code),
+                reason: container.decode(String.self, forKey: .reason)
             )
         }
     }
@@ -264,13 +265,13 @@ enum LKDeviceControlInjectionResult: Codable, Hashable {
         switch self {
         case .injected:
             try container.encode(Kind.injected, forKey: .kind)
-        case .taskPortUnavailable(let reason):
+        case let .taskPortUnavailable(reason):
             try container.encode(Kind.taskPortUnavailable, forKey: .kind)
             try container.encode(reason, forKey: .reason)
-        case .targetRefusedPayload(let reason):
+        case let .targetRefusedPayload(reason):
             try container.encode(Kind.targetRefusedPayload, forKey: .kind)
             try container.encode(reason, forKey: .reason)
-        case .failed(let code, let reason):
+        case let .failed(code, reason):
             try container.encode(Kind.failed, forKey: .kind)
             try container.encode(code, forKey: .code)
             try container.encode(reason, forKey: .reason)
@@ -287,8 +288,8 @@ enum LKDeviceControlInjectionResult: Codable, Hashable {
     var failureReason: String? {
         switch self {
         case .injected: nil
-        case .taskPortUnavailable(let reason), .targetRefusedPayload(let reason): reason
-        case .failed(_, let reason): reason
+        case let .taskPortUnavailable(reason), let .targetRefusedPayload(reason): reason
+        case let .failed(_, reason): reason
         }
     }
 }

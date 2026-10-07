@@ -109,32 +109,34 @@ extension LKXcodeViewHierarchyValue {
     /// Convenience for the geometry the conversion layer cares about most.
     var doubleValue: Double? {
         switch self {
-        case .number(let value): return value
-        case .integer(let value): return Double(value)
-        case .unsignedInteger(let value): return Double(value)
-        case .boolean(let value): return value ? 1 : 0
+        case let .number(value): return value
+        case let .integer(value): return Double(value)
+        case let .unsignedInteger(value): return Double(value)
+        case let .boolean(value): return value ? 1 : 0
         default: return nil
         }
     }
 
     var boolValue: Bool? {
         switch self {
-        case .boolean(let value): return value
-        case .integer(let value): return value != 0
-        case .unsignedInteger(let value): return value != 0
-        case .number(let value): return value != 0
+        case let .boolean(value): return value
+        case let .integer(value): return value != 0
+        case let .unsignedInteger(value): return value != 0
+        case let .number(value): return value != 0
         default: return nil
         }
     }
 
     var textValue: String? {
-        if case .text(let value) = self { return value }
+        if case let .text(value) = self {
+            return value
+        }
         return nil
     }
 
     /// The `count` doubles of a multi-specifier numeric value (rect, point, transform).
     func numericComponents(expectedCount: Int) -> [Double]? {
-        guard case .list(let elements) = self, elements.count == expectedCount else { return nil }
+        guard case let .list(elements) = self, elements.count == expectedCount else { return nil }
         var components: [Double] = []
         components.reserveCapacity(expectedCount)
         for element in elements {
@@ -175,15 +177,15 @@ enum LKXcodeViewHierarchyValueDecodingError: Error, CustomStringConvertible {
 
     var description: String {
         switch self {
-        case .specifierCountMismatch(let format, let valueCount, let specifierCount):
+        case let .specifierCountMismatch(format, valueCount, specifierCount):
             return "value has \(valueCount) elements but format '\(format)' has \(specifierCount) specifiers"
-        case .multipleSpecifiersOnNonArray(let format):
+        case let .multipleSpecifiersOnNonArray(format):
             return "format '\(format)' has multiple specifiers but the value is not an array"
-        case .unsupportedSpecifier(let specifier):
+        case let .unsupportedSpecifier(specifier):
             return "unsupported format specifier '\(specifier)'"
-        case .malformedScalar(let specifier, let text):
+        case let .malformedScalar(specifier, text):
             return "value '\(text)' is not readable as '\(specifier)'"
-        case .malformedStructure(let specifier):
+        case let .malformedStructure(specifier):
             return "structured value for '\(specifier)' is missing required fields"
         }
     }
@@ -235,7 +237,7 @@ enum LKXcodeViewHierarchyValueDecoder {
         }
         if let elements = jsonValue as? [Any] {
             // A single specifier over an array: decode each element the same way.
-            return .list(try elements.map { try decoding(jsonValue: $0, format: specifier) })
+            return try .list(elements.map { try decoding(jsonValue: $0, format: specifier) })
         }
         if let number = jsonValue as? NSNumber {
             // Defensive: a capture that inlined a JSON number where a hex-float
@@ -294,7 +296,9 @@ enum LKXcodeViewHierarchyValueDecoder {
 
     /// Parses a C99 hexadecimal float, which is how every real number travels.
     static func parsingFloatingPoint(_ text: String) -> Double? {
-        if let value = Double(text) { return value }
+        if let value = Double(text) {
+            return value
+        }
         return text.withCString { pointer -> Double? in
             var endPointer: UnsafeMutablePointer<CChar>?
             let value = strtod(pointer, &endPointer)
@@ -320,10 +324,14 @@ enum LKXcodeViewHierarchyValueDecoder {
         if radix == 16, trimmed.hasPrefix("0x") || trimmed.hasPrefix("0X") {
             trimmed = String(trimmed.dropFirst(2))
         }
-        if let value = UInt64(trimmed, radix: radix) { return value }
+        if let value = UInt64(trimmed, radix: radix) {
+            return value
+        }
         // A negative decimal where an unsigned value was expected is a signed
         // representation of the same bits; keep the bits rather than reject.
-        if let signedValue = Int64(trimmed, radix: radix) { return UInt64(bitPattern: signedValue) }
+        if let signedValue = Int64(trimmed, radix: radix) {
+            return UInt64(bitPattern: signedValue)
+        }
         return nil
     }
 
@@ -419,10 +427,13 @@ enum LKXcodeViewHierarchyValueDecoder {
     }
 
     private static func customTextRepresentation(of jsonValue: Any) -> String {
-        if let text = jsonValue as? String { return text }
+        if let text = jsonValue as? String {
+            return text
+        }
         if JSONSerialization.isValidJSONObject(jsonValue),
            let data = try? JSONSerialization.data(withJSONObject: jsonValue),
-           let text = String(data: data, encoding: .utf8) {
+           let text = String(data: data, encoding: .utf8)
+        {
             return text
         }
         return String(describing: jsonValue)

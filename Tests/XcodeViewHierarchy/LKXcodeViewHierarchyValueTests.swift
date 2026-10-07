@@ -118,7 +118,7 @@ struct LKXcodeViewHierarchyValueTests {
 
     private static func testSignedIntegerIsParsed() {
         let value = decode(jsonValue: "-42", format: "integer")
-        guard case .integer(let number) = value else { fail("integer did not decode") }
+        guard case let .integer(number) = value else { fail("integer did not decode") }
         expect(number == -42, "expected -42, got \(number)")
     }
 
@@ -127,7 +127,7 @@ struct LKXcodeViewHierarchyValueTests {
     /// 1000 travels as "3e8".
     private static func testUnsignedIntegerIsHexadecimal() {
         let value = decode(jsonValue: "3e8", format: "uinteger")
-        guard case .unsignedInteger(let number) = value else { fail("uinteger did not decode") }
+        guard case let .unsignedInteger(number) = value else { fail("uinteger did not decode") }
         expect(number == 1000, "expected 1000 from hex 3e8, got \(number)")
     }
 
@@ -136,14 +136,14 @@ struct LKXcodeViewHierarchyValueTests {
     /// Only digits a-f would have exposed the mistake.
     private static func testUnsignedIntegerHexIsNotReadAsDecimal() {
         let value = decode(jsonValue: "100", format: "uinteger")
-        guard case .unsignedInteger(let number) = value else { fail("uinteger did not decode") }
+        guard case let .unsignedInteger(number) = value else { fail("uinteger did not decode") }
         expect(number == 256, "uinteger '100' is hexadecimal and must be 256, got \(number)")
     }
 
     /// `ui` is the exception: Xcode reads it with `%u`, in decimal.
     private static func testShortUnsignedIntegerIsDecimal() {
         let value = decode(jsonValue: "100", format: "ui")
-        guard case .unsignedInteger(let number) = value else { fail("ui did not decode") }
+        guard case let .unsignedInteger(number) = value else { fail("ui did not decode") }
         expect(number == 100, "ui '100' is decimal and must be 100, got \(number)")
     }
 
@@ -151,7 +151,7 @@ struct LKXcodeViewHierarchyValueTests {
     /// rather than being rejected.
     private static func testUnsignedMaskEncodedAsNegativeIsReinterpreted() {
         let value = decode(jsonValue: "-1", format: "uinteger")
-        guard case .unsignedInteger(let number) = value else { fail("uinteger did not decode") }
+        guard case let .unsignedInteger(number) = value else { fail("uinteger did not decode") }
         expect(number == UInt64.max, "expected UInt64.max, got \(number)")
     }
 
@@ -159,7 +159,7 @@ struct LKXcodeViewHierarchyValueTests {
     /// must not overflow on the full 64-bit range.
     private static func testAllBitsSetUnsignedValueSurvives() {
         let value = decode(jsonValue: "ffffffffffffffff", format: "ul")
-        guard case .unsignedInteger(let number) = value else { fail("ul did not decode") }
+        guard case let .unsignedInteger(number) = value else { fail("ul did not decode") }
         expect(number == UInt64.max, "expected UInt64.max, got \(number)")
     }
 
@@ -171,7 +171,7 @@ struct LKXcodeViewHierarchyValueTests {
     private static func testBase64DataIsDecoded() {
         let payload = Data("hierarchy".utf8)
         let value = decode(jsonValue: payload.base64EncodedString(), format: "public.data")
-        guard case .binaryData(let decoded) = value else { fail("public.data did not decode") }
+        guard case let .binaryData(decoded) = value else { fail("public.data did not decode") }
         expect(decoded == payload, "round-tripped data should match")
     }
 
@@ -182,7 +182,7 @@ struct LKXcodeViewHierarchyValueTests {
             jsonValue: ["className": "NSLayoutConstraint", "memoryAddress": "0x1060b7100"],
             format: "objectInfo"
         )
-        guard case .objectReference(let reference) = value else { fail("objectInfo did not decode") }
+        guard case let .objectReference(reference) = value else { fail("objectInfo did not decode") }
         expect(reference.className == "NSLayoutConstraint", "class name mismatch: \(reference.className)")
         expect(reference.objectIdentifier == "0x1060b7100", "identifier mismatch: \(reference.objectIdentifier)")
     }
@@ -203,7 +203,7 @@ struct LKXcodeViewHierarchyValueTests {
             ] as [String: Any],
             format: "image"
         )
-        guard case .image(let image) = value else { fail("image structure did not decode") }
+        guard case let .image(image) = value else { fail("image structure did not decode") }
         expect(image.encodedData == pixels, "image bytes should round-trip")
         guard let metadata = image.metadata else { fail("image metadata was dropped") }
         expect(metadata.width == 23.5 && metadata.height == 21.0, "image metadata size mismatch")
@@ -215,7 +215,7 @@ struct LKXcodeViewHierarchyValueTests {
     private static func testImageStringFormIsDecoded() {
         let pixels = Data([0x89, 0x50, 0x4E, 0x47])
         let value = decode(jsonValue: pixels.base64EncodedString(), format: "public.png")
-        guard case .image(let image) = value else { fail("public.png did not decode") }
+        guard case let .image(image) = value else { fail("public.png did not decode") }
         expect(image.encodedData == pixels, "image bytes should round-trip")
         expect(image.metadata == nil, "string-form images carry no metadata")
     }
@@ -231,7 +231,7 @@ struct LKXcodeViewHierarchyValueTests {
             ] as [String: Any],
             format: "color"
         )
-        guard case .color(let color) = value else { fail("color did not decode") }
+        guard case let .color(color) = value else { fail("color did not decode") }
         expect(color.colorSpaceName == "kCGColorSpaceSRGB", "colour space mismatch")
         expect(color.components == [0, 0, 0, 1], "components mismatch: \(color.components)")
     }
@@ -250,7 +250,7 @@ struct LKXcodeViewHierarchyValueTests {
             ] as [String: Any],
             format: "font"
         )
-        guard case .font(let font) = value else { fail("font did not decode") }
+        guard case let .font(font) = value else { fail("font did not decode") }
         expect(font.fontName == ".SFUI-Regular", "font name mismatch")
         expect(font.pointSize == 17, "point size should be 17, got \(font.pointSize)")
         expect(font.lineHeight == nil, "absent lineHeight should stay nil")
@@ -260,7 +260,7 @@ struct LKXcodeViewHierarchyValueTests {
 
     private static func testCustomFormatIsPreservedVerbatim() {
         let value = decode(jsonValue: ["a", "b"], format: "custom")
-        guard case .custom(let text) = value else { fail("custom format did not pass through") }
+        guard case let .custom(text) = value else { fail("custom format did not pass through") }
         expect(text.contains("a") && text.contains("b"), "custom payload should be preserved: \(text)")
     }
 
@@ -268,7 +268,7 @@ struct LKXcodeViewHierarchyValueTests {
     /// has never seen. Keeping them as text is what lets the file still open.
     private static func testUnknownStructuredSpecifierIsPreserved() {
         let value = decode(jsonValue: ["something": "new"], format: "materialEffect")
-        guard case .custom(let text) = value else { fail("unknown structure should be preserved as custom") }
+        guard case let .custom(text) = value else { fail("unknown structure should be preserved as custom") }
         expect(text.contains("new"), "unknown structure payload should survive: \(text)")
     }
 

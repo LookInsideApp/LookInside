@@ -234,7 +234,9 @@ final class LKXcodeViewHierarchyObjectGraphBuilder {
 
         // Rule 3: a reference names an object described elsewhere. Recording its
         // identifier (done by the caller) is all it may contribute.
-        if !describesObjectInFull(object) { return }
+        if !describesObjectInFull(object) {
+            return
+        }
 
         if let className = object["className"] as? String {
             node.className = className
@@ -270,7 +272,9 @@ final class LKXcodeViewHierarchyObjectGraphBuilder {
     /// that points at it (`propertyLogicalType`, `propertyVisibility`) and never
     /// a `className`.
     private func describesObjectInFull(_ object: [String: Any]) -> Bool {
-        if object["className"] != nil { return true }
+        if object["className"] != nil {
+            return true
+        }
         if object["childGroup"] != nil || object["additionalGroups"] != nil || object["properties"] != nil {
             return true
         }
@@ -283,7 +287,7 @@ final class LKXcodeViewHierarchyObjectGraphBuilder {
         responseVersion: Int
     ) {
         guard let separatorIndex = keyPath.firstIndex(of: ".") else { return }
-        let objectIdentifier = String(keyPath[keyPath.startIndex..<separatorIndex])
+        let objectIdentifier = String(keyPath[keyPath.startIndex ..< separatorIndex])
         guard !objectIdentifier.isEmpty else { return }
 
         // A property may arrive for an object this build never saw described;
@@ -313,7 +317,9 @@ final class LKXcodeViewHierarchyObjectGraphBuilder {
 
         // Rule from Xcode's reader: a failed or unchanged fetch must not
         // overwrite what an earlier response already established.
-        if fetchStatus.skipsValueApplication, node.properties[propertyName] != nil { return }
+        if fetchStatus.skipsValueApplication, node.properties[propertyName] != nil {
+            return
+        }
 
         let format = description["propertyFormat"] as? String
         var decodedValue = LKXcodeViewHierarchyValue.absent
@@ -383,7 +389,9 @@ final class LKXcodeViewHierarchyObjectGraphBuilder {
     }
 
     private func nodeForIdentifier(_ objectIdentifier: String) -> LKXcodeViewHierarchyNode {
-        if let existing = nodesByIdentifier[objectIdentifier] { return existing }
+        if let existing = nodesByIdentifier[objectIdentifier] {
+            return existing
+        }
         let created = LKXcodeViewHierarchyNode(objectIdentifier: objectIdentifier)
         nodesByIdentifier[objectIdentifier] = created
         return created
