@@ -59,6 +59,7 @@ run_xcode_build() {
 
 run_command "sync derived source" bash Scripts/sync-derived-source.sh
 run_command "gesture capture model tests" bash Scripts/test-gesture-models.sh
+run_command "MCPBridge tests" bash Scripts/test-mcp-bridge.sh
 run_swift_build "swift build" build
 run_xcode_build "LookInside" "Debug"
 

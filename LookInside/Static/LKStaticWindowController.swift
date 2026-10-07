@@ -18,10 +18,22 @@ import UniformTypeIdentifiers
 @objc(LKStaticWindowController)
 @MainActor
 final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @preconcurrency LKStaticAsyncUpdateManagerDelegate {
+    /// Who asked for a hierarchy reload. Recorded when a reload actually
+    /// starts, so an observer of the data source's `didReloadHierarchyInfo`
+    /// can attribute the reload it just saw. Reloads cannot overlap, so the
+    /// value only changes between them.
+    enum ReloadInitiator {
+        /// A person acted in the inspector, or the Host decided to reload.
+        case host
+        /// A client of the local bridge socket asked for it
+        /// (`hierarchy.refresh`); clients use this to ignore their own echo.
+        case agent
+    }
+
     /// The refusals and failures of `reloadHierarchy(completion:)` that this
     /// window raises itself. Errors from the request keep their
     /// `LookinErrorDomain` code.
-    private enum ReloadError {
+    enum ReloadError {
         static let domain = "LKStaticWindowControllerReloadErrorDomain"
 
         /// A hierarchy fetch is already in flight on this window.
@@ -68,6 +80,9 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
             updateAppButton()
         }
     }
+
+    /// Who asked for the most recent reload that actually started.
+    private(set) var lastReloadInitiator: ReloadInitiator = .host
 
     private var toolbarItemsMap: [NSToolbarItem.Identifier: NSToolbarItem] = [:]
     private var gestureDebugWindowController: LKGestureDebugWindowController?
@@ -344,7 +359,10 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     /// the reload domain (this window refused to start or lost the result)
     /// or `LookinErrorDomain` (the app failed the request); a refusal is
     /// reported before this returns.
-    private func reloadHierarchy(completion: @escaping (Result<LookinHierarchyInfo?, NSError>) -> Void) {
+    private func reloadHierarchy(
+        initiator: ReloadInitiator = .host,
+        completion: @escaping (Result<LookinHierarchyInfo?, NSError>) -> Void
+    ) {
         if isFetchingHierarchy {
             completion(.failure(ReloadError.make(
                 ReloadError.alreadyInProgress,
@@ -367,6 +385,9 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
             return
         }
 
+        // Recorded only once the reload starts, so a refused request never
+        // relabels the reload that refused it.
+        lastReloadInitiator = initiator
         isFetchingHierarchy = true
         viewController.progressView.animate(toProgress: InitialIndicatorProgressWhenFetchHierarchy)
         LKPerformanceReporter.sharedInstance().willStartReload()
@@ -407,6 +428,16 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
                     ReloadError.noResponse,
                     NSLocalizedString("The app finished the hierarchy request without returning a hierarchy.", comment: "")
                 )))
+            }
+        }
+    }
+
+    /// `reloadHierarchy(completion:)` for callers outside the UI: no error
+    /// sheet, and the error is thrown instead.
+    func reloadHierarchy(initiator: ReloadInitiator) async throws -> LookinHierarchyInfo? {
+        try await withCheckedThrowingContinuation { continuation in
+            reloadHierarchy(initiator: initiator) { result in
+                continuation.resume(with: result)
             }
         }
     }

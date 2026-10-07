@@ -173,6 +173,26 @@
 				Launch/LKLaunchWindowController.swift,
 				Localizable.xcstrings,
 				LookinArchiveIcon.icns,
+				MCPBridge/LKMCPBridgeAttributeEncoder.swift,
+				MCPBridge/LKMCPBridgeAttributeValueDecoder.swift,
+				MCPBridge/LKMCPBridgeConnection.swift,
+				MCPBridge/LKMCPBridgeDetailsService.swift,
+				MCPBridge/LKMCPBridgeEventPublisher.swift,
+				MCPBridge/LKMCPBridgeFrame.swift,
+				MCPBridge/LKMCPBridgeInspectionModels.swift,
+				MCPBridge/LKMCPBridgeInspectionService.swift,
+				MCPBridge/LKMCPBridgeInvocationService.swift,
+				MCPBridge/LKMCPBridgeListenSocket.swift,
+				MCPBridge/LKMCPBridgeLiveDocumentLookup.swift,
+				MCPBridge/LKMCPBridgeModificationService.swift,
+				MCPBridge/LKMCPBridgeObjectIdentifierList.swift,
+				MCPBridge/LKMCPBridgeRefreshService.swift,
+				MCPBridge/LKMCPBridgeScreenshotService.swift,
+				MCPBridge/LKMCPBridgeSearchQuery.swift,
+				MCPBridge/LKMCPBridgeSearchService.swift,
+				MCPBridge/LKMCPBridgeSecureContentDetector.swift,
+				MCPBridge/LKMCPBridgeSelectorService.swift,
+				MCPBridge/LKMCPBridgeServer.swift,
 				Manager/LKAppMenuManager.swift,
 				Manager/LKHelper.swift,
 				Manager/LKNavigationManager.swift,
@@ -328,6 +348,7 @@
 				AA48F29821CC0CA50032EC2C /* Frameworks */,
 				AA48F29921CC0CA50032EC2C /* Resources */,
 				5005F8FE2FA505DF00C0BB07 /* Embed Injector Daemon */,
+				5005F8FF2FA505DF00C0BB07 /* Embed MCP CLI */,
 			);
 			buildRules = (
 			);
@@ -433,6 +454,34 @@
 				"PREPARE_SCRIPT=\"$SRCROOT/Scripts/prepare-injector-daemon.sh\"",
 				"# Run in a fresh login zsh so xcodebuild env from the host build does not leak",
 				"# into the nested LookInside-Injector build (would crash XCBBuildService).",
+				"# Re-export the host's BUILT_PRODUCTS_DIR / CONTENTS_FOLDER_PATH / CONFIGURATION",
+				"# so the nested zsh can locate the LookInside.app bundle to embed into.",
+				"env -i HOME=\"$HOME\" USER=\"$USER\" TERM=\"${TERM:-dumb}\" \\",
+				"    GITHUB_TOKEN=\"${GITHUB_TOKEN:-}\" \\",
+				"    CONFIGURATION=\"$CONFIGURATION\" \\",
+				"    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\",
+				"    CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\" \\",
+				"    /bin/zsh -lc \"$PREPARE_SCRIPT\"",
+				"",
+			);
+		};
+		5005F8FF2FA505DF00C0BB07 /* Embed MCP CLI */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			name = "Embed MCP CLI";
+			shellPath = /bin/sh;
+			shellScript = (
+				"if [ ! -d \"$SRCROOT/../LookInside-MCP\" ]; then",
+				"    if [ \"$CONFIGURATION\" = \"Release\" ]; then",
+				"        echo \"error: LookInside-MCP not present; Release builds must embed the MCP server binary\"",
+				"        exit 1",
+				"    fi",
+				"    echo \"Skipping Embed MCP CLI: LookInside-MCP not present (not in monorepo checkout)\"",
+				"    exit 0",
+				"fi",
+				"PREPARE_SCRIPT=\"$SRCROOT/Scripts/prepare-mcp-cli.sh\"",
+				"# Run in a fresh login zsh so xcodebuild env from the host build does not leak",
+				"# into the nested SwiftPM build (would crash XCBBuildService).",
 				"# Re-export the host's BUILT_PRODUCTS_DIR / CONTENTS_FOLDER_PATH / CONFIGURATION",
 				"# so the nested zsh can locate the LookInside.app bundle to embed into.",
 				"env -i HOME=\"$HOME\" USER=\"$USER\" TERM=\"${TERM:-dumb}\" \\",

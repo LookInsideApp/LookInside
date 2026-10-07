@@ -55,6 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_: Notification) {
         _ = LKConnectionManager.shared
+        LKMCPBridgeServer.sharedInstance.start()
         // Documents opened during launch (Finder double-click, Open With…)
         // are registered with NSDocumentController by now, so "no documents
         // ⇒ show Launch" covers both cold-start cases.
@@ -176,6 +177,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
         LKSwiftUISupportGatekeeper.sharedInstance().shutdownRuntime()
+        LKMCPBridgeServer.sharedInstance.stop()
 
         // 清理打开 UIImageView 的图片时创建的临时文件
         for path in LKHelper.sharedInstance().tempImageFiles {
