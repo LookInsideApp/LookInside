@@ -38,6 +38,25 @@ jobs:
       - name: Build SwiftPM Products
         run: swift build -c debug --product LookinShared
 
+      - name: Test Gesture Capture Models
+        run: bash Scripts/test-gesture-models.sh
+
+      - name: Test Activation Package
+        working-directory: Packages/LookInsideActivation
+        run: swift test
+
+      - name: Build LookInside
+        run: |
+          xcodebuild \
+            -project LookInside.xcodeproj \
+            -scheme LookInside \
+            -configuration Debug \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
   secret_scan:
     name: Secret Scan
     runs-on: ubuntu-latest
