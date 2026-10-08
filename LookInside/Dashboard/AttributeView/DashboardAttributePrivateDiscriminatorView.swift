@@ -61,26 +61,28 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
     private let idCard = BaseView()
     private let idTitleLabel = TextLabel()
     private let idValueLabel = PrivateDiscriminatorCopyLabel()
-    private var idCopyButton: NSButton!
+    private lazy var idCopyButton = makeCopyButton()
 
     private let moduleCard = BaseView()
     private let moduleTitleLabel = TextLabel()
     private let moduleField = NSTextField()
     private let moduleValueLabel = PrivateDiscriminatorCopyLabel()
-    private var moduleCopyButton: NSButton!
+    private lazy var moduleCopyButton = makeCopyButton()
 
     private let filenameCard = BaseView()
     private let filenameTitleLabel = TextLabel()
     private let filenameField = NSTextField()
     private let filenameValueLabel = PrivateDiscriminatorCopyLabel()
-    private var filenameCopyButton: NSButton!
+    private lazy var filenameCopyButton = makeCopyButton()
 
     private let sourceLabel = TextLabel()
     private let messageLabel = TextLabel()
 
-    private var importButton: NSButton!
-    private var guessButton: NSButton!
-    private var cancelButton: NSButton!
+    // Lazy because their target is self; init touches each of them where it
+    // used to create it.
+    private lazy var importButton = NSButton.normalButton(withTitle: NSLocalizedString("Import from your codebase", comment: ""), target: self, action: #selector(handleImportButton(_:)))
+    private lazy var guessButton = NSButton.normalButton(withTitle: NSLocalizedString("Guess by swift-pd-guess", comment: ""), target: self, action: #selector(handleGuessButton(_:)))
+    private lazy var cancelButton = NSButton.normalButton(withTitle: NSLocalizedString("Cancel", comment: ""), target: self, action: #selector(handleCancelButton(_:)))
 
     private let toastView = BaseView()
     private let toastLabel = TextLabel()
@@ -97,7 +99,6 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         setUpCard(idCard, titleLabel: idTitleLabel, title: NSLocalizedString("ID", comment: ""))
         setUpCopyLabel(idValueLabel, name: NSLocalizedString("ID", comment: ""))
         idValueLabel.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
-        idCopyButton = makeCopyButton()
         idCard.addSubview(idTitleLabel)
         idCard.addSubview(idValueLabel)
         idCard.addSubview(idCopyButton)
@@ -105,7 +106,6 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         setUpCard(moduleCard, titleLabel: moduleTitleLabel, title: NSLocalizedString("Module", comment: ""))
         setUpTextField(moduleField, placeholder: NSLocalizedString("ModuleName", comment: ""))
         setUpCopyLabel(moduleValueLabel, name: NSLocalizedString("Module", comment: ""))
-        moduleCopyButton = makeCopyButton()
         moduleCard.addSubview(moduleTitleLabel)
         moduleCard.addSubview(moduleField)
         moduleCard.addSubview(moduleValueLabel)
@@ -114,7 +114,6 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         setUpCard(filenameCard, titleLabel: filenameTitleLabel, title: NSLocalizedString("Filename", comment: ""))
         setUpTextField(filenameField, placeholder: NSLocalizedString("File.swift", comment: ""))
         setUpCopyLabel(filenameValueLabel, name: NSLocalizedString("Filename", comment: ""))
-        filenameCopyButton = makeCopyButton()
         filenameCard.addSubview(filenameTitleLabel)
         filenameCard.addSubview(filenameField)
         filenameCard.addSubview(filenameValueLabel)
@@ -129,13 +128,10 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         messageLabel.maximumNumberOfLines = 0
         messageLabel.lineBreakMode = .byWordWrapping
 
-        importButton = NSButton.normalButton(withTitle: NSLocalizedString("Import from your codebase", comment: ""), target: self, action: #selector(handleImportButton(_:)))
         importButton.font = DashboardStyle.font(12)
 
-        guessButton = NSButton.normalButton(withTitle: NSLocalizedString("Guess by swift-pd-guess", comment: ""), target: self, action: #selector(handleGuessButton(_:)))
         guessButton.font = DashboardStyle.font(12)
 
-        cancelButton = NSButton.normalButton(withTitle: NSLocalizedString("Cancel", comment: ""), target: self, action: #selector(handleCancelButton(_:)))
         cancelButton.font = DashboardStyle.font(12)
 
         toastView.layer?.cornerRadius = DashboardMetrics.cardControlCornerRadius
@@ -513,9 +509,9 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         super.updateColors()
         let isDarkMode = isDarkMode()
         let iconColor: NSColor = isDarkMode ? .secondaryLabelColor : .tertiaryLabelColor
-        idCopyButton?.contentTintColor = iconColor
-        moduleCopyButton?.contentTintColor = iconColor
-        filenameCopyButton?.contentTintColor = iconColor
+        idCopyButton.contentTintColor = iconColor
+        moduleCopyButton.contentTintColor = iconColor
+        filenameCopyButton.contentTintColor = iconColor
         toastView.backgroundColor = NSColor.controlAccentColor.withAlphaComponent(isDarkMode ? 0.9 : 0.85)
     }
 

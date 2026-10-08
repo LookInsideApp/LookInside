@@ -11,24 +11,24 @@ import AppKit
 @objc(LKHierarchyController)
 @objcMembers
 class HierarchyController: BaseViewController, HierarchyViewDelegate {
-    private(set) var dataSource: HierarchyDataSource!
-    private(set) var hierarchyView: HierarchyView!
+    private(set) var dataSource: HierarchyDataSource
+    private(set) var hierarchyView: HierarchyView
 
-    init!(dataSource: HierarchyDataSource!) {
+    init(dataSource: HierarchyDataSource) {
         let hierarchyView = HierarchyView(dataSource: dataSource)
         self.dataSource = dataSource
         self.hierarchyView = hierarchyView
         super.init(containerView: hierarchyView)
-        hierarchyView?.delegate = self
+        hierarchyView.delegate = self
     }
 
     required init?(coder _: NSCoder) {
         fatalError("HierarchyController is not loaded from archives")
     }
 
-    func currentSelectedRowView() -> NSView! {
+    func currentSelectedRowView() -> NSView? {
         guard let selectedItem = dataSource.selectedItem,
-              let row = dataSource.displayingFlatItems.firstIndex(where: { $0 === selectedItem })
+              let row = (dataSource.displayingFlatItems ?? []).firstIndex(where: { $0 === selectedItem })
         else {
             return nil
         }
@@ -49,12 +49,12 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
     // MARK: - HierarchyViewDelegate
 
     @objc(hierarchyView:didSelectItem:)
-    func hierarchyView(_: HierarchyView!, didSelect item: DisplayItem!) {
+    func hierarchyView(_: HierarchyView, didSelect item: DisplayItem?) {
         dataSource.selectedItem = item
     }
 
     @objc(hierarchyView:didDoubleClickItem:)
-    func hierarchyView(_: HierarchyView!, didDoubleClick item: DisplayItem!) {
+    func hierarchyView(_: HierarchyView, didDoubleClick item: DisplayItem) {
         switch PreferenceManager.shared.doubleClickBehavior {
         case .collapse:
             guard item.isExpandable else {
@@ -74,22 +74,22 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
 
     /// `item` is nil when the mouse leaves the rows.
     @objc(hierarchyView:didHoverAtItem:)
-    func hierarchyView(_: HierarchyView!, didHoverAt item: DisplayItem!) {
+    func hierarchyView(_: HierarchyView, didHoverAt item: DisplayItem?) {
         dataSource.hoveredItem = item
     }
 
     @objc(hierarchyView:needToCollapseItem:)
-    func hierarchyView(_: HierarchyView!, needToCollapse item: DisplayItem!) {
+    func hierarchyView(_: HierarchyView, needToCollapse item: DisplayItem) {
         dataSource.collapse(item)
     }
 
     @objc(hierarchyView:needToCollapseChildrenOfItem:)
-    func hierarchyView(_: HierarchyView!, needToCollapseChildrenOf item: DisplayItem!) {
+    func hierarchyView(_: HierarchyView, needToCollapseChildrenOf item: DisplayItem) {
         dataSource.collapseAllChildren(of: item)
     }
 
     @objc(hierarchyView:needToExpandItem:recursively:)
-    func hierarchyView(_: HierarchyView!, needToExpand item: DisplayItem!, recursively: Bool) {
+    func hierarchyView(_: HierarchyView, needToExpand item: DisplayItem, recursively: Bool) {
         if recursively {
             dataSource.expandItemsRooted(by: item)
         } else {
@@ -98,7 +98,7 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
     }
 
     @objc(hierarchyView:didInputSearchString:)
-    func hierarchyView(_: HierarchyView!, didInputSearch string: String!) {
+    func hierarchyView(_: HierarchyView, didInputSearch string: String?) {
         NSLog("search string:%@", string ?? "(null)")
         if let string, !string.isEmpty {
             dataSource.search(with: string)

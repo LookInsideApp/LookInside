@@ -22,48 +22,51 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     /// The per-document update manager, owned by StaticWindowController.
     @objc private(set) weak var asyncUpdateManager: StaticAsyncUpdateManager?
 
-    @objc private(set) var viewsPreviewController: PreviewController!
+    @objc let viewsPreviewController: PreviewController
 
-    @objc var progressView: ProgressIndicatorView!
+    @objc let progressView = ProgressIndicatorView()
 
     /// Shows or hides the console under the preview. Observable with KVO.
     @objc dynamic var showConsole = false {
         didSet { applyShowConsole() }
     }
 
-    private var mainSplitView: SplitView!
-    private var rightSplitView: SplitView!
-    private var splitTopView: BaseView!
+    private let mainSplitView = SplitView()
+    private let rightSplitView = SplitView()
+    private let splitTopView = BaseView()
 
-    private var imageSyncTipsView: TipsView!
-    private var tooLargeToSyncScreenshotTipsView: RedTipsView!
-    private var userConfigNoPreviewTipsView: TipsView!
-    private var noPreviewTipView: TipsView!
-    private var customViewTipView: TipsView!
-    private var focusTipView: YellowTipsView!
-    private var fastModeTipView: TipsView!
-    private var serverUpgradeTipView: TipsView!
+    private let imageSyncTipsView = TipsView()
+    private let tooLargeToSyncScreenshotTipsView = RedTipsView()
+    private let userConfigNoPreviewTipsView = TipsView()
+    private let noPreviewTipView = TipsView()
+    private let customViewTipView = TipsView()
+    private let focusTipView = YellowTipsView()
+    private let fastModeTipView = TipsView()
+    private let serverUpgradeTipView = TipsView()
 
     /// Read with KVC by the DEBUG UI snapshots.
-    @objc private(set) var dashboardController: DashboardViewController!
-    private var hierarchyController: StaticHierarchyController!
+    @objc let dashboardController: DashboardViewController
+    private let hierarchyController: StaticHierarchyController
     private var consoleController: ConsoleViewController?
-    private var measureController: MeasureController!
+    private let measureController: MeasureController
 
     private var notificationObservers: [NSObjectProtocol] = []
     private var keyValueObservations: [NSKeyValueObservation] = []
     private let dataSourceSignals = SyncSubscriptionBag()
     private var modifyingUpdatesTask: Task<Void, Never>?
 
-    /// Both arguments must be non-nil. The superclass initializer sets the
-    /// view, and setting it builds the children that read them, so they are
-    /// stored first.
+    /// The superclass initializer sets the view, and setting it builds the
+    /// children that read the data source and the update manager, so they
+    /// are stored first, and the child controllers are created here, in the
+    /// order buildContent() used to create them.
     @objc(initWithHierarchyDataSource:asyncUpdateManager:)
-    init(hierarchyDataSource: StaticHierarchyDataSource?, asyncUpdateManager: StaticAsyncUpdateManager?) {
-        assert(hierarchyDataSource != nil && asyncUpdateManager != nil,
-               "StaticViewController requires non-nil per-doc data source and update manager")
+    init(hierarchyDataSource: StaticHierarchyDataSource, asyncUpdateManager: StaticAsyncUpdateManager) {
         self.hierarchyDataSource = hierarchyDataSource
         self.asyncUpdateManager = asyncUpdateManager
+        hierarchyController = StaticHierarchyController(dataSource: hierarchyDataSource)
+        viewsPreviewController = PreviewController(dataSource: hierarchyDataSource)
+        dashboardController = DashboardViewController(staticDataSource: hierarchyDataSource)
+        measureController = MeasureController(dataSource: hierarchyDataSource)
         super.init(containerView: nil)
     }
 
@@ -80,7 +83,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     override func makeContainerView() -> NSView {
-        let splitView = SplitView()
+        let splitView = mainSplitView
         splitView.didFinishFirstLayout = { view in
             let x = min(max(350, view.bounds.size.width * 0.3), 700)
             view.setPosition(x, ofDividerAt: 0)
@@ -89,7 +92,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         splitView.isVertical = true
         splitView.dividerStyle = .thin
         splitView.delegate = self
-        mainSplitView = splitView
         return splitView
     }
 
@@ -111,32 +113,27 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         let preferenceManager = PreferenceManager.shared
         preferenceManager.measureState.subscribe(self, action: #selector(handleMeasureStateChange(_:)), relatedObject: nil)
 
-        // The initializer requires a data source (see its assert).
+        // Set by the initializer, which takes a non-optional data source.
         let dataSource = hierarchyDataSource!
 
-        hierarchyController = StaticHierarchyController(dataSource: dataSource)
         addChild(hierarchyController)
         mainSplitView.addArrangedSubview(hierarchyController.view)
         // Hand the per-document update manager down the owner chain.
         hierarchyController.hierarchyView.asyncUpdateManager = asyncUpdateManager
 
-        rightSplitView = SplitView()
         rightSplitView.arrangesAllSubviews = true
         rightSplitView.isVertical = false
         rightSplitView.dividerStyle = .thin
         rightSplitView.delegate = self
         mainSplitView.addArrangedSubview(rightSplitView)
 
-        splitTopView = BaseView()
         rightSplitView.addArrangedSubview(splitTopView)
 
-        viewsPreviewController = PreviewController(dataSource: dataSource)
         viewsPreviewController.staticViewController = self
         viewsPreviewController.asyncUpdateManager = asyncUpdateManager
         splitTopView.addSubview(viewsPreviewController.view)
         addChild(viewsPreviewController)
 
-        dashboardController = DashboardViewController(staticDataSource: dataSource)
         dashboardController.asyncUpdateManager = asyncUpdateManager
         splitTopView.addSubview(dashboardController.view)
         addChild(dashboardController)
@@ -150,14 +147,12 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
             consoleController?.liveDocument = document
         }
 
-        measureController = MeasureController(dataSource: dataSource)
         measureController.view.isHidden = true
         splitTopView.addSubview(measureController.view)
         addChild(measureController)
 
         buildTips()
 
-        progressView = ProgressIndicatorView()
         view.addSubview(progressView)
 
         observeDataSource(dataSource)
@@ -192,17 +187,14 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     private func buildTips() {
-        imageSyncTipsView = TipsView()
         imageSyncTipsView.isHidden = true
         view.addSubview(imageSyncTipsView)
 
-        tooLargeToSyncScreenshotTipsView = RedTipsView()
         tooLargeToSyncScreenshotTipsView.image = NSImage(named: "icon_info")
         tooLargeToSyncScreenshotTipsView.title = NSLocalizedString("Image is too large to be displayed.", comment: "")
         tooLargeToSyncScreenshotTipsView.isHidden = true
         view.addSubview(tooLargeToSyncScreenshotTipsView)
 
-        focusTipView = YellowTipsView()
         focusTipView.image = NSImage(named: "icon_info")
         focusTipView.title = NSLocalizedString("Currently in focus mode", comment: "")
         focusTipView.isHidden = true
@@ -211,7 +203,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         focusTipView.clickAction = #selector(handleExitFocusTipView)
         view.addSubview(focusTipView)
 
-        fastModeTipView = TipsView()
         fastModeTipView.image = NSImage(named: "Icon_Inspiration_small")
         fastModeTipView.title = NSLocalizedString("Fast refresh mode is enabled, which may result in layer consistency issues.", comment: "")
         fastModeTipView.isHidden = true
@@ -220,7 +211,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         fastModeTipView.clickAction = #selector(handleFastModeTipViewClick)
         view.addSubview(fastModeTipView)
 
-        noPreviewTipView = TipsView()
         noPreviewTipView.image = NSImage(named: "icon_hide")
         noPreviewTipView.title = NSLocalizedString("The screenshot of selected item is not displayed.", comment: "")
         noPreviewTipView.buttonText = NSLocalizedString("Display", comment: "")
@@ -229,7 +219,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         noPreviewTipView.isHidden = true
         view.addSubview(noPreviewTipView)
 
-        customViewTipView = TipsView()
         customViewTipView.image = NSImage(named: "Icon_Inspiration_small")
         // The view class name depends on the inspected app, which is unknown
         // until a hierarchy arrives; handleSelectItemDidChange() refreshes
@@ -241,7 +230,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         customViewTipView.isHidden = true
         view.addSubview(customViewTipView)
 
-        userConfigNoPreviewTipsView = TipsView()
         userConfigNoPreviewTipsView.image = NSImage(named: "icon_hide")
         userConfigNoPreviewTipsView.title = NSLocalizedString("The screenshot is not displayed due to the config in iOS App.", comment: "")
         userConfigNoPreviewTipsView.buttonText = NSLocalizedString("Details", comment: "")
@@ -250,7 +238,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         userConfigNoPreviewTipsView.isHidden = true
         view.addSubview(userConfigNoPreviewTipsView)
 
-        serverUpgradeTipView = TipsView()
         serverUpgradeTipView.image = NSImage(named: "Icon_Inspiration_small")
         serverUpgradeTipView.title = NSLocalizedString("The app's integrator should upgrade LookInside Server.", comment: "Tip shown once per inspected app whose LookInside Server is 0.2.9 or older")
         serverUpgradeTipView.buttonText = NSLocalizedString("OK", comment: "")
@@ -497,7 +484,8 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     @objc private func handleNoPreviewTipView() {
-        hierarchyController.hierarchyView(nil, needToShowPreviewOf: noPreviewTipView.bindingObject as? DisplayItem)
+        guard let item = noPreviewTipView.bindingObject as? DisplayItem else { return }
+        hierarchyController.hierarchyView(hierarchyController.hierarchyView, needToShowPreviewOf: item)
     }
 
     @objc private func handleCustomViewTipsView() {
@@ -596,7 +584,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     private func customViewTipTitle() -> String {
-        let inspectedAppInfo = hierarchyController?.dataSource?.rawHierarchyInfo?.appInfo
+        let inspectedAppInfo = hierarchyController.dataSource.rawHierarchyInfo?.appInfo
         return String(
             format: NSLocalizedString("This object may not be a %@ or CALayer.", comment: ""),
             AppHelper.viewClassName(for: inspectedAppInfo)

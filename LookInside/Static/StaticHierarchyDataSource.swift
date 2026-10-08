@@ -12,7 +12,7 @@ import AppKit
 /// tasks deliver and starts those tasks.
 @objc(LKStaticHierarchyDataSource)
 class StaticHierarchyDataSource: HierarchyDataSource {
-    @objc var appInfo: InspectedAppInfo! {
+    @objc var appInfo: InspectedAppInfo? {
         storedAppInfo
     }
 
@@ -42,13 +42,13 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     // MARK: - Reload
 
     @objc(reloadWithHierarchyInfo:keepState:)
-    override func reload(with info: HierarchyInfo!, keepState: Bool) {
+    override func reload(with info: HierarchyInfo?, keepState: Bool) {
         super.reload(with: info, keepState: keepState)
 
-        storedAppInfo = info.appInfo
+        storedAppInfo = info?.appInfo
 
-        assert((info.appInfo?.screenScale ?? 0) > 0)
-        let screenScale = max(CGFloat(info.appInfo?.screenScale ?? 0), 1)
+        assert(info == nil || (info?.appInfo?.screenScale ?? 0) > 0)
+        let screenScale = max(CGFloat(info?.appInfo?.screenScale ?? 0), 1)
 
         // An SCNNode image is at most 16384 px on each side; keep 100 px
         // clear of that. Pixels, not points.
@@ -77,7 +77,7 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     }
 
     @objc(modifyWithDisplayItemDetail:)
-    func modify(with detail: DisplayItemDetail!) {
+    func modify(with detail: DisplayItemDetail?) {
         guard let detail else {
             return
         }
@@ -185,7 +185,7 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         }
     }
 
-    override func preferenceManager() -> PreferenceManager! {
+    override func preferenceManager() -> PreferenceManager {
         PreferenceManager.shared
     }
 

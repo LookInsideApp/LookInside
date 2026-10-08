@@ -204,13 +204,13 @@ final class DashboardAttributeJSONView: DashboardAttributeView {
 final class JSONAttributeViewController: BaseViewController, TableViewDelegate, TableViewDataSource {
     private static let rowIdentifier = NSUserInterfaceItemIdentifier("myView")
 
-    private var tableView: TableView!
+    private let tableView = TableView()
     private let tree = JSONAttributeTree()
 
     override func makeContainerView() -> NSView {
         let containerView = BaseView()
 
-        let tableView = TableView()
+        let tableView = self.tableView
         tableView.drawsBackground = false
         tableView.delegate = self
         tableView.dataSource = self
@@ -220,7 +220,6 @@ final class JSONAttributeViewController: BaseViewController, TableViewDelegate, 
         tableView.automaticallyAdjustsContentInsets = false
         tableView.contentInsets = NSEdgeInsets(top: 5, left: 0, bottom: 5, right: 0)
         containerView.addSubview(tableView)
-        self.tableView = tableView
 
         return containerView
     }

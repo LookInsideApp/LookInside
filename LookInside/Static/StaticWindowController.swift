@@ -63,15 +63,13 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         case noResponse
     }
 
-    /// Implicitly unwrapped for the Swift callers written against the
-    /// Objective-C header; set before init returns.
-    @objc private(set) var viewController: StaticViewController!
+    @objc let viewController: StaticViewController
 
     /// Per-window hierarchy data source.
-    @objc private(set) var hierarchyDataSource: StaticHierarchyDataSource!
+    @objc let hierarchyDataSource: StaticHierarchyDataSource
 
     /// Per-window async update manager.
-    @objc private(set) var asyncUpdateManager: StaticAsyncUpdateManager!
+    @objc let asyncUpdateManager: StaticAsyncUpdateManager
 
     /// Injected by the owning LiveDocument, which also swaps it when
     /// the app reconnects; every request uses it.
@@ -126,16 +124,20 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         window.center()
         window.setFrameUsingName(windowSizeNameStatic)
 
-        super.init(window: window)
-
-        // Saves this window's frame across launches.
-        windowFrameAutosaveName = windowSizeNameStatic
-
         let dataSource = StaticHierarchyDataSource()
         let updateManager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
         dataSource.asyncUpdateManager = updateManager
         hierarchyDataSource = dataSource
         asyncUpdateManager = updateManager
+        // The view controller builds its view inside its initializer, so the
+        // data source and update manager go in up front.
+        let viewController = StaticViewController(hierarchyDataSource: dataSource, asyncUpdateManager: updateManager)
+        self.viewController = viewController
+
+        super.init(window: window)
+
+        // Saves this window's frame across launches.
+        windowFrameAutosaveName = windowSizeNameStatic
 
         NotificationCenter.default.addObserver(
             self,
@@ -152,10 +154,6 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             relatedObject: nil
         )
 
-        // The view controller builds its view inside its initializer, so the
-        // data source and update manager go in up front.
-        let viewController = StaticViewController(hierarchyDataSource: dataSource, asyncUpdateManager: updateManager)
-        self.viewController = viewController
         window.contentView = viewController.view
         contentViewController = viewController
 

@@ -125,16 +125,9 @@ final class InjectableFrameworkInstaller {
     ///   extracting, signature-verifying and moving the framework into place.
     func ensureInstalled(presentingWindow: NSWindow?) throws -> InjectableFrameworkInstallation {
         if !Thread.isMainThread {
-            var captured: Result<InjectableFrameworkInstallation, Error>!
-            DispatchQueue.main.sync {
-                do {
-                    let installation = try self.ensureInstalled(presentingWindow: presentingWindow)
-                    captured = .success(installation)
-                } catch {
-                    captured = .failure(error)
-                }
+            return try DispatchQueue.main.sync {
+                try self.ensureInstalled(presentingWindow: presentingWindow)
             }
-            return try captured.get()
         }
 
         installLock.lock()
@@ -282,7 +275,7 @@ final class InjectableFrameworkInstaller {
         controller.showWindow(self)
         InstallerLogger.installer.info("runInstallWithModal: progress window shown")
 
-        var captured: Result<InjectableFrameworkInstallation, Error>!
+        var captured: Result<InjectableFrameworkInstallation, Error>?
         let semaphore = DispatchSemaphore(value: 0)
 
         Thread.detachNewThread {
@@ -321,6 +314,10 @@ final class InjectableFrameworkInstaller {
         if waitResult == .timedOut {
             InstallerLogger.installer.error("runInstallWithModal: worker did not signal within 5s after modal stop")
             cancellation.cancel()
+            throw InjectableFrameworkInstallerError.cancelled
+        }
+        // The worker stores a result before it signals.
+        guard let captured else {
             throw InjectableFrameworkInstallerError.cancelled
         }
         return try captured.get()

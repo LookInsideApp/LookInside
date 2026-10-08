@@ -15,11 +15,11 @@ import AppKit
 @objc(LKDashboardViewController)
 final class DashboardViewController: BaseViewController, DashboardCardViewDelegate, DashboardHeaderViewDelegate, DashboardSearchPropertyViewDelegate, DashboardSearchMethodsViewDelegate {
     /// Read by key by the DEBUG UI snapshots.
-    @objc private(set) var scrollView: NSScrollView!
-    private var documentView: BaseView!
-    private var cardContainerView: BaseView!
-    private var searchContainerView: BaseView!
-    private var headerView: DashboardHeaderView!
+    @objc let scrollView = NSScrollView()
+    private let documentView = BaseView()
+    private let cardContainerView = BaseView()
+    private let searchContainerView = BaseView()
+    private let headerView = DashboardHeaderView()
 
     private var groupList: [AttributesGroup] = []
     /// Keyed by `AttributesGroup.uniqueKey`.
@@ -83,9 +83,6 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
     override func makeContainerView() -> NSView {
         let containerView = BaseView()
 
-        documentView = BaseView()
-
-        scrollView = NSScrollView()
         scrollView.drawsBackground = false
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalScroller = false
@@ -93,14 +90,11 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         scrollView.contentView.documentView = documentView
         containerView.addSubview(scrollView)
 
-        headerView = DashboardHeaderView()
         headerView.delegate = self
         documentView.addSubview(headerView)
 
-        cardContainerView = BaseView()
         documentView.addSubview(cardContainerView)
 
-        searchContainerView = BaseView()
         searchContainerView.isHidden = true
         documentView.addSubview(searchContainerView)
 

@@ -15,7 +15,7 @@ final class DashboardAttributeTextView: DashboardAttributeView, NSTextViewDelega
     private let titleLabel = TextLabel()
     private let scrollView: NSScrollView
     private let textView: NSTextView
-    private var jumpButton: NSButton!
+    private lazy var jumpButton = NSButton(image: DashboardStyle.image("Icon_JumpDisclosure") ?? NSImage(), target: self, action: #selector(handleJumpButton(_:)))
 
     private var initialText = ""
 
@@ -41,7 +41,6 @@ final class DashboardAttributeTextView: DashboardAttributeView, NSTextViewDelega
         textView.delegate = self
         addSubview(scrollView)
 
-        jumpButton = NSButton(image: DashboardStyle.image("Icon_JumpDisclosure") ?? NSImage(), target: self, action: #selector(handleJumpButton(_:)))
         jumpButton.bezelStyle = .roundRect
         jumpButton.isBordered = false
         jumpButton.toolTip = NSLocalizedString("Jump in hierarchy", comment: "")

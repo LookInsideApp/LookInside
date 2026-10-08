@@ -152,9 +152,9 @@
         private func documentScenes(_ document: LiveDocument) async throws {
             guard let windowController = document.windowControllers.first as? StaticWindowController,
                   let window = windowController.window,
-                  let viewController = windowController.viewController,
                   let dataSource = document.hierarchyDataSource
             else { throw SnapshotError("the live document has no inspector window") }
+            let viewController = windowController.viewController
             let preferences = PreferenceManager.shared
             quietWindows()
             pinSize(of: window, to: Self.documentContentSize)
@@ -242,9 +242,10 @@
             let readViewController = try await waitFor("the reader to load the file") {
                 (document.windowControllers.first?.contentViewController as? ReadViewController)
             }
-            guard let window = document.windowControllers.first?.window,
-                  let dataSource = readViewController.hierarchyDataSource
-            else { throw SnapshotError("the reader has no window") }
+            guard let window = document.windowControllers.first?.window else {
+                throw SnapshotError("the reader has no window")
+            }
+            let dataSource = readViewController.hierarchyDataSource
             quietWindows()
             pinSize(of: window, to: Self.documentContentSize)
             let nodes = SnapshotNormalizer.collectNodes(roots: dataSource.rawHierarchyInfo?.displayItems ?? [])

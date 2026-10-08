@@ -75,7 +75,7 @@ final class StaticAsyncUpdateManager: NSObject {
     /// With fast mode off: after a reload, fetches the details of every item.
     @objc func updateAll() {
         assert(!PreferenceManager.shared.fastMode.currentBOOLValue)
-        guard inspectableApp != nil, let dataSource, !dataSource.flatItems.isEmpty else {
+        guard inspectableApp != nil, let dataSource, !(dataSource.flatItems ?? []).isEmpty else {
             return
         }
         endUpdating()

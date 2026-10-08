@@ -77,7 +77,7 @@ final class LiveDocument: NSDocument {
 
     // MARK: - NSDocument
 
-    override var displayName: String! {
+    override var displayName: String? {
         get {
             let info = inspectableApp.appInfo
             let appName = info?.appName ?? ""
@@ -205,7 +205,7 @@ final class LiveDocument: NSDocument {
         // here would leave them with nil, so they get the new app too.
         for case let windowController as StaticWindowController in windowControllers {
             windowController.inspectableApp = newApp
-            windowController.asyncUpdateManager?.inspectableApp = newApp
+            windowController.asyncUpdateManager.inspectableApp = newApp
         }
         connectionLossBannerMessage = nil
         reconnectTask = nil

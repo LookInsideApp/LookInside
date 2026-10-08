@@ -64,7 +64,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
 
     private let backgroundEffectView = VisualEffectView()
     private let titleControl = DashboardCardTitleControl()
-    private var detailButton: NSButton!
+    private lazy var detailButton = NSButton(image: DashboardStyle.image("icon_more") ?? NSImage(), target: self, action: #selector(handleClickDetailButton))
     private var relationHelpButton: NSButton?
     private var fadeView: BaseView?
 
@@ -95,7 +95,6 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
         titleControl.addTarget(self, clickAction: #selector(handleClickTitle))
         addSubview(titleControl)
 
-        detailButton = NSButton(image: DashboardStyle.image("icon_more") ?? NSImage(), target: self, action: #selector(handleClickDetailButton))
         detailButton.bezelStyle = .roundRect
         detailButton.isBordered = false
         addSubview(detailButton)

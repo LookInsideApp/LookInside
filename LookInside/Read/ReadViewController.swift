@@ -13,9 +13,7 @@ import AppKit
 /// while the tree is in focus mode.
 @objc(LKReadViewController)
 final class ReadViewController: BaseViewController, NSSplitViewDelegate {
-    /// Implicitly unwrapped as the Objective-C property was; Swift callers
-    /// bind it with `guard let`.
-    @objc var hierarchyDataSource: ReadHierarchyDataSource!
+    @objc let hierarchyDataSource: ReadHierarchyDataSource
 
     private let splitView = SplitView()
     private let hierarchyController: ReadHierarchyController

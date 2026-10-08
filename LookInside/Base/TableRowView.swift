@@ -11,8 +11,8 @@ import AppKit
 @objc(LKTableRowView)
 @objcMembers
 class TableRowView: NSTableRowView {
-    let titleLabel: TextLabel!
-    let subtitleLabel: TextLabel!
+    let titleLabel: TextLabel
+    let subtitleLabel: TextLabel
 
     /// The selection TableView draws. NSTableView's own row selection
     /// (setSelected:) does not change it, but isSelected reports this value.

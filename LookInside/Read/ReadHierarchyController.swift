@@ -30,6 +30,6 @@ final class ReadHierarchyController: HierarchyController {
     }
 
     private func notifyNoPreviewDidChange() {
-        dataSource?.itemDidChangeNoPreview.send()
+        dataSource.itemDidChangeNoPreview.send()
     }
 }

@@ -22,14 +22,14 @@ private final class KeyForwardingTableView: NSTableView {
 @objc(LKTableViewDelegate)
 protocol TableViewDelegate: NSTableViewDelegate {
     @objc(tableView:didSelectRow:)
-    optional func tableView(_ tableView: TableView!, didSelectRow row: Int)
+    optional func tableView(_ tableView: TableView, didSelectRow row: Int)
     @objc(tableView:didHoverAtRow:)
-    optional func tableView(_ tableView: TableView!, didHoverAtRow row: Int)
+    optional func tableView(_ tableView: TableView, didHoverAtRow row: Int)
     @objc(tableView:didDoubleClickAtRow:)
-    optional func tableView(_ tableView: TableView!, didDoubleClickAtRow row: Int)
+    optional func tableView(_ tableView: TableView, didDoubleClickAtRow row: Int)
     /// A click on the blank area below the rows.
     @objc(tableViewDidClickBlankArea:)
-    optional func tableViewDidClickBlankArea(_ tableView: TableView!)
+    optional func tableViewDidClickBlankArea(_ tableView: TableView)
 }
 
 @objc(LKTableViewDataSource)
@@ -37,7 +37,7 @@ protocol TableViewDataSource: NSTableViewDataSource {}
 
 @objc(LKTableView)
 class TableView: NSScrollView {
-    @objc let tableView: NSTableView!
+    @objc let tableView: NSTableView
 
     /// Defaults to true.
     @objc var canScrollHorizontally: Bool = true {

@@ -43,7 +43,7 @@ final class ReadHierarchyDataSource: HierarchyDataSource {
         }
     }
 
-    override func preferenceManager() -> PreferenceManager! {
+    override func preferenceManager() -> PreferenceManager {
         readPreferenceManager
     }
 }

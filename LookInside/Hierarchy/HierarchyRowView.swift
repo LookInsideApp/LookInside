@@ -101,7 +101,7 @@ class HierarchyRowView: OutlineRowView {
         }
     }
 
-    init!(dataSource: HierarchyDataSource!) {
+    init(dataSource: HierarchyDataSource) {
         self.dataSource = dataSource
         super.init(compactUI: false)
     }

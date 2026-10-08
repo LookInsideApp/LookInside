@@ -20,8 +20,8 @@ private let disclosureWidth: CGFloat = 16
 @objc(LKOutlineRowView)
 @objcMembers
 class OutlineRowView: TableRowView {
-    let disclosureButton: NSButton!
-    let imageView: NSImageView!
+    let disclosureButton: NSButton
+    let imageView: NSImageView
 
     var image: NSImage? {
         didSet {
@@ -95,7 +95,7 @@ class OutlineRowView: TableRowView {
             HierarchyFrameLayout(subtitleLabel).sizeToFit().x(titleLabel.frame.maxX + subtitleLeft).verAlign()
             maxX = subtitleLabel.frame.maxX
         }
-        for view: NSView in [disclosureButton!, titleLabel!, subtitleLabel!] where view.hierarchyIsLaidOutVisible {
+        for view: NSView in [disclosureButton, titleLabel, subtitleLabel] where view.hierarchyIsLaidOutVisible {
             HierarchyFrameLayout(view).offsetY(-1)
         }
 

@@ -42,42 +42,42 @@ private final class HierarchyDebouncer {
 
 @objc protocol HierarchyViewDelegate: NSObjectProtocol {
     @objc(hierarchyView:didSelectItem:)
-    func hierarchyView(_ view: HierarchyView!, didSelect item: DisplayItem!)
+    func hierarchyView(_ view: HierarchyView, didSelect item: DisplayItem?)
 
     @objc(hierarchyView:didDoubleClickItem:)
-    func hierarchyView(_ view: HierarchyView!, didDoubleClick item: DisplayItem!)
+    func hierarchyView(_ view: HierarchyView, didDoubleClick item: DisplayItem)
 
     @objc(hierarchyView:didHoverAtItem:)
-    func hierarchyView(_ view: HierarchyView!, didHoverAt item: DisplayItem!)
+    func hierarchyView(_ view: HierarchyView, didHoverAt item: DisplayItem?)
 
     @objc(hierarchyView:needToExpandItem:recursively:)
-    func hierarchyView(_ view: HierarchyView!, needToExpand item: DisplayItem!, recursively: Bool)
+    func hierarchyView(_ view: HierarchyView, needToExpand item: DisplayItem, recursively: Bool)
 
     @objc(hierarchyView:needToCollapseItem:)
-    func hierarchyView(_ view: HierarchyView!, needToCollapse item: DisplayItem!)
+    func hierarchyView(_ view: HierarchyView, needToCollapse item: DisplayItem)
 
     @objc(hierarchyView:needToCollapseChildrenOfItem:)
-    func hierarchyView(_ view: HierarchyView!, needToCollapseChildrenOf item: DisplayItem!)
+    func hierarchyView(_ view: HierarchyView, needToCollapseChildrenOf item: DisplayItem)
 
     /// 在底部的搜索框里输入了文字，string 可能为空字符串或 nil
     /// 当用户通过搜索框的关闭按钮、ESC 等方式手动结束搜索时，该方法同样会被调用，参数是 nil
     @objc(hierarchyView:didInputSearchString:)
-    func hierarchyView(_ view: HierarchyView!, didInputSearch string: String!)
+    func hierarchyView(_ view: HierarchyView, didInputSearch string: String?)
 
     @objc(hierarchyView:needToCancelPreviewOfItem:)
-    optional func hierarchyView(_ view: HierarchyView!, needToCancelPreviewOf item: DisplayItem!)
+    optional func hierarchyView(_ view: HierarchyView, needToCancelPreviewOf item: DisplayItem)
 
     @objc(hierarchyView:needToShowPreviewOfItem:)
-    optional func hierarchyView(_ view: HierarchyView!, needToShowPreviewOf item: DisplayItem!)
+    optional func hierarchyView(_ view: HierarchyView, needToShowPreviewOf item: DisplayItem)
 }
 
 @objc(LKHierarchyView)
 @objcMembers
 class HierarchyView: BaseView {
-    let tableView: TableView!
+    let tableView: TableView
     /// The filter field under the rows. The DEBUG UI snapshots type into it.
-    let searchTextFieldView: TextFieldView!
-    var dataSource: HierarchyDataSource!
+    let searchTextFieldView: TextFieldView
+    var dataSource: HierarchyDataSource
     /// Phase A 引入:由 owner(StaticHierarchyController / StaticViewController 链路)注入的 per-instance update manager(weak)。
     /// 若 nil 则 fallback 到 +sharedInstance,以保留 read-only / archive workspace 的 legacy 行为。
     weak var asyncUpdateManager: StaticAsyncUpdateManager?
@@ -93,7 +93,7 @@ class HierarchyView: BaseView {
     private let searchDebouncer = HierarchyDebouncer(delay: 0.5)
     private let guidesDebouncer = HierarchyDebouncer(delay: 0.75)
 
-    init!(dataSource: HierarchyDataSource!) {
+    init(dataSource: HierarchyDataSource) {
         self.dataSource = dataSource
         tableView = TableView()
         searchTextFieldView = TextFieldView()
@@ -154,7 +154,7 @@ class HierarchyView: BaseView {
     }
 
     @objc(scrollToMakeItemVisible:)
-    func scroll(toMakeItemVisible item: DisplayItem!) {
+    func scroll(toMakeItemVisible item: DisplayItem?) {
         guard let item, let row = displayItems.firstIndex(where: { $0 === item }) else {
             return
         }
@@ -308,7 +308,7 @@ class HierarchyView: BaseView {
 
     // MARK: - Guides
 
-    func updateGuides(withHoveredItem item: DisplayItem!) {
+    func updateGuides(withHoveredItem item: DisplayItem?) {
         guard let item, let rootItem = item.super,
               let rootRow = displayItems.firstIndex(where: { $0 === rootItem })
         else {
@@ -402,11 +402,13 @@ class HierarchyView: BaseView {
     }
 
     @objc fileprivate func handleShowPreview(_ menuItem: NSMenuItem) {
-        delegate?.hierarchyView?(self, needToShowPreviewOf: displayItem(of: menuItem))
+        guard let item = displayItem(of: menuItem) else { return }
+        delegate?.hierarchyView?(self, needToShowPreviewOf: item)
     }
 
     @objc fileprivate func handleCancelPreview(_ menuItem: NSMenuItem) {
-        delegate?.hierarchyView?(self, needToCancelPreviewOf: displayItem(of: menuItem))
+        guard let item = displayItem(of: menuItem) else { return }
+        delegate?.hierarchyView?(self, needToCancelPreviewOf: item)
     }
 
     @objc fileprivate func handleExportScreenshot(_ menuItem: NSMenuItem) {
@@ -422,14 +424,18 @@ class HierarchyView: BaseView {
     }
 
     @objc fileprivate func handleExpandRecursively(_ menuItem: NSMenuItem) {
-        let item = displayItem(of: menuItem)
-        assert(item != nil)
+        guard let item = displayItem(of: menuItem) else {
+            assertionFailure("the menu item carries no display item")
+            return
+        }
         delegate?.hierarchyView(self, needToExpand: item, recursively: true)
     }
 
     @objc fileprivate func handleCollapseChildren(_ menuItem: NSMenuItem) {
-        let item = displayItem(of: menuItem)
-        assert(item != nil)
+        guard let item = displayItem(of: menuItem) else {
+            assertionFailure("the menu item carries no display item")
+            return
+        }
         delegate?.hierarchyView(self, needToCollapseChildrenOf: item)
     }
 
@@ -456,7 +462,7 @@ class HierarchyView: BaseView {
 // MARK: - TableViewDataSource / TableViewDelegate
 
 extension HierarchyView: TableViewDataSource, TableViewDelegate {
-    func tableView(_: TableView!, didHoverAtRow row: Int) {
+    func tableView(_: TableView, didHoverAtRow row: Int) {
         // nil when the mouse is not over a row.
         delegate?.hierarchyView(self, didHoverAt: item(atRow: row))
     }
@@ -495,7 +501,7 @@ extension HierarchyView: TableViewDataSource, TableViewDelegate {
         return rowView
     }
 
-    func tableView(_: TableView!, didSelectRow row: Int) {
+    func tableView(_: TableView, didSelectRow row: Int) {
         guard let item = item(atRow: row) else {
             return
         }
@@ -505,7 +511,7 @@ extension HierarchyView: TableViewDataSource, TableViewDelegate {
         }
     }
 
-    func tableView(_: TableView!, didDoubleClickAtRow row: Int) {
+    func tableView(_: TableView, didDoubleClickAtRow row: Int) {
         guard let item = item(atRow: row) else {
             return
         }

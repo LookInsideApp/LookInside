@@ -19,13 +19,15 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
 
     private let dataSource: HierarchyDataSource?
     private let previewView: PreviewView
-    /// Made by makeContainerView() during the superclass initializer.
-    private var stageView: PreviewStageView!
+    /// Configured by makeContainerView() during the superclass initializer.
+    private let stageView = PreviewStageView()
 
-    private var panRecognizer: PreviewPanGestureRecognizer!
-    private var clickRecognizer: NSClickGestureRecognizer!
-    private var doubleClickRecognizer: NSClickGestureRecognizer!
-    private var rightClickRecognizer: NSClickGestureRecognizer!
+    // Lazy because their target is self; they are first touched where they
+    // used to be created.
+    private lazy var panRecognizer = PreviewPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
+    private lazy var clickRecognizer = NSClickGestureRecognizer(target: self, action: #selector(handleClickGesture(_:)))
+    private lazy var doubleClickRecognizer = NSClickGestureRecognizer(target: self, action: #selector(handleDoubleClick(_:)))
+    private lazy var rightClickRecognizer = NSClickGestureRecognizer(target: self, action: #selector(handleRightClick(_:)))
 
     private let rightClickMenu = NSMenu()
     private var rightClickingDisplayItem: DisplayItem?
@@ -95,14 +97,13 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
     }
 
     override func makeContainerView() -> NSView {
-        let stageView = PreviewStageView()
+        let stageView = self.stageView
         stageView.didChangeAppearanceBlock = { view, isDarkMode in
             view?.backgroundColor = isDarkMode
                 ? NSColor(red: 0, green: 0, blue: 0, alpha: 1)
                 : NSColor(red: 1, green: 1, blue: 1, alpha: 1)
         }
         stageView.delegate = self
-        self.stageView = stageView
         return stageView
     }
 
@@ -157,20 +158,16 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
             }
         }
 
-        panRecognizer = PreviewPanGestureRecognizer(target: self, action: #selector(handlePanGesture(_:)))
         panRecognizer.delegate = self
         previewView.addGestureRecognizer(panRecognizer)
 
-        clickRecognizer = NSClickGestureRecognizer(target: self, action: #selector(handleClickGesture(_:)))
         clickRecognizer.numberOfClicksRequired = 1
         clickRecognizer.delegate = self
         previewView.addGestureRecognizer(clickRecognizer)
 
-        doubleClickRecognizer = NSClickGestureRecognizer(target: self, action: #selector(handleDoubleClick(_:)))
         doubleClickRecognizer.numberOfClicksRequired = 2
         previewView.addGestureRecognizer(doubleClickRecognizer)
 
-        rightClickRecognizer = NSClickGestureRecognizer(target: self, action: #selector(handleRightClick(_:)))
         rightClickRecognizer.buttonMask = 0x2
         rightClickRecognizer.numberOfClicksRequired = 1
         previewView.addGestureRecognizer(rightClickRecognizer)
