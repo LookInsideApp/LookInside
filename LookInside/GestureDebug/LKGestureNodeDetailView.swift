@@ -28,8 +28,8 @@ struct LKGestureNodeDetailView: View {
                     if let kind = shape.kind {
                         field("Reconstructed shape", kind)
                         Text(kind == "capsule"
-                            ? "Reconstructed from the logged type and bounds using Capsule's default style. The log omits the configured corner style."
-                            : "Reconstructed from the logged shape type and bounds. Transforms and touch hit-testing tolerance can affect the actual accepted area.")
+                            ? LocalizedStringKey("Reconstructed from the logged type and bounds using Capsule's default style. The log omits the configured corner style.")
+                            : LocalizedStringKey("Reconstructed from the logged shape type and bounds. Transforms and touch hit-testing tolerance can affect the actual accepted area."))
                             .font(.caption).foregroundStyle(.secondary)
                         Text("Nested interaction shapes use dashed bounds when their combined path is unavailable.")
                             .font(.caption).foregroundStyle(.secondary)
@@ -40,7 +40,7 @@ struct LKGestureNodeDetailView: View {
                 }
                 if let address = node.address {
                     let events = snapshot.bindings.filter { $0.responderAddresses.contains(address) }.map(\.eventID)
-                    field("Observed bindings", events.isEmpty ? "None reported" : events.joined(separator: "\n"))
+                    field("Observed bindings", events.isEmpty ? NSLocalizedString("None reported", comment: "") : events.joined(separator: "\n"))
                 }
                 if !node.detail.isEmpty {
                     field("Properties", node.detail)
@@ -53,7 +53,7 @@ struct LKGestureNodeDetailView: View {
         }
     }
 
-    private func field(_ title: String, _ value: String) -> some View {
+    private func field(_ title: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(title).font(.caption).foregroundStyle(.secondary)
             Text(value).font(.system(.callout, design: .monospaced)).fixedSize(horizontal: false, vertical: true)
@@ -61,6 +61,6 @@ struct LKGestureNodeDetailView: View {
     }
 
     private func number(_ value: Double?) -> String {
-        value.map { $0.formatted(.number.precision(.fractionLength(0 ... 3))) } ?? "not reported"
+        value.map { $0.formatted(.number.precision(.fractionLength(0 ... 3))) } ?? NSLocalizedString("Not reported", comment: "")
     }
 }

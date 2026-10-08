@@ -21,8 +21,8 @@ struct LKSuggestionsView: View {
                 .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
             if report.warnings.isEmpty {
                 Text(report.inspectedCount == 0
-                    ? "No interaction regions are currently available for this check."
-                    : "No small targets found in the inspected regions.")
+                    ? LocalizedStringKey("No interaction regions are currently available for this check.")
+                    : LocalizedStringKey("No small targets found in the inspected regions."))
                     .foregroundStyle(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 HSplitView {
@@ -70,7 +70,7 @@ struct LKSuggestionsView: View {
                     Text("These bounds may differ from the effective hit target. Check custom hit testing before changing the control.")
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("Measured from the reported \(warning.target.shapeKind ?? "interaction") content shape and its bounds.")
+                    Text("Measured from the reported \(warning.target.shapeKind ?? NSLocalizedString("interaction", comment: "")) content shape and its bounds.")
                         .foregroundStyle(.secondary)
                 }
                 Text("For SwiftUI, apply padding before the interaction contentShape / gesture. Padding outside a Button may only change layout.")

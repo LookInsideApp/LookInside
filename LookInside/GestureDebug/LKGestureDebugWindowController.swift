@@ -18,7 +18,7 @@ final class LKGestureDebugWindowController: NSWindowController, NSWindowDelegate
         )
         super.init(window: window)
         inspectionOwner = owner
-        window.title = "Gesture Debug"
+        window.title = NSLocalizedString("Gesture Debug", comment: "")
         window.minSize = NSSize(width: 880, height: 540)
         window.isReleasedWhenClosed = false
         window.delegate = self
@@ -64,7 +64,7 @@ final class LKGestureDebugWindowController: NSWindowController, NSWindowDelegate
             do {
                 try session.archiveData().write(to: url, options: .atomic)
             } catch {
-                session.message = "Export failed: \(error.localizedDescription)"
+                session.message = String(format: NSLocalizedString("Export failed: %@", comment: ""), error.localizedDescription)
             }
         }
     }

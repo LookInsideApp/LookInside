@@ -28,11 +28,11 @@ struct ActivationFormView: View {
                 } else {
                     VStack(alignment: .leading, spacing: 8) {
                         LabeledRow(label: "Email") {
-                            TextField("you@example.com", text: $model.email)
+                            TextField(String("you@example.com"), text: $model.email)
                                 .lineLimit(1)
                         }
                         LabeledRow(label: "License Key") {
-                            TextField("XXXXX-XXXXX-XXXXX-XXXXX-XXXXX", text: $model.licenseKey)
+                            TextField(String("XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"), text: $model.licenseKey)
                                 .font(.system(.body, design: .monospaced))
                                 .lineLimit(1)
                         }

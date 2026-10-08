@@ -856,7 +856,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     /// sheet: a modal sheet would block switching the segmented control
     /// again until dismissed.
     private func showSelectionMigratedToast(for item: LookinDisplayItem) {
-        let typeName = item.customInfo?.title ?? "SwiftUI item"
+        let typeName = item.customInfo?.title ?? NSLocalizedString("SwiftUI item", comment: "Fallback name of a SwiftUI node in the selection-moved toast")
         let message = String(
             format: NSLocalizedString(
                 "Selection moved to %@ (modifiers folded in compact mode).",

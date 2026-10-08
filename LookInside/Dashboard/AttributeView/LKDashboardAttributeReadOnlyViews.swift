@@ -49,7 +49,7 @@ final class LKDashboardAttributeRowsCountView: LKDashboardAttributeView {
             inputViews.append(view)
         }
         for (idx, view) in inputViews.enumerated() {
-            view.title = "Section \(idx)"
+            view.title = String(format: NSLocalizedString("Section %lld", comment: ""), idx)
             view.textFieldView.textField.stringValue = "\(numbers[idx])"
         }
         needsLayout = true

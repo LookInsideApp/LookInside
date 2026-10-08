@@ -122,7 +122,7 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
         let isGesture = eventHandler.handlerType == .gesture
         var texts: [LookinStringTwoTuple] = []
         if isGesture {
-            texts.append(LookinStringTwoTuple(first: "Enabled", second: ""))
+            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Enabled", comment: ""), second: ""))
             if editable {
                 let button = NSButton()
                 button.setButtonType(.switch)
@@ -133,9 +133,9 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
                 renderRecognizerEnabledButton()
                 contentView.add(button, at: 0)
             } else {
-                texts.append(LookinStringTwoTuple(first: "Enabled", second: eventHandler.gestureRecognizerIsEnabled ? "YES" : "NO"))
+                texts.append(LookinStringTwoTuple(first: NSLocalizedString("Enabled", comment: ""), second: eventHandler.gestureRecognizerIsEnabled ? "YES" : "NO"))
             }
-            texts.append(LookinStringTwoTuple(first: "Delegate", second: eventHandler.gestureRecognizerDelegator ?? "nil"))
+            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Delegate", comment: ""), second: eventHandler.gestureRecognizerDelegator ?? "nil"))
             // Gesture recognizer names are long; use a smaller title.
             titleLabel.font = .boldSystemFont(ofSize: 12)
         } else {
@@ -145,15 +145,15 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
         let targetActions = eventHandler.targetActions ?? []
         switch targetActions.count {
         case 0:
-            texts.append(LookinStringTwoTuple(first: "Target", second: "nil"))
-            texts.append(LookinStringTwoTuple(first: "Action", second: "NULL"))
+            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Target", comment: ""), second: "nil"))
+            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Action", comment: ""), second: "NULL"))
         case 1:
-            texts.append(LookinStringTwoTuple(first: "Target", second: targetActions[0].first))
-            texts.append(LookinStringTwoTuple(first: "Action", second: targetActions[0].second))
+            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Target", comment: ""), second: targetActions[0].first))
+            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Action", comment: ""), second: targetActions[0].second))
         default:
             for (index, tuple) in targetActions.enumerated() {
-                texts.append(LookinStringTwoTuple(first: "Target \(index + 1)", second: tuple.first))
-                texts.append(LookinStringTwoTuple(first: "Action \(index + 1)", second: tuple.second))
+                texts.append(LookinStringTwoTuple(first: String(format: NSLocalizedString("Target %lld", comment: ""), index + 1), second: tuple.first))
+                texts.append(LookinStringTwoTuple(first: String(format: NSLocalizedString("Action %lld", comment: ""), index + 1), second: tuple.second))
             }
         }
         contentView.texts = texts

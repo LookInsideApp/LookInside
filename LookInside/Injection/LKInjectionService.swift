@@ -40,7 +40,7 @@ enum LKInjectionServiceError: LocalizedError {
         case let .unsupportedDaemonStatus(rawValue):
             return String(
                 format: NSLocalizedString("The LookInside Injector daemon returned an unsupported status (%d).", comment: ""),
-                rawValue
+                Int32(truncatingIfNeeded: rawValue)
             )
         case let .daemonNotEnabled(status):
             return String(

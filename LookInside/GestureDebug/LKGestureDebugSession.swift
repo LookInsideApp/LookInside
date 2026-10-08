@@ -9,7 +9,7 @@ final class LKGestureDebugSession: ObservableObject {
     @Published private(set) var isRunning = false
     @Published private(set) var isStarting = false
     @Published private(set) var state = "stopped"
-    @Published var message = "Start capture, then interact with a SwiftUI gesture in the target app."
+    @Published var message = NSLocalizedString("Start capture, then interact with a SwiftUI gesture in the target app.", comment: "")
     @Published private(set) var recordCount = 0
     @Published private(set) var redactedCount = 0
     @Published private(set) var droppedCount = 0
@@ -24,7 +24,7 @@ final class LKGestureDebugSession: ObservableObject {
     @Published private(set) var suggestions = LKSuggestionReport()
     @Published private(set) var suggestionPlatform = LKSuggestionPlatform.unsupported
     private var lastInteractions: LKInteractionSnapshot?
-    @Published private(set) var appName = "No target"
+    @Published private(set) var appName = NSLocalizedString("No target", comment: "")
     @Published private(set) var supported = false
 
     private var app: LKInspectableApp?
@@ -57,7 +57,7 @@ final class LKGestureDebugSession: ObservableObject {
             for await ended in endedChannels {
                 guard let self, channel === ended else { continue }
                 stop()
-                message = "The target disconnected. Reconnect it, then start a new capture."
+                message = NSLocalizedString("The target disconnected. Reconnect it, then start a new capture.", comment: "")
                 state = "disconnected"
                 supported = false
             }
@@ -69,7 +69,7 @@ final class LKGestureDebugSession: ObservableObject {
         stop()
         self.app = app
         channel = app?.channel
-        appName = app?.appInfo?.appName ?? "No target"
+        appName = app?.appInfo?.appName ?? NSLocalizedString("No target", comment: "")
         if let info = app?.appInfo {
             suggestionPlatform = .resolve(deviceType: info.deviceType.rawValue, model: info.deviceModelIdentifier ?? "",
                                           deviceName: info.deviceDescription ?? "", os: info.osDescription ?? "")
@@ -84,8 +84,8 @@ final class LKGestureDebugSession: ObservableObject {
         selectedSnapshotID = nil
         selectedNodeID = nil
         message = supported
-            ? "Start capture, then interact with a SwiftUI gesture in the target app."
-            : "This target needs a Server with Gesture Debug support (iOS 16+ or macOS 13+)."
+            ? NSLocalizedString("Start capture, then interact with a SwiftUI gesture in the target app.", comment: "")
+            : NSLocalizedString("This target needs a Server with Gesture Debug support (iOS 16+ or macOS 13+).", comment: "")
     }
 
     func start(window: NSWindow?) {
@@ -110,7 +110,7 @@ final class LKGestureDebugSession: ObservableObject {
         followsLatest = true
         isStarting = true
         state = "starting"
-        message = "Starting gesture capture…"
+        message = NSLocalizedString("Starting gesture capture…", comment: "")
         startTask = Task { [weak self] in
             do {
                 let response = try await app.controlGestureDebug(["command": "start", "sessionID": token, "overlay": self?.overlayEnabled ?? true])
@@ -118,7 +118,7 @@ final class LKGestureDebugSession: ObservableObject {
                 state = response["state"] as? String ?? "waiting"
                 isStarting = state == "starting"
                 isRunning = !isStarting
-                message = isStarting ? "Preparing the system log store…" : "Waiting for SwiftUI events. Interact with the target app."
+                message = isStarting ? NSLocalizedString("Preparing the system log store…", comment: "") : NSLocalizedString("Waiting for SwiftUI events. Interact with the target app.", comment: "")
             } catch {
                 guard let self, sessionID == token else { return }
                 stop()
@@ -140,7 +140,7 @@ final class LKGestureDebugSession: ObservableObject {
         state = "stopped"
         suggestions.replace(with: nil, platform: suggestionPlatform, isCapturing: false)
         if token != nil {
-            message = "Capture stopped. Recorded events remain available."
+            message = NSLocalizedString("Capture stopped. Recorded events remain available.", comment: "")
         }
         guard let token, let app else { return }
         // The stop request must outlive the panel that initiated it.
@@ -149,7 +149,7 @@ final class LKGestureDebugSession: ObservableObject {
                 _ = try await app.controlGestureDebug(["command": "stop", "sessionID": token])
             } catch {
                 if self?.sessionID == nil, self?.channel === app.channel {
-                    self?.message = "Could not confirm capture stopped: \(error.localizedDescription). Disconnect the target to end capture."
+                    self?.message = String(format: NSLocalizedString("Could not confirm capture stopped: %@. Disconnect the target to end capture.", comment: ""), error.localizedDescription)
                 }
             }
         }
@@ -231,7 +231,7 @@ final class LKGestureDebugSession: ObservableObject {
             if isRunning || isStarting {
                 lastInteractions = batch.interactions
             }
-            message = gap ? "A capture batch was lost. Some event details may be incomplete." : batch.message
+            message = gap ? NSLocalizedString("A capture batch was lost. Some event details may be incomplete.", comment: "") : batch.message
             if batch.state == "stopped" || batch.state == "error" {
                 isRunning = false
                 isStarting = false
@@ -256,7 +256,7 @@ final class LKGestureDebugSession: ObservableObject {
             }
         } catch {
             suggestions.replace(with: nil, platform: suggestionPlatform, isCapturing: isRunning || isStarting)
-            message = "Could not decode the target's gesture capture: \(error.localizedDescription)"
+            message = String(format: NSLocalizedString("Could not decode the target's gesture capture: %@", comment: ""), error.localizedDescription)
             state = "error"
         }
     }

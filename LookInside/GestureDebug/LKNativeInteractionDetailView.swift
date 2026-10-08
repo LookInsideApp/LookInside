@@ -15,7 +15,7 @@ struct LKNativeInteractionDetailView: View {
                 .font(.caption).foregroundStyle(.secondary).padding(.horizontal, 12).padding(.bottom, 12)
             Divider()
             if regions.isEmpty {
-                Text(isRunning ? "No supported native interactions on this page. Native collection currently supports UIKit." : "Start capture to inspect native regions.")
+                Text(isRunning ? LocalizedStringKey("No supported native interactions on this page. Native collection currently supports UIKit.") : LocalizedStringKey("Start capture to inspect native regions."))
                     .foregroundStyle(.secondary).padding()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -28,7 +28,13 @@ struct LKNativeInteractionDetailView: View {
                                     Text("Active").foregroundStyle(.green)
                                 }
                             }
-                            Text(region.source == "listSelection" ? "List selection" : "UIControl")
+                            Group {
+                                if region.source == "listSelection" {
+                                    Text("List selection")
+                                } else {
+                                    Text(verbatim: "UIControl")
+                                }
+                            }
                                 .font(.caption).foregroundStyle(.secondary)
                             Text(region.viewAddress).font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
                         }.padding(.vertical, 3).tag(region.id)
@@ -55,14 +61,22 @@ struct LKNativeInteractionDetailView: View {
                 field("View", region.viewClass)
                 field("Address", region.viewAddress)
                 field("Window", region.windowAddress)
-                field("State", region.isActive ? "Tracking / highlighted" : "Idle")
-                field("Geometry", region.geometryKind == "swiftUIContentShape" ? "SwiftUI content shape on native control" : "View bounds (hit-test approximation)")
+                field("State", region.isActive ? NSLocalizedString("Tracking / highlighted", comment: "") : NSLocalizedString("Idle", comment: ""))
+                field("Geometry", region.geometryKind == "swiftUIContentShape" ? NSLocalizedString("SwiftUI content shape on native control", comment: "") : NSLocalizedString("View bounds (hit-test approximation)", comment: ""))
                 if let x = region.geometry.x, let y = region.geometry.y, let width = region.geometry.width, let height = region.geometry.height {
                     field("Window coordinates", String(format: "(%.1f, %.1f) · %.1f × %.1f", x, y, width, height))
                 }
                 ForEach(Array(region.handlers.enumerated()), id: \.offset) { _, handler in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(handler.kind == "uiAction" ? "UIAction" : (handler.kind == "listSelection" ? "List selection callback" : "Target-action"))
+                        Group {
+                            if handler.kind == "uiAction" {
+                                Text(verbatim: "UIAction")
+                            } else if handler.kind == "listSelection" {
+                                Text("List selection callback")
+                            } else {
+                                Text("Target-action")
+                            }
+                        }
                             .font(.caption).foregroundStyle(.secondary)
                         Text(handler.name).font(.system(.callout, design: .monospaced))
                         if let target = handler.target {
@@ -77,7 +91,7 @@ struct LKNativeInteractionDetailView: View {
         }
     }
 
-    private func field(_ title: String, _ value: String) -> some View {
+    private func field(_ title: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title).font(.caption).foregroundStyle(.secondary)
             Text(value).font(.system(.callout, design: .monospaced))

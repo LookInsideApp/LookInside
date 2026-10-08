@@ -111,7 +111,7 @@ final class LKDashboardAttributeEnumsView: LKDashboardAttributeView {
             let validOSVersion = currentOSVersion >= enumItem.availableOSVersion
             let item = NSMenuItem()
             item.image = NSImage(size: NSSize(width: 1, height: 22))
-            item.title = validOSVersion ? enumItem.desc : "\(enumItem.desc) (iOS \(enumItem.availableOSVersion))"
+            item.title = validOSVersion ? enumItem.desc : String(format: NSLocalizedString("%1$@ (iOS %2$lld)", comment: ""), enumItem.desc, enumItem.availableOSVersion)
             item.representedObject = NSNumber(value: enumItem.value)
             item.isEnabled = editable && validOSVersion
             item.target = self

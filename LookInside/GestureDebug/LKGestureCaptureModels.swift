@@ -77,7 +77,7 @@ struct LKGestureCaptureSnapshot: Codable, Identifiable {
     var warnings: [String]
 
     var title: String {
-        gestures.first?.typeName ?? responders.first?.typeName ?? "Event"
+        gestures.first?.typeName ?? responders.first?.typeName ?? NSLocalizedString("Event", comment: "")
     }
 }
 

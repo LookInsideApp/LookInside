@@ -15,25 +15,25 @@ public enum AuthenticatorError: Error, Equatable, LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .challengeExpired:
-            return "The client challenge is outside the accepted time window."
+            return String(localized: "The client challenge is outside the accepted time window.", bundle: .module)
         case .challengeIssuedInFuture:
-            return "The client challenge time is ahead of the accepted clock skew."
+            return String(localized: "The client challenge time is ahead of the accepted clock skew.", bundle: .module)
         case .replayDetected:
-            return "The challenge nonce has already been used."
+            return String(localized: "The challenge nonce has already been used.", bundle: .module)
         case .licenseExpired:
-            return "The license is outside its validity window."
+            return String(localized: "The license is outside its validity window.", bundle: .module)
         case .intermediateCertificateExpired:
-            return "The intermediate certificate has expired."
+            return String(localized: "The intermediate certificate has expired.", bundle: .module)
         case .intermediateCertificateNotYetValid:
-            return "The intermediate certificate is not yet valid."
+            return String(localized: "The intermediate certificate is not yet valid.", bundle: .module)
         case .secureTimestampProviderUnavailable:
-            return "A secure timestamp provider is required for this activation path."
+            return String(localized: "A secure timestamp provider is required for this activation path.", bundle: .module)
         case .secureTimestampExpired:
-            return "The secure timestamp is outside the accepted time window."
+            return String(localized: "The secure timestamp is outside the accepted time window.", bundle: .module)
         case .secureTimestampRootMismatch:
-            return "The secure timestamp root certificate does not match the trusted root."
+            return String(localized: "The secure timestamp root certificate does not match the trusted root.", bundle: .module)
         case .secureTimestampNonceMismatch:
-            return "The secure timestamp does not match the challenge nonce."
+            return String(localized: "The secure timestamp does not match the challenge nonce.", bundle: .module)
         }
     }
 }

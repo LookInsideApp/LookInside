@@ -160,13 +160,13 @@ final class LKMeasureController: LKBaseViewController {
         let hoveredFrame = hoveredItem.calculateFrameToRoot()
         let invalid: (item: LookinDisplayItem, property: String)? =
             if selectedFrame.width <= 0 {
-                (selectedItem, "width")
+                (selectedItem, NSLocalizedString("width", comment: ""))
             } else if selectedFrame.height <= 0 {
-                (selectedItem, "height")
+                (selectedItem, NSLocalizedString("height", comment: ""))
             } else if hoveredFrame.width <= 0 {
-                (hoveredItem, "width")
+                (hoveredItem, NSLocalizedString("width", comment: ""))
             } else if hoveredFrame.height <= 0 {
-                (hoveredItem, "height")
+                (hoveredItem, NSLocalizedString("height", comment: ""))
             } else {
                 nil
             }

@@ -45,11 +45,11 @@ enum LKXcodeViewHierarchyBundleReadingError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case let .notADirectory(url):
-            return "\(url.lastPathComponent) is not a view hierarchy package"
+            return String(format: NSLocalizedString("%@ is not a view hierarchy package.", comment: ""), url.lastPathComponent)
         case let .missingResponses(url):
-            return "\(url.lastPathComponent) has no RequestResponses directory"
+            return String(format: NSLocalizedString("%@ has no capture data.", comment: ""), url.lastPathComponent)
         case let .noUsableResponses(url):
-            return "\(url.lastPathComponent) contains no readable capture responses"
+            return String(format: NSLocalizedString("%@ contains no readable captures.", comment: ""), url.lastPathComponent)
         }
     }
 }

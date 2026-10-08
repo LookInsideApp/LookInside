@@ -98,13 +98,20 @@ final class LKAboutViewController: LKBaseViewController {
         let dotVersion = info?["CFBundleShortVersionString"] as? String ?? "(null)"
         let numberVersion = info?["CFBundleVersion"] as? String ?? "(null)"
         let versionLabel = LKLabel()
-        versionLabel.stringValue = "Version \(dotVersion) (\(numberVersion))"
+        versionLabel.stringValue = String(
+            format: NSLocalizedString("Version %1$@ (%2$@)", comment: "About window version line: marketing version, build number"),
+            dotVersion,
+            numberVersion
+        )
         versionLabel.textColors = LKTwoColors(colorInLightMode: NSColor(calibratedWhite: 0.35, alpha: 1),
                                               colorInDarkMode: NSColor(calibratedWhite: 0.78, alpha: 1))
         versionLabel.font = footnoteFont
 
         let taglineLabel = LKLabel()
-        taglineLabel.stringValue = "A SwiftUI- and UIKit-aware view debugger.\nWalk every layer. Read every modifier."
+        taglineLabel.stringValue = NSLocalizedString(
+            "A SwiftUI- and UIKit-aware view debugger.\nWalk every layer. Read every modifier.",
+            comment: "About window tagline, two lines"
+        )
         taglineLabel.textColors = LKTwoColors(colorInLightMode: NSColor(calibratedWhite: 0.30, alpha: 1),
                                               colorInDarkMode: NSColor(calibratedWhite: 0.82, alpha: 1))
         taglineLabel.font = footnoteFont
@@ -155,11 +162,26 @@ final class LKAboutViewController: LKBaseViewController {
                 legal.addAttribute(.link, value: link, range: NSRange(location: start, length: legal.length - start))
             }
         }
-        append("© \(year) LookInside-App. Released under GPL-3.0.\n")
-        append("Based on ")
-        append("Lookin", link: upstreamURL)
-        append(" by QMUI · ")
-        append("lookinside-app.com", link: homeURL)
+        append(String(
+            format: NSLocalizedString("© %lld LookInside-App. Released under GPL-3.0.", comment: "About window copyright line, year"),
+            year
+        ) + "\n")
+        let lookin = "Lookin"
+        let site = "lookinside-app.com"
+        let credit = String(
+            format: NSLocalizedString("Based on %1$@ by QMUI · %2$@", comment: "About window credit: upstream project name, website"),
+            lookin,
+            site
+        )
+        let creditStart = legal.length
+        append(credit)
+        let creditNS = credit as NSString
+        for (name, url) in [(lookin, upstreamURL), (site, homeURL)] {
+            let r = creditNS.range(of: name)
+            if r.location != NSNotFound {
+                legal.addAttribute(.link, value: url, range: NSRange(location: creditStart + r.location, length: r.length))
+            }
+        }
         return legal
     }
 

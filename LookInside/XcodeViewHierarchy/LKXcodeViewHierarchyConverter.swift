@@ -42,7 +42,7 @@ enum LKXcodeViewHierarchyConversionError: Error, CustomStringConvertible {
     var description: String {
         switch self {
         case .noWindowsOrRootViews:
-            return "the capture contains no windows or root views to display"
+            return NSLocalizedString("The capture contains no windows or root views to display.", comment: "")
         }
     }
 }
@@ -1161,7 +1161,7 @@ enum LKXcodeViewHierarchyConverter {
         vocabulary: Vocabulary
     ) -> LookinAppInfo {
         let appInfo = LookinAppInfo()
-        appInfo.appName = bundle.metadata.runnableDisplayName ?? "Xcode Capture"
+        appInfo.appName = bundle.metadata.runnableDisplayName ?? NSLocalizedString("Xcode Capture", comment: "")
         appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
         // The inspector keys view-versus-layer identifier preference off this,
         // and shows the platform's own class names in its copy.

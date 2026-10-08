@@ -25,17 +25,20 @@ public enum ActivationError: LocalizedError, Equatable, Sendable {
         case let .invalidRequest(message):
             return message
         case let .keychainFailure(message):
-            return "Keychain operation failed.\n\(message)"
+            return String(localized: "Keychain operation failed.\n\(message)", bundle: .module)
         case let .keychainAccessDenied(status):
-            return "Keychain access to the license key was denied.\nStatus \(status)."
+            return String(localized: "Keychain access to the license key was denied.\nStatus \(Int(status)).", bundle: .module)
         case let .stateStoreFailure(message):
-            return "Auth state storage failed.\n\(message)"
+            return String(localized: "Auth state storage failed.\n\(message)", bundle: .module)
         case let .licenseNotActivated(message):
-            return "License is not activated on this device.\n\(message)"
+            return String(localized: "License is not activated on this device.\n\(message)", bundle: .module)
         case let .signingFailed(message):
-            return "Signing failed.\n\(message)"
+            return String(localized: "Signing failed.\n\(message)", bundle: .module)
         case .signingDeferred:
-            return "The license key is not used right now.\nLookInside waits for keychain access to be confirmed."
+            return String(
+                localized: "The license key is not used right now.\nLookInside waits for keychain access to be confirmed.",
+                bundle: .module
+            )
         case let .activationFailed(message):
             return message
         }

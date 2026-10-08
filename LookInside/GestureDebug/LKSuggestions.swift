@@ -66,7 +66,7 @@ struct LKSuggestion: Identifiable {
     }
 
     var title: String {
-        target.usesEstimatedBounds ? "Potentially small hit target" : "Small hit target"
+        target.usesEstimatedBounds ? NSLocalizedString("Potentially small hit target", comment: "") : NSLocalizedString("Small hit target", comment: "")
     }
 }
 
@@ -87,36 +87,36 @@ enum LKHitTargetSuggestionRule {
 struct LKSuggestionReport {
     private(set) var warnings: [LKSuggestion] = []
     private(set) var inspectedCount = 0
-    private(set) var coverageMessage = "Start capture to inspect the current page."
+    private(set) var coverageMessage = NSLocalizedString("Start capture to inspect the current page.", comment: "")
 
     mutating func replace(with snapshot: LKInteractionSnapshot?, platform: LKSuggestionPlatform, isCapturing: Bool) {
         warnings = []
         inspectedCount = 0
         guard isCapturing else {
-            coverageMessage = "Start capture to inspect the current page."
+            coverageMessage = NSLocalizedString("Start capture to inspect the current page.", comment: "")
             return
         }
         guard platform != .unsupported else {
-            coverageMessage = "Target-size suggestions currently support iPhone and Mac targets."
+            coverageMessage = NSLocalizedString("Target-size suggestions currently support iPhone and Mac targets.", comment: "")
             return
         }
         guard let snapshot else {
-            coverageMessage = "Waiting for current interaction regions. Older Servers need an update to provide Suggestions."
+            coverageMessage = NSLocalizedString("Waiting for current interaction regions. Older Servers need an update to provide Suggestions.", comment: "")
             return
         }
         warnings = LKHitTargetSuggestionRule.evaluate(snapshot.targets, platform: platform)
         inspectedCount = snapshot.targets.count
-        var notes = ["Checks reported interaction regions; custom hit testing and occlusion may change the effective target."]
+        var notes = [NSLocalizedString("Checks reported interaction regions; custom hit testing and occlusion may change the effective target.", comment: "")]
         if snapshot.swiftUIStatus != "available" {
             notes.append(snapshot.swiftUIStatus == "partial"
-                ? "Some SwiftUI hosts could not be inspected."
-                : "SwiftUI whole-page regions are unavailable on this runtime.")
+                ? NSLocalizedString("Some SwiftUI hosts could not be inspected.", comment: "")
+                : NSLocalizedString("SwiftUI whole-page regions are unavailable on this runtime.", comment: ""))
         }
         if snapshot.nativeStatus != "available" {
-            notes.append("Native controls are not inspected on this platform.")
+            notes.append(NSLocalizedString("Native controls are not inspected on this platform.", comment: ""))
         }
         if snapshot.truncated {
-            notes.append("The region limit was reached; this page is only partially inspected.")
+            notes.append(NSLocalizedString("The region limit was reached; this page is only partially inspected.", comment: ""))
         }
         coverageMessage = notes.joined(separator: " ")
     }

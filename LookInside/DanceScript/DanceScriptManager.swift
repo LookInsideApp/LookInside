@@ -57,10 +57,10 @@ final class DanceScriptManager: NSObject {
         case let .success(request):
             execute(request)
         case .failure(.invalidJSON):
-            LKPeripheralAlerts.show(title: "Failed", detail: "Failed to parse: \(json)", in: LKPeripheralAlerts.keyWindow)
+            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to parse the request: %@", comment: ""), json), in: LKPeripheralAlerts.keyWindow)
             assertionFailure("DanceScript payload is not JSON")
         case .failure(.unexpectedFormat):
-            LKPeripheralAlerts.show(title: "Failed", detail: "Unexpected format: \(json)", in: LKPeripheralAlerts.keyWindow)
+            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unexpected request format: %@", comment: ""), json), in: LKPeripheralAlerts.keyWindow)
         }
     }
 
@@ -73,18 +73,18 @@ final class DanceScriptManager: NSObject {
         }
         let scriptPath = Bundle.main.url(forResource: "DanceScript", withExtension: "sh")?.relativePath
         guard let scriptPath, fileManager.fileExists(atPath: scriptPath) else {
-            LKPeripheralAlerts.show(title: "Failed", detail: "Cannot find script: \(scriptPath ?? "(null)")",
+            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to find the script at %@.", comment: ""), scriptPath ?? "(null)"),
                                     in: LKPeripheralAlerts.keyWindow)
             return nil
         }
         let copied = (try? fileManager.copyItem(atPath: scriptPath, toPath: newScriptPath)) != nil
         try? fileManager.setAttributes([.posixPermissions: NSNumber(value: Int16(0o755))], ofItemAtPath: newScriptPath)
         guard copied else {
-            LKPeripheralAlerts.show(title: "Failed", detail: "Copy script error", in: LKPeripheralAlerts.keyWindow)
+            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("Unable to copy the script.", comment: ""), in: LKPeripheralAlerts.keyWindow)
             return nil
         }
         guard fileManager.fileExists(atPath: newScriptPath) else {
-            LKPeripheralAlerts.show(title: "Failed", detail: "Copy script weird error", in: LKPeripheralAlerts.keyWindow)
+            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("The copied script is missing.", comment: ""), in: LKPeripheralAlerts.keyWindow)
             return nil
         }
         return newScriptPath

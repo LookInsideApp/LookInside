@@ -133,12 +133,12 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
         let helpMenu = buildHelpMenu()
 
         mainMenu.addItem(Self.submenuItem(appName, buildApplicationMenu(appName: appName)))
-        mainMenu.addItem(Self.submenuItem("File", buildFileMenu()))
-        mainMenu.addItem(Self.submenuItem("Edit", buildEditMenu()))
-        mainMenu.addItem(Self.submenuItem("View", buildViewMenu()))
-        mainMenu.addItem(Self.submenuItem("Plugins", buildPluginsMenu()))
-        mainMenu.addItem(Self.submenuItem("Window", windowMenu))
-        mainMenu.addItem(Self.submenuItem("Help", helpMenu))
+        mainMenu.addItem(Self.submenuItem(NSLocalizedString("File", comment: ""), buildFileMenu()))
+        mainMenu.addItem(Self.submenuItem(NSLocalizedString("Edit", comment: ""), buildEditMenu()))
+        mainMenu.addItem(Self.submenuItem(NSLocalizedString("View", comment: ""), buildViewMenu()))
+        mainMenu.addItem(Self.submenuItem(NSLocalizedString("Plugins", comment: ""), buildPluginsMenu()))
+        mainMenu.addItem(Self.submenuItem(NSLocalizedString("Window", comment: ""), windowMenu))
+        mainMenu.addItem(Self.submenuItem(NSLocalizedString("Help", comment: ""), helpMenu))
 
         NSApp.mainMenu = mainMenu
         NSApp.windowsMenu = windowMenu
@@ -151,18 +151,18 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
         let menu = NSMenu(title: appName)
         menu.autoenablesItems = false
         menu.delegate = self
-        menu.addItem(item("About \(appName)", action: #selector(handleAbout), tag: Tag.about))
+        menu.addItem(item(String(format: NSLocalizedString("About %@", comment: ""), appName), action: #selector(handleAbout), tag: Tag.about))
         menu.addItem(.separator())
-        menu.addItem(item("Preferences…", action: #selector(handlePreferences), key: ",", modifiers: .command, tag: Tag.preferences))
-        menu.addItem(item("Private Discriminator Settings…", action: #selector(handlePrivateDiscriminatorSettings), tag: Tag.privateDiscriminatorSettings))
+        menu.addItem(item(NSLocalizedString("Preferences…", comment: ""), action: #selector(handlePreferences), key: ",", modifiers: .command, tag: Tag.preferences))
+        menu.addItem(item(NSLocalizedString("Private Discriminator Settings…", comment: ""), action: #selector(handlePrivateDiscriminatorSettings), tag: Tag.privateDiscriminatorSettings))
         menu.addItem(.separator())
-        menu.addItem(item("Check for Updates…", action: #selector(handleCheckUpdates), tag: Tag.checkUpdates))
+        menu.addItem(item(NSLocalizedString("Check for Updates…", comment: ""), action: #selector(handleCheckUpdates), tag: Tag.checkUpdates))
         menu.addItem(.separator())
-        menu.addItem(Self.standardItem("Hide \(appName)", action: #selector(NSApplication.hide(_:)), key: "h", modifiers: .command))
-        menu.addItem(Self.standardItem("Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), key: "h", modifiers: [.command, .option]))
-        menu.addItem(Self.standardItem("Show All", action: #selector(NSApplication.unhideAllApplications(_:))))
+        menu.addItem(Self.standardItem(String(format: NSLocalizedString("Hide %@", comment: ""), appName), action: #selector(NSApplication.hide(_:)), key: "h", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Hide Others", comment: ""), action: #selector(NSApplication.hideOtherApplications(_:)), key: "h", modifiers: [.command, .option]))
+        menu.addItem(Self.standardItem(NSLocalizedString("Show All", comment: ""), action: #selector(NSApplication.unhideAllApplications(_:))))
         menu.addItem(.separator())
-        menu.addItem(Self.standardItem("Quit \(appName)", action: #selector(NSApplication.terminate(_:)), key: "q", modifiers: .command))
+        menu.addItem(Self.standardItem(String(format: NSLocalizedString("Quit %@", comment: ""), appName), action: #selector(NSApplication.terminate(_:)), key: "q", modifiers: .command))
         return menu
     }
 
@@ -173,43 +173,43 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
 
         // New Inspection… brings up the Launch window's app picker so a fresh
         // live document can be created from any state.
-        menu.addItem(item("New Inspection…", action: #selector(handleNewInspection), key: "n", modifiers: .command, tag: Tag.newInspection))
-        menu.addItem(item("Attach to Running App…", action: #selector(handleAttachToRunningApp), tag: Tag.attachToRunningApp))
+        menu.addItem(item(NSLocalizedString("New Inspection…", comment: ""), action: #selector(handleNewInspection), key: "n", modifiers: .command, tag: Tag.newInspection))
+        menu.addItem(item(NSLocalizedString("Attach to Running App…", comment: ""), action: #selector(handleAttachToRunningApp), tag: Tag.attachToRunningApp))
         // The same thing for an app on a connected iPhone or iPad. A separate
         // entry rather than a tab inside the existing picker: that picker's
         // Applications list enumerates this Mac, and showing it beside a
         // phone's process list would invite picking a pid from the wrong
         // machine.
-        menu.addItem(item("Attach to App on Device…", action: #selector(handleAttachToAppOnDevice), tag: Tag.attachToAppOnDevice))
+        menu.addItem(item(NSLocalizedString("Attach to App on Device…", comment: ""), action: #selector(handleAttachToAppOnDevice), tag: Tag.attachToAppOnDevice))
         menu.addItem(.separator())
 
-        menu.addItem(Self.standardItem("Open…", action: #selector(NSDocumentController.openDocument(_:)), key: "o", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Open…", comment: ""), action: #selector(NSDocumentController.openDocument(_:)), key: "o", modifiers: .command))
 
         let recentDocumentsMenu = NSMenu(title: "Open Recent")
         recentDocumentsMenu.autoenablesItems = false
         recentDocumentsMenu.delegate = self
         self.recentDocumentsMenu = recentDocumentsMenu
         reloadRecentDocumentsMenu()
-        menu.addItem(Self.submenuItem("Open Recent", recentDocumentsMenu))
+        menu.addItem(Self.submenuItem(NSLocalizedString("Open Recent", comment: ""), recentDocumentsMenu))
 
         menu.addItem(.separator())
         // Standard NSDocument actions: performClose: targets the key window,
         // saveDocumentAs: is validated against writableTypes(for:).
-        menu.addItem(Self.standardItem("Close", action: #selector(NSWindow.performClose(_:)), key: "w", modifiers: .command))
-        menu.addItem(Self.standardItem("Save As…", action: #selector(NSDocument.saveAs(_:)), key: "s", modifiers: [.command, .shift]))
+        menu.addItem(Self.standardItem(NSLocalizedString("Close", comment: ""), action: #selector(NSWindow.performClose(_:)), key: "w", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Save As…", comment: ""), action: #selector(NSDocument.saveAs(_:)), key: "s", modifiers: [.command, .shift]))
 
         menu.addItem(.separator())
-        menu.addItem(delegatingItem("Copy to New Window…", tag: Tag.openInNewWindow))
-        menu.addItem(delegatingItem("Export…", tag: Tag.export))
+        menu.addItem(delegatingItem(NSLocalizedString("Copy to New Window…", comment: ""), tag: Tag.openInNewWindow))
+        menu.addItem(delegatingItem(NSLocalizedString("Export…", comment: ""), tag: Tag.export))
         return menu
     }
 
     private func buildEditMenu() -> NSMenu {
         let menu = NSMenu(title: "Edit")
-        menu.addItem(Self.standardItem("Cut", action: #selector(NSText.cut(_:)), key: "x", modifiers: .command))
-        menu.addItem(Self.standardItem("Copy", action: #selector(NSText.copy(_:)), key: "c", modifiers: .command))
-        menu.addItem(Self.standardItem("Paste", action: #selector(NSText.paste(_:)), key: "v", modifiers: .command))
-        menu.addItem(Self.standardItem("Select All", action: #selector(NSText.selectAll(_:)), key: "a", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Cut", comment: ""), action: #selector(NSText.cut(_:)), key: "x", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Copy", comment: ""), action: #selector(NSText.copy(_:)), key: "c", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Paste", comment: ""), action: #selector(NSText.paste(_:)), key: "v", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Select All", comment: ""), action: #selector(NSText.selectAll(_:)), key: "a", modifiers: .command))
         return menu
     }
 
@@ -217,27 +217,33 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
         let menu = NSMenu(title: "View")
         menu.autoenablesItems = false
         menu.delegate = self
-        menu.addItem(delegatingItem("Reload", key: "r", tag: Tag.reload))
+        menu.addItem(delegatingItem(NSLocalizedString("Reload", comment: ""), key: "r", tag: Tag.reload))
         menu.addItem(.separator())
-        menu.addItem(delegatingItem("Filter", key: "f", tag: Tag.filter))
+        menu.addItem(delegatingItem(NSLocalizedString("Filter", comment: ""), key: "f", tag: Tag.filter))
         menu.addItem(.separator())
         menu.addItem(delegatingItem("2D / 3D", key: "\\", tag: Tag.dimension))
         menu.addItem(.separator())
-        menu.addItem(delegatingItem("Zoom In", key: "+", tag: Tag.zoomIn))
-        menu.addItem(delegatingItem("Zoom Out", key: "-", tag: Tag.zoomOut))
+        menu.addItem(delegatingItem(NSLocalizedString("Zoom In", comment: ""), key: "+", tag: Tag.zoomIn))
+        menu.addItem(delegatingItem(NSLocalizedString("Zoom Out", comment: ""), key: "-", tag: Tag.zoomOut))
         menu.addItem(.separator())
-        menu.addItem(delegatingItem("Decrease Item Separation", key: "[", tag: Tag.decreaseInterspace))
-        menu.addItem(delegatingItem("Increase Item Separation", key: "]", tag: Tag.increaseInterspace))
+        menu.addItem(delegatingItem(NSLocalizedString("Decrease Item Separation", comment: ""), key: "[", tag: Tag.decreaseInterspace))
+        menu.addItem(delegatingItem(NSLocalizedString("Increase Item Separation", comment: ""), key: "]", tag: Tag.increaseInterspace))
         menu.addItem(.separator())
 
         let expansionMenu = NSMenu(title: "Hierarchy Depth")
-        let levels = ["Level 1 (Collapse All)", "Level 2", "Level 3", "Level 4", "Level 5 (Expand All)"]
+        let levels = [
+            NSLocalizedString("Level 1 (Collapse All)", comment: ""),
+            NSLocalizedString("Level 2", comment: ""),
+            NSLocalizedString("Level 3", comment: ""),
+            NSLocalizedString("Level 4", comment: ""),
+            NSLocalizedString("Level 5 (Expand All)", comment: ""),
+        ]
         for (index, title) in levels.enumerated() {
             let levelItem = item(title, action: #selector(handleExpansion(_:)), key: "\(index + 1)", modifiers: .command, tag: 271 + index)
             levelItem.representedObject = NSNumber(value: index)
             expansionMenu.addItem(levelItem)
         }
-        menu.addItem(Self.submenuItem("Hierarchy Depth", expansionMenu, tag: Tag.expansion))
+        menu.addItem(Self.submenuItem(NSLocalizedString("Hierarchy Depth", comment: ""), expansionMenu, tag: Tag.expansion))
         return menu
     }
 
@@ -271,8 +277,8 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
         let menu = NSMenu(title: "Window")
         // ⌘W lives in the File menu (NSDocument convention); the Window menu
         // keeps the standard window manipulators.
-        menu.addItem(Self.standardItem("Minimize", action: #selector(NSWindow.performMiniaturize(_:)), key: "m", modifiers: .command))
-        menu.addItem(Self.standardItem("Zoom", action: #selector(NSWindow.performZoom(_:))))
+        menu.addItem(Self.standardItem(NSLocalizedString("Minimize", comment: ""), action: #selector(NSWindow.performMiniaturize(_:)), key: "m", modifiers: .command))
+        menu.addItem(Self.standardItem(NSLocalizedString("Zoom", comment: ""), action: #selector(NSWindow.performZoom(_:))))
         return menu
     }
 
@@ -280,8 +286,8 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
         let menu = NSMenu(title: "Help")
         menu.autoenablesItems = true
         menu.delegate = self
-        menu.addItem(item("Source Code at GitHub", action: #selector(handleShowGitHub), tag: Tag.gitHub))
-        menu.addItem(item("Acknowledgements", action: #selector(handleAcknowledgements), tag: Tag.acknowledgements))
+        menu.addItem(item(NSLocalizedString("Source Code at GitHub", comment: ""), action: #selector(handleShowGitHub), tag: Tag.gitHub))
+        menu.addItem(item(NSLocalizedString("Acknowledgements", comment: ""), action: #selector(handleAcknowledgements), tag: Tag.acknowledgements))
         return menu
     }
 
@@ -291,7 +297,7 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
 
         let recentURLs = NSDocumentController.shared.recentDocumentURLs
         guard !recentURLs.isEmpty else {
-            let emptyItem = Self.standardItem("No Recent Documents", action: nil)
+            let emptyItem = Self.standardItem(NSLocalizedString("No Recent Documents", comment: ""), action: nil)
             emptyItem.isEnabled = false
             menu.addItem(emptyItem)
             return
@@ -306,7 +312,7 @@ final class LKAppMenuManager: NSObject, NSMenuDelegate {
         }
 
         menu.addItem(.separator())
-        let clearItem = Self.standardItem("Clear Menu", action: #selector(NSDocumentController.clearRecentDocuments(_:)))
+        let clearItem = Self.standardItem(NSLocalizedString("Clear Menu", comment: ""), action: #selector(NSDocumentController.clearRecentDocuments(_:)))
         clearItem.target = NSDocumentController.shared
         menu.addItem(clearItem)
     }

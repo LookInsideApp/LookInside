@@ -11,17 +11,17 @@ public enum LookInsideAuthenticatorAPIClientError: Error, Sendable, LocalizedErr
     public var errorDescription: String? {
         switch self {
         case let .invalidURL(path):
-            return "The authenticator service URL is invalid for path \(path)."
+            return String(localized: "The authenticator service URL is invalid for path \(path).", bundle: .module)
         case .invalidResponse:
-            return "The authenticator service returned an unreadable response."
+            return String(localized: "The authenticator service returned an unreadable response.", bundle: .module)
         case let .invalidTimestamp(field, value):
-            return "The authenticator service returned an invalid timestamp for \(field): \(value)"
+            return String(localized: "The authenticator service returned an invalid timestamp for \(field): \(value)", bundle: .module)
         case .invalidSessionToken:
-            return "The activation session token payload is invalid."
+            return String(localized: "The activation session token payload is invalid.", bundle: .module)
         case .invalidTimestampSignature:
-            return "The secure timestamp signature could not be decoded."
+            return String(localized: "The secure timestamp signature could not be decoded.", bundle: .module)
         case let .api(statusCode, code, message):
-            return "The authenticator service returned \(statusCode) \(code): \(message)"
+            return String(localized: "The authenticator service returned \(statusCode) \(code): \(message)", bundle: .module)
         }
     }
 }

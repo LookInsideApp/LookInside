@@ -26,7 +26,7 @@ struct LKGestureDebugView: View {
                 eventHistory.frame(minWidth: 190, idealWidth: 225, maxWidth: 310)
                 VStack(spacing: 0) {
                     Picker("Details", selection: $section) {
-                        ForEach(Section.allCases, id: \.self) { Text($0.rawValue).tag($0) }
+                        ForEach(Section.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue)).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     .padding(12)
@@ -55,9 +55,9 @@ struct LKGestureDebugView: View {
             Spacer()
             Toggle("Gesture borders", isOn: $session.overlayEnabled)
                 .help("Show gesture regions on the current page. A translucent fill marks the current input binding.")
-            Button(session.overlayStatus?.mode == "persistentObserved" ? "Clear Borders" : "Refresh Borders") { session.clearBorders() }
+            Button(session.overlayStatus?.mode == "persistentObserved" ? LocalizedStringKey("Clear Borders") : LocalizedStringKey("Refresh Borders")) { session.clearBorders() }
                 .disabled(!session.isRunning || !session.overlayEnabled)
-            Button(session.isRunning || session.isStarting ? "Stop Capture" : "Start Capture") {
+            Button(session.isRunning || session.isStarting ? LocalizedStringKey("Stop Capture") : LocalizedStringKey("Start Capture")) {
                 if session.isRunning || session.isStarting {
                     session.stop()
                 } else {
@@ -93,10 +93,10 @@ struct LKGestureDebugView: View {
             }
             if let overlay = session.overlayStatus, overlay.isEnabled, session.isRunning {
                 Text(overlay.mode == "livePage"
-                    ? "\(overlay.regionCount) borders on the current page · Updates automatically with the page."
+                    ? LocalizedStringKey("\(overlay.regionCount) borders on the current page · Updates automatically with the page.")
                     : (overlay.mode == "nativePage"
-                        ? "\(session.nativeRegions.count) native borders on the current page · SwiftUI whole-page reading is unavailable on this runtime."
-                        : "\(overlay.regionCount) observed borders · Whole-page reading is unavailable on this runtime. Clear after page changes."))
+                        ? LocalizedStringKey("\(session.nativeRegions.count) native borders on the current page · SwiftUI whole-page reading is unavailable on this runtime.")
+                        : LocalizedStringKey("\(overlay.regionCount) observed borders · Whole-page reading is unavailable on this runtime. Clear after page changes.")))
                     .font(.caption).foregroundStyle(.secondary)
             }
             if !session.nativeRegions.isEmpty {
@@ -146,7 +146,7 @@ struct LKGestureDebugView: View {
                                 HStack {
                                     Text(Date(timeIntervalSince1970: snapshot.timestamp).formatted(.dateTime.hour().minute().second().secondFraction(.fractional(3))))
                                     Spacer()
-                                    Text(snapshot.phase ?? snapshot.inputPhase ?? "unknown")
+                                    Text(snapshot.phase ?? snapshot.inputPhase ?? NSLocalizedString("Unknown", comment: ""))
                                 }.font(.caption).foregroundStyle(.secondary)
                                 Text(snapshot.title).font(.callout).lineLimit(2)
                                 Text("\(snapshot.responders.count) responders · \(snapshot.gestures.count) gesture nodes")
@@ -181,7 +181,7 @@ struct LKGestureDebugView: View {
     private func snapshotContent(_ snapshot: LKGestureCaptureSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Host: \(snapshot.hostAddress ?? "not reported")")
+                Text("Host: \(snapshot.hostAddress ?? NSLocalizedString("Not reported", comment: ""))")
                 Spacer()
                 Text("Thread: \(snapshot.threadID)")
             }
@@ -199,14 +199,14 @@ struct LKGestureDebugView: View {
             case .bindings:
                 ScrollView {
                     VStack(alignment: .leading, spacing: 18) {
-                        Text(snapshot.eventText.isEmpty ? "No input event record." : snapshot.eventText)
+                        Text(snapshot.eventText.isEmpty ? NSLocalizedString("No input event record.", comment: "") : snapshot.eventText)
                             .font(.system(.caption, design: .monospaced))
                         ForEach(Array(snapshot.bindings.enumerated()), id: \.offset) { _, binding in
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(binding.eventID).font(.headline)
                                 ForEach(Array(binding.responderAddresses.enumerated()), id: \.offset) { _, address in
                                     let node = snapshot.responders.first { $0.address == address }
-                                    Text("→ \(address)  \(node?.typeName ?? "Responder outside this printed tree")")
+                                    Text("→ \(address)  \(node?.typeName ?? NSLocalizedString("Responder outside this printed tree", comment: ""))")
                                         .font(.system(.callout, design: .monospaced))
                                 }
                             }
@@ -218,7 +218,7 @@ struct LKGestureDebugView: View {
                     .textSelection(.enabled).padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 }
             case .hitTest:
-                rawText(snapshot.hitTest.isEmpty ? "No HIT TEST block was reported for this event." : snapshot.hitTest)
+                rawText(snapshot.hitTest.isEmpty ? NSLocalizedString("No HIT TEST block was reported for this event.", comment: "") : snapshot.hitTest)
             case .raw:
                 rawText(snapshot.rawRecords.map { "[\($0.sequence)] \($0.message)" }.joined(separator: "\n"))
             }
@@ -248,7 +248,7 @@ struct LKGestureDebugView: View {
                 LKGestureNodeDetailView(node: node, snapshot: snapshot)
                     .frame(minWidth: 250, idealWidth: 300)
             } else {
-                Text(nodes.isEmpty ? "No nodes reported." : "Select a node to inspect its details.")
+                Text(nodes.isEmpty ? LocalizedStringKey("No nodes reported.") : LocalizedStringKey("Select a node to inspect its details."))
                     .foregroundStyle(.secondary)
                     .frame(minWidth: 250, maxWidth: .infinity, maxHeight: .infinity)
             }

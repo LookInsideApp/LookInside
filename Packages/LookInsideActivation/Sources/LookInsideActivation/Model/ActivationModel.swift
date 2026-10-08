@@ -16,13 +16,13 @@ public enum ActivationModelError: Error, Equatable, LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .missingClaimInput:
-            return "Enter the license key and purchase email to continue."
+            return String(localized: "Enter the license key and purchase email to continue.", bundle: .module)
         case .missingActivationSession:
-            return "A verified activation session is required before requesting a certificate."
+            return String(localized: "A verified activation session is required before requesting a certificate.", bundle: .module)
         case .missingEntitlementStatus:
-            return "Refresh the entitlement status before completing activation."
+            return String(localized: "Refresh the entitlement status before completing activation.", bundle: .module)
         case .missingDeviceFingerprint:
-            return "A device fingerprint is required to complete activation."
+            return String(localized: "A device fingerprint is required to complete activation.", bundle: .module)
         }
     }
 }

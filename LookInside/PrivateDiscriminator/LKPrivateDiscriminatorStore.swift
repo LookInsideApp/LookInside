@@ -46,8 +46,7 @@ struct LKPrivateDiscriminatorModuleStatus: Identifiable, Hashable {
         if parts.isEmpty {
             return NSLocalizedString("no CSV", comment: "")
         }
-        let separator = NSLocalizedString(" / ", comment: "Separator between imported/autosaved CSV sources")
-        return parts.joined(separator: separator)
+        return parts.joined(separator: " / ")
     }
 }
 
