@@ -13,13 +13,13 @@ import AppKit
 @objc(LKReadHierarchyController)
 final class LKReadHierarchyController: LKHierarchyController {
     @objc(hierarchyView:needToCancelPreviewOfItem:)
-    func hierarchyView(_: LKHierarchyView?, needToCancelPreviewOf item: LookinDisplayItem?) {
+    func hierarchyView(_: LKHierarchyView?, needToCancelPreviewOf item: DisplayItem?) {
         item?.noPreview = true
         notifyNoPreviewDidChange()
     }
 
     @objc(hierarchyView:needToShowPreviewOfItem:)
-    func hierarchyView(_: LKHierarchyView?, needToShowPreviewOf item: LookinDisplayItem?) {
+    func hierarchyView(_: LKHierarchyView?, needToShowPreviewOf item: DisplayItem?) {
         // A preview shows only when none of its ancestors hides theirs.
         item?.enumerateSelfAndAncestors { item, _ in
             if item.noPreview {

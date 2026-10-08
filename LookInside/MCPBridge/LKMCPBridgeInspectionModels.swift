@@ -7,7 +7,7 @@
 //
 // The naming follows the wire vocabulary: a "target" is one inspection
 // session bound to a running app (one `LookinLiveDocument`); a "view node"
-// is one row in a target's UI hierarchy (one `LookinDisplayItem`).
+// is one row in a target's UI hierarchy (one `DisplayItem`).
 
 import CoreGraphics
 import Foundation
@@ -45,7 +45,7 @@ struct LKMCPBridgeRect: Sendable, Codable, Equatable {
 /// (typically corresponding to one inspector window in the host UI).
 struct LKMCPBridgeTargetInfo: Sendable, Codable {
     /// Stable identifier for the duration of the inspection session.
-    /// Derived from `LookinAppInfo.appInfoIdentifier` (randomly generated per
+    /// Derived from `InspectedAppInfo.appInfoIdentifier` (randomly generated per
     /// app launch and reused across reconnects to the same app instance).
     let targetIdentifier: String
 
@@ -82,11 +82,11 @@ struct LKMCPBridgeTargetInfo: Sendable, Codable {
 /// screenshot URIs live in separate methods to be added in subsequent
 /// commits.
 struct LKMCPBridgeViewNode: Sendable, Codable {
-    /// Hex-encoded `LookinObject.oid`, prefixed with `0x` (for example,
+    /// Hex-encoded `InspectedObject.oid`, prefixed with `0x` (for example,
     /// `0x600000abc123`). Stable within a single connected app instance.
     let objectIdentifier: String
 
-    /// Leaf Objective-C class name (head of `LookinObject.classChainList`),
+    /// Leaf Objective-C class name (head of `InspectedObject.classChainList`),
     /// e.g. "UIButton". May be empty if the underlying display item is
     /// configured by the in-app `lookin_customDebugInfos` hook without
     /// touching a real view / layer.
@@ -174,7 +174,7 @@ struct LKMCPBridgeAttribute: Sendable, Codable {
 
     /// Auxiliary payload for select kinds. For `enum` types, this is the
     /// list of all enum case names the inspected object can hold (the
-    /// host calls these `extraValue` on `LookinAttribute`).
+    /// host calls these `extraValue` on `InspectedAttribute`).
     let extraValue: LKMCPBridgeJSONValue?
 
     /// Server-side identifier of a custom-attribute setter, present only
@@ -189,11 +189,11 @@ struct LKMCPBridgeAttribute: Sendable, Codable {
 /// (RPC 206). The receiver of an `invoke.method` response may use
 /// `objectIdentifier` as a handle for a follow-up `invoke.method` call on
 /// the same object — but the identifier is a fresh server-registered
-/// `LookinObject.oid` and is NOT guaranteed to appear in a subsequent
+/// `InspectedObject.oid` and is NOT guaranteed to appear in a subsequent
 /// `hierarchy.read` (the hierarchy walks the view tree, not the server's
 /// general object registry).
 struct LKMCPBridgeReturnedObject: Sendable, Codable {
-    /// Hex-encoded `LookinObject.oid` for the returned object, prefixed
+    /// Hex-encoded `InspectedObject.oid` for the returned object, prefixed
     /// with `0x` (matches the form used everywhere else on the bridge).
     let objectIdentifier: String
 
@@ -203,7 +203,7 @@ struct LKMCPBridgeReturnedObject: Sendable, Codable {
 
     /// Full class chain of the returned object (head is the leaf class,
     /// tail is `NSObject`). Identical shape to the
-    /// `LookinObject.classChainList` produced by the inspection routes.
+    /// `InspectedObject.classChainList` produced by the inspection routes.
     let classChainList: [String]
 
     /// Optional debug annotation that the in-app `lookin_specialTrace`
@@ -259,7 +259,7 @@ struct LKMCPBridgeAttributeValueWire: Sendable, Codable {
 /// Result envelope for `attribute.modify`. Echoes the requested value,
 /// surfaces the post-layout effective attribute, and includes the
 /// host-visible side-effect snapshot (frame / bounds / hidden / alpha)
-/// that the server captures in `LookinDisplayItemDetail` after the
+/// that the server captures in `DisplayItemDetail` after the
 /// setter has run and a layout pass has completed.
 struct LKMCPBridgeModificationResult: Sendable, Codable {
     /// Echo of the attribute identifier the agent asked to modify.

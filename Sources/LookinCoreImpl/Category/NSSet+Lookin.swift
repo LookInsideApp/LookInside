@@ -15,7 +15,7 @@
 
     public extension NSSet {
         @objc(lookin_map:)
-        func lookin_map(_ block: ((Any?) -> Any?)?) -> Set<AnyHashable>! {
+        func mappedObjects(_ block: ((Any?) -> Any?)?) -> Set<AnyHashable>? {
             guard let block else {
                 assertionFailure("")
                 return nil
@@ -26,11 +26,16 @@
                     newSet.add(newObj)
                 }
             }
-            return lookinBridgedSet(newSet)
+            return bridgedSet(newSet)
+        }
+
+        @available(*, deprecated, renamed: "mappedObjects(_:)")
+        func lookin_map(_ block: ((Any?) -> Any?)?) -> Set<AnyHashable>? {
+            mappedObjects(block)
         }
 
         @objc(lookin_firstFiltered:)
-        func lookin_firstFiltered(_ block: ((Any?) -> Bool)?) -> Any! {
+        func firstFiltered(_ block: ((Any?) -> Bool)?) -> Any? {
             guard let block else {
                 assertionFailure("")
                 return nil
@@ -45,8 +50,13 @@
             return targetObj
         }
 
+        @available(*, deprecated, renamed: "firstFiltered(_:)")
+        func lookin_firstFiltered(_ block: ((Any?) -> Bool)?) -> Any? {
+            firstFiltered(block)
+        }
+
         @objc(lookin_filter:)
-        func lookin_filter(_ block: ((Any?) -> Bool)?) -> Set<AnyHashable>! {
+        func filteredObjects(_ block: ((Any?) -> Bool)?) -> Set<AnyHashable>? {
             guard let block else {
                 assertionFailure("")
                 return nil
@@ -57,11 +67,16 @@
                     mSet.add(obj)
                 }
             }
-            return lookinBridgedSet(mSet)
+            return bridgedSet(mSet)
+        }
+
+        @available(*, deprecated, renamed: "filteredObjects(_:)")
+        func lookin_filter(_ block: ((Any?) -> Bool)?) -> Set<AnyHashable>? {
+            filteredObjects(block)
         }
 
         @objc(lookin_any:)
-        func lookin_any(_ block: ((Any?) -> Bool)?) -> Bool {
+        func anyObjectPasses(_ block: ((Any?) -> Bool)?) -> Bool {
             guard let block else {
                 assertionFailure("")
                 return false
@@ -75,12 +90,17 @@
             }
             return boolValue
         }
+
+        @available(*, deprecated, renamed: "anyObjectPasses(_:)")
+        func lookin_any(_ block: ((Any?) -> Bool)?) -> Bool {
+            anyObjectPasses(block)
+        }
     }
 
     /// An immutable copy of `set`, handed to Objective-C without copying its
     /// elements: bridging an immutable NSSet to `Set` and back returns the same
     /// NSSet.
-    private func lookinBridgedSet(_ set: NSSet) -> Set<AnyHashable> {
+    private func bridgedSet(_ set: NSSet) -> Set<AnyHashable> {
         set.copy() as! Set<AnyHashable>
     }
 

@@ -15,11 +15,11 @@ enum LKDashboardModification {
     /// attribute's identifier, called on the object the attribute belongs
     /// to (view, layer, window or cell of the item). Nil when the
     /// identifier has no setter.
-    static func inbuilt(attribute: LookinAttribute, newValue: Any?, clientReadableVersion: String?) -> LookinAttributeModification? {
-        let modification = LookinAttributeModification()
+    static func inbuilt(attribute: InspectedAttribute, newValue: Any?, clientReadableVersion: String?) -> AttributeModification? {
+        let modification = AttributeModification()
         modification.clientReadableVersion = clientReadableVersion
         let item = attribute.targetDisplayItem
-        switch LookinDashboardBlueprint.targetKind(forAttrID: attribute.identifier) {
+        switch DashboardBlueprint.targetKind(forAttrID: attribute.identifier) {
         case .view:
             modification.targetOid = item?.viewObject?.oid ?? 0
         case .window:
@@ -31,7 +31,7 @@ enum LKDashboardModification {
         @unknown default:
             modification.targetOid = item?.layerObject?.oid ?? 0
         }
-        guard let setter = LookinDashboardBlueprint.setter(withAttrID: attribute.identifier) else {
+        guard let setter = DashboardBlueprint.setter(withAttrID: attribute.identifier) else {
             return nil
         }
         modification.setterSelector = setter
@@ -43,11 +43,11 @@ enum LKDashboardModification {
     /// The request for a user-custom attribute: its setter id with the new
     /// value. Nil when the attribute has no setter (read-only rows, such as
     /// the SwiftUI attributes).
-    static func custom(attribute: LookinAttribute, newValue: Any?) -> LookinCustomAttrModification? {
+    static func custom(attribute: InspectedAttribute, newValue: Any?) -> CustomAttributeModification? {
         guard let setterID = attribute.customSetterID, !setterID.isEmpty else {
             return nil
         }
-        let modification = LookinCustomAttrModification()
+        let modification = CustomAttributeModification()
         modification.customSetterID = setterID
         modification.attrType = attribute.attrType
         modification.value = newValue
@@ -64,7 +64,7 @@ enum LKDashboardModification {
 
     /// The number to submit for a number attribute, or nil when it equals
     /// the current value (nothing to submit).
-    static func numberValue(_ parsed: NSNumber, for attribute: LookinAttribute) -> NSNumber? {
+    static func numberValue(_ parsed: NSNumber, for attribute: InspectedAttribute) -> NSNumber? {
         var value = parsed
         if clampedToUnitIdentifiers.contains(attribute.identifier ?? "") {
             value = NSNumber(value: max(min(parsed.doubleValue, 1), 0))
@@ -155,10 +155,10 @@ enum LKDashboardConstraintOrder {
     /// The order the constraints card lists constraints in: effective ones
     /// first, then by first item type and first attribute. The sort is
     /// stable, as `-sortedArrayUsingComparator:` is.
-    static func sorted(_ constraints: [LookinAutoLayoutConstraint]) -> [LookinAutoLayoutConstraint] {
+    static func sorted(_ constraints: [AutoLayoutConstraint]) -> [AutoLayoutConstraint] {
         let array = constraints as NSArray
         let sorted = array.sortedArray(options: .stable) { lhs, rhs in
-            guard let lhs = lhs as? LookinAutoLayoutConstraint, let rhs = rhs as? LookinAutoLayoutConstraint else {
+            guard let lhs = lhs as? AutoLayoutConstraint, let rhs = rhs as? AutoLayoutConstraint else {
                 return .orderedSame
             }
             if lhs.effective != rhs.effective {
@@ -172,6 +172,6 @@ enum LKDashboardConstraintOrder {
             }
             return .orderedSame
         }
-        return sorted.compactMap { $0 as? LookinAutoLayoutConstraint }
+        return sorted.compactMap { $0 as? AutoLayoutConstraint }
     }
 }

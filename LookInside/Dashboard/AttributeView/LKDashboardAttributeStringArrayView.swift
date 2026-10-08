@@ -18,7 +18,7 @@ class LKDashboardAttributeStringArrayView: LKDashboardAttributeView {
     private var danceButton: NSButton?
 
     /// The texts to list. Subclasses must override.
-    func stringList(with _: LookinAttribute) -> [String] {
+    func stringList(with _: InspectedAttribute) -> [String] {
         assertionFailure("should implement by subclass")
         return []
     }
@@ -82,7 +82,7 @@ class LKDashboardAttributeStringArrayView: LKDashboardAttributeView {
         }
         while sepLayers.count < separatorCount {
             let sepLayer = CALayer()
-            sepLayer.lookin_removeImplicitAnimations()
+            sepLayer.removeImplicitAnimations()
             layer?.addSublayer(sepLayer)
             sepLayers.append(sepLayer)
         }
@@ -108,7 +108,7 @@ class LKDashboardAttributeStringArrayView: LKDashboardAttributeView {
         }
     }
 
-    private func danceSource(of attribute: LookinAttribute?) -> String? {
+    private func danceSource(of attribute: InspectedAttribute?) -> String? {
         let item = attribute?.targetDisplayItem
         return item?.danceuiSource ?? item?.customInfo?.danceuiSource
     }
@@ -132,7 +132,7 @@ class LKDashboardAttributeStringArrayView: LKDashboardAttributeView {
 /// The class chain of the object, one class list per entry, demangled.
 @objc(LKDashboardAttributeClassView)
 final class LKDashboardAttributeClassView: LKDashboardAttributeStringArrayView {
-    override func stringList(with attribute: LookinAttribute) -> [String] {
+    override func stringList(with attribute: InspectedAttribute) -> [String] {
         let lists = attribute.value as? [[String]] ?? []
         return lists.map { rawClassList in
             rawClassList.map { LKSwiftDemangler.completedParse(input: $0) }.joined(separator: "\n")
@@ -149,13 +149,13 @@ final class LKDashboardAttributeRelationView: LKDashboardAttributeStringArrayVie
     private static let memberRegex = try! NSRegularExpression(pattern: #"\(\s*(\w+)\s*:\s*(\w+)\s*\*\s*\)"#)
     private static let objectRegex = try! NSRegularExpression(pattern: #"\(\s*(\w+)\s*\*\s*\)"#)
 
-    override func stringList(with attribute: LookinAttribute) -> [String] {
-        if let cache = attribute.lookin_getBindObject(forKey: Self.cacheKey) as? [String] {
+    override func stringList(with attribute: InspectedAttribute) -> [String] {
+        if let cache = attribute.getBindObject(forKey: Self.cacheKey) as? [String] {
             return cache
         }
         let raw = attribute.value as? [String] ?? []
         let demangled = raw.map(Self.demangle)
-        attribute.lookin_bindObject(demangled, forKey: Self.cacheKey)
+        attribute.bindObject(demangled, forKey: Self.cacheKey)
         return demangled
     }
 

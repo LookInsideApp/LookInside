@@ -59,7 +59,7 @@ private let classIconNames: [(className: String, imageName: String)] = [
 /// Type"). LKS_CustomDisplayItemsMaker (lookin_customDebugInfos path) sets
 /// customInfo but never produces SwiftUI-prefixed groups, so this
 /// distinguishes correctly. Remove once v8 support is dropped.
-private func displayItemLooksLikeSwiftUI(_ item: LookinDisplayItem) -> Bool {
+private func displayItemLooksLikeSwiftUI(_ item: DisplayItem) -> Bool {
     if item.customInfo?.isSwiftUI == true {
         return true
     }
@@ -76,7 +76,7 @@ class LKHierarchyRowView: LKOutlineRowView {
     /// Weak: the table keeps many row views around, and a strong reference
     /// would keep display items (and their screenshots) alive across
     /// hierarchy reloads.
-    weak var displayItem: LookinDisplayItem? {
+    weak var displayItem: DisplayItem? {
         didSet {
             displayItemDidChange(from: oldValue)
         }
@@ -188,7 +188,7 @@ class LKHierarchyRowView: LKOutlineRowView {
 
     // MARK: - Rendering
 
-    private func displayItemDidChange(from previousItem: LookinDisplayItem?) {
+    private func displayItemDidChange(from previousItem: DisplayItem?) {
         // Even when the item is unchanged its rowViewDelegate may point at
         // another row: select a view, focus it, leave focus, and without this
         // the row could no longer be deselected.
@@ -222,7 +222,7 @@ class LKHierarchyRowView: LKOutlineRowView {
         isHovered = (dataSource?.hoveredItem === displayItem)
     }
 
-    private func updateSwiftUIBadge(for item: LookinDisplayItem) {
+    private func updateSwiftUIBadge(for item: DisplayItem) {
         let isSwiftUINode = displayItemLooksLikeSwiftUI(item)
         if isSwiftUINode, swiftUIBadge == nil {
             let image = NSImage(systemSymbolName: "sparkles", accessibilityDescription: nil)
@@ -237,7 +237,7 @@ class LKHierarchyRowView: LKOutlineRowView {
         toolTip = isSwiftUINode ? NSLocalizedString("LookInside Pro · Activated", comment: "") : nil
     }
 
-    private func updateLabelStringsAndImageViewAlpha(for item: LookinDisplayItem) {
+    private func updateLabelStringsAndImageViewAlpha(for item: DisplayItem) {
         let titleColor: NSColor
         let subtitleColor: NSColor
         if isSelected {
@@ -312,7 +312,7 @@ class LKHierarchyRowView: LKOutlineRowView {
             layer = strikethroughLayer
         } else {
             layer = CALayer()
-            layer.lookin_removeImplicitAnimations()
+            layer.removeImplicitAnimations()
             self.layer?.addSublayer(layer)
             strikethroughLayer = layer
         }
@@ -342,7 +342,7 @@ class LKHierarchyRowView: LKOutlineRowView {
         eventHandlerButtonColorLayer.cornerRadius = width / 2
     }
 
-    private func updateLabelsFonts(for item: LookinDisplayItem) {
+    private func updateLabelsFonts(for item: DisplayItem) {
         let noImage = item.inNoPreviewHierarchy || item.inHiddenHierarchy
         let isPrivate = LKPrivateDiscriminatorStore.shared.isPrivateDisplayItem(item)
         if !item.isUserCustom(), noImage || isPrivate {
@@ -363,7 +363,7 @@ class LKHierarchyRowView: LKOutlineRowView {
         status = item.isExpanded ? .expanded : .collapsed
     }
 
-    private func shouldFadeContent(of item: LookinDisplayItem) -> Bool {
+    private func shouldFadeContent(of item: DisplayItem) -> Bool {
         if item.isInSearch, (item.highlightedSearchString ?? "").isEmpty {
             return true
         }
@@ -373,7 +373,7 @@ class LKHierarchyRowView: LKOutlineRowView {
         return item.inHiddenHierarchy || item.inNoPreviewHierarchy
     }
 
-    private func resolveIconImage(for item: LookinDisplayItem) -> NSImage? {
+    private func resolveIconImage(for item: DisplayItem) -> NSImage? {
         var imageName: String?
         if item.isUserCustom() {
             imageName = "hierarchy_custom"
@@ -440,8 +440,8 @@ class LKHierarchyRowView: LKOutlineRowView {
     }
 }
 
-extension LKHierarchyRowView: LookinDisplayItemDelegate {
-    func displayItem(_: LookinDisplayItem!, propertyDidChange property: LookinDisplayItemProperty) {
+extension LKHierarchyRowView: DisplayItemDelegate {
+    func displayItem(_: DisplayItem, propertyDidChange property: LookinDisplayItemProperty) {
         if property == .isHovered {
             updateHoverState()
         } else {

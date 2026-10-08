@@ -147,7 +147,7 @@ final class LKDashboardAttributeRectView: LKDashboardAttributeFieldsView {
     override func fieldStrings(for value: NSValue) -> [String] {
         let rect = value.rectValue
         return [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height].map {
-            NSString.lookin_string(from: Double($0), decimal: 3)
+            NSString.string(from: Double($0), decimal: 3)
         }
     }
 
@@ -201,7 +201,7 @@ final class LKDashboardAttributeInsetsView: LKDashboardAttributeFieldsView {
     override func fieldStrings(for value: NSValue) -> [String] {
         let insets = value.edgeInsetsValue
         return [insets.top, insets.left, insets.bottom, insets.right].map {
-            NSString.lookin_string(from: Double($0), decimal: 3)
+            NSString.string(from: Double($0), decimal: 3)
         }
     }
 
@@ -224,7 +224,7 @@ final class LKDashboardAttributePointView: LKDashboardAttributeFieldsView {
 
     override func fieldStrings(for value: NSValue) -> [String] {
         let point = value.pointValue
-        return [point.x, point.y].map { NSString.lookin_string(from: Double($0), decimal: 3) }
+        return [point.x, point.y].map { NSString.string(from: Double($0), decimal: 3) }
     }
 
     override func editedValue(from value: NSValue, field index: Int, number: Double) -> NSValue? {
@@ -254,7 +254,7 @@ final class LKDashboardAttributeSizeView: LKDashboardAttributeFieldsView {
         let size = value.sizeValue
         return [size.width, size.height].map { dimension in
             // Extremely large values (CGFLOAT_MAX, for example) read as "Max".
-            dimension >= 1e15 ? "Max" : NSString.lookin_string(from: Double(dimension), decimal: 3)
+            dimension >= 1e15 ? "Max" : NSString.string(from: Double(dimension), decimal: 3)
         }
     }
 

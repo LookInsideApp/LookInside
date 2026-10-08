@@ -1,6 +1,6 @@
 // LKMCPBridgeAttributeEncoder.swift
 //
-// Encodes a host-side `LookinAttribute` into the wire DTO
+// Encodes a host-side `InspectedAttribute` into the wire DTO
 // `LKMCPBridgeAttribute` for the `attributes.read` MCPBridge method.
 //
 // The host represents an attribute's payload as a polymorphic `id value`
@@ -22,7 +22,7 @@ import Foundation
 #endif
 
 enum LKMCPBridgeAttributeEncoder {
-    /// Encodes one host-side `LookinAttribute` into the wire DTO.
+    /// Encodes one host-side `InspectedAttribute` into the wire DTO.
     ///
     /// - Parameter redactingSecureContent: when `true`, string-valued kinds
     ///   (`string`, `selector`, `class`, `enum` string variant) are replaced
@@ -35,7 +35,7 @@ enum LKMCPBridgeAttributeEncoder {
     ///   either its `text`, its `placeholder`, or any custom-attribute
     ///   string the host might collect via `lookin_customDebugInfos`.
     static func encode(
-        _ attribute: LookinAttribute,
+        _ attribute: InspectedAttribute,
         redactingSecureContent: Bool
     ) -> LKMCPBridgeAttribute {
         let projection = projectValue(of: attribute)
@@ -43,7 +43,7 @@ enum LKMCPBridgeAttributeEncoder {
             ? redactedIfString(projection)
             : projection
         return LKMCPBridgeAttribute(
-            identifier: attribute.identifier,
+            identifier: attribute.identifier ?? "",
             displayTitle: attribute.displayTitle,
             isUserCustom: attribute.isUserCustom(),
             kind: finalProjection.kind,
@@ -81,7 +81,7 @@ enum LKMCPBridgeAttributeEncoder {
         let value: LKMCPBridgeJSONValue?
     }
 
-    private static func projectValue(of attribute: LookinAttribute) -> Projection {
+    private static func projectValue(of attribute: InspectedAttribute) -> Projection {
         let rawValue: Any? = attribute.value
         switch attribute.attrType {
         case .none, .void:
@@ -153,7 +153,7 @@ enum LKMCPBridgeAttributeEncoder {
             return Projection(kind: "json", value: encodeArbitraryJSON(rawValue))
 
         case .customObj:
-            if let constraints = rawValue as? [LookinAutoLayoutConstraint], constraints.isEmpty == false {
+            if let constraints = rawValue as? [AutoLayoutConstraint], constraints.isEmpty == false {
                 return Projection(kind: "constraints", value: encodeConstraints(constraints))
             }
             return Projection(kind: "custom", value: encodeCustomObject(rawValue))
@@ -165,7 +165,7 @@ enum LKMCPBridgeAttributeEncoder {
 
     // MARK: - extraValue
 
-    private static func encodeExtraValue(_ attribute: LookinAttribute) -> LKMCPBridgeJSONValue? {
+    private static func encodeExtraValue(_ attribute: InspectedAttribute) -> LKMCPBridgeJSONValue? {
         guard let extra = attribute.extraValue else { return nil }
         // For LookinAttrTypeEnumString, `extraValue` is the array of all
         // possible enum case names — surface it directly. Other attribute
@@ -361,7 +361,7 @@ enum LKMCPBridgeAttributeEncoder {
         }
     }
 
-    private static func encodeConstraintEndpoint(_ endpointObject: LookinObject?, itemType: LookinConstraintItemType) -> LKMCPBridgeJSONValue {
+    private static func encodeConstraintEndpoint(_ endpointObject: InspectedObject?, itemType: LookinConstraintItemType) -> LKMCPBridgeJSONValue {
         var fields: [String: LKMCPBridgeJSONValue] = [
             "itemType": .string(constraintItemTypeString(itemType)),
         ]
@@ -379,7 +379,7 @@ enum LKMCPBridgeAttributeEncoder {
     /// The attribute numbers stay raw NSInteger values: UIKit and AppKit
     /// assign different numbers to NSLayoutAttribute cases, and the bridge
     /// does not know which platform produced the data.
-    private static func encodeConstraints(_ constraints: [LookinAutoLayoutConstraint]) -> LKMCPBridgeJSONValue {
+    private static func encodeConstraints(_ constraints: [AutoLayoutConstraint]) -> LKMCPBridgeJSONValue {
         let encodedConstraints: [LKMCPBridgeJSONValue] = constraints.map { constraint in
             var fields: [String: LKMCPBridgeJSONValue] = [
                 "firstItem": encodeConstraintEndpoint(constraint.firstItem, itemType: constraint.firstItemType),

@@ -3,7 +3,7 @@ import Foundation
 /// Talks to the LookInside injector running on one attached iOS device.
 ///
 /// The transport is the one the host already uses to reach a LookInside server
-/// on a device — a `LookinFrameChannel` over a usbmuxd tunnel — pointed at the
+/// on a device — a `FrameChannel` over a usbmuxd tunnel — pointed at the
 /// injector's own port instead of the server's range. Nothing here touches a network
 /// interface: usbmuxd carries the bytes over the cable and dials 127.0.0.1
 /// inside the device, so the feature needs no Wi-Fi, no pairing beyond what
@@ -80,9 +80,9 @@ final class LKDeviceControlClient {
     /// The usbmuxd client the tunnel is opened through: the monitor's own,
     /// the one that enumerated the device (see `LKAttachedDeviceMonitor` for
     /// why it does not share the connection manager's).
-    private let usbMuxClient: LookinUSBMuxClient
+    private let usbMuxClient: USBMuxClient
 
-    private var channel: LookinFrameChannel?
+    private var channel: FrameChannel?
 
     /// Requests sent and not yet answered, by frame tag.
     private var pendingByFrameTag: [UInt32: (Result<Data, Failure>) -> Void] = [:]
@@ -90,7 +90,7 @@ final class LKDeviceControlClient {
     /// Tags start at 1 because the frame format reserves 0 for "no tag".
     private var nextFrameTag: UInt32 = 1
 
-    init(deviceIdentifier: Int, serialNumber: String, usbMuxClient: LookinUSBMuxClient) {
+    init(deviceIdentifier: Int, serialNumber: String, usbMuxClient: USBMuxClient) {
         self.deviceIdentifier = deviceIdentifier
         self.serialNumber = serialNumber
         self.usbMuxClient = usbMuxClient
@@ -111,7 +111,7 @@ final class LKDeviceControlClient {
         }
         // Any payload size, as the server channel takes: a process list can
         // run long, and the device is the injector this build was paired with.
-        let newChannel = LookinFrameChannel(
+        let newChannel = FrameChannel(
             fileDescriptor: tunnel.fileDescriptor,
             queue: .main,
             maxPayloadSize: .max,

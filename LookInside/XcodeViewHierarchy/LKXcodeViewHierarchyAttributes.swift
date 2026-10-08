@@ -149,11 +149,11 @@ enum LKXcodeViewHierarchyAttributes {
         layerNode: LKXcodeViewHierarchyNode?,
         graph: LKXcodeViewHierarchyObjectGraph,
         context: LKXcodeViewHierarchyAttributeContext
-    ) -> [LookinAttributesGroup] {
+    ) -> [AttributesGroup] {
         let classChain = graph.classChain(forClassName: node.className ?? "NSObject")
-        var groups: [LookinAttributesGroup] = []
+        var groups: [AttributesGroup] = []
         for catalogGroup in Catalog.groups {
-            var sections: [LookinAttributesSection] = []
+            var sections: [AttributesSection] = []
             for catalogSection in catalogGroup.sections {
                 let attributes = catalogSection.attributes.compactMap { identifier in
                     makingAttribute(
@@ -187,7 +187,7 @@ enum LKXcodeViewHierarchyAttributes {
         classChain: [String],
         graph: LKXcodeViewHierarchyObjectGraph,
         context: LKXcodeViewHierarchyAttributeContext
-    ) -> LookinAttribute? {
+    ) -> InspectedAttribute? {
         switch identifier {
         case LookinAttr_Class_Class_Class:
             let chains = relatedClassChains(classChain, graph: graph, context: context)
@@ -237,12 +237,12 @@ enum LKXcodeViewHierarchyAttributes {
         classChain: [String],
         graph: LKXcodeViewHierarchyObjectGraph,
         context: LKXcodeViewHierarchyAttributeContext
-    ) -> LookinAttribute? {
+    ) -> InspectedAttribute? {
         guard let specification = Catalog.specifications[identifier] else { return nil }
         if context.role == .layer {
             // A hostless layer answers only the rows the blueprint aims at a
             // CALayer; the view rows have no object to read from.
-            guard LookinDashboardBlueprint.targetKind(forAttrID: identifier) == .layer else { return nil }
+            guard DashboardBlueprint.targetKind(forAttrID: identifier) == .layer else { return nil }
         } else {
             guard specification.classNames.isEmpty || specification.classNames.contains(where: classChain.contains)
             else { return nil }
@@ -252,13 +252,13 @@ enum LKXcodeViewHierarchyAttributes {
 
         if case .absent = property.value {
             // A captured nil: shown as nil where the blueprint wants it shown.
-            guard !LookinDashboardBlueprint.hideIfNil(withAttrID: identifier),
+            guard !DashboardBlueprint.hideIfNil(withAttrID: identifier),
                   let attrType = nilCapableAttrType(for: specification.kind)
             else { return nil }
             return makingAttribute(identifier, attrType, nil)
         }
 
-        let isEnumeration = LookinDashboardBlueprint.enumListName(withAttrID: identifier) != nil
+        let isEnumeration = DashboardBlueprint.enumListName(withAttrID: identifier) != nil
         guard let converted = makingValue(property.value, kind: specification.kind, isEnumeration: isEnumeration)
         else { return nil }
         return makingAttribute(identifier, converted.attrType, converted.value)
@@ -545,7 +545,7 @@ enum LKXcodeViewHierarchyAttributes {
         for node: LKXcodeViewHierarchyNode,
         graph: LKXcodeViewHierarchyObjectGraph,
         context: LKXcodeViewHierarchyAttributeContext
-    ) -> [LookinAutoLayoutConstraint] {
+    ) -> [AutoLayoutConstraint] {
         let effectiveIdentifiers = affectingConstraintIdentifiers(of: node)
         let constraintIdentifiers = context.environment.constraintIndex.constraintIdentifiers(involving: node.objectIdentifier)
         return constraintIdentifiers.compactMap { constraintIdentifier in
@@ -565,7 +565,7 @@ enum LKXcodeViewHierarchyAttributes {
             let first = endpoint(of: constraintNode, propertyName: ConstraintProperty.firstItem, for: node, graph: graph, context: context)
             let second = endpoint(of: constraintNode, propertyName: ConstraintProperty.secondItem, for: node, graph: graph, context: context)
 
-            let constraint = LookinAutoLayoutConstraint()
+            let constraint = AutoLayoutConstraint()
             constraint.effective = effectiveIdentifiers.contains(constraintIdentifier)
             constraint.active = true
             constraint.firstItem = first.object
@@ -585,7 +585,7 @@ enum LKXcodeViewHierarchyAttributes {
         }
     }
 
-    /// `LookinAutoLayoutConstraint` asserts on attributes in 21...31 or above
+    /// `AutoLayoutConstraint` asserts on attributes in 21...31 or above
     /// 37 — private ones it has no name for. Captures so far use 32, 33, 36
     /// and 37 among the private values, all of which it accepts.
     private static func isRepresentableAttribute(_ attribute: Int) -> Bool {
@@ -619,11 +619,11 @@ enum LKXcodeViewHierarchyAttributes {
         for node: LKXcodeViewHierarchyNode,
         graph: LKXcodeViewHierarchyObjectGraph,
         context: LKXcodeViewHierarchyAttributeContext
-    ) -> (object: LookinObject?, type: LookinConstraintItemType) {
+    ) -> (object: InspectedObject?, type: LookinConstraintItemType) {
         guard case let .objectReference(reference)? = constraintNode.property(named: propertyName)?.value else {
             return (nil, .`nil`)
         }
-        let object = LookinObject()
+        let object = InspectedObject()
         object.oid = LKXcodeViewHierarchyConverter.objectIdentifierValue(reference.objectIdentifier)
         object.memoryAddress = reference.objectIdentifier
         object.classChainList = graph.classChain(forClassName: reference.className)
@@ -647,9 +647,9 @@ enum LKXcodeViewHierarchyAttributes {
 
     private static func makingGroup(
         _ identifier: String,
-        _ sections: [LookinAttributesSection]
-    ) -> LookinAttributesGroup {
-        let group = LookinAttributesGroup()
+        _ sections: [AttributesSection]
+    ) -> AttributesGroup {
+        let group = AttributesGroup()
         group.identifier = identifier
         group.attrSections = sections
         return group
@@ -657,9 +657,9 @@ enum LKXcodeViewHierarchyAttributes {
 
     private static func makingSection(
         _ identifier: String,
-        _ attributes: [LookinAttribute]
-    ) -> LookinAttributesSection {
-        let section = LookinAttributesSection()
+        _ attributes: [InspectedAttribute]
+    ) -> AttributesSection {
+        let section = AttributesSection()
         section.identifier = identifier
         section.attributes = attributes
         return section
@@ -669,8 +669,8 @@ enum LKXcodeViewHierarchyAttributes {
         _ identifier: String,
         _ attrType: LookinAttrType,
         _ value: Any?
-    ) -> LookinAttribute {
-        let attribute = LookinAttribute()
+    ) -> InspectedAttribute {
+        let attribute = InspectedAttribute()
         attribute.identifier = identifier
         attribute.attrType = attrType
         attribute.value = value

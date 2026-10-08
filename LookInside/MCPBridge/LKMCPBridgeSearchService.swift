@@ -167,7 +167,7 @@ final class LKMCPBridgeSearchService {
             )
         }
 
-        let searchScope: [LookinDisplayItem]
+        let searchScope: [DisplayItem]
         if let scopeObjectIdentifier {
             guard let scopeRoot = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
                 amongRoots: allItems,
@@ -181,7 +181,7 @@ final class LKMCPBridgeSearchService {
                     )
                 )
             }
-            var subtree: [LookinDisplayItem] = []
+            var subtree: [DisplayItem] = []
             scopeRoot.enumerateSelfAndChildren { subtree.append($0) }
             searchScope = subtree
         } else {
@@ -232,7 +232,7 @@ final class LKMCPBridgeSearchService {
 
     // MARK: - Candidate / match construction
 
-    private func makeCandidate(from item: LookinDisplayItem) -> LKMCPBridgeSearchQuery.Candidate {
+    private func makeCandidate(from item: DisplayItem) -> LKMCPBridgeSearchQuery.Candidate {
         let displayingObject = item.displayingObject()
         let classChain = displayingObject?.classChainList ?? []
 
@@ -257,7 +257,7 @@ final class LKMCPBridgeSearchService {
     }
 
     private func makeMatch(
-        from item: LookinDisplayItem,
+        from item: DisplayItem,
         matchedFields: [LKMCPBridgeSearchQuery.Field]
     ) -> LKMCPBridgeSearchMatch {
         // Titles and subtitles can carry app-supplied strings through the
@@ -299,7 +299,7 @@ final class LKMCPBridgeSearchService {
     /// Path components use the class name rather than the display title:
     /// the title can be an app-supplied custom string, and a path is for
     /// orientation, not for reading back app content.
-    private static func pathComponentTitle(for item: LookinDisplayItem) -> String {
+    private static func pathComponentTitle(for item: DisplayItem) -> String {
         let className = item.displayingObject()?.classChainList?.first ?? ""
         return className.isEmpty ? "?" : className
     }

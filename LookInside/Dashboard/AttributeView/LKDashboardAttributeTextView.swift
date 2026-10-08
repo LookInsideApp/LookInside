@@ -71,7 +71,7 @@ final class LKDashboardAttributeTextView: LKDashboardAttributeView, NSTextViewDe
     override func renderWithAttribute() {
         guard let attribute else { return }
         // Known attributes show their short title above the value.
-        if !attribute.isUserCustom(), let briefTitle = LookinDashboardBlueprint.briefTitle(withAttrID: attribute.identifier), !briefTitle.isEmpty {
+        if !attribute.isUserCustom(), let briefTitle = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier), !briefTitle.isEmpty {
             titleLabel.stringValue = briefTitle
             titleLabel.isHidden = false
         } else {
@@ -108,7 +108,7 @@ final class LKDashboardAttributeTextView: LKDashboardAttributeView, NSTextViewDe
         backgroundColorName = "DashboardCardValueBGColor"
     }
 
-    private func jumpTargetItem() -> LookinDisplayItem? {
+    private func jumpTargetItem() -> DisplayItem? {
         dashboardViewController?.currentDataSource()?.swiftUIJumpTarget(for: attribute)
     }
 

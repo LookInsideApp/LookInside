@@ -35,7 +35,7 @@ final class LKDashboardAccessoryWindowController: LKWindowController, NSWindowDe
     }
 
     /// Shows `sections` and returns the window size they need.
-    func render(attrSections sections: [LookinAttributesSection]) -> NSSize {
+    func render(attrSections sections: [AttributesSection]) -> NSSize {
         var needlessViews = Array(sectionViews.values)
 
         for (idx, section) in sections.enumerated() {
@@ -60,7 +60,7 @@ final class LKDashboardAccessoryWindowController: LKWindowController, NSWindowDe
 
         let normalSectionWidth = LKDashboardMetrics.viewWidth - LKDashboardMetrics.horInset * 2
         var y: CGFloat = 8
-        for sectionID in LookinDashboardBlueprint.sectionIDs(forGroupID: groupID) ?? [] {
+        for sectionID in DashboardBlueprint.sectionIDs(forGroupID: groupID) ?? [] {
             guard let view = sectionViews[sectionID], !view.isHidden else { continue }
             view.dashboardLayout.x(LKDashboardMetrics.horInset).width(normalSectionWidth - LKDashboardMetrics.horInset * 2).heightToFit().y(y)
             y = view.frame.maxY + LKDashboardMetrics.sectionMarginTop

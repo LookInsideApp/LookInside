@@ -140,7 +140,7 @@ final class LKWindowToolbarHelper: NSObject {
 
     /// The reader's app item, showing `appInfo`.
     @objc(makeAppInReadModeItemWithAppInfo:)
-    func makeAppInReadModeItem(with appInfo: LookinAppInfo?) -> NSToolbarItem {
+    func makeAppInReadModeItem(with appInfo: InspectedAppInfo?) -> NSToolbarItem {
         let button = LKWindowToolbarAppButton()
         button.bezelStyle = .texturedRounded
         button.appInfo = appInfo

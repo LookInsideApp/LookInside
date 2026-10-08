@@ -49,12 +49,12 @@ class LKHierarchyController: LKBaseViewController, LKHierarchyViewDelegate {
     // MARK: - LKHierarchyViewDelegate
 
     @objc(hierarchyView:didSelectItem:)
-    func hierarchyView(_: LKHierarchyView!, didSelect item: LookinDisplayItem!) {
+    func hierarchyView(_: LKHierarchyView!, didSelect item: DisplayItem!) {
         dataSource.selectedItem = item
     }
 
     @objc(hierarchyView:didDoubleClickItem:)
-    func hierarchyView(_: LKHierarchyView!, didDoubleClick item: LookinDisplayItem!) {
+    func hierarchyView(_: LKHierarchyView!, didDoubleClick item: DisplayItem!) {
         switch LKPreferenceManager.shared.doubleClickBehavior {
         case .collapse:
             guard item.isExpandable else {
@@ -74,22 +74,22 @@ class LKHierarchyController: LKBaseViewController, LKHierarchyViewDelegate {
 
     /// `item` is nil when the mouse leaves the rows.
     @objc(hierarchyView:didHoverAtItem:)
-    func hierarchyView(_: LKHierarchyView!, didHoverAt item: LookinDisplayItem!) {
+    func hierarchyView(_: LKHierarchyView!, didHoverAt item: DisplayItem!) {
         dataSource.hoveredItem = item
     }
 
     @objc(hierarchyView:needToCollapseItem:)
-    func hierarchyView(_: LKHierarchyView!, needToCollapse item: LookinDisplayItem!) {
+    func hierarchyView(_: LKHierarchyView!, needToCollapse item: DisplayItem!) {
         dataSource.collapse(item)
     }
 
     @objc(hierarchyView:needToCollapseChildrenOfItem:)
-    func hierarchyView(_: LKHierarchyView!, needToCollapseChildrenOf item: LookinDisplayItem!) {
+    func hierarchyView(_: LKHierarchyView!, needToCollapseChildrenOf item: DisplayItem!) {
         dataSource.collapseAllChildren(of: item)
     }
 
     @objc(hierarchyView:needToExpandItem:recursively:)
-    func hierarchyView(_: LKHierarchyView!, needToExpand item: LookinDisplayItem!, recursively: Bool) {
+    func hierarchyView(_: LKHierarchyView!, needToExpand item: DisplayItem!, recursively: Bool) {
         if recursively {
             dataSource.expandItemsRooted(by: item)
         } else {

@@ -136,7 +136,7 @@ final class LKMCPBridgeInspectionService {
             )
         }
 
-        let rootItems: [LookinDisplayItem]
+        let rootItems: [DisplayItem]
         if let rootObjectIdentifier {
             guard let scopedRoot = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
                 amongRoots: dataSource.rawFlatItems ?? [],
@@ -165,7 +165,7 @@ final class LKMCPBridgeInspectionService {
         }
     }
 
-    private static func nodeKindString(for item: LookinDisplayItem) -> String {
+    private static func nodeKindString(for item: DisplayItem) -> String {
         switch item.resolvedNodeKind() {
         // The client's vocabulary has no separate kinds for these two; both
         // are layers.
@@ -181,7 +181,7 @@ final class LKMCPBridgeInspectionService {
         }
     }
 
-    private func makeViewNode(from item: LookinDisplayItem, remainingDepth: Int?, includeLayoutGuides: Bool, includeCells: Bool) -> LKMCPBridgeViewNode {
+    private func makeViewNode(from item: DisplayItem, remainingDepth: Int?, includeLayoutGuides: Bool, includeCells: Bool) -> LKMCPBridgeViewNode {
         let identity = LKMCPBridgeLiveDocumentLookup.objectIdentifierString(for: item)
         let className = item.displayingObject()?.classChainList?.first ?? ""
         let frame = LKMCPBridgeRect(cgRect: LKMCPBridgeLiveDocumentLookup.rootSpaceFrame(for: item))
@@ -271,7 +271,7 @@ final class LKMCPBridgeInspectionService {
             )
         }
 
-        var rawGroups: [LookinAttributesGroup] = []
+        var rawGroups: [AttributesGroup] = []
         if let inbuiltGroups = displayItem.attributesGroupList {
             rawGroups.append(contentsOf: inbuiltGroups)
         }
@@ -312,7 +312,7 @@ final class LKMCPBridgeInspectionService {
     }
 
     private func encodeGroup(
-        _ group: LookinAttributesGroup,
+        _ group: AttributesGroup,
         redactingSecureContent: Bool
     ) -> LKMCPBridgeAttributeGroup {
         let identifier = group.userCustomTitle ?? group.identifier
@@ -328,7 +328,7 @@ final class LKMCPBridgeInspectionService {
     }
 
     private func encodeSection(
-        _ section: LookinAttributesSection,
+        _ section: AttributesSection,
         redactingSecureContent: Bool
     ) -> LKMCPBridgeAttributeSection {
         let attributes = (section.attributes ?? []).map { attribute in

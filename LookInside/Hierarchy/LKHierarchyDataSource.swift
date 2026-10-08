@@ -23,12 +23,12 @@ enum LKHierarchyDataSourceEvent {
     case willReloadHierarchyInfo
     case didReloadHierarchyInfo
     case didReloadFlatItemsWithSearchOrFocus
-    case itemDidChangeHiddenAlphaValue(LookinDisplayItem)
-    case itemDidChangeAttrGroup(LookinDisplayItem)
+    case itemDidChangeHiddenAlphaValue(DisplayItem)
+    case itemDidChangeAttrGroup(DisplayItem)
     /// Sent with no item: the preview rebuilds from the whole tree.
     case itemDidChangeNoPreview
     /// Static (live) data sources only.
-    case itemDidChangeFrame(LookinDisplayItem)
+    case itemDidChangeFrame(DisplayItem)
 }
 
 /// Classes collapsed by the expansion presets, together with the
@@ -70,7 +70,7 @@ private func rectsAlmostEqual(_ lhs: CGRect, _ rhs: CGRect) -> Bool {
         && abs(lhs.height - rhs.height) <= tolerance
 }
 
-private func swiftUINode(_ item: LookinDisplayItem, matchesSourceTypes sourceTypes: [String]) -> Bool {
+private func swiftUINode(_ item: DisplayItem, matchesSourceTypes sourceTypes: [String]) -> Bool {
     guard !sourceTypes.isEmpty else {
         return true
     }
@@ -78,16 +78,16 @@ private func swiftUINode(_ item: LookinDisplayItem, matchesSourceTypes sourceTyp
     return sourceTypes.contains { itemTypes.contains($0) }
 }
 
-private func ancestors(of item: LookinDisplayItem) -> [LookinDisplayItem] {
-    var result: [LookinDisplayItem] = []
+private func ancestors(of item: DisplayItem) -> [DisplayItem] {
+    var result: [DisplayItem] = []
     item.enumerateAncestors { ancestor, _ in
         result.append(ancestor)
     }
     return result
 }
 
-private func selfAndDescendants(of item: LookinDisplayItem) -> [LookinDisplayItem] {
-    var result: [LookinDisplayItem] = []
+private func selfAndDescendants(of item: DisplayItem) -> [DisplayItem] {
+    var result: [DisplayItem] = []
     item.enumerateSelfAndChildren { node in
         result.append(node)
     }
@@ -108,16 +108,16 @@ class LKHierarchyDataSource: NSObject {
     final let willReloadHierarchyInfo = LKSyncSignal<Void>()
     final let didReloadHierarchyInfo = LKSyncSignal<Void>()
     /// An item's `isHidden` or `alpha` changed.
-    final let itemDidChangeHiddenAlphaValue = LKSyncSignal<LookinDisplayItem>()
+    final let itemDidChangeHiddenAlphaValue = LKSyncSignal<DisplayItem>()
     /// An item's attribute groups changed.
-    final let itemDidChangeAttrGroup = LKSyncSignal<LookinDisplayItem>()
+    final let itemDidChangeAttrGroup = LKSyncSignal<DisplayItem>()
     /// The preview rebuilds from the whole tree.
     final let itemDidChangeNoPreview = LKSyncSignal<Void>()
     /// A search or focus changed `flatItems`.
     final let didReloadFlatItemsWithSearchOrFocus = LKSyncSignal<Void>()
 
     /// Every display item of the tree, visible or not.
-    @objc var rawFlatItems: [LookinDisplayItem]! {
+    @objc var rawFlatItems: [DisplayItem]! {
         get { storedRawFlatItems }
         set {
             storedRawFlatItems = newValue
@@ -127,21 +127,21 @@ class LKHierarchyDataSource: NSObject {
 
     /// All items in normal state; the shown subset while searching or
     /// focusing.
-    @objc dynamic var flatItems: [LookinDisplayItem]!
+    @objc dynamic var flatItems: [DisplayItem]!
 
     /// The rows: the items of `flatItems` that no collapsed ancestor hides.
     /// KVO-observable.
-    @objc dynamic var displayingFlatItems: [LookinDisplayItem]! {
+    @objc dynamic var displayingFlatItems: [DisplayItem]! {
         storedDisplayingFlatItems
     }
 
-    @objc dynamic weak var selectedItem: LookinDisplayItem? {
+    @objc dynamic weak var selectedItem: DisplayItem? {
         didSet {
             selectedItemDidChange(from: oldValue)
         }
     }
 
-    @objc dynamic weak var hoveredItem: LookinDisplayItem? {
+    @objc dynamic weak var hoveredItem: DisplayItem? {
         didSet {
             hoveredItemDidChange(from: oldValue)
         }
@@ -162,7 +162,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     /// KVO-observable.
-    @objc dynamic var rawHierarchyInfo: LookinHierarchyInfo! {
+    @objc dynamic var rawHierarchyInfo: HierarchyInfo! {
         storedRawHierarchyInfo
     }
 
@@ -177,12 +177,12 @@ class LKHierarchyDataSource: NSObject {
     // Storage of the read-only properties. Writes go
     // through the setters below, which post the KVO notifications.
     private var storedState: LKHierarchyDataSourceState = .normal
-    private var storedDisplayingFlatItems: [LookinDisplayItem]?
-    private var storedRawHierarchyInfo: LookinHierarchyInfo?
+    private var storedDisplayingFlatItems: [DisplayItem]?
+    private var storedRawHierarchyInfo: HierarchyInfo?
     private var storedSelectColorMenu: NSMenu?
     private var storedServerSideIsSwiftProject = false
-    private var storedRawFlatItems: [LookinDisplayItem]?
-    private var oidToDisplayItem: [UInt: LookinDisplayItem] = [:]
+    private var storedRawFlatItems: [DisplayItem]?
+    private var oidToDisplayItem: [UInt: DisplayItem] = [:]
     /// Alias names by `rgbaString`.
     private var colorToAliasMap: [String: [String]] = [:]
     private var lastRGBAFormat: Bool?
@@ -222,7 +222,7 @@ class LKHierarchyDataSource: NSObject {
     // MARK: - Reload
 
     @objc(reloadWithHierarchyInfo:keepState:)
-    func reload(with info: LookinHierarchyInfo!, keepState: Bool) {
+    func reload(with info: HierarchyInfo!, keepState: Bool) {
         // Path identifiers of the old items resolve their root index against
         // the old root items, so take them before replacing the info.
         let previousRootItems = rawHierarchyInfo?.displayItems ?? []
@@ -253,7 +253,7 @@ class LKHierarchyDataSource: NSObject {
         setUpColors()
 
         // Flatten the tree; this also sets every item's indentLevel.
-        rawFlatItems = LookinDisplayItem.flatItems(fromHierarchicalItems: info.displayItems ?? [])
+        rawFlatItems = DisplayItem.flatItems(fromHierarchicalItems: info.displayItems ?? [])
         let items = rawFlatItems ?? []
 
         let collapsedClasses = classesPreferredToCollapse.union(info.collapsedClassList ?? [])
@@ -290,7 +290,7 @@ class LKHierarchyDataSource: NSObject {
 
         flatItems = items
 
-        var itemToSelect: LookinDisplayItem?
+        var itemToSelect: DisplayItem?
         if keepState {
             itemToSelect = displayItem(withOid: previousSelectedOid)
         }
@@ -318,7 +318,7 @@ class LKHierarchyDataSource: NSObject {
             }
         }
         if itemToSelect == nil {
-            var presetSelection: LookinDisplayItem?
+            var presetSelection: DisplayItem?
             adjustExpansion(by: expansionIndex, referenceDict: referenceDict, selectedItem: &presetSelection)
             itemToSelect = presetSelection
         } else {
@@ -342,7 +342,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(itemAtRow:)
-    func item(atRow index: Int) -> LookinDisplayItem! {
+    func item(atRow index: Int) -> DisplayItem! {
         guard let rows = displayingFlatItems, rows.indices.contains(index) else {
             return nil
         }
@@ -350,12 +350,12 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(rowForItem:)
-    func row(for item: LookinDisplayItem!) -> Int {
+    func row(for item: DisplayItem!) -> Int {
         displayingFlatItems?.firstIndex { $0 === item } ?? NSNotFound
     }
 
     @objc(displayItemWithOid:)
-    func displayItem(withOid oid: UInt) -> LookinDisplayItem! {
+    func displayItem(withOid oid: UInt) -> DisplayItem! {
         oidToDisplayItem[oid]
     }
 
@@ -388,7 +388,7 @@ class LKHierarchyDataSource: NSObject {
 
     // MARK: - Selection
 
-    private func selectedItemDidChange(from previousItem: LookinDisplayItem?) {
+    private func selectedItemDidChange(from previousItem: DisplayItem?) {
         let item = selectedItem
         guard item !== previousItem else {
             return
@@ -411,7 +411,7 @@ class LKHierarchyDataSource: NSObject {
         }
     }
 
-    private func hoveredItemDidChange(from previousItem: LookinDisplayItem?) {
+    private func hoveredItemDidChange(from previousItem: DisplayItem?) {
         let item = hoveredItem
         guard item !== previousItem else {
             return
@@ -421,7 +421,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(selectAndRevealItem:)
-    func selectAndRevealItem(_ item: LookinDisplayItem!) {
+    func selectAndRevealItem(_ item: DisplayItem!) {
         guard let item else {
             return
         }
@@ -444,7 +444,7 @@ class LKHierarchyDataSource: NSObject {
         selectedItem = item
     }
 
-    private func containsInFlatItems(_ item: LookinDisplayItem) -> Bool {
+    private func containsInFlatItems(_ item: DisplayItem) -> Bool {
         (flatItems ?? []).contains { $0 === item }
     }
 
@@ -460,7 +460,7 @@ class LKHierarchyDataSource: NSObject {
     func adjustExpansion(
         by index: Int,
         referenceDict: [String: NSNumber]!,
-        selectedItem: AutoreleasingUnsafeMutablePointer<LookinDisplayItem?>!
+        selectedItem: AutoreleasingUnsafeMutablePointer<DisplayItem?>!
     ) {
         var index = index
         if index < 0 || index > 4 {
@@ -498,7 +498,7 @@ class LKHierarchyDataSource: NSObject {
         switch index {
         case 0:
             // Collapse everything down to the top-level windows.
-            var preferredSelection: LookinDisplayItem?
+            var preferredSelection: DisplayItem?
             for item in items where !item.hasDeterminedExpansion {
                 item.isExpanded = false
                 if item.representedAsKeyWindow {
@@ -514,9 +514,9 @@ class LKHierarchyDataSource: NSObject {
                 item.isExpanded = !item.inNoPreviewHierarchy
             }
             if let selectedItem {
-                var preferredSelection: LookinDisplayItem?
+                var preferredSelection: DisplayItem?
                 if let keyWindowRoot = rootItems.first(where: { $0.representedAsKeyWindow }) {
-                    let windowItems = LookinDisplayItem.flatItems(fromHierarchicalItems: [keyWindowRoot]) ?? []
+                    let windowItems = DisplayItem.flatItems(fromHierarchicalItems: [keyWindowRoot])
                     preferredSelection = windowItems.last {
                         $0.hostViewControllerObject != nil || $0.hostWindowControllerObject != nil
                     }
@@ -543,15 +543,15 @@ class LKHierarchyDataSource: NSObject {
     /// Presets 1 to 3, built around the key window's view controllers.
     private func applyViewControllerPreset(
         index: Int,
-        keyWindowItem: LookinDisplayItem,
-        rootItems: [LookinDisplayItem],
-        selectedItem: AutoreleasingUnsafeMutablePointer<LookinDisplayItem?>?,
+        keyWindowItem: DisplayItem,
+        rootItems: [DisplayItem],
+        selectedItem: AutoreleasingUnsafeMutablePointer<DisplayItem?>?,
         collapseUndetermined: () -> Void
     ) {
         // A scene container (window object only, no view or layer) holds the
         // real key window among its children; the UITransitionView search
         // runs on that one.
-        var actualKeyWindow: LookinDisplayItem? = keyWindowItem
+        var actualKeyWindow: DisplayItem? = keyWindowItem
         let keyWindowKind = keyWindowItem.resolvedNodeKind()
         if keyWindowKind == .window || keyWindowKind == .windowScene {
             let children = keyWindowItem.subitems ?? []
@@ -561,7 +561,7 @@ class LKHierarchyDataSource: NSObject {
         // Collapse every other window, overriding the reference state, so a
         // scene that is not key never stays open.
         for windowItem in rootItems where windowItem !== keyWindowItem {
-            for item in LookinDisplayItem.flatItems(fromHierarchicalItems: [windowItem]) ?? [] {
+            for item in DisplayItem.flatItems(fromHierarchicalItems: [windowItem]) {
                 item.isExpanded = false
                 item.hasDeterminedExpansion = true
             }
@@ -574,12 +574,12 @@ class LKHierarchyDataSource: NSObject {
             item.hasDeterminedExpansion = true
         }
 
-        var viewControllerItems: [LookinDisplayItem] = []
+        var viewControllerItems: [DisplayItem] = []
         // The Objective-C version tested the show-hidden-items preference
         // attribute object, not its value; the object is never nil, so
         // hidden subtrees are not folded here.
         let showHiddenItems = true
-        for item in LookinDisplayItem.flatItems(fromHierarchicalItems: [keyWindowItem]) ?? [] {
+        for item in DisplayItem.flatItems(fromHierarchicalItems: [keyWindowItem]) {
             if item.hostViewControllerObject != nil || item.hostWindowControllerObject != nil {
                 viewControllerItems.append(item)
                 continue
@@ -663,7 +663,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(collapseItem:)
-    func collapse(_ item: LookinDisplayItem!) {
+    func collapse(_ item: DisplayItem!) {
         guard let item, item.isExpandable, item.isExpanded else {
             return
         }
@@ -673,7 +673,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(expandItem:)
-    func expand(_ item: LookinDisplayItem!) {
+    func expand(_ item: DisplayItem!) {
         guard let item, item.isExpandable, !item.isExpanded else {
             return
         }
@@ -683,7 +683,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(expandToShowItem:)
-    func expand(toShow item: LookinDisplayItem!) {
+    func expand(toShow item: DisplayItem!) {
         var didChange = false
         item?.enumerateAncestors { ancestor, _ in
             guard !ancestor.isExpanded else {
@@ -699,7 +699,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(expandItemsRootedByItem:)
-    func expandItemsRooted(by item: LookinDisplayItem!) {
+    func expandItemsRooted(by item: DisplayItem!) {
         let includePreferredCollapsed = item?.preferToBeCollapsed ?? false
         item?.enumerateSelfAndChildren { node in
             guard node.isExpandable, !node.isExpanded else {
@@ -714,7 +714,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     @objc(collapseAllChildrenOfItem:)
-    func collapseAllChildren(of item: LookinDisplayItem!) {
+    func collapseAllChildren(of item: DisplayItem!) {
         item?.enumerateSelfAndChildren { node in
             guard node !== item, node.isExpandable, node.isExpanded else {
                 return
@@ -731,7 +731,7 @@ class LKHierarchyDataSource: NSObject {
     /// when a node of the chain has no class (UserCustom-only nodes), when
     /// a sibling index cannot be resolved, or when `rootItems` is empty.
     @objc(pathIdentifierForItem:inRootItems:)
-    class func pathIdentifier(for item: LookinDisplayItem!, inRootItems rootItems: [LookinDisplayItem]!) -> String! {
+    class func pathIdentifier(for item: DisplayItem!, inRootItems rootItems: [DisplayItem]!) -> String! {
         guard let item else {
             return nil
         }
@@ -823,7 +823,7 @@ class LKHierarchyDataSource: NSObject {
         for item in rawFlatItems ?? [] {
             item.isInSearch = false
             item.highlightedSearchString = nil
-            item.isExpanded = item.lookin_getBindBOOL(forKey: expandedBeforeSearchOrFocusKey)
+            item.isExpanded = item.getBindBool(forKey: expandedBeforeSearchOrFocusKey)
         }
         // The item selected while searching stays selected and visible.
         selectedItem?.enumerateAncestors { item, _ in
@@ -838,7 +838,7 @@ class LKHierarchyDataSource: NSObject {
 
     /// Entered from the normal or the search state.
     @objc(focusDisplayItem:)
-    func focus(_ item: LookinDisplayItem!) {
+    func focus(_ item: DisplayItem!) {
         guard let item else {
             assertionFailure("focusing nil")
             return
@@ -868,7 +868,7 @@ class LKHierarchyDataSource: NSObject {
         setState(.normal)
 
         for item in rawFlatItems ?? [] {
-            item.isExpanded = item.lookin_getBindBOOL(forKey: expandedBeforeSearchOrFocusKey)
+            item.isExpanded = item.getBindBool(forKey: expandedBeforeSearchOrFocusKey)
         }
 
         flatItems = rawFlatItems
@@ -876,9 +876,9 @@ class LKHierarchyDataSource: NSObject {
         buildDisplayingFlatItems()
     }
 
-    private func recordExpansionBeforeSearchOrFocus(_ items: [LookinDisplayItem]) {
+    private func recordExpansionBeforeSearchOrFocus(_ items: [DisplayItem]) {
         for item in items {
-            item.lookin_bindBOOL(item.isExpanded, forKey: expandedBeforeSearchOrFocusKey)
+            item.bindBool(item.isExpanded, forKey: expandedBeforeSearchOrFocusKey)
         }
     }
 
@@ -886,12 +886,12 @@ class LKHierarchyDataSource: NSObject {
 
     /// SwiftUI node -> its matched CALayer nodes; empty when there is none.
     @objc(swiftUIBackingLayerItemsForItem:)
-    func swiftUIBackingLayerItems(for item: LookinDisplayItem!) -> [LookinDisplayItem]! {
+    func swiftUIBackingLayerItems(for item: DisplayItem!) -> [DisplayItem]! {
         guard let item else {
             return []
         }
-        var result: [LookinDisplayItem] = []
-        func add(_ candidate: LookinDisplayItem?) {
+        var result: [DisplayItem] = []
+        func add(_ candidate: DisplayItem?) {
             if let candidate, !result.contains(where: { $0 === candidate }) {
                 result.append(candidate)
             }
@@ -907,7 +907,7 @@ class LKHierarchyDataSource: NSObject {
 
     /// CALayer node -> its SwiftUI node, or nil.
     @objc(swiftUISourceItemForLayerItem:)
-    func swiftUISourceItem(forLayerItem item: LookinDisplayItem!) -> LookinDisplayItem! {
+    func swiftUISourceItem(forLayerItem item: DisplayItem!) -> DisplayItem! {
         guard let item, let displayListID = item.lk_swiftUILayerDisplayListID() else {
             return nil
         }
@@ -917,7 +917,7 @@ class LKHierarchyDataSource: NSObject {
     /// Dashboard row -> its SwiftUI / CALayer jump target, or nil when the
     /// row has none.
     @objc(swiftUIJumpTargetForAttribute:)
-    func swiftUIJumpTarget(for attribute: LookinAttribute!) -> LookinDisplayItem! {
+    func swiftUIJumpTarget(for attribute: InspectedAttribute!) -> DisplayItem! {
         guard let sourceItem = attribute?.targetDisplayItem, let value = attribute.value as? String else {
             return nil
         }
@@ -928,10 +928,10 @@ class LKHierarchyDataSource: NSObject {
 
         if sourceIsSwiftUI {
             if title.hasSuffix("Backed By") {
-                return layerItem(withMemoryAddress: LookinDisplayItem.lk_memoryAddress(inObjectDescription: value))
+                return layerItem(withMemoryAddress: DisplayItem.lk_memoryAddress(inObjectDescription: value))
             }
             if title.hasSuffix("Display List ID") || title == "Identity IDs" {
-                for displayListID in LookinDisplayItem.lk_validSwiftUIDisplayListIDs(in: value) {
+                for displayListID in DisplayItem.lk_validSwiftUIDisplayListIDs(in: value) {
                     if let target = layerItem(withDisplayListID: displayListID) {
                         return target
                     }
@@ -945,14 +945,14 @@ class LKHierarchyDataSource: NSObject {
         }
 
         if sourceItem.layerObject != nil, title == "Display List ID" {
-            let displayListID = LookinDisplayItem.lk_validSwiftUIDisplayListIDs(in: value).first
+            let displayListID = DisplayItem.lk_validSwiftUIDisplayListIDs(in: value).first
                 ?? sourceItem.lk_swiftUILayerDisplayListID()
             return swiftUIItem(withDisplayListID: displayListID) ?? swiftUIItemForLayerItemByFrameAndSource(sourceItem)
         }
         return nil
     }
 
-    private func layerItem(withMemoryAddress memoryAddress: String?) -> LookinDisplayItem? {
+    private func layerItem(withMemoryAddress memoryAddress: String?) -> DisplayItem? {
         guard let memoryAddress, !memoryAddress.isEmpty else {
             return nil
         }
@@ -960,7 +960,7 @@ class LKHierarchyDataSource: NSObject {
         return (rawFlatItems ?? []).first { $0.layerObject?.memoryAddress?.lowercased() == normalized }
     }
 
-    private func layerItem(withDisplayListID displayListID: NSNumber?) -> LookinDisplayItem? {
+    private func layerItem(withDisplayListID displayListID: NSNumber?) -> DisplayItem? {
         guard let displayListID else {
             return nil
         }
@@ -970,11 +970,11 @@ class LKHierarchyDataSource: NSObject {
     }
 
     /// The deepest SwiftUI node backed by `displayListID`.
-    private func swiftUIItem(withDisplayListID displayListID: NSNumber?) -> LookinDisplayItem? {
+    private func swiftUIItem(withDisplayListID displayListID: NSNumber?) -> DisplayItem? {
         guard let displayListID else {
             return nil
         }
-        var result: LookinDisplayItem?
+        var result: DisplayItem?
         for item in rawFlatItems ?? [] where item.lk_swiftUIBackingDisplayListIDs().contains(displayListID) {
             if result == nil || item.indentLevel() > result!.indentLevel() {
                 result = item
@@ -984,13 +984,13 @@ class LKHierarchyDataSource: NSObject {
     }
 
     /// The deepest SwiftUI node with the layer's frame and source type.
-    private func swiftUIItemForLayerItemByFrameAndSource(_ layerItem: LookinDisplayItem) -> LookinDisplayItem? {
+    private func swiftUIItemForLayerItemByFrameAndSource(_ layerItem: DisplayItem) -> DisplayItem? {
         guard layerItem.layerObject != nil else {
             return nil
         }
         let layerFrame = layerItem.calculateFrameToRoot()
         let sourceTypes = layerItem.lk_swiftUILayerSourceTypeNames()
-        var result: LookinDisplayItem?
+        var result: DisplayItem?
         for item in rawFlatItems ?? [] {
             guard item.customInfo?.isSwiftUI == true, item.hasValidFrameToRoot() else {
                 continue
@@ -1135,7 +1135,7 @@ class LKHierarchyDataSource: NSObject {
     }
 
     private func rebuildOidMap() {
-        var map: [UInt: LookinDisplayItem] = [:]
+        var map: [UInt: DisplayItem] = [:]
         map.reserveCapacity((storedRawFlatItems?.count ?? 0) * 2)
         for item in storedRawFlatItems ?? [] {
             for object in [item.viewObject, item.layerObject, item.windowObject, item.kindObject] {

@@ -17,16 +17,16 @@ final class LKConstraintPopoverController: LKBaseViewController {
 
     private var titleView: LKTextFieldView?
     private let textsView = LKTextsMenuView()
-    private var jumpObjects: [ObjectIdentifier: LookinObject] = [:]
+    private var jumpObjects: [ObjectIdentifier: InspectedObject] = [:]
 
     /// Asked to jump to an item of the constraint.
-    var requestJumpingToObject: ((LookinObject) -> Void)?
+    var requestJumpingToObject: ((InspectedObject) -> Void)?
 
     /// `canJumpToObject` decides whether an item's jump button is enabled:
     /// the item can be missing from the current tree (released, not
     /// captured, or from data that predates object identity). Nil enables
     /// every button.
-    init(constraint: LookinAutoLayoutConstraint, canJumpToObject: ((LookinObject) -> Bool)?) {
+    init(constraint: AutoLayoutConstraint, canJumpToObject: ((InspectedObject) -> Bool)?) {
         super.init(containerView: nil)
 
         if !constraint.effective {
@@ -48,15 +48,15 @@ final class LKConstraintPopoverController: LKBaseViewController {
         textsView.type = .center
         view.addSubview(textsView)
 
-        func tuple(_ first: String, _ second: String?) -> LookinStringTwoTuple {
-            LookinStringTwoTuple(first: first, second: second ?? "")
+        func tuple(_ first: String, _ second: String?) -> StringTwoTuple {
+            StringTwoTuple(first: first, second: second ?? "")
         }
         let texts = [
-            tuple("FirstItem", LookinAutoLayoutConstraint.description(withItemObject: constraint.firstItem, type: constraint.firstItemType, detailed: true)),
-            tuple("FirstAttribute", (LookinAutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute) as NSString).lk_capitalizedString()),
-            tuple("Relation", LookinAutoLayoutConstraint.description(with: constraint.relation)),
-            tuple("SecondItem", LookinAutoLayoutConstraint.description(withItemObject: constraint.secondItem, type: constraint.secondItemType, detailed: true)),
-            tuple("SecondAttribute", (LookinAutoLayoutConstraint.description(withAttributeInt: constraint.secondAttribute) as NSString).lk_capitalizedString()),
+            tuple("FirstItem", AutoLayoutConstraint.description(withItemObject: constraint.firstItem, type: constraint.firstItemType, detailed: true)),
+            tuple("FirstAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute) as NSString).lk_capitalizedString()),
+            tuple("Relation", AutoLayoutConstraint.description(with: constraint.relation)),
+            tuple("SecondItem", AutoLayoutConstraint.description(withItemObject: constraint.secondItem, type: constraint.secondItemType, detailed: true)),
+            tuple("SecondAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.secondAttribute) as NSString).lk_capitalizedString()),
             tuple("Multiplier", "\(NSNumber(value: Double(constraint.multiplier)))"),
             tuple("Constant", "\(NSNumber(value: Double(constraint.constant)))"),
             tuple("Priority", "\(NSNumber(value: Double(constraint.priority)))"),
@@ -98,7 +98,7 @@ final class LKConstraintPopoverController: LKBaseViewController {
         return resultSize
     }
 
-    private func jumpButton(for jumpObject: LookinObject, canJumpToObject: ((LookinObject) -> Bool)?) -> NSButton {
+    private func jumpButton(for jumpObject: InspectedObject, canJumpToObject: ((InspectedObject) -> Bool)?) -> NSButton {
         let button = NSButton.lk_button(with: LKDashboardStyle.image("Icon_JumpDisclosure"), target: self, action: #selector(handleJumpButton(_:)))
         jumpObjects[ObjectIdentifier(button)] = jumpObject
         if let canJumpToObject, !canJumpToObject(jumpObject) {

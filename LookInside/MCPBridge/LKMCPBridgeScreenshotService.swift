@@ -6,7 +6,7 @@
 //
 // Why every mode goes through RPC 203 rather than RPC 201 `App`:
 //   RPC 201 with `needImages=YES` also carries a whole-app screenshot
-//   (`LookinAppInfo.screenshot`), but reaching it means driving
+//   (`InspectedAppInfo.screenshot`), but reaching it means driving
 //   `LKAppsManager.fetchAppInfos(needImages:localInfos:)`, which re-scans
 //   *every* Server port and rebuilds a fresh `LKInspectableApp` list
 //   for all connected apps. That is a heavyweight, side-effecting
@@ -18,7 +18,7 @@
 //   and get the key window's group screenshot.
 //
 // Caching: the host already holds `soloScreenshot` / `groupScreenshot`
-// on `LookinDisplayItem` whenever the inspector UI has rendered that
+// on `DisplayItem` whenever the inspector UI has rendered that
 // view. Those are served directly (`fromCache: true`) so repeat calls
 // stay cheap. On a miss the service issues RPC 203 with the matching
 // task type, merges the response back through
@@ -63,7 +63,7 @@ final class LKMCPBridgeScreenshotService {
 
     // MARK: - Screenshot mode
 
-    /// Which of the two `LookinDisplayItemDetail` screenshot slots the
+    /// Which of the two `DisplayItemDetail` screenshot slots the
     /// caller wants. Mirrors `LookinStaticAsyncUpdateTaskType` minus its
     /// `NoScreenshot` case, which has no meaning on this route.
     private enum ScreenshotMode: String {
@@ -79,14 +79,14 @@ final class LKMCPBridgeScreenshotService {
             }
         }
 
-        func cachedImage(on displayItem: LookinDisplayItem) -> NSImage? {
+        func cachedImage(on displayItem: DisplayItem) -> NSImage? {
             switch self {
             case .solo: return displayItem.soloScreenshot
             case .group: return displayItem.groupScreenshot
             }
         }
 
-        func image(in detail: LookinDisplayItemDetail) -> NSImage? {
+        func image(in detail: DisplayItemDetail) -> NSImage? {
             switch self {
             case .solo: return detail.soloScreenshot
             case .group: return detail.groupScreenshot
@@ -186,7 +186,7 @@ final class LKMCPBridgeScreenshotService {
 
         // Resolve which display item to capture.
         let roots = LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document)
-        let displayItem: LookinDisplayItem
+        let displayItem: DisplayItem
         if let requestedObjectIdentifier {
             guard let found = LKMCPBridgeLiveDocumentLookup.findDisplayItem(
                 amongRoots: roots,
@@ -249,7 +249,7 @@ final class LKMCPBridgeScreenshotService {
             )
         }
 
-        let task = LookinStaticAsyncUpdateTask()
+        let task = StaticAsyncUpdateTask()
         task.oid = nativeObjectIdentifier
         task.taskType = mode.taskType
         // Attributes are `read_attributes` / `read_view_details` territory;
@@ -260,11 +260,11 @@ final class LKMCPBridgeScreenshotService {
         task.needSubitems = false
         task.clientReadableVersion = LKHelper.lookinReadableVersion()
 
-        let package = LookinStaticAsyncUpdateTasksPackage()
+        let package = StaticAsyncUpdateTasksPackage()
         package.tasks = [task]
 
         // We sent exactly one task, so at most one detail can match.
-        var matchingDetail: LookinDisplayItemDetail?
+        var matchingDetail: DisplayItemDetail?
         do {
             for try await frame in document.inspectableApp.hierarchyDetails(packages: [package]) where matchingDetail == nil {
                 matchingDetail = frame.first { $0.displayItemOid == nativeObjectIdentifier }
@@ -330,7 +330,7 @@ final class LKMCPBridgeScreenshotService {
         image: NSImage,
         objectIdentifier: String,
         mode: ScreenshotMode,
-        displayItem: LookinDisplayItem,
+        displayItem: DisplayItem,
         maximumPixelDimension: Int,
         containsSecureContent: Bool,
         servedFromCache: Bool
@@ -436,8 +436,8 @@ final class LKMCPBridgeScreenshotService {
     /// the secure-content detector flags. A `group` screenshot renders
     /// the whole subtree, so a secure field nested three levels down
     /// still ends up in the returned pixels.
-    private static func subtreeContainsSecureContent(rootDisplayItem: LookinDisplayItem) -> Bool {
-        var pendingItems: [LookinDisplayItem] = [rootDisplayItem]
+    private static func subtreeContainsSecureContent(rootDisplayItem: DisplayItem) -> Bool {
+        var pendingItems: [DisplayItem] = [rootDisplayItem]
         while pendingItems.isEmpty == false {
             let currentItem = pendingItems.removeFirst()
             if LKMCPBridgeSecureContentDetector.isSecure(displayItem: currentItem) {

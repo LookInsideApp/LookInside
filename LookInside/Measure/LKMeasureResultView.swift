@@ -53,17 +53,17 @@ final class LKMeasureResultView: LKBaseView {
 
         for borderLayer in [mainImageViewBorderLayer, referImageViewBorderLayer] {
             borderLayer.borderWidth = 1
-            borderLayer.lookin_removeImplicitAnimations()
+            borderLayer.removeImplicitAnimations()
             linesContainerView.layer?.addSublayer(borderLayer)
         }
 
         horizontalLinesLayer.lineWidth = 1
-        horizontalLinesLayer.lookin_removeImplicitAnimations()
+        horizontalLinesLayer.removeImplicitAnimations()
         horizontalLinesLayer.strokeColor = Self.horizontalColor.cgColor
         linesContainerView.layer?.addSublayer(horizontalLinesLayer)
 
         verticalLinesLayer.lineWidth = 1
-        verticalLinesLayer.lookin_removeImplicitAnimations()
+        verticalLinesLayer.removeImplicitAnimations()
         verticalLinesLayer.strokeColor = Self.verticalColor.cgColor
         linesContainerView.layer?.addSublayer(verticalLinesLayer)
 
@@ -150,7 +150,7 @@ final class LKMeasureResultView: LKBaseView {
 
             let labelView = dequeueLabelView()
             labelView.backgroundColor = .systemBlue
-            labelView.textField.stringValue = NSString.lookin_string(from: Double(line.value), decimal: 2)
+            labelView.textField.stringValue = NSString.string(from: Double(line.value), decimal: 2)
             labelView.lkpSizeToFit()
             labelView.lkpSetHeight(Self.labelHeight)
             labelView.lkpSetMidX(line.startX + (line.endX - line.startX) / 2)
@@ -169,7 +169,7 @@ final class LKMeasureResultView: LKBaseView {
 
             let labelView = dequeueLabelView()
             labelView.backgroundColor = Self.verticalColor
-            labelView.textField.stringValue = NSString.lookin_string(from: Double(line.value), decimal: 2)
+            labelView.textField.stringValue = NSString.string(from: Double(line.value), decimal: 2)
             labelView.lkpSizeToFit()
             labelView.lkpSetHeight(Self.labelHeight)
             labelView.lkpSetMidY(line.startY + (line.endY - line.startY) / 2)

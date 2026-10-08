@@ -31,7 +31,7 @@ struct LKConsoleRowItem {
 final class LKConsoleDataSource {
     /// An object returned by a call, with the call that returned it.
     struct RecentObject {
-        var object: LookinObject
+        var object: InspectedObject
         var message: String
     }
 
@@ -47,13 +47,13 @@ final class LKConsoleDataSource {
     }
 
     /// The object calls are sent to.
-    private(set) var currentObject: LookinObject? {
+    private(set) var currentObject: InspectedObject? {
         didSet { currentObjectDidChange?() }
     }
 
     /// The objects of the item selected in the hierarchy: its view
     /// controller, window controller, layer, view, window and kind object.
-    private(set) var selectedObjects: [LookinObject] = [] {
+    private(set) var selectedObjects: [InspectedObject] = [] {
         didSet { syncConsoleTargetIfNeeded() }
     }
 
@@ -77,14 +77,14 @@ final class LKConsoleDataSource {
         }
     }
 
-    private nonisolated static func objects(of item: LookinDisplayItem?) -> [LookinObject] {
+    private nonisolated static func objects(of item: DisplayItem?) -> [InspectedObject] {
         guard let item else { return [] }
         return [item.hostViewControllerObject, item.hostWindowControllerObject, item.layerObject,
                 item.viewObject, item.windowObject, item.kindObject].compactMap { $0 }
     }
 
     var currentObjectSelectorNames: [String] {
-        currentObject.flatMap { selectorNamesByClass[$0.rawClassName()] } ?? []
+        currentObject?.rawClassName().flatMap { selectorNamesByClass[$0] } ?? []
     }
 
     func submit(_ text: String) async throws {
@@ -93,7 +93,7 @@ final class LKConsoleDataSource {
 
     /// Calls `text` on `object` and appends the call and its result to the
     /// transcript. An object it returns joins the recent objects.
-    func submit(object: LookinObject?, text: String) async throws {
+    func submit(object: InspectedObject?, text: String) async throws {
         guard currentObject != nil, let object else {
             throw LKConnectionError.inner
         }
@@ -123,7 +123,7 @@ final class LKConsoleDataSource {
 
         let result = try await inspectableApp.invokeMethod(oid: object.oid, text: text)
         let returnDescription = result["description"] as? String
-        let returnObject = result["object"] as? LookinObject
+        let returnObject = result["object"] as? InspectedObject
         let target = "<\(object.lk_simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
 
         var rows = rowItems
@@ -138,7 +138,7 @@ final class LKConsoleDataSource {
     }
 
     /// Makes `object` the call target, fetching its class's selector names first when needed.
-    func makeObjectCurrent(_ object: LookinObject?) async throws {
+    func makeObjectCurrent(_ object: InspectedObject?) async throws {
         guard let object, let className = object.rawClassName(), !className.isEmpty else {
             throw LKConnectionError.inner
         }

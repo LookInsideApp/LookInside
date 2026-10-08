@@ -21,7 +21,7 @@
 
     public extension NSString {
         @objc(lookin_stringFromDouble:decimal:)
-        class func lookin_string(from doubleValue: Double, decimal: UInt) -> String! {
+        class func string(from doubleValue: Double, decimal: UInt) -> String {
             let formatString = NSString(format: "%%.%@f", NSNumber(value: decimal))
             var string = NSString(format: formatString, doubleValue)
             // A zero-length string would raise in -substringFromIndex: in the
@@ -37,45 +37,70 @@
             return string as String
         }
 
+        @available(*, deprecated, renamed: "string(from:decimal:)")
+        class func lookin_string(from doubleValue: Double, decimal: UInt) -> String {
+            string(from: doubleValue, decimal: decimal)
+        }
+
         @objc(lookin_stringFromRect:)
-        class func lookin_string(from rect: CGRect) -> String! {
+        class func string(from rect: CGRect) -> String {
             String(format: "{%@, %@, %@, %@}",
-                   lookinString(rect.origin.x),
-                   lookinString(rect.origin.y),
-                   lookinString(rect.size.width),
-                   lookinString(rect.size.height))
+                   twoDecimalString(rect.origin.x),
+                   twoDecimalString(rect.origin.y),
+                   twoDecimalString(rect.size.width),
+                   twoDecimalString(rect.size.height))
+        }
+
+        @available(*, deprecated, renamed: "string(from:)")
+        class func lookin_string(from rect: CGRect) -> String {
+            string(from: rect)
         }
 
         @objc(lookin_stringFromInset:)
-        class func lookin_string(fromInset insets: LookinInsets) -> String! {
+        class func string(fromInset insets: PlatformEdgeInsets) -> String {
             String(format: "{%@, %@, %@, %@}",
-                   lookinString(insets.top),
-                   lookinString(insets.left),
-                   lookinString(insets.bottom),
-                   lookinString(insets.right))
+                   twoDecimalString(insets.top),
+                   twoDecimalString(insets.left),
+                   twoDecimalString(insets.bottom),
+                   twoDecimalString(insets.right))
+        }
+
+        @available(*, deprecated, renamed: "string(fromInset:)")
+        class func lookin_string(fromInset insets: PlatformEdgeInsets) -> String {
+            string(fromInset: insets)
         }
 
         @objc(lookin_stringFromSize:)
-        class func lookin_string(from size: CGSize) -> String! {
+        class func string(from size: CGSize) -> String {
             String(format: "{%@, %@}",
-                   lookinString(size.width),
-                   lookinString(size.height))
+                   twoDecimalString(size.width),
+                   twoDecimalString(size.height))
+        }
+
+        @available(*, deprecated, renamed: "string(from:)")
+        class func lookin_string(from size: CGSize) -> String {
+            string(from: size)
         }
 
         @objc(lookin_stringFromPoint:)
-        class func lookin_string(from point: CGPoint) -> String! {
+        class func string(from point: CGPoint) -> String {
             String(format: "{%@, %@}",
-                   lookinString(point.x),
-                   lookinString(point.y))
+                   twoDecimalString(point.x),
+                   twoDecimalString(point.y))
+        }
+
+        @available(*, deprecated, renamed: "string(from:)")
+        class func lookin_string(from point: CGPoint) -> String {
+            string(from: point)
         }
 
         @objc(lookin_rgbaStringFromColor:)
-        class func lookin_rgbaString(from color: LookinColor?) -> String! {
+        class func rgbaString(from color: PlatformColor?) -> String {
             guard let color else {
                 return "nil"
             }
             #if canImport(UIKit)
-                let rgbColor: LookinColor? = color
+                let rgbColor: PlatformColor? = color
             #elseif os(macOS)
                 let rgbColor = color.usingColorSpace(.sRGB)
             #endif
@@ -93,11 +118,16 @@
             }
             return String(format: "(%.0f, %.0f, %.0f, %@)",
                           Double(r * 255), Double(g * 255), Double(b * 255),
-                          NSString.lookin_string(from: Double(a), decimal: 2)! as NSString)
+                          NSString.string(from: Double(a), decimal: 2) as NSString)
+        }
+
+        @available(*, deprecated, renamed: "rgbaString(from:)")
+        class func lookin_rgbaString(from color: PlatformColor?) -> String {
+            rgbaString(from: color)
         }
 
         @objc(lookin_safeInitWithUTF8String:)
-        func lookin_safeInit(withUTF8String string: UnsafePointer<CChar>?) -> String! {
+        func safeInit(withUTF8String string: UnsafePointer<CChar>?) -> String? {
             // `[[NSString alloc] lookin_safeInitWithUTF8String:]`: the receiver
             // is the class's placeholder; -initWithUTF8String: on a fresh
             // NSString gives the same string, nil for invalid UTF-8.
@@ -107,8 +137,13 @@
             return NSString(utf8String: string) as String?
         }
 
+        @available(*, deprecated, renamed: "safeInit(withUTF8String:)")
+        func lookin_safeInit(withUTF8String string: UnsafePointer<CChar>?) -> String? {
+            safeInit(withUTF8String: string)
+        }
+
         @objc(lookin_numbericOSVersion)
-        func lookin_numbericOSVersion() -> Int {
+        func numericOSVersion() -> Int {
             if length == 0 {
                 return 0
             }
@@ -125,18 +160,23 @@
                 // NSInteger += NSInteger * double: computed in double, then
                 // converted back to NSInteger.
                 let component = Double((versionArr[pos] as NSString).integerValue)
-                numbericOSVersion = lookinIntegerFromDouble(Double(numbericOSVersion) + component * pow(10, Double(4 - pos * 2)))
+                numbericOSVersion = integerFromDouble(Double(numbericOSVersion) + component * pow(10, Double(4 - pos * 2)))
                 pos += 1
             }
 
             return numbericOSVersion
+        }
+
+        @available(*, deprecated, renamed: "numericOSVersion()")
+        func lookin_numbericOSVersion() -> Int {
+            numericOSVersion()
         }
     }
 
     /// The C double-to-NSInteger conversion as arm64 performs it: truncate
     /// toward zero, saturate out-of-range values, NaN becomes 0. Swift's
     /// `Int(_:)` traps instead, and the version strings come from the peer.
-    private func lookinIntegerFromDouble(_ value: Double) -> Int {
+    private func integerFromDouble(_ value: Double) -> Int {
         if value.isNaN {
             return 0
         }
@@ -151,8 +191,8 @@
 
     /// `[NSString lookin_stringFromDouble:value decimal:2]` as an NSString
     /// format argument.
-    private func lookinString(_ value: CGFloat) -> NSString {
-        NSString.lookin_string(from: Double(value), decimal: 2)! as NSString
+    private func twoDecimalString(_ value: CGFloat) -> NSString {
+        NSString.string(from: Double(value), decimal: 2) as NSString
     }
 
 #endif

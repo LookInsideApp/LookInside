@@ -19,11 +19,11 @@ class LKColorIndicatorLayer: CALayer {
 
     override init() {
         super.init()
-        lookin_removeImplicitAnimations()
+        removeImplicitAnimations()
         borderWidth = 1
         let colorLayer = CALayer()
         colorLayer.backgroundColor = color?.cgColor
-        colorLayer.lookin_removeImplicitAnimations()
+        colorLayer.removeImplicitAnimations()
         addSublayer(colorLayer)
         self.colorLayer = colorLayer
         masksToBounds = true
@@ -68,7 +68,7 @@ class LKColorIndicatorLayer: CALayer {
     private func createImageLayerIfNeeded() {
         guard imageLayer == nil else { return }
         let imageLayer = CALayer()
-        imageLayer.lookin_removeImplicitAnimations()
+        imageLayer.removeImplicitAnimations()
         insertSublayer(imageLayer, at: 0)
         self.imageLayer = imageLayer
         setNeedsLayout()

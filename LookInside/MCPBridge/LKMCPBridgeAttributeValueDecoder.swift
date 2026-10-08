@@ -3,7 +3,7 @@
 // Symmetric inverse of LKMCPBridgeAttributeEncoder: turns the wire
 // `{ kind, data }` shape that a bridge client uses to express an
 // attribute write back into the polymorphic Objective-C value that
-// LookinAttributeModification carries to the inspected server
+// AttributeModification carries to the inspected server
 // (RPC 204).
 //
 // Layout: one entry point (`decode(wireKind:wireData:expectedAttrType:)`)
@@ -46,7 +46,7 @@ enum LKMCPBridgeAttributeValueDecoder {
     // MARK: - Entry point
 
     /// Decodes a `(wireKind, wireData)` pair into the polymorphic id
-    /// value that `LookinAttributeModification.value` requires,
+    /// value that `AttributeModification.value` requires,
     /// validated against `expectedAttrType`. Throws on any
     /// inconsistency; the caller turns the throw into a structured
     /// bridge error.

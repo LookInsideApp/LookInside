@@ -1,5 +1,5 @@
 //
-//  LookinDisplayItem+LookinClient.swift
+//  DisplayItem+LookinClient.swift
 //  LookInside
 //
 //  Host-side display helpers on the LookinCore display item: the row title
@@ -12,7 +12,7 @@
 import AppKit
 import LookInsideHostCore
 
-extension LookinDisplayItem {
+extension DisplayItem {
     /// The row text in the hierarchy, usually the class name without module.
     @objc func title() -> String {
         let baseTitle: String?
@@ -208,8 +208,8 @@ extension LookinDisplayItem {
 
     /// Visits this item, then each ancestor up to the root, until stopped.
     @objc(enumerateSelfAndAncestors:)
-    func enumerateSelfAndAncestors(_ block: (LookinDisplayItem, UnsafeMutablePointer<ObjCBool>) -> Void) {
-        var item: LookinDisplayItem? = self
+    func enumerateSelfAndAncestors(_ block: (DisplayItem, UnsafeMutablePointer<ObjCBool>) -> Void) {
+        var item: DisplayItem? = self
         while let current = item {
             var shouldStop: ObjCBool = false
             block(current, &shouldStop)
@@ -221,13 +221,13 @@ extension LookinDisplayItem {
     }
 
     @objc(enumerateAncestors:)
-    func enumerateAncestors(_ block: (LookinDisplayItem, UnsafeMutablePointer<ObjCBool>) -> Void) {
+    func enumerateAncestors(_ block: (DisplayItem, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.`super`?.enumerateSelfAndAncestors(block)
     }
 
     /// Visits this item and then its whole subtree, depth first.
     @objc(enumerateSelfAndChildren:)
-    func enumerateSelfAndChildren(_ block: (LookinDisplayItem) -> Void) {
+    func enumerateSelfAndChildren(_ block: (DisplayItem) -> Void) {
         block(self)
         for subitem in subitems ?? [] {
             subitem.enumerateSelfAndChildren(block)
@@ -253,7 +253,7 @@ extension LookinDisplayItem {
     // MARK: - SwiftUI
 
     @objc func lk_isSwiftUISupportRelated() -> Bool {
-        func looksLikeSwiftUISupport(_ object: LookinObject?) -> Bool {
+        func looksLikeSwiftUISupport(_ object: InspectedObject?) -> Bool {
             guard let object else { return false }
             if ClientDisplayText.looksLikeSwiftUISupport(object.rawClassName()) {
                 return true
@@ -365,7 +365,7 @@ extension LookinDisplayItem {
 
     // MARK: - Private
 
-    private var allAttributeGroups: [LookinAttributesGroup] {
+    private var allAttributeGroups: [AttributesGroup] {
         (attributesGroupList ?? []) + (customAttrGroupList ?? [])
     }
 
@@ -394,9 +394,9 @@ extension LookinDisplayItem {
     }
 }
 
-private extension LookinAttributesGroup {
+private extension AttributesGroup {
     /// Every attribute of every section, in order.
-    var lk_allAttributes: [LookinAttribute] {
+    var lk_allAttributes: [InspectedAttribute] {
         (attrSections ?? []).flatMap { $0.attributes ?? [] }
     }
 }

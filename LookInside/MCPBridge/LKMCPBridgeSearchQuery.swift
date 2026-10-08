@@ -50,7 +50,7 @@ struct LKMCPBridgeSearchQuery: Sendable {
 
     /// One hierarchy node reduced to the strings this type knows how to
     /// match. Built by the service layer so this type never touches
-    /// `LookinDisplayItem`.
+    /// `DisplayItem`.
     struct Candidate: Sendable {
         let className: String
         let classChain: [String]

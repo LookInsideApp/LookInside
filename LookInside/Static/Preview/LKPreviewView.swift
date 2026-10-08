@@ -25,7 +25,7 @@ final class LKPreviewView: SCNView {
     private let rightLightNode = SCNNode()
     private let leftLightNode = SCNNode()
 
-    private var flatDisplayItems: [LookinDisplayItem] = []
+    private var flatDisplayItems: [DisplayItem] = []
     private var displayItemNodes: [LKDisplayItemNode] = []
 
     /// The frameToRoot point at the 3D origin: the centre of the largest
@@ -160,8 +160,8 @@ final class LKPreviewView: SCNView {
     /// top-level windows, and iOS / Catalyst's scene → window), the one with
     /// the largest frameToRoot and returns its centre. Falls back to the
     /// centre of the app's screen.
-    private func referenceCenter(for items: [LookinDisplayItem]) -> CGPoint {
-        var largestItem: LookinDisplayItem?
+    private func referenceCenter(for items: [DisplayItem]) -> CGPoint {
+        var largestItem: DisplayItem?
         var largestArea: CGFloat = 0
         for item in items where item.super == nil {
             for candidate in [item] + (item.subitems ?? []) {
@@ -184,7 +184,7 @@ final class LKPreviewView: SCNView {
     /// `noPreview` is set. With `discardCache`, nodes this render does not
     /// use are dropped; otherwise they are only removed from the scene and
     /// kept for later renders.
-    func render(displayItems items: [LookinDisplayItem], discardCache: Bool) {
+    func render(displayItems items: [DisplayItem], discardCache: Bool) {
         NSLog("LKPreviewView - render %@ items", NSNumber(value: items.count))
 
         flatDisplayItems = items
@@ -251,7 +251,7 @@ final class LKPreviewView: SCNView {
         SCNTransaction.commit()
     }
 
-    private func updateZIndex(for item: LookinDisplayItem) {
+    private func updateZIndex(for item: DisplayItem) {
         item.previewZIndex = -1
         // A pixelless overlay node (layout guide, cell) marks out a region of
         // the node that owns it, so it belongs on that node's plane rather
@@ -291,14 +291,14 @@ final class LKPreviewView: SCNView {
     /// The item, among those visible in the preview and earlier in
     /// flatDisplayItems (lower in the hierarchy) whose frameToRoot overlaps
     /// `item`'s, with the highest z index; nil when there is none.
-    private func highestOverlappedItem(below item: LookinDisplayItem) -> LookinDisplayItem? {
+    private func highestOverlappedItem(below item: DisplayItem) -> DisplayItem? {
         guard let itemIndex = flatDisplayItems.firstIndex(where: { $0 == item }) else {
             assertionFailure()
             return nil
         }
         guard itemIndex > 0 else { return nil }
         let itemFrameToRoot = item.calculateFrameToRoot()
-        var target: LookinDisplayItem?
+        var target: DisplayItem?
         for other in flatDisplayItems[..<itemIndex].reversed() {
             guard !other.inHiddenHierarchy || showHiddenItems else { continue }
             guard itemFrameToRoot.intersects(other.calculateFrameToRoot()) else { continue }
@@ -311,7 +311,7 @@ final class LKPreviewView: SCNView {
     }
 
     /// Moves the lights level with the selected item's plane.
-    func didSelect(_ item: LookinDisplayItem?) {
+    func didSelect(_ item: DisplayItem?) {
         guard let item else { return }
         let nodeZ = (item.previewNode as LKDisplayItemNode?)?.position.z ?? 0
 
@@ -324,7 +324,7 @@ final class LKPreviewView: SCNView {
         leftLightNode.position = leftPosition
     }
 
-    func displayItem(at point: CGPoint) -> LookinDisplayItem? {
+    func displayItem(at point: CGPoint) -> DisplayItem? {
         let results = hitTest(point, options: [
             .categoryBitMask: Int(LookinPreviewBitMask.selectable.rawValue),
             .searchMode: SCNHitTestSearchMode.closest.rawValue,

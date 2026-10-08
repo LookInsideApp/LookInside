@@ -23,7 +23,7 @@ class LKTextsMenuView: LKBaseView {
         didSet { updateAlignments() }
     }
 
-    @objc var texts: [LookinStringTwoTuple] = [] {
+    @objc var texts: [StringTwoTuple] = [] {
         didSet { reloadLabels() }
     }
 

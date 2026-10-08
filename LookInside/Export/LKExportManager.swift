@@ -23,18 +23,18 @@ final class LKExportManager: NSObject {
     /// `compression` (clamped to 0.01...1). When `fileName` is given it
     /// receives the suggested file name.
     @objc(dataFromHierarchyInfo:imageCompression:fileName:)
-    func data(from info: LookinHierarchyInfo,
+    func data(from info: HierarchyInfo,
               imageCompression compression: CGFloat,
               fileName: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Data?
     {
-        let file = LookinHierarchyFile()
+        let file = HierarchyFile()
         file.serverVersion = info.serverVersion
         file.hierarchyInfo = info
 
         var soloScreenshots: [NSNumber: Data] = [:]
         var groupScreenshots: [NSNumber: Data] = [:]
         let prefersViewOID = LKHelper.appInfoLooksLikeMacTarget(info.appInfo)
-        let allItems = LookinDisplayItem.flatItems(fromHierarchicalItems: info.displayItems ?? []) ?? []
+        let allItems = DisplayItem.flatItems(fromHierarchicalItems: info.displayItems ?? [])
         for displayItem in allItems {
             let oid = displayItem.bestObjectOidPreferView(prefersViewOID)
             if oid == 0 {
@@ -88,7 +88,7 @@ final class LKExportManager: NSObject {
     /// Asks where to save `displayItem`'s group screenshot and writes it as TIFF.
     @MainActor
     @objc(exportScreenshotWithDisplayItem:)
-    class func exportScreenshot(with displayItem: LookinDisplayItem) {
+    class func exportScreenshot(with displayItem: DisplayItem) {
         guard let image = displayItem.groupScreenshot,
               let imageData = image.tiffRepresentation(using: .lzw, factor: 1)
         else {

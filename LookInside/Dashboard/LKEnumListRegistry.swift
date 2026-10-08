@@ -6,7 +6,7 @@
 //  https://lookin.work
 //
 //  The values and names of every enum the Dashboard can show and edit,
-//  keyed by the enum list name `LookinDashboardBlueprint` gives an
+//  keyed by the enum list name `DashboardBlueprint` gives an
 //  attribute. Foundation only, so the tests can compile it on its own.
 //
 

@@ -12,7 +12,7 @@ import AppKit
 /// tasks deliver and starts those tasks.
 @objc(LKStaticHierarchyDataSource)
 class LKStaticHierarchyDataSource: LKHierarchyDataSource {
-    @objc var appInfo: LookinAppInfo! {
+    @objc var appInfo: InspectedAppInfo! {
         storedAppInfo
     }
 
@@ -21,12 +21,12 @@ class LKStaticHierarchyDataSource: LKHierarchyDataSource {
 
     /// Sends each item whose frame changed. Also reaches `events()` as
     /// `.itemDidChangeFrame`.
-    final let itemsDidChangeFrame = LKSyncSignal<LookinDisplayItem>()
+    final let itemsDidChangeFrame = LKSyncSignal<DisplayItem>()
 
     /// Keeps a detail's subitems rebuild from starting a fast-mode update
     /// while the update task that delivered it is still running: update
     /// tasks must not overlap.
-    private var storedAppInfo: LookinAppInfo?
+    private var storedAppInfo: InspectedAppInfo?
     private var shouldIgnoreFastModeAutoUpdate = false
     private var isUsingDanceUI = false
     private var frameSubscription: LKSyncSubscription?
@@ -42,7 +42,7 @@ class LKStaticHierarchyDataSource: LKHierarchyDataSource {
     // MARK: - Reload
 
     @objc(reloadWithHierarchyInfo:keepState:)
-    override func reload(with info: LookinHierarchyInfo!, keepState: Bool) {
+    override func reload(with info: HierarchyInfo!, keepState: Bool) {
         super.reload(with: info, keepState: keepState)
 
         storedAppInfo = info.appInfo
@@ -77,7 +77,7 @@ class LKStaticHierarchyDataSource: LKHierarchyDataSource {
     }
 
     @objc(modifyWithDisplayItemDetail:)
-    func modify(with detail: LookinDisplayItemDetail!) {
+    func modify(with detail: DisplayItemDetail!) {
         guard let detail else {
             return
         }
@@ -134,7 +134,7 @@ class LKStaticHierarchyDataSource: LKHierarchyDataSource {
         }
     }
 
-    private func replaceSubitems(of item: LookinDisplayItem, with subitems: [LookinDisplayItem]) {
+    private func replaceSubitems(of item: DisplayItem, with subitems: [DisplayItem]) {
         // Without this flag the buildDisplayingFlatItems below would start a
         // fast-mode update task while the current one is still running (it
         // is still in its subscription, not yet completed), and update tasks
@@ -154,7 +154,7 @@ class LKStaticHierarchyDataSource: LKHierarchyDataSource {
 
         item.subitems = subitems
         // Flatten the tree again; this also sets every item's indentLevel.
-        rawFlatItems = LookinDisplayItem.flatItems(fromHierarchicalItems: rawHierarchyInfo?.displayItems ?? [])
+        rawFlatItems = DisplayItem.flatItems(fromHierarchicalItems: rawHierarchyInfo?.displayItems ?? [])
         flatItems = rawFlatItems
         didReloadHierarchyInfo.send()
 
@@ -195,7 +195,7 @@ class LKStaticHierarchyDataSource: LKHierarchyDataSource {
 
     // MARK: - Private
 
-    private func modify(_ item: LookinDisplayItem, frame: CGRect, bounds: CGRect) {
+    private func modify(_ item: DisplayItem, frame: CGRect, bounds: CGRect) {
         if item.frame.equalTo(frame), item.bounds.equalTo(bounds) {
             return
         }

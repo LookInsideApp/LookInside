@@ -96,7 +96,7 @@ final class LKHelper {
         isEnglishLanguage
     }
 
-    static func appInfoLooksLikeMacTarget(_ appInfo: LookinAppInfo?) -> Bool {
+    static func appInfoLooksLikeMacTarget(_ appInfo: InspectedAppInfo?) -> Bool {
         guard let appInfo else {
             return false
         }
@@ -126,7 +126,7 @@ final class LKHelper {
     }
 
     /// Convenience wrapper combining appInfoLooksLikeMacTarget(_:) and viewClassName(forMacTarget:).
-    static func viewClassName(for appInfo: LookinAppInfo?) -> String {
+    static func viewClassName(for appInfo: InspectedAppInfo?) -> String {
         viewClassName(forMacTarget: appInfoLooksLikeMacTarget(appInfo))
     }
 

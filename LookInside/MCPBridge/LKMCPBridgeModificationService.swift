@@ -7,7 +7,7 @@
 //
 // This is the second mutating bridge route (after `invoke.method`).
 // It shares the same round-trip plumbing — selector lookup
-// happens against `LookinDashboardBlueprint`; the polymorphic wire
+// happens against `DashboardBlueprint`; the polymorphic wire
 // value is decoded into the right ObjC type by
 // `LKMCPBridgeAttributeValueDecoder`; the round-trip awaits
 // `LKInspectableApp.submit(_:)`;
@@ -15,7 +15,7 @@
 // attribute so the caller can compare against what they sent.
 //
 // The bridge does NOT pre-compute settability — it asks
-// `LookinDashboardBlueprint setterWithAttrID:` for the setter SEL and
+// `DashboardBlueprint setterWithAttrID:` for the setter SEL and
 // surfaces `modify.readOnly` when the blueprint returns nil. This
 // matches the host inspector's existing modification gate.
 
@@ -111,7 +111,7 @@ final class LKMCPBridgeModificationService {
         // Setter lookup. `setter(withAttrID:)` returns nil for read-only
         // attributes (e.g. computed Relation, class chain, AutoLayout
         // constraint summaries).
-        guard let setterSelector = LookinDashboardBlueprint.setter(withAttrID: attributeIdentifier) else {
+        guard let setterSelector = DashboardBlueprint.setter(withAttrID: attributeIdentifier) else {
             return .failure(
                 identifier: identifier,
                 error: LKMCPBridgeErrorPayload(
@@ -132,7 +132,7 @@ final class LKMCPBridgeModificationService {
             )
         }
 
-        // Decode wire value into the polymorphic id LookinAttributeModification expects.
+        // Decode wire value into the polymorphic id AttributeModification expects.
         let nativeValue: Any
         do {
             nativeValue = try LKMCPBridgeAttributeValueDecoder.decode(
@@ -169,15 +169,15 @@ final class LKMCPBridgeModificationService {
             return .failure(identifier: identifier, error: .internalError)
         }
 
-        // Build the LookinAttributeModification.
-        let modification = LookinAttributeModification()
+        // Build the AttributeModification.
+        let modification = AttributeModification()
         modification.targetOid = nativeOid
         modification.setterSelector = setterSelector
         modification.attrType = attribute.attrType
         modification.value = nativeValue
         modification.clientReadableVersion = LKHelper.lookinReadableVersion()
 
-        let detail: LookinDisplayItemDetail
+        let detail: DisplayItemDetail
         do {
             detail = try await document.inspectableApp.submit(modification)
         } catch {
@@ -259,8 +259,8 @@ final class LKMCPBridgeModificationService {
 
     private func findAttribute(
         withIdentifier identifier: String,
-        in groups: [LookinAttributesGroup]
-    ) -> LookinAttribute? {
+        in groups: [AttributesGroup]
+    ) -> InspectedAttribute? {
         for group in groups {
             for section in group.attrSections ?? [] {
                 for attribute in section.attributes ?? [] {

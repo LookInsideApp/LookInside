@@ -14,13 +14,13 @@ final class LKStaticHierarchyController: LKHierarchyController {
     // MARK: - LKHierarchyViewDelegate
 
     @objc(hierarchyView:needToCancelPreviewOfItem:)
-    func hierarchyView(_: LKHierarchyView?, needToCancelPreviewOf item: LookinDisplayItem?) {
+    func hierarchyView(_: LKHierarchyView?, needToCancelPreviewOf item: DisplayItem?) {
         item?.noPreview = true
         dataSource?.itemDidChangeNoPreview.send()
     }
 
     @objc(hierarchyView:needToShowPreviewOfItem:)
-    func hierarchyView(_: LKHierarchyView?, needToShowPreviewOf item: LookinDisplayItem?) {
+    func hierarchyView(_: LKHierarchyView?, needToShowPreviewOf item: DisplayItem?) {
         item?.enumerateSelfAndAncestors { item, _ in
             if item.noPreview {
                 item.noPreview = false

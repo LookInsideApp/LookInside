@@ -249,7 +249,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(displayTitleForDisplayItem:fallback:)
-    func displayTitle(for _: LookinDisplayItem, fallback: String?) -> String? {
+    func displayTitle(for _: DisplayItem, fallback: String?) -> String? {
         guard featureEnabled, let fallback, !fallback.isEmpty else {
             return fallback
         }
@@ -258,7 +258,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(isPrivateDisplayItem:)
-    func isPrivateDisplayItem(_ item: LookinDisplayItem) -> Bool {
+    func isPrivateDisplayItem(_ item: DisplayItem) -> Bool {
         guard featureEnabled else {
             return false
         }
@@ -266,7 +266,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(appendingPrivateDiscriminatorGroupToGroups:forDisplayItem:)
-    func appendingPrivateDiscriminatorGroup(to groups: [LookinAttributesGroup], for item: LookinDisplayItem) -> [LookinAttributesGroup] {
+    func appendingPrivateDiscriminatorGroup(to groups: [AttributesGroup], for item: DisplayItem) -> [AttributesGroup] {
         guard featureEnabled, let descriptor = dashboardDescriptor(for: item) else {
             return groups
         }
@@ -282,7 +282,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(submitPrivateDiscriminatorForDisplayItem:module:filename:error:)
-    func submitPrivateDiscriminator(for item: LookinDisplayItem, module: String, filename: String, error: NSErrorPointer) -> Bool {
+    func submitPrivateDiscriminator(for item: DisplayItem, module: String, filename: String, error: NSErrorPointer) -> Bool {
         do {
             guard let parsed = parsedPrivateDiscriminator(for: item) else {
                 throw LKPrivateDiscriminatorStoreError.missingPrivateDiscriminator
@@ -308,7 +308,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(importPrivateDiscriminatorFromCodebaseForDisplayItem:window:error:)
-    func importPrivateDiscriminatorFromCodebase(for item: LookinDisplayItem, window: NSWindow?, error: NSErrorPointer) -> Bool {
+    func importPrivateDiscriminatorFromCodebase(for item: DisplayItem, window: NSWindow?, error: NSErrorPointer) -> Bool {
         do {
             guard let parsed = parsedPrivateDiscriminator(for: item) else {
                 throw LKPrivateDiscriminatorStoreError.missingPrivateDiscriminator
@@ -342,7 +342,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(beginSwiftPDGuessForDisplayItem:window:)
-    func beginSwiftPDGuess(for item: LookinDisplayItem, window: NSWindow?) {
+    func beginSwiftPDGuess(for item: DisplayItem, window: NSWindow?) {
         guard let parsed = parsedPrivateDiscriminator(for: item) else {
             return
         }
@@ -409,7 +409,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
     }
 
     @objc(cancelSwiftPDGuessForDisplayItem:)
-    func cancelSwiftPDGuess(for item: LookinDisplayItem) {
+    func cancelSwiftPDGuess(for item: DisplayItem) {
         guard let parsed = parsedPrivateDiscriminator(for: item),
               let task = activeGuessTasksByID[parsed.id]
         else {
@@ -710,7 +710,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
         postDashboardStateDidChange()
     }
 
-    private func dashboardDescriptor(for item: LookinDisplayItem) -> DashboardDescriptor? {
+    private func dashboardDescriptor(for item: DisplayItem) -> DashboardDescriptor? {
         guard let parsed = parsedPrivateDiscriminator(for: item) else {
             return nil
         }
@@ -782,7 +782,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
         return nil
     }
 
-    private func parsedPrivateDiscriminator(for item: LookinDisplayItem) -> ParsedDiscriminator? {
+    private func parsedPrivateDiscriminator(for item: DisplayItem) -> ParsedDiscriminator? {
         for text in candidateTexts(for: item) {
             guard let id = Self.privateDiscriminatorID(in: text) else {
                 continue
@@ -796,7 +796,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
         return nil
     }
 
-    private func candidateTexts(for item: LookinDisplayItem) -> [String] {
+    private func candidateTexts(for item: DisplayItem) -> [String] {
         var texts: [String] = []
 
         func append(_ value: String?) {
@@ -825,7 +825,7 @@ final class LKPrivateDiscriminatorStore: NSObject {
         return texts
     }
 
-    private func appendTexts(from object: LookinObject?, into texts: inout [String]) {
+    private func appendTexts(from object: InspectedObject?, into texts: inout [String]) {
         guard let object else {
             return
         }
@@ -863,19 +863,19 @@ final class LKPrivateDiscriminatorStore: NSObject {
         return nil
     }
 
-    private func makeDashboardGroup(for item: LookinDisplayItem, descriptor: DashboardDescriptor) -> LookinAttributesGroup {
-        let attribute = LookinAttribute()
+    private func makeDashboardGroup(for item: DisplayItem, descriptor: DashboardDescriptor) -> AttributesGroup {
+        let attribute = InspectedAttribute()
         attribute.identifier = Self.dashboardAttributeIdentifier
         attribute.displayTitle = NSLocalizedString("Discriminator Details", comment: "")
         attribute.attrType = .customObj
         attribute.value = LKPrivateDiscriminatorDashboardPayload(descriptor: descriptor)
         attribute.targetDisplayItem = item
 
-        let section = LookinAttributesSection()
+        let section = AttributesSection()
         section.identifier = LookinAttrSec_UserCustom
         section.attributes = [attribute]
 
-        let group = LookinAttributesGroup()
+        let group = AttributesGroup()
         group.identifier = LookinAttrGroup_UserCustom
         group.userCustomTitle = Self.dashboardTitle
         group.attrSections = [section]

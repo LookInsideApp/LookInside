@@ -114,14 +114,14 @@ final class LKStaticAsyncUpdateManager: NSObject {
     /// group screenshots of its ancestors after an attribute was modified.
     /// Progress goes to `modifyingUpdates`.
     @objc(updateAfterModifyingDisplayItem:)
-    func updateAfterModifyingDisplayItem(_ displayItem: LookinDisplayItem?) {
+    func updateAfterModifyingDisplayItem(_ displayItem: DisplayItem?) {
         guard let app = inspectableApp else { return }
         guard let displayItem else {
             assertionFailure()
             return
         }
 
-        var tasks: [LookinStaticAsyncUpdateTask] = []
+        var tasks: [StaticAsyncUpdateTask] = []
         displayItem.enumerateSelfAndAncestors { item, _ in
             guard item.doNotFetchScreenshotReason == .fetchScreenshotPermitted else { return }
             if item === displayItem, !(item.subitems ?? []).isEmpty,
@@ -142,7 +142,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
             guard let self else { return }
             switch event {
             case let .value(value):
-                guard let detail = value as? LookinDisplayItemDetail else { return }
+                guard let detail = value as? DisplayItemDetail else { return }
                 dataSource?.modify(with: detail)
                 if detail.groupScreenshot != nil {
                     receivedScreenshotsCount += 1
@@ -162,7 +162,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
 
     /// Fetches one item's screenshots and attributes again, not its sub items.
     @objc(reloadSingleDisplayItem:)
-    func reloadSingleDisplayItem(_ item: LookinDisplayItem?) {
+    func reloadSingleDisplayItem(_ item: DisplayItem?) {
         let tasks = makeReloadSingleItemTasks(item)
         guard !tasks.isEmpty else { return }
         send(tasks)
@@ -170,7 +170,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
 
     /// Fetches an item and its sub items again, then their details.
     @objc(reloadDisplayItemAndChildren:)
-    func reloadDisplayItemAndChildren(_ rootItem: LookinDisplayItem?) {
+    func reloadDisplayItemAndChildren(_ rootItem: DisplayItem?) {
         // First the root item's basis, attributes and sub items.
         let tasks = makeReloadItemAndChildrenTasks(rootItem)
         guard let rootItem, !tasks.isEmpty else { return }
@@ -191,11 +191,11 @@ final class LKStaticAsyncUpdateManager: NSObject {
 
     // MARK: - Tasks
 
-    private func makeMaximumTasks() -> [LookinStaticAsyncUpdateTask] {
+    private func makeMaximumTasks() -> [StaticAsyncUpdateTask] {
         guard let dataSource else { return [] }
         // Order matters: earlier tasks are fetched first, so the visible
         // items go first.
-        var tasks: [LookinStaticAsyncUpdateTask] = (dataSource.displayingFlatItems ?? []).compactMap { item in
+        var tasks: [StaticAsyncUpdateTask] = (dataSource.displayingFlatItems ?? []).compactMap { item in
             if item.isUserCustom() {
                 return nil
             }
@@ -211,7 +211,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
             return task(from: item, type: .noScreenshot)
         }
 
-        func appendIfNew(_ task: LookinStaticAsyncUpdateTask?) {
+        func appendIfNew(_ task: StaticAsyncUpdateTask?) {
             if let task, !tasks.contains(task) {
                 tasks.append(task)
             }
@@ -229,8 +229,8 @@ final class LKStaticAsyncUpdateManager: NSObject {
         return tasks
     }
 
-    private func makeMinimumTasks(for items: [LookinDisplayItem]) -> [LookinStaticAsyncUpdateTask] {
-        items.compactMap { item -> LookinStaticAsyncUpdateTask? in
+    private func makeMinimumTasks(for items: [DisplayItem]) -> [StaticAsyncUpdateTask] {
+        items.compactMap { item -> StaticAsyncUpdateTask? in
             if item.isUserCustom() {
                 return nil
             }
@@ -238,7 +238,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
                 // Has its image, and so its attributes too.
                 return nil
             }
-            let newTask: LookinStaticAsyncUpdateTask?
+            let newTask: StaticAsyncUpdateTask?
             if item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
                 // Should have an image but does not: fetch it.
                 if item.isExpandable, item.isExpanded {
@@ -265,13 +265,13 @@ final class LKStaticAsyncUpdateManager: NSObject {
         }
     }
 
-    private func updateAfterReloadingItemAndChildren(_ rootItem: LookinDisplayItem) {
+    private func updateAfterReloadingItemAndChildren(_ rootItem: DisplayItem) {
         // The root item's and its children's screenshots and attributes.
         if LKPreferenceManager.shared.fastMode.currentBOOLValue {
             updateForDisplayingItems()
             return
         }
-        var tasks: [LookinStaticAsyncUpdateTask] = []
+        var tasks: [StaticAsyncUpdateTask] = []
         rootItem.enumerateSelfAndChildren { item in
             guard !item.isUserCustom() else { return }
             if item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
@@ -288,7 +288,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
         send(tasks)
     }
 
-    private func task(from item: LookinDisplayItem, type: LookinStaticAsyncUpdateTaskType) -> LookinStaticAsyncUpdateTask? {
+    private func task(from item: DisplayItem, type: LookinStaticAsyncUpdateTaskType) -> StaticAsyncUpdateTask? {
         let appInfo = dataSource?.rawHierarchyInfo?.appInfo
         guard Self.allowsSwiftUISupportAccess(for: item, appInfo: appInfo) else {
             return nil
@@ -325,7 +325,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
         }
         guard oid != 0 else { return nil }
 
-        let task = LookinStaticAsyncUpdateTask()
+        let task = StaticAsyncUpdateTask()
         task.oid = oid
         task.frameSize = item.frame.size
         task.taskType = type
@@ -334,17 +334,17 @@ final class LKStaticAsyncUpdateManager: NSObject {
         return task
     }
 
-    private static func allowsSwiftUISupportAccess(for item: LookinDisplayItem, appInfo: LookinAppInfo?) -> Bool {
+    private static func allowsSwiftUISupportAccess(for item: DisplayItem, appInfo: InspectedAppInfo?) -> Bool {
         guard LKHelper.appInfoLooksLikeMacTarget(appInfo), item.lk_isSwiftUISupportRelated() else {
             return true
         }
         return LKSwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: NSApplication.shared.keyWindow)
     }
 
-    private static func packages(from tasks: [LookinStaticAsyncUpdateTask]) -> [LookinStaticAsyncUpdateTasksPackage] {
+    private static func packages(from tasks: [StaticAsyncUpdateTask]) -> [StaticAsyncUpdateTasksPackage] {
         let areas = tasks.map { Double($0.frameSize.width * $0.frameSize.height) }
         return DetailTaskPackaging.packageRanges(areas: areas).map { range in
-            let package = LookinStaticAsyncUpdateTasksPackage()
+            let package = StaticAsyncUpdateTasksPackage()
             package.tasks = Array(tasks[range])
             return package
         }
@@ -371,13 +371,13 @@ final class LKStaticAsyncUpdateManager: NSObject {
     private func startRequest(
         app: LKInspectableApp,
         type: Int,
-        tasks: [LookinStaticAsyncUpdateTask],
+        tasks: [StaticAsyncUpdateTask],
         onEvent: @escaping (LKAppResponseEvent) -> Void
     ) {
         startRequest(app: app, type: type, tasks: tasks as NSArray, onEvent: onEvent)
     }
 
-    private func send(_ newTasks: [LookinStaticAsyncUpdateTask], completion: (() -> Void)? = nil) {
+    private func send(_ newTasks: [StaticAsyncUpdateTask], completion: (() -> Void)? = nil) {
         guard let app = inspectableApp, !newTasks.isEmpty else { return }
         // The same request cannot run twice at once: cancel the previous one.
         endUpdating()
@@ -393,7 +393,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
             guard let self else { return }
             switch event {
             case let .value(value):
-                receive(details: value as? [LookinDisplayItemDetail] ?? [])
+                receive(details: value as? [DisplayItemDetail] ?? [])
             case .failure:
                 fail()
             case .completion:
@@ -404,7 +404,7 @@ final class LKStaticAsyncUpdateManager: NSObject {
         }
     }
 
-    private func receive(details: [LookinDisplayItemDetail]) {
+    private func receive(details: [DisplayItemDetail]) {
         for detail in details {
             if detail.failureCode != LookinDisplayItemDetailFailureCode.none.rawValue {
                 // ObjectGone is routine: the inspected app released the
@@ -508,10 +508,10 @@ extension LKStaticAsyncUpdateManager {
     /// when it has children), or its attributes alone when it has no
     /// screenshot. Empty when the Server is too old or the item is a
     /// SwiftUI item the license does not cover.
-    fileprivate func makeReloadSingleItemTasks(_ item: LookinDisplayItem?) -> [LookinStaticAsyncUpdateTask] {
+    fileprivate func makeReloadSingleItemTasks(_ item: DisplayItem?) -> [StaticAsyncUpdateTask] {
         guard let item, canReload(item) else { return [] }
         let appInfo = inspectableApp?.appInfo
-        var tasks: [LookinStaticAsyncUpdateTask] = []
+        var tasks: [StaticAsyncUpdateTask] = []
         if item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
             if let task = Self.reloadTask(from: item, appInfo: appInfo) {
                 task.taskType = .groupScreenshot
@@ -531,7 +531,7 @@ extension LKStaticAsyncUpdateManager {
 
     /// The task that reloads an item's basis and sub items (no screenshot,
     /// no attributes).
-    fileprivate func makeReloadItemAndChildrenTasks(_ item: LookinDisplayItem?) -> [LookinStaticAsyncUpdateTask] {
+    fileprivate func makeReloadItemAndChildrenTasks(_ item: DisplayItem?) -> [StaticAsyncUpdateTask] {
         guard let item, canReload(item),
               let task = Self.reloadTask(from: item, appInfo: inspectableApp?.appInfo)
         else {
@@ -547,7 +547,7 @@ extension LKStaticAsyncUpdateManager {
     /// Whether `item` may be reloaded: not while updating, not from a
     /// Server older than 1.2.7 (after an alert), and not for a SwiftUI item
     /// the license does not cover.
-    private func canReload(_ item: LookinDisplayItem) -> Bool {
+    private func canReload(_ item: DisplayItem) -> Bool {
         if isUpdating() {
             assertionFailure()
             return false
@@ -570,10 +570,10 @@ extension LKStaticAsyncUpdateManager {
         return true
     }
 
-    private static func reloadTask(from item: LookinDisplayItem, appInfo: LookinAppInfo?) -> LookinStaticAsyncUpdateTask? {
+    private static func reloadTask(from item: DisplayItem, appInfo: InspectedAppInfo?) -> StaticAsyncUpdateTask? {
         let oid = item.bestObjectOidPreferView(LKHelper.appInfoLooksLikeMacTarget(appInfo))
         guard oid != 0 else { return nil }
-        let task = LookinStaticAsyncUpdateTask()
+        let task = StaticAsyncUpdateTask()
         task.oid = oid
         task.frameSize = item.frame.size
         task.clientReadableVersion = LKHelper.lookinReadableVersion()
@@ -585,13 +585,13 @@ extension LKStaticAsyncUpdateManager {
 
 /// One details request: its packages and how many of their tasks replied.
 private final class LKDetailUpdateRequest {
-    private(set) var packages: [LookinStaticAsyncUpdateTasksPackage]
+    private(set) var packages: [StaticAsyncUpdateTasksPackage]
     /// Tasks that received a reply, failed ones included. Which ones is not
     /// known, only how many.
     var finishedTasksCount = 0
     var failedTasksCount = 0
 
-    init(packages: [LookinStaticAsyncUpdateTasksPackage]) {
+    init(packages: [StaticAsyncUpdateTasksPackage]) {
         self.packages = packages
     }
 
@@ -599,11 +599,11 @@ private final class LKDetailUpdateRequest {
         packages.reduce(0) { $0 + ($1.tasks?.count ?? 0) }
     }
 
-    func contains(_ task: LookinStaticAsyncUpdateTask) -> Bool {
+    func contains(_ task: StaticAsyncUpdateTask) -> Bool {
         packages.contains { ($0.tasks ?? []).contains(task) }
     }
 
-    func removeTasks(of item: LookinDisplayItem) {
+    func removeTasks(of item: DisplayItem) {
         let itemOids = Set(item.availableObjectOidsPreferView(false).map(\.uintValue))
         for package in packages {
             package.tasks = (package.tasks ?? []).filter { !itemOids.contains($0.oid) }

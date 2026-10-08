@@ -2,7 +2,7 @@
 //  LKChannel.swift
 //  LookInside
 //
-//  One connection to an inspected app's Server: a LookinFrameChannel on a
+//  One connection to an inspected app's Server: a FrameChannel on a
 //  loopback TCP socket (Simulator and Mac apps) or a usbmuxd tunnel (USB
 //  devices), plus the state the connection manager keeps for it. Frames,
 //  send completions and the end arrive on the main queue.
@@ -38,7 +38,7 @@ final class LKChannel: NSObject {
     /// released with the channel.
     let connectionState = LKChannelConnectionState()
 
-    private let frameChannel: LookinFrameChannel
+    private let frameChannel: FrameChannel
 
     /// True until the channel ends or is closed.
     var isConnected: Bool {
@@ -53,7 +53,7 @@ final class LKChannel: NSObject {
         self.kind = kind
         // The Host takes any payload size, as Peertalk did: a hierarchy
         // response can be large.
-        frameChannel = LookinFrameChannel(
+        frameChannel = FrameChannel(
             fileDescriptor: fileDescriptor,
             queue: .main,
             maxPayloadSize: .max,

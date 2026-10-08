@@ -70,7 +70,7 @@ final class LKConsoleViewController: LKBaseViewController, LKTableViewDelegate, 
         clearButton.action = #selector(handleClearButton)
         containerView.addSubview(clearButton)
 
-        topBorderLayer.lookin_removeImplicitAnimations()
+        topBorderLayer.removeImplicitAnimations()
         containerView.layer?.addSublayer(topBorderLayer)
         containerView.didChangeAppearanceBlock = { [weak self] _, isDarkMode in
             self?.topBorderLayer.backgroundColor = isDarkMode
@@ -120,7 +120,7 @@ final class LKConsoleViewController: LKBaseViewController, LKTableViewDelegate, 
 
     /// Calls `text` on `obj` and adds the call to the transcript; errors are only logged.
     @objc(submitWithObj:text:)
-    func submit(with obj: LookinObject?, text: String) {
+    func submit(with obj: InspectedObject?, text: String) {
         Task {
             do {
                 try await dataSource.submit(object: obj, text: text)

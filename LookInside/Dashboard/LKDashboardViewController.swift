@@ -21,8 +21,8 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
     private var searchContainerView: LKBaseView!
     private var headerView: LKDashboardHeaderView!
 
-    private var groupList: [LookinAttributesGroup] = []
-    /// Keyed by `LookinAttributesGroup.uniqueKey`.
+    private var groupList: [AttributesGroup] = []
+    /// Keyed by `AttributesGroup.uniqueKey`.
     private var cardViews: [String: LKDashboardCardView] = [:]
 
     private var searchPropViews: [LKDashboardSearchPropView] = []
@@ -166,7 +166,7 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
             cardContainerView.dashboardLayout.width(contentWidth).x(horInset).y(headerView.frame.maxY + verMargin)
             var y: CGFloat = 0
             for group in groupList {
-                guard let view = cardViews[group.uniqueKey()], !view.isHidden else { continue }
+                guard let view = cardViews[group.uniqueKey() ?? ""], !view.isHidden else { continue }
                 view.dashboardLayout.width(contentWidth).y(y).heightToFit()
                 y = view.frame.maxY + verMargin
             }
@@ -192,16 +192,16 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
 
     // MARK: - Rendering
 
-    private func groupList(for item: LookinDisplayItem?) -> [LookinAttributesGroup] {
+    private func groupList(for item: DisplayItem?) -> [AttributesGroup] {
         guard let item else { return [] }
-        let groups = LKPrivateDiscriminatorStore.shared.appendingPrivateDiscriminatorGroup(to: item.queryAllAttrGroupList() ?? [], for: item)
+        let groups = LKPrivateDiscriminatorStore.shared.appendingPrivateDiscriminatorGroup(to: item.queryAllAttrGroupList(), for: item)
         // Cards are keyed by uniqueKey, so a duplicated key would lay the
         // shared card out twice and leave a blank gap. Servers 0.2.8 and
         // 0.2.9 sent a duplicate Layout group for UIWindowScene nodes.
-        return LookinAttributesGroup.groupsByKeepingFirstGroup(forEachUniqueKey: groups) ?? []
+        return AttributesGroup.groupsByKeepingFirstGroup(forEachUniqueKey: groups)
     }
 
-    private func reload(groupList list: [LookinAttributesGroup]) {
+    private func reload(groupList list: [AttributesGroup]) {
         groupList = list
 
         if list.isEmpty {
@@ -255,7 +255,7 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
     /// whether a modification was made: a user-custom attribute without a
     /// setter (such as the SwiftUI attributes) is left alone. Failures are
     /// shown in the window, then thrown.
-    func modifyAttribute(_ attribute: LookinAttribute, newValue: Any?) async throws -> Bool {
+    func modifyAttribute(_ attribute: InspectedAttribute, newValue: Any?) async throws -> Bool {
         if attribute.isUserCustom() {
             // The attribute views already refuse edits of read-only
             // attributes; this keeps any other caller from sending one.
@@ -274,7 +274,7 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
         return error
     }
 
-    private func modifyCustomAttribute(_ attribute: LookinAttribute, newValue: Any?) async throws {
+    private func modifyCustomAttribute(_ attribute: InspectedAttribute, newValue: Any?) async throws {
         guard let modification = LKDashboardModification.custom(attribute: attribute, newValue: newValue) else {
             assertionFailure()
             throw failModification(LKConnectionError.inner)
@@ -292,7 +292,7 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
         attribute.value = newValue
     }
 
-    private func modifyInbuiltAttribute(_ attribute: LookinAttribute, newValue: Any?) async throws {
+    private func modifyInbuiltAttribute(_ attribute: InspectedAttribute, newValue: Any?) async throws {
         let modifyingItem = attribute.targetDisplayItem
         guard let modification = LKDashboardModification.inbuilt(attribute: attribute, newValue: newValue, clientReadableVersion: LKHelper.lookinReadableVersion()) else {
             assertionFailure()
@@ -302,7 +302,7 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
         guard let inspectableApp = liveDocument?.inspectableApp else {
             throw failModification(LKConnectionError.noConnect)
         }
-        let detail: LookinDisplayItemDetail
+        let detail: DisplayItemDetail
         do {
             detail = try await inspectableApp.submit(modification)
         } catch {
@@ -321,7 +321,7 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
         staticDataSource.modify(with: detail)
         LKDashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent = false
 
-        if LookinDashboardBlueprint.needPatchAfterModification(withAttrID: attribute.identifier), let modifyingItem {
+        if DashboardBlueprint.needPatchAfterModification(withAttrID: attribute.identifier), let modifyingItem {
             _ = asyncUpdateManager?.perform(Selector(("updateAfterModifyingDisplayItem:")), with: modifyingItem)
         }
     }
@@ -351,11 +351,11 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
         let searchString = string.lowercased()
 
         // Attributes
-        var resultAttrs: [LookinAttribute] = []
+        var resultAttrs: [InspectedAttribute] = []
         for group in groupList(for: currentDataSource()?.selectedItem) {
             for section in group.attrSections ?? [] {
                 for attr in section.attributes ?? [] {
-                    let title = attr.isUserCustom() ? attr.displayTitle : LookinDashboardBlueprint.fullTitle(withAttrID: attr.identifier)
+                    let title = attr.isUserCustom() ? attr.displayTitle : DashboardBlueprint.fullTitle(withAttrID: attr.identifier)
                     if (title ?? "").lowercased().contains(searchString) {
                         resultAttrs.append(attr)
                     }
@@ -462,15 +462,15 @@ final class LKDashboardViewController: LKBaseViewController, LKDashboardCardView
 
     // MARK: - LKDashboardSearchPropViewDelegate
 
-    func dashboardSearchPropView(_: LKDashboardSearchPropView, didClickRevealAttribute clickedAttribute: LookinAttribute) {
+    func dashboardSearchPropView(_: LKDashboardSearchPropView, didClickRevealAttribute clickedAttribute: InspectedAttribute) {
         headerView.isActive = false
 
-        var target: (group: LookinAttributesGroup, section: LookinAttributesSection)?
+        var target: (group: AttributesGroup, section: AttributesSection)?
         search: for group in groupList(for: currentDataSource()?.selectedItem) {
             for section in group.attrSections ?? [] where (section.attributes ?? []).contains(where: { $0 === clickedAttribute }) {
-                if !LKPreferenceManager.shared.isSectionShowing(section.identifier) {
+                if let identifier = section.identifier, !LKPreferenceManager.shared.isSectionShowing(identifier) {
                     // Adds the section to its card.
-                    LKPreferenceManager.shared.showSection(section.identifier)
+                    LKPreferenceManager.shared.showSection(identifier)
                 }
                 target = (group, section)
                 break search

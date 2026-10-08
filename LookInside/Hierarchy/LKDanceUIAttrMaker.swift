@@ -12,7 +12,7 @@ import Foundation
 enum LKDanceUIAttrMaker {
     /// Gives `item` a Class group naming the type in `source` (DanceUI's
     /// JSON), unless it already has one.
-    static func makeDanceUIJumpAttribute(_ item: LookinDisplayItem, danceSource source: String) {
+    static func makeDanceUIJumpAttribute(_ item: DisplayItem, danceSource source: String) {
         guard let className = className(fromSource: source) else {
             return
         }
@@ -20,16 +20,16 @@ enum LKDanceUIAttrMaker {
         if groups.contains(where: { $0.identifier == LookinAttrGroup_Class }) {
             return
         }
-        let attribute = LookinAttribute()
+        let attribute = InspectedAttribute()
         attribute.identifier = LookinAttr_Class_Class_Class
         attribute.attrType = .customObj
         attribute.value = [[className]]
 
-        let section = LookinAttributesSection()
+        let section = AttributesSection()
         section.identifier = LookinAttrSec_Class_Class
         section.attributes = [attribute]
 
-        let group = LookinAttributesGroup()
+        let group = AttributesGroup()
         group.identifier = LookinAttrGroup_Class
         group.attrSections = [section]
 

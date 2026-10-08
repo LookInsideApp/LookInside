@@ -11,7 +11,7 @@ import AppKit
 /// One constraint as a line of text, such as "self.width = 100 @ 750".
 /// Constraints that do not affect the view are greyed out.
 final class LKDashboardAttributeConstraintsItemControl: LKTextControl {
-    var constraint: LookinAutoLayoutConstraint? {
+    var constraint: AutoLayoutConstraint? {
         didSet {
             label.stringValue = constraint.map(Self.string(from:)) ?? ""
             updateLabelColor()
@@ -41,24 +41,24 @@ final class LKDashboardAttributeConstraintsItemControl: LKTextControl {
         }
     }
 
-    static func string(from constraint: LookinAutoLayoutConstraint) -> String {
-        let firstItem = LookinAutoLayoutConstraint.description(withItemObject: constraint.firstItem, type: constraint.firstItemType, detailed: false)
-        let firstAttribute = LookinAutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute)
-        let relation = LookinAutoLayoutConstraint.symbol(with: constraint.relation)
+    static func string(from constraint: AutoLayoutConstraint) -> String {
+        let firstItem = AutoLayoutConstraint.description(withItemObject: constraint.firstItem, type: constraint.firstItemType, detailed: false)
+        let firstAttribute = AutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute)
+        let relation = AutoLayoutConstraint.symbol(with: constraint.relation)
         var string = "\(firstItem).\(firstAttribute) \(relation)"
         if constraint.secondAttribute == 0 {
-            string += " " + NSString.lookin_string(from: Double(constraint.constant), decimal: 3)
+            string += " " + NSString.string(from: Double(constraint.constant), decimal: 3)
         } else {
-            let secondItem = LookinAutoLayoutConstraint.description(withItemObject: constraint.secondItem, type: constraint.secondItemType, detailed: false)
-            let secondAttribute = LookinAutoLayoutConstraint.description(withAttributeInt: constraint.secondAttribute)
+            let secondItem = AutoLayoutConstraint.description(withItemObject: constraint.secondItem, type: constraint.secondItemType, detailed: false)
+            let secondAttribute = AutoLayoutConstraint.description(withAttributeInt: constraint.secondAttribute)
             string += " \(secondItem).\(secondAttribute)"
             if constraint.multiplier != 1 {
-                string += " * " + NSString.lookin_string(from: Double(constraint.multiplier), decimal: 3)
+                string += " * " + NSString.string(from: Double(constraint.multiplier), decimal: 3)
             }
             if constraint.constant > 0 {
-                string += " + " + NSString.lookin_string(from: Double(constraint.constant), decimal: 3)
+                string += " + " + NSString.string(from: Double(constraint.constant), decimal: 3)
             } else if constraint.constant < 0 {
-                string += " - " + NSString.lookin_string(from: Double(-constraint.constant), decimal: 3)
+                string += " - " + NSString.string(from: Double(-constraint.constant), decimal: 3)
             }
         }
         if constraint.priority != 1000 {
@@ -91,7 +91,7 @@ final class LKDashboardAttributeConstraintsView: LKDashboardAttributeView {
 
     override func renderWithAttribute() {
         super.renderWithAttribute()
-        let rawData = attribute?.value as? [LookinAutoLayoutConstraint] ?? []
+        let rawData = attribute?.value as? [AutoLayoutConstraint] ?? []
         let constraints = LKDashboardConstraintOrder.sorted(rawData)
 
         while textControls.count < constraints.count {

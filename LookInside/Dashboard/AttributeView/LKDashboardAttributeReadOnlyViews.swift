@@ -145,7 +145,7 @@ final class LKDashboardAttributeShadowView: LKDashboardAttributeView {
         }
 
         let strings = [opacityNumber.doubleValue, radiusNumber.doubleValue, Double(offset.width), Double(offset.height)].map {
-            NSString.lookin_string(from: $0, decimal: 2) ?? ""
+            NSString.string(from: $0, decimal: 2)
         }
         for (view, string) in zip(inputViews, strings) {
             view.textFieldView.textField.stringValue = string

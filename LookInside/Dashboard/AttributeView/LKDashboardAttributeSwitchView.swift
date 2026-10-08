@@ -38,7 +38,7 @@ final class LKDashboardAttributeSwitchView: LKDashboardAttributeView {
         if attribute.isUserCustom() {
             title = attribute.displayTitle
         } else {
-            title = LookinDashboardBlueprint.briefTitle(withAttrID: attribute.identifier)
+            title = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier)
         }
         button.attributedTitle = LKDashboardText.attributed(title ?? "", color: NSColor(named: "DashboardCardValueColor"))
 

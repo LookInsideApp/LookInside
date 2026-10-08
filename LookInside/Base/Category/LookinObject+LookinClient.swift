@@ -1,12 +1,12 @@
 //
-//  LookinObject+LookinClient.swift
+//  InspectedObject+LookinClient.swift
 //  LookInside
 //
 
 import Foundation
 import LookInsideHostCore
 
-extension LookinObject {
+extension InspectedObject {
     /// The demangled class name, module prefix included.
     @objc func lk_completedDemangledClassName() -> String {
         LKSwiftDemangler.completedParse(input: rawClassName() ?? "")

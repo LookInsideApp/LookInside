@@ -5,7 +5,7 @@
 //  Lookin
 //
 //  The exported string constant declared in LookinIvarTrace.h. The class is
-//  implemented in Swift (LookinCoreImpl/LookinIvarTrace.swift); Swift cannot
+//  implemented in Swift (LookinCoreImpl/InstanceVariableTrace.swift); Swift cannot
 //  define a C global, so the constant stays here.
 //
 

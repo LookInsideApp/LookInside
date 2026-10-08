@@ -25,7 +25,7 @@ final class LKInspectableApp: NSObject {
     /// answered the app info request with another error.
     @objc dynamic var serverVersionError: NSError?
 
-    @objc dynamic var appInfo: LookinAppInfo?
+    @objc dynamic var appInfo: InspectedAppInfo?
 
     @objc dynamic weak var channel: LKChannel?
 
@@ -193,25 +193,25 @@ final class LKInspectableApp: NSObject {
 
 extension LKInspectableApp {
     @MainActor
-    func hierarchy() async throws -> LookinHierarchyInfo {
-        try await response(type: UInt32(LookinRequestTypeHierarchy), data: Self.hierarchyRequestParameters(), as: LookinHierarchyInfo.self)
+    func hierarchy() async throws -> HierarchyInfo {
+        try await response(type: UInt32(LookinRequestTypeHierarchy), data: Self.hierarchyRequestParameters(), as: HierarchyInfo.self)
     }
 
     /// Returns the updated detail of the modified item.
     @MainActor
-    func submit(_ modification: LookinAttributeModification) async throws -> LookinDisplayItemDetail {
-        try await response(type: UInt32(LookinRequestTypeInbuiltAttrModification), data: modification, as: LookinDisplayItemDetail.self)
+    func submit(_ modification: AttributeModification) async throws -> DisplayItemDetail {
+        try await response(type: UInt32(LookinRequestTypeInbuiltAttrModification), data: modification, as: DisplayItemDetail.self)
     }
 
     @MainActor
-    func submit(_ modification: LookinCustomAttrModification) async throws -> Any? {
+    func submit(_ modification: CustomAttributeModification) async throws -> Any? {
         try await response(type: UInt32(LookinRequestTypeCustomAttrModification), data: modification, as: Any?.self)
     }
 
     /// One array of details per package the Server finished.
     @MainActor
-    func hierarchyDetails(packages: [LookinStaticAsyncUpdateTasksPackage]) -> AsyncThrowingStream<[LookinDisplayItemDetail], Error> {
-        typedResponses(type: UInt32(LookinRequestTypeHierarchyDetails), data: packages as NSArray, as: [LookinDisplayItemDetail].self)
+    func hierarchyDetails(packages: [StaticAsyncUpdateTasksPackage]) -> AsyncThrowingStream<[DisplayItemDetail], Error> {
+        typedResponses(type: UInt32(LookinRequestTypeHierarchyDetails), data: packages as NSArray, as: [DisplayItemDetail].self)
     }
 
     /// Stops the running hierarchy details request: it completes, and the
@@ -225,20 +225,20 @@ extension LKInspectableApp {
 
     /// One detail per modified item, as the Server finishes them.
     @MainActor
-    func modificationPatch(tasks: [LookinStaticAsyncUpdateTask]) -> AsyncThrowingStream<LookinDisplayItemDetail, Error> {
-        typedResponses(type: UInt32(LookinRequestTypeAttrModificationPatch), data: tasks as NSArray, as: LookinDisplayItemDetail.self)
+    func modificationPatch(tasks: [StaticAsyncUpdateTask]) -> AsyncThrowingStream<DisplayItemDetail, Error> {
+        typedResponses(type: UInt32(LookinRequestTypeAttrModificationPatch), data: tasks as NSArray, as: DisplayItemDetail.self)
     }
 
     @MainActor
-    func object(oid: UInt) async throws -> LookinObject {
+    func object(oid: UInt) async throws -> InspectedObject {
         guard oid != 0 else { throw LKConnectionError.inner }
-        return try await response(type: UInt32(LookinRequestTypeFetchObject), data: NSNumber(value: oid), as: LookinObject.self)
+        return try await response(type: UInt32(LookinRequestTypeFetchObject), data: NSNumber(value: oid), as: InspectedObject.self)
     }
 
     @MainActor
-    func attributeGroups(oid: UInt) async throws -> [LookinAttributesGroup] {
+    func attributeGroups(oid: UInt) async throws -> [AttributesGroup] {
         guard oid != 0 else { throw LKConnectionError.inner }
-        return try await response(type: UInt32(LookinRequestTypeAllAttrGroups), data: NSNumber(value: oid), as: [LookinAttributesGroup].self)
+        return try await response(type: UInt32(LookinRequestTypeAllAttrGroups), data: NSNumber(value: oid), as: [AttributesGroup].self)
     }
 
     @MainActor

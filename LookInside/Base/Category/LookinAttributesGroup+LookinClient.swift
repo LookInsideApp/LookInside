@@ -1,11 +1,11 @@
 //
-//  LookinAttributesGroup+LookinClient.swift
+//  AttributesGroup+LookinClient.swift
 //  LookInside
 //
 
 import Foundation
 
-extension LookinAttributesGroup {
+extension AttributesGroup {
     /// The group's card title. `isMacTarget` describes the inspected app,
     /// not the Host; it only changes the ViewLayer group, whose title names
     /// the view class (`NSView` vs `UIView`), and the layout guide group.
@@ -25,6 +25,6 @@ extension LookinAttributesGroup {
             // platform's actual class.
             return isMacTarget ? "NSLayoutGuide" : "UILayoutGuide"
         }
-        return LookinDashboardBlueprint.groupTitle(withGroupID: identifier) ?? ""
+        return DashboardBlueprint.groupTitle(withGroupID: identifier) ?? ""
     }
 }

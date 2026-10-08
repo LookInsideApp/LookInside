@@ -42,22 +42,22 @@ private final class LKHierarchyDebouncer {
 
 @objc protocol LKHierarchyViewDelegate: NSObjectProtocol {
     @objc(hierarchyView:didSelectItem:)
-    func hierarchyView(_ view: LKHierarchyView!, didSelect item: LookinDisplayItem!)
+    func hierarchyView(_ view: LKHierarchyView!, didSelect item: DisplayItem!)
 
     @objc(hierarchyView:didDoubleClickItem:)
-    func hierarchyView(_ view: LKHierarchyView!, didDoubleClick item: LookinDisplayItem!)
+    func hierarchyView(_ view: LKHierarchyView!, didDoubleClick item: DisplayItem!)
 
     @objc(hierarchyView:didHoverAtItem:)
-    func hierarchyView(_ view: LKHierarchyView!, didHoverAt item: LookinDisplayItem!)
+    func hierarchyView(_ view: LKHierarchyView!, didHoverAt item: DisplayItem!)
 
     @objc(hierarchyView:needToExpandItem:recursively:)
-    func hierarchyView(_ view: LKHierarchyView!, needToExpand item: LookinDisplayItem!, recursively: Bool)
+    func hierarchyView(_ view: LKHierarchyView!, needToExpand item: DisplayItem!, recursively: Bool)
 
     @objc(hierarchyView:needToCollapseItem:)
-    func hierarchyView(_ view: LKHierarchyView!, needToCollapse item: LookinDisplayItem!)
+    func hierarchyView(_ view: LKHierarchyView!, needToCollapse item: DisplayItem!)
 
     @objc(hierarchyView:needToCollapseChildrenOfItem:)
-    func hierarchyView(_ view: LKHierarchyView!, needToCollapseChildrenOf item: LookinDisplayItem!)
+    func hierarchyView(_ view: LKHierarchyView!, needToCollapseChildrenOf item: DisplayItem!)
 
     /// 在底部的搜索框里输入了文字，string 可能为空字符串或 nil
     /// 当用户通过搜索框的关闭按钮、ESC 等方式手动结束搜索时，该方法同样会被调用，参数是 nil
@@ -65,10 +65,10 @@ private final class LKHierarchyDebouncer {
     func hierarchyView(_ view: LKHierarchyView!, didInputSearch string: String!)
 
     @objc(hierarchyView:needToCancelPreviewOfItem:)
-    optional func hierarchyView(_ view: LKHierarchyView!, needToCancelPreviewOf item: LookinDisplayItem!)
+    optional func hierarchyView(_ view: LKHierarchyView!, needToCancelPreviewOf item: DisplayItem!)
 
     @objc(hierarchyView:needToShowPreviewOfItem:)
-    optional func hierarchyView(_ view: LKHierarchyView!, needToShowPreviewOf item: LookinDisplayItem!)
+    optional func hierarchyView(_ view: LKHierarchyView!, needToShowPreviewOf item: DisplayItem!)
 }
 
 @objc(LKHierarchyView)
@@ -86,7 +86,7 @@ class LKHierarchyView: LKBaseView {
     private let backgroundEffectView = LKVisualEffectView()
     private let guidesShapeLayer = CAShapeLayer()
     private var emptyDataLabel: LKLabel?
-    private var displayItems: [LookinDisplayItem] = []
+    private var displayItems: [DisplayItem] = []
     private var minIndentLevel = 0
     private var observations: [NSKeyValueObservation] = []
     private var textChangeObserver: NSObjectProtocol?
@@ -112,7 +112,7 @@ class LKHierarchyView: LKBaseView {
 
         guidesShapeLayer.lineWidth = 1
         guidesShapeLayer.isHidden = true
-        guidesShapeLayer.lookin_removeImplicitAnimations()
+        guidesShapeLayer.removeImplicitAnimations()
         guidesShapeLayer.lineDashPattern = [2, 2]
         tableView.contentView.documentView?.layer?.addSublayer(guidesShapeLayer)
 
@@ -154,7 +154,7 @@ class LKHierarchyView: LKBaseView {
     }
 
     @objc(scrollToMakeItemVisible:)
-    func scroll(toMakeItemVisible item: LookinDisplayItem!) {
+    func scroll(toMakeItemVisible item: DisplayItem!) {
         guard let item, let row = displayItems.firstIndex(where: { $0 === item }) else {
             return
         }
@@ -230,7 +230,7 @@ class LKHierarchyView: LKBaseView {
             scroll(toMakeItemVisible: dataSource.selectedItem)
         })
 
-        var lastHoveredItem: LookinDisplayItem?
+        var lastHoveredItem: DisplayItem?
         var hasHoveredItem = false
         observations.append(dataSource.observe(\.hoveredItem, options: [.initial]) { [weak self] dataSource, _ in
             let item = dataSource.hoveredItem
@@ -270,7 +270,7 @@ class LKHierarchyView: LKBaseView {
 
     // MARK: - Rendering
 
-    private func render(_ items: [LookinDisplayItem]) {
+    private func render(_ items: [DisplayItem]) {
         displayItems = items
         minIndentLevel = items.map { $0.indentLevel() }.min() ?? 0
 
@@ -308,7 +308,7 @@ class LKHierarchyView: LKBaseView {
 
     // MARK: - Guides
 
-    func updateGuides(withHoveredItem item: LookinDisplayItem!) {
+    func updateGuides(withHoveredItem item: DisplayItem!) {
         guard let item, let rootItem = item.super,
               let rootRow = displayItems.firstIndex(where: { $0 === rootItem })
         else {
@@ -349,11 +349,11 @@ class LKHierarchyView: LKBaseView {
         tableView.contentView.documentView?.layer?.addSublayer(guidesShapeLayer)
     }
 
-    fileprivate func item(atRow row: Int) -> LookinDisplayItem? {
+    fileprivate func item(atRow row: Int) -> DisplayItem? {
         displayItems.indices.contains(row) ? displayItems[row] : nil
     }
 
-    fileprivate func displayItem(of menuItem: NSMenuItem) -> LookinDisplayItem? {
+    fileprivate func displayItem(of menuItem: NSMenuItem) -> DisplayItem? {
         (menuItem.menu as? LKHierarchyRowMenu)?.rowView?.displayItem
     }
 
@@ -398,7 +398,7 @@ class LKHierarchyView: LKBaseView {
     }
 
     @objc fileprivate func handleJumpToDisplayItem(_ menuItem: NSMenuItem) {
-        dataSource.selectAndRevealItem(menuItem.representedObject as? LookinDisplayItem)
+        dataSource.selectAndRevealItem(menuItem.representedObject as? DisplayItem)
     }
 
     @objc fileprivate func handleShowPreview(_ menuItem: NSMenuItem) {
@@ -448,7 +448,7 @@ class LKHierarchyView: LKBaseView {
         return item
     }
 
-    fileprivate func jumpMenuItem(_ title: String, target: LookinDisplayItem) -> NSMenuItem {
+    fileprivate func jumpMenuItem(_ title: String, target: DisplayItem) -> NSMenuItem {
         menuItem(title, action: #selector(handleJumpToDisplayItem(_:)), representedObject: target)
     }
 }

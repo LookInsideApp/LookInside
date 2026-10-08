@@ -6,7 +6,7 @@
 // It subclasses `LookinArchiveDocument` rather than `NSDocument` directly so
 // that the entire reader — window controller, hierarchy tree, preview,
 // dashboard — is reused untouched. Once the import lands, the document holds
-// an ordinary `LookinHierarchyFile`, indistinguishable from one that came out
+// an ordinary `HierarchyFile`, indistinguishable from one that came out
 // of a `.lookin` archive, and everything downstream stays unaware that Xcode
 // produced it.
 //
@@ -60,7 +60,7 @@ enum LKXcodeViewHierarchyImporter {
     static func makingHierarchyFile(
         from capture: LKXcodeViewHierarchyImportedCapture,
         showingBackingLayers: Bool
-    ) throws -> LookinHierarchyFile {
+    ) throws -> HierarchyFile {
         try LKXcodeViewHierarchyConverter.makingHierarchyFile(
             from: capture.bundle, screenshots: capture.screenshots, showingBackingLayers: showingBackingLayers
         )
@@ -71,7 +71,7 @@ enum LKXcodeViewHierarchyImporter {
         at url: URL,
         showingBackingLayers: Bool = false,
         isCancelled: () -> Bool = { false }
-    ) throws -> LookinHierarchyFile {
+    ) throws -> HierarchyFile {
         let capture = try importingCapture(at: url, isCancelled: isCancelled)
         if isCancelled() {
             throw CancellationError()
@@ -126,7 +126,7 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
         guard let importedCapture else { return }
         rebuildTask?.cancel()
         rebuildTask = Task.detached(priority: .userInitiated) { [weak self] in
-            let outcome: Result<LookinHierarchyFile, Error>
+            let outcome: Result<HierarchyFile, Error>
             do {
                 outcome = try .success(LKXcodeViewHierarchyImporter.makingHierarchyFile(
                     from: importedCapture, showingBackingLayers: showingBackingLayers
@@ -168,7 +168,7 @@ final class LKXcodeViewHierarchyDocument: LookinArchiveDocument {
     }
 
     @MainActor
-    private func finishingRebuild(with outcome: Result<LookinHierarchyFile, Error>) {
+    private func finishingRebuild(with outcome: Result<HierarchyFile, Error>) {
         rebuildTask = nil
         switch outcome {
         case let .success(file):

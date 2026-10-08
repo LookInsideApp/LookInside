@@ -32,10 +32,10 @@
             let id: String
             let parentID: String
             let depth: Int
-            let item: LookinDisplayItem
+            let item: DisplayItem
         }
 
-        static func className(of item: LookinDisplayItem) -> String {
+        static func className(of item: DisplayItem) -> String {
             for object in [item.viewObject, item.layerObject, item.windowObject, item.kindObject, item.cellObject] {
                 if let object, let name = object.rawClassName(), !name.isEmpty {
                     return name
@@ -50,7 +50,7 @@
         /// Depth-first nodes with stable ids: the class path from the root,
         /// each step suffixed with its index among same-class siblings. The
         /// ids survive oid / address churn.
-        static func collectNodes(roots: [LookinDisplayItem]) -> [Node] {
+        static func collectNodes(roots: [DisplayItem]) -> [Node] {
             var nodes: [Node] = []
             for (index, root) in roots.enumerated() {
                 collect(root, parentID: "", siblingIndex: index, siblings: roots, depth: 0, into: &nodes)
@@ -59,10 +59,10 @@
         }
 
         private static func collect(
-            _ item: LookinDisplayItem,
+            _ item: DisplayItem,
             parentID: String,
             siblingIndex: Int,
-            siblings: [LookinDisplayItem],
+            siblings: [DisplayItem],
             depth: Int,
             into nodes: inout [Node]
         ) {
@@ -82,8 +82,8 @@
         /// other sibling keeps its place. The Server does not keep the order
         /// of identical SwiftUI views stable from launch to launch (a
         /// ZStack's ForEach circles come back in either direction).
-        static func canonicalSiblingOrder(_ items: [LookinDisplayItem]) -> [LookinDisplayItem] {
-            func frameKey(_ item: LookinDisplayItem) -> [Double] {
+        static func canonicalSiblingOrder(_ items: [DisplayItem]) -> [DisplayItem] {
+            func frameKey(_ item: DisplayItem) -> [Double] {
                 if let rect = item.customInfo?.frameInWindow?.rectValue {
                     return [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height].map(Double.init)
                 }
@@ -191,7 +191,7 @@
         /// The oid the Host puts in the detail task for this node; mirrors
         /// -[LKStaticAsyncUpdateManager _taskFromDisplayItem:type:] with the
         /// backing-layer toggle off.
-        static func taskOid(for item: LookinDisplayItem, macTarget: Bool) -> UInt {
+        static func taskOid(for item: DisplayItem, macTarget: Bool) -> UInt {
             switch item.resolvedNodeKind() {
             case .window, .windowScene:
                 return item.windowObject?.oid ?? 0
@@ -214,7 +214,7 @@
 
         /// Windows always get a group screenshot: that is the picture of the
         /// whole UI. iOS reports a UIWindow as a plain view node under its scene.
-        static func isWindow(_ item: LookinDisplayItem) -> Bool {
+        static func isWindow(_ item: DisplayItem) -> Bool {
             if item.resolvedNodeKind() == .window {
                 return true
             }
@@ -224,12 +224,12 @@
 
         // MARK: - Records
 
-        /// LookinAppInfo encodes its images under the short keys "1" (icon)
+        /// InspectedAppInfo encodes its images under the short keys "1" (icon)
         /// and "2" (screenshot).
         static let appImageNames = ["1": "appIcon", "2": "screenshot"]
 
         /// `appInfo` as JSON with the machine-identifying fields masked.
-        static func appInfoJSON(_ appInfo: LookinAppInfo, imageSink: @escaping LookinSnapshotWireJSON.ImageSink) -> [String: Any] {
+        static func appInfoJSON(_ appInfo: InspectedAppInfo, imageSink: @escaping LookinSnapshotWireJSON.ImageSink) -> [String: Any] {
             var json = LookinSnapshotWireJSON(imageSink: imageSink).record(appInfo, keyPath: [])
             // "3" = deviceDescription: on a Mac that is the computer name, and
             // the model identifier names the hardware. Neither belongs in a
@@ -242,7 +242,7 @@
 
         /// `hierarchy` as JSON without its display items ("1") and app info
         /// ("2"), which are recorded separately (LookinHierarchyInfo.m).
-        static func hierarchyJSON(_ hierarchy: LookinHierarchyInfo) -> [String: Any] {
+        static func hierarchyJSON(_ hierarchy: HierarchyInfo) -> [String: Any] {
             LookinSnapshotWireJSON(skippedKeys: ["LookinHierarchyInfo": ["1", "2"]]) { _, _ in
                 ["$image": "<unexpected>"]
             }.record(hierarchy, keyPath: [])

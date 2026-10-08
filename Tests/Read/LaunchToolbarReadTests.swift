@@ -115,14 +115,14 @@ struct LaunchToolbarReadTests {
             (LOOKIN_SUPPORTED_SERVER_MIN - 1, LookinErrCode_ServerVersionTooLow),
             (LOOKIN_SUPPORTED_SERVER_MAX + 1, LookinErrCode_ServerVersionTooHigh),
         ] {
-            let file = LookinHierarchyFile()
+            let file = HierarchyFile()
             file.serverVersion = version
-            file.hierarchyInfo = LookinHierarchyInfo()
+            file.hierarchyInfo = HierarchyInfo()
             expectError(encode(file), code: code, "server version \(version)")
         }
-        let file = LookinHierarchyFile()
+        let file = HierarchyFile()
         file.serverVersion = LOOKIN_SUPPORTED_SERVER_MIN
-        file.hierarchyInfo = LookinHierarchyInfo()
+        file.hierarchyInfo = HierarchyInfo()
         expect(decode(encode(file)).serverVersion == LOOKIN_SUPPORTED_SERVER_MIN, "oldest supported version opens")
     }
 
@@ -215,7 +215,7 @@ struct LaunchToolbarReadTests {
 
     // MARK: - Helpers
 
-    private static func decode(_ data: Data) -> LookinHierarchyFile {
+    private static func decode(_ data: Data) -> HierarchyFile {
         do {
             return try LookinArchiveCoding.hierarchyFile(from: data)
         } catch {
@@ -223,7 +223,7 @@ struct LaunchToolbarReadTests {
         }
     }
 
-    private static func encode(_ file: LookinHierarchyFile) -> Data {
+    private static func encode(_ file: HierarchyFile) -> Data {
         do {
             return try LookinArchiveCoding.data(of: file)
         } catch {

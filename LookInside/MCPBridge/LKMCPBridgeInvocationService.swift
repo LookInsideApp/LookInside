@@ -186,7 +186,7 @@ final class LKMCPBridgeInvocationService {
     }
 
     private func makeReturnedObject(from rawObject: Any?) -> LKMCPBridgeReturnedObject? {
-        guard let lookinObject = rawObject as? LookinObject else { return nil }
+        guard let lookinObject = rawObject as? InspectedObject else { return nil }
         let oidString = String(format: "0x%lx", lookinObject.oid)
         return LKMCPBridgeReturnedObject(
             objectIdentifier: oidString,

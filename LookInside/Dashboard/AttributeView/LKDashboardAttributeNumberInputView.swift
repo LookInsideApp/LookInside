@@ -140,20 +140,20 @@ final class LKDashboardAttributeNumberInputView: LKDashboardAttributeView, NSTex
         if attribute.isUserCustom() {
             inputView.title = nil
         } else {
-            inputView.title = LookinDashboardBlueprint.briefTitle(withAttrID: attribute.identifier)
+            inputView.title = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier)
         }
 
         let doubleValue = (attribute.value as? NSNumber)?.doubleValue ?? 0
 
         if attribute.isUserCustom() {
             inputView.viewStyle = .horizontal
-            textField.stringValue = NSString.lookin_string(from: doubleValue, decimal: 6)
+            textField.stringValue = NSString.string(from: doubleValue, decimal: 6)
         } else if Self.horizontalAttrs.contains(attribute.identifier ?? "") {
             inputView.viewStyle = .horizontal
-            textField.stringValue = NSString.lookin_string(from: doubleValue, decimal: 3)
+            textField.stringValue = NSString.string(from: doubleValue, decimal: 3)
         } else {
             inputView.viewStyle = .vertical
-            textField.stringValue = NSString.lookin_string(from: doubleValue, decimal: 2)
+            textField.stringValue = NSString.string(from: doubleValue, decimal: 2)
         }
     }
 

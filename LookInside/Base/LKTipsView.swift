@@ -76,7 +76,7 @@ class LKTipsView: LKBaseView {
         button.isHidden = true
         addSubview(button)
 
-        sepLayer.lookin_removeImplicitAnimations()
+        sepLayer.removeImplicitAnimations()
         sepLayer.isHidden = true
         layer?.addSublayer(sepLayer)
 
@@ -156,7 +156,7 @@ class LKTipsView: LKBaseView {
     /// Prefers the icon of the hardware model the app runs on, falling back
     /// to the device family's icon when the Server reports no model.
     @objc(setImageByAppInfo:)
-    func setImage(byAppInfo appInfo: LookinAppInfo?) {
+    func setImage(byAppInfo appInfo: InspectedAppInfo?) {
         if let deviceIcon = LKDeviceIconProvider.deviceIcon(forAppInfo: appInfo, pointSize: LKDeviceIconProvider.tipsPointSize) {
             image = deviceIcon
             return

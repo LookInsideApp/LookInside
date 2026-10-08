@@ -3,7 +3,7 @@ import Foundation
 
 /// Coverage for turning a decoded capture into the inspector's model.
 ///
-/// The converter is the one place that builds `LookinDisplayItem` trees in
+/// The converter is the one place that builds `DisplayItem` trees in
 /// memory: outside the server, which sets every field explicitly, and outside
 /// the archive decoder, which supplies compatibility defaults for absent keys.
 /// Any field whose Objective-C default differs from what the reader expects is
@@ -37,11 +37,11 @@ struct LKXcodeViewHierarchyConverterTests {
     private static func testColorAttributesCarryRGBAComponents() {
         let file = convertedFixture()
         var colorAttributes: [(identifier: String, value: Any?)] = []
-        walk(file.hierarchyInfo.displayItems) { item in
+        walk(file.hierarchyInfo?.displayItems ?? []) { item in
             for group in item.attributesGroupList ?? [] {
                 for section in group.attrSections ?? [] {
                     for attribute in section.attributes ?? [] where attribute.attrType == .uiColor {
-                        colorAttributes.append((attribute.identifier, attribute.value))
+                        colorAttributes.append((attribute.identifier ?? "", attribute.value))
                     }
                 }
             }
@@ -54,7 +54,7 @@ struct LKXcodeViewHierarchyConverterTests {
                 fail("\(identifier) carries \(value.map { "\(type(of: $0))" } ?? "nil") rather than an RGBA NSNumber array")
             }
             expect(components.count == 4, "\(identifier) needs 4 components, got \(components.count)")
-            expect(NSColor.lookin_color(fromRGBAComponents: components) != nil,
+            expect(NSColor.sRGBColor(fromRGBAComponents: components) != nil,
                    "\(identifier) does not decode as a colour")
         }
 
@@ -75,7 +75,7 @@ struct LKXcodeViewHierarchyConverterTests {
     private static func testEveryConvertedNodeOptsIntoScreenshots() {
         let file = convertedFixture()
         var kindsSeen: Set<LookinDisplayItemNodeKind> = []
-        walk(file.hierarchyInfo.displayItems) { item in
+        walk(file.hierarchyInfo?.displayItems ?? []) { item in
             kindsSeen.insert(item.nodeKind)
             expect(item.shouldCaptureImage,
                    "\(item) (nodeKind \(item.nodeKind.rawValue)) would be dropped from the preview: shouldCaptureImage is NO")
@@ -97,7 +97,7 @@ struct LKXcodeViewHierarchyConverterTests {
     /// views this rule now drops.
     private static func testAppKitTopLevelFollowsXcodeSidebar() {
         let file = convert(appKitSidebarFixture())
-        let rootItems = file.hierarchyInfo.displayItems ?? []
+        let rootItems = file.hierarchyInfo?.displayItems ?? []
 
         expect(rootItems.map(displayedObjectIdentifier) == [0x3, 0x1, 0x2, 0x4, 0x60],
                "top level should be key window's controller, other controller, unowned windows, touch bar; got \(rootItems.map(displayedObjectIdentifier).map { String($0, radix: 16) })")
@@ -130,7 +130,7 @@ struct LKXcodeViewHierarchyConverterTests {
     /// remote keyboard window never earns the exception.
     private static func testUIKitTopLevelFollowsXcodeSidebar() {
         let file = convert(uiKitSidebarFixture())
-        let rootItems = file.hierarchyInfo.displayItems ?? []
+        let rootItems = file.hierarchyInfo?.displayItems ?? []
 
         expect(rootItems.map(displayedObjectIdentifier) == [0xF2, 0xF1, 0x4],
                "top level should be the key window's scene, the other scene, then the sceneless window; got \(rootItems.map(displayedObjectIdentifier).map { String($0, radix: 16) })")
@@ -170,7 +170,7 @@ struct LKXcodeViewHierarchyConverterTests {
     /// in `classInformation` never reached the dashboard.
     private static func testClassCardListsRelatedClassChains() {
         let uiKit = convert(uiKitCardsFixture())
-        let scene = uiKit.hierarchyInfo.displayItems?.first
+        let scene = uiKit.hierarchyInfo?.displayItems?.first
         expect(classChains(of: scene) == [["UIWindowScene", "UIScene"]],
                "a scene's chain stops at UIScene; got \(String(describing: classChains(of: scene)))")
         let window = scene?.subitems?.first
@@ -188,7 +188,7 @@ struct LKXcodeViewHierarchyConverterTests {
                "a layout guide's chain stops at UILayoutGuide; got \(String(describing: classChains(of: guide)))")
 
         let appKit = convert(appKitCardsFixture())
-        let panel = appKit.hierarchyInfo.displayItems?.first
+        let panel = appKit.hierarchyInfo?.displayItems?.first
         expect(classChains(of: panel) == [["NSPanel", "NSWindow"], ["MyWindowController", "NSWindowController"]],
                "an AppKit window lists its chain to NSWindow and its controller's; got \(String(describing: classChains(of: panel)))")
         expect(relations(of: panel) == ["(MyWindowController *).window", "(MyDelegate *) delegate"],
@@ -247,7 +247,7 @@ struct LKXcodeViewHierarchyConverterTests {
         expectAttribute(LookinAttr_UIStackView_Axis_Axis, of: stackView, type: .enumLong, equals: NSNumber(value: 1))
         expectAttribute(LookinAttr_UIStackView_Spacing_Spacing, of: stackView, type: .double, equals: NSNumber(value: 8))
 
-        let scene = file.hierarchyInfo.displayItems?.first
+        let scene = file.hierarchyInfo?.displayItems?.first
         expectAttribute(LookinAttr_UIWindowScene_Title_Title, of: scene, type: .nsString, equals: "Main" as NSString)
         expectAttribute(LookinAttr_UIWindowScene_State_ActivationState, of: scene, type: .enumLong, equals: NSNumber(value: 0))
         expectAttribute(LookinAttr_UIWindowScene_Windows_WindowCount, of: scene, type: .long, equals: NSNumber(value: 1))
@@ -268,7 +268,7 @@ struct LKXcodeViewHierarchyConverterTests {
     private static func testAppKitCardsReadTheCell() {
         let file = convert(appKitCardsFixture())
 
-        let panel = file.hierarchyInfo.displayItems?.first
+        let panel = file.hierarchyInfo?.displayItems?.first
         expect(groupIdentifiers(of: panel) == [LookinAttrGroup_Class, LookinAttrGroup_Relation, LookinAttrGroup_Layout, LookinAttrGroup_NSWindow],
                "a window's cards: class, relation, layout, window; got \(groupIdentifiers(of: panel))")
         expectAttribute(LookinAttr_NSWindow_Title_Title, of: panel, type: .nsString, equals: "Inspector" as NSString)
@@ -314,7 +314,7 @@ struct LKXcodeViewHierarchyConverterTests {
         let button = item(withObjectIdentifier: 0x11, in: file)
         guard let constraintsAttribute = attribute(LookinAttr_AutoLayout_Constraints_Constraints, of: button),
               constraintsAttribute.attrType == .customObj,
-              let constraints = constraintsAttribute.value as? [LookinAutoLayoutConstraint]
+              let constraints = constraintsAttribute.value as? [AutoLayoutConstraint]
         else { fail("a view with constraints gets a constraints row carrying LookinAutoLayoutConstraint values") }
 
         expect(constraints.map(\.constraintOid) == [0xD1, 0xD2, 0xD4],
@@ -337,7 +337,7 @@ struct LKXcodeViewHierarchyConverterTests {
         expect(hugging?.attrType == .double && (hugging?.value as? NSNumber)?.doubleValue == 250,
                "sizing priorities ride along once the card exists")
         let rootView = item(withObjectIdentifier: 0x10, in: file)
-        expect((attribute(LookinAttr_AutoLayout_Constraints_Constraints, of: rootView)?.value as? [LookinAutoLayoutConstraint])?
+        expect((attribute(LookinAttr_AutoLayout_Constraints_Constraints, of: rootView)?.value as? [AutoLayoutConstraint])?
             .map(\.constraintOid) == [0xD2],
             "the superview lists the same constraint from its own side")
     }
@@ -448,7 +448,7 @@ struct LKXcodeViewHierarchyConverterTests {
     }
 
     /// The kinds and objects of a node's children, e.g. `["layer:0x101", "view:0x11"]`.
-    private static func childShape(of item: LookinDisplayItem) -> [String] {
+    private static func childShape(of item: DisplayItem) -> [String] {
         (item.subitems ?? []).map { subitem in
             let kindName: String
             switch subitem.nodeKind {
@@ -979,9 +979,9 @@ struct LKXcodeViewHierarchyConverterTests {
 
     // MARK: - Card helpers
 
-    private static func item(withObjectIdentifier identifier: UInt, in file: LookinHierarchyFile) -> LookinDisplayItem {
-        var found: LookinDisplayItem?
-        walk(file.hierarchyInfo.displayItems ?? []) { item in
+    private static func item(withObjectIdentifier identifier: UInt, in file: HierarchyFile) -> DisplayItem {
+        var found: DisplayItem?
+        walk(file.hierarchyInfo?.displayItems ?? []) { item in
             if found == nil, displayedObjectIdentifier(item) == identifier {
                 found = item
             }
@@ -990,7 +990,7 @@ struct LKXcodeViewHierarchyConverterTests {
         return found
     }
 
-    private static func attribute(_ identifier: String, of item: LookinDisplayItem?) -> LookinAttribute? {
+    private static func attribute(_ identifier: String, of item: DisplayItem?) -> InspectedAttribute? {
         for group in item?.attributesGroupList ?? [] {
             for section in group.attrSections ?? [] {
                 if let attribute = section.attributes?.first(where: { $0.identifier == identifier }) {
@@ -1003,7 +1003,7 @@ struct LKXcodeViewHierarchyConverterTests {
 
     private static func expectAttribute(
         _ identifier: String,
-        of item: LookinDisplayItem?,
+        of item: DisplayItem?,
         type attrType: LookinAttrType,
         equals expected: NSObject
     ) {
@@ -1013,27 +1013,27 @@ struct LKXcodeViewHierarchyConverterTests {
                "\(identifier) is \(String(describing: attribute.value)), expected \(expected)")
     }
 
-    private static func groupIdentifiers(of item: LookinDisplayItem?) -> [String] {
+    private static func groupIdentifiers(of item: DisplayItem?) -> [String] {
         (item?.attributesGroupList ?? []).compactMap(\.identifier)
     }
 
-    private static func classChains(of item: LookinDisplayItem?) -> [[String]]? {
+    private static func classChains(of item: DisplayItem?) -> [[String]]? {
         attribute(LookinAttr_Class_Class_Class, of: item)?.value as? [[String]]
     }
 
-    private static func relations(of item: LookinDisplayItem?) -> [String]? {
+    private static func relations(of item: DisplayItem?) -> [String]? {
         attribute(LookinAttr_Relation_Relation_Relation, of: item)?.value as? [String]
     }
 
     /// The object a row stands for, whichever slot its kind rides.
-    private static func displayedObjectIdentifier(_ item: LookinDisplayItem) -> UInt {
+    private static func displayedObjectIdentifier(_ item: DisplayItem) -> UInt {
         (item.kindObject ?? item.windowObject ?? item.viewObject ?? item.layerObject)?.oid ?? 0
     }
 
     /// An AppKit capture: one window whose content view owns a layer carrying
     /// background and border colours and a layout guide, plus a control
     /// subview with a cell. Every node kind the converter emits appears once.
-    private static func convertedFixture() -> LookinHierarchyFile {
+    private static func convertedFixture() -> HierarchyFile {
         let builder = LKXcodeViewHierarchyObjectGraphBuilder()
         builder.ingesting(response: response(groups: [
             group("com.apple.AppKit.NSWindow", objects: [
@@ -1075,7 +1075,7 @@ struct LKXcodeViewHierarchyConverterTests {
     }
 
     /// Runs the converter over a graph with no recovered pixels.
-    private static func convert(_ graph: LKXcodeViewHierarchyObjectGraph) -> LookinHierarchyFile {
+    private static func convert(_ graph: LKXcodeViewHierarchyObjectGraph) -> HierarchyFile {
         convert(
             graph,
             screenshots: LKXcodeViewHierarchyScreenshots(
@@ -1089,7 +1089,7 @@ struct LKXcodeViewHierarchyConverterTests {
         _ graph: LKXcodeViewHierarchyObjectGraph,
         screenshots: LKXcodeViewHierarchyScreenshots,
         showingBackingLayers: Bool
-    ) -> LookinHierarchyFile {
+    ) -> HierarchyFile {
         let bundle = LKXcodeViewHierarchyBundle(
             metadata: LKXcodeViewHierarchyBundleMetadata(
                 documentVersion: "1", runnableDisplayName: "Fixture", runnableProcessIdentifier: 1
@@ -1238,7 +1238,7 @@ struct LKXcodeViewHierarchyConverterTests {
 
     // MARK: - Helpers
 
-    private static func walk(_ items: [LookinDisplayItem], _ visit: (LookinDisplayItem) -> Void) {
+    private static func walk(_ items: [DisplayItem], _ visit: (DisplayItem) -> Void) {
         for item in items {
             visit(item)
             walk(item.subitems ?? [], visit)

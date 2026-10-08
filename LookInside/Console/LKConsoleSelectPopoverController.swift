@@ -65,7 +65,7 @@ final class LKConsoleSelectPopoverController: LKBaseViewController {
             }
         }
 
-        separatorLayer.lookin_removeImplicitAnimations()
+        separatorLayer.removeImplicitAnimations()
         view.layer?.addSublayer(separatorLayer)
         view.didChangeAppearanceBlock = { [weak self] _, isDarkMode in
             self?.separatorLayer.backgroundColor = isDarkMode
@@ -168,7 +168,7 @@ final class LKConsoleSelectPopoverController: LKBaseViewController {
         view.needsLayout = true
     }
 
-    private static func title(of object: LookinObject) -> String {
+    private static func title(of object: InspectedObject) -> String {
         "<\(object.lk_simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
     }
 
@@ -249,7 +249,7 @@ final class LKConsoleSelectPopoverItemControl: LKBaseControl {
         }
     }
 
-    var representedObject: LookinObject? {
+    var representedObject: InspectedObject? {
         didSet {
             titleLabel.textColor = representedObject == nil ? .secondaryLabelColor : .labelColor
         }

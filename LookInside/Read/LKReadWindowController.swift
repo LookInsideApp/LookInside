@@ -25,7 +25,7 @@ final class LKReadWindowController: LKWindowController, NSToolbarDelegate {
     private var toolbarItemsMap: [String: NSToolbarItem] = [:]
     private var hierarchyFileObservation: NSKeyValueObservation?
     private var selectedItemObservation: NSKeyValueObservation?
-    private weak var shownFile: LookinHierarchyFile?
+    private weak var shownFile: HierarchyFile?
 
     @objc(initWithDocument:)
     init(document: LookinArchiveDocument) {
@@ -70,7 +70,7 @@ final class LKReadWindowController: LKWindowController, NSToolbarDelegate {
         fatalError("init(coder:) is not supported")
     }
 
-    private func hierarchyFileDidChange(_ file: LookinHierarchyFile?) {
+    private func hierarchyFileDidChange(_ file: HierarchyFile?) {
         // Each new file once; the same file set again is not a new reader.
         guard let file, file !== shownFile else { return }
         shownFile = file
@@ -95,7 +95,7 @@ final class LKReadWindowController: LKWindowController, NSToolbarDelegate {
     /// Builds the reader for `file` in this window: the view controller, the
     /// measure button's enabled state, and the toolbar, whose items need the
     /// data source to exist.
-    private func showHierarchyFile(_ file: LookinHierarchyFile) {
+    private func showHierarchyFile(_ file: HierarchyFile) {
         guard let window else { return }
         let viewController = LKReadViewController(file: file, preferenceManager: preferenceManager)
         self.viewController = viewController

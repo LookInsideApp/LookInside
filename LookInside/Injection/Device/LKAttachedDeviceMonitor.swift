@@ -6,7 +6,7 @@ import AppKit
 /// tracks the same attaches for a different purpose (it turns each one into
 /// five server ports to probe) and keeps the result private.
 ///
-/// It runs its **own** `LookinUSBMuxClient`. usbmuxd answers a Listen request
+/// It runs its **own** `USBMuxClient`. usbmuxd answers a Listen request
 /// with one Attached broadcast per device already connected, and only on the
 /// socket that sent it — so the connection manager's subscription, opened at
 /// launch, says nothing to an observer that arrives later. A private client
@@ -26,12 +26,12 @@ final class LKAttachedDeviceMonitor {
     /// Attached devices, in the order they were reported.
     private(set) var devices: [Device] = []
 
-    private let usbMuxClient = LookinUSBMuxClient(queue: .main)
+    private let usbMuxClient = USBMuxClient(queue: .main)
     private var hasStartedListening = false
 
     /// The usbmuxd client a control client should reach these devices
     /// through — the one that enumerated them.
-    var connectionClient: LookinUSBMuxClient {
+    var connectionClient: USBMuxClient {
         usbMuxClient
     }
 
@@ -57,7 +57,7 @@ final class LKAttachedDeviceMonitor {
         try? await Task.sleep(nanoseconds: 300_000_000)
     }
 
-    private func handle(_ event: LookinUSBMuxClient.Event) {
+    private func handle(_ event: USBMuxClient.Event) {
         switch event {
         case let .attached(identifier, properties):
             // Deliberately **not** filtered by `ConnectionType`. A `Network`

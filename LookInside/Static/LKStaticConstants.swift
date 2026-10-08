@@ -8,7 +8,7 @@
 
 import CoreGraphics
 
-/// Posted with a LookinDisplayItem as the object to show the console and
+/// Posted with a DisplayItem as the object to show the console and
 /// print that item's view in it.
 let LKAppShowConsoleNotificationName = "LKAppShowConsoleNotificationName"
 

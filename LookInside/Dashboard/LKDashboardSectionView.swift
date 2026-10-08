@@ -34,7 +34,7 @@ final class LKDashboardSectionView: LKBaseView {
         // Lets the separator run past the right edge.
         layer?.masksToBounds = false
 
-        topSepLayer.lookin_removeImplicitAnimations()
+        topSepLayer.removeImplicitAnimations()
         layer?.addSublayer(topSepLayer)
 
         updateColors()
@@ -44,7 +44,7 @@ final class LKDashboardSectionView: LKBaseView {
         fatalError("init(coder:) is not supported")
     }
 
-    var attrSection: LookinAttributesSection? {
+    var attrSection: AttributesSection? {
         didSet { renderSection() }
     }
 
@@ -308,7 +308,7 @@ final class LKDashboardSectionView: LKBaseView {
     private func resolveSectionTitle() -> String? {
         guard let attrSection else { return nil }
         if !attrSection.isUserCustom() {
-            return LookinDashboardBlueprint.sectionTitle(withSectionID: attrSection.identifier)
+            return DashboardBlueprint.sectionTitle(withSectionID: attrSection.identifier)
         }
         guard let attr = attrSection.attributes?.first else {
             assertionFailure()
@@ -372,7 +372,7 @@ final class LKDashboardSectionViewPool {
         dequeuedViews.removeAll()
     }
 
-    func dequeueView(for section: LookinAttributesSection) -> LKDashboardSectionView {
+    func dequeueView(for section: AttributesSection) -> LKDashboardSectionView {
         let key = Self.cacheKey(for: section)
         if let view = cache[key, default: []].first(where: { !dequeuedViews.contains(ObjectIdentifier($0)) }) {
             dequeuedViews.insert(ObjectIdentifier(view))
@@ -384,7 +384,7 @@ final class LKDashboardSectionViewPool {
         return view
     }
 
-    static func cacheKey(for section: LookinAttributesSection) -> String {
+    static func cacheKey(for section: AttributesSection) -> String {
         if !section.isUserCustom() {
             return section.identifier ?? ""
         }

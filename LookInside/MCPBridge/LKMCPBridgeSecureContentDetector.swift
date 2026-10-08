@@ -30,7 +30,7 @@ enum LKMCPBridgeSecureContentDetector {
     /// callers must replace any user-visible text strings on the item's
     /// attributes with `null` (or a `kind: "redacted"` marker) before
     /// emitting them on the bridge socket.
-    static func isSecure(displayItem: LookinDisplayItem) -> Bool {
+    static func isSecure(displayItem: DisplayItem) -> Bool {
         guard let classChain = displayItem.viewObject?.classChainList else {
             return false
         }

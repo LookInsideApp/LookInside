@@ -34,7 +34,7 @@ final class LookinLiveDocument: NSDocument {
 
     /// The app info from before the channel ended, matched against the
     /// apps found while reconnecting.
-    private var lastKnownAppInfo: LookinAppInfo?
+    private var lastKnownAppInfo: InspectedAppInfo?
     private var channelEndTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
 

@@ -27,7 +27,7 @@ final class LKReadViewController: LKBaseViewController, NSSplitViewDelegate {
     private var stateObservation: NSKeyValueObservation?
 
     @objc(initWithFile:preferenceManager:)
-    init(file: LookinHierarchyFile, preferenceManager manager: LKPreferenceManager) {
+    init(file: HierarchyFile, preferenceManager manager: LKPreferenceManager) {
         let dataSource = LKReadHierarchyDataSource(file: file, preferenceManager: manager)
         hierarchyDataSource = dataSource
         hierarchyController = LKReadHierarchyController(dataSource: dataSource)

@@ -31,13 +31,13 @@ struct LKDashboardTests {
 
     private static let clientVersion = "2.4.0"
 
-    private static func makeItem() -> LookinDisplayItem {
-        func object(_ oid: UInt) -> LookinObject {
-            let object = LookinObject()
+    private static func makeItem() -> DisplayItem {
+        func object(_ oid: UInt) -> InspectedObject {
+            let object = InspectedObject()
             object.oid = oid
             return object
         }
-        let item = LookinDisplayItem()
+        let item = DisplayItem()
         item.viewObject = object(11)
         item.layerObject = object(22)
         item.windowObject = object(33)
@@ -47,23 +47,23 @@ struct LKDashboardTests {
 
     /// `-[LKDashboardViewController modifyInbuiltAttribute:newValue:]`
     /// before the rewrite.
-    private static func objectiveCInbuiltPayload(attribute: LookinAttribute, newValue: Any?) -> LookinAttributeModification {
+    private static func objectiveCInbuiltPayload(attribute: InspectedAttribute, newValue: Any?) -> AttributeModification {
         let modifyingItem = attribute.targetDisplayItem!
-        let modification = LookinAttributeModification()
+        let modification = AttributeModification()
         modification.clientReadableVersion = clientVersion
-        switch LookinDashboardBlueprint.targetKind(forAttrID: attribute.identifier) {
+        switch DashboardBlueprint.targetKind(forAttrID: attribute.identifier) {
         case .view:
-            modification.targetOid = modifyingItem.viewObject.oid
+            modification.targetOid = modifyingItem.viewObject?.oid ?? 0
         case .window:
-            modification.targetOid = modifyingItem.windowObject.oid
+            modification.targetOid = modifyingItem.windowObject?.oid ?? 0
         case .cell:
-            modification.targetOid = modifyingItem.cellObject.oid
+            modification.targetOid = modifyingItem.cellObject?.oid ?? 0
         case .layer:
-            modification.targetOid = modifyingItem.layerObject.oid
+            modification.targetOid = modifyingItem.layerObject?.oid ?? 0
         @unknown default:
             fail("unknown target kind")
         }
-        modification.setterSelector = LookinDashboardBlueprint.setter(withAttrID: attribute.identifier)
+        modification.setterSelector = DashboardBlueprint.setter(withAttrID: attribute.identifier)
         modification.attrType = attribute.attrType
         modification.value = newValue
         return modification
@@ -98,13 +98,13 @@ struct LKDashboardTests {
         defer { withExtendedLifetime(item) {} }
         var checked = 0
         var kinds = Set<Int>()
-        for groupID in LookinDashboardBlueprint.groupIDs() ?? [] {
-            for sectionID in LookinDashboardBlueprint.sectionIDs(forGroupID: groupID) ?? [] {
-                for attrID in LookinDashboardBlueprint.attrIDs(forSectionID: sectionID) ?? [] {
-                    guard LookinDashboardBlueprint.setter(withAttrID: attrID) != nil else { continue }
-                    let attribute = LookinAttribute()
+        for groupID in DashboardBlueprint.groupIDs() ?? [] {
+            for sectionID in DashboardBlueprint.sectionIDs(forGroupID: groupID) ?? [] {
+                for attrID in DashboardBlueprint.attrIDs(forSectionID: sectionID) ?? [] {
+                    guard DashboardBlueprint.setter(withAttrID: attrID) != nil else { continue }
+                    let attribute = InspectedAttribute()
                     attribute.identifier = attrID
-                    attribute.attrType = LookinDashboardBlueprint.objectAttrType(withAttrID: attrID)
+                    attribute.attrType = DashboardBlueprint.objectAttrType(withAttrID: attrID)
                     attribute.targetDisplayItem = item
                     let newValue = sampleValue(for: attribute.attrType)
 
@@ -114,7 +114,7 @@ struct LKDashboardTests {
                     let expected = objectiveCInbuiltPayload(attribute: attribute, newValue: newValue)
                     expect(archive(payload) == archive(expected), "\(attrID): payload differs from the Objective-C one")
                     expect(payload.targetOid != 0, "\(attrID): no target object")
-                    kinds.insert(LookinDashboardBlueprint.targetKind(forAttrID: attrID).rawValue)
+                    kinds.insert(DashboardBlueprint.targetKind(forAttrID: attrID).rawValue)
                     checked += 1
                 }
             }
@@ -125,7 +125,7 @@ struct LKDashboardTests {
     }
 
     private static func testInbuiltPayloadWithoutSetter() {
-        let attribute = LookinAttribute()
+        let attribute = InspectedAttribute()
         attribute.identifier = LookinAttr_Class_Class_Class
         attribute.attrType = .customObj
         attribute.targetDisplayItem = makeItem()
@@ -134,7 +134,7 @@ struct LKDashboardTests {
     }
 
     private static func testCustomPayload() {
-        let attribute = LookinAttribute()
+        let attribute = InspectedAttribute()
         attribute.identifier = LookinAttr_UserCustom
         attribute.attrType = .double
         attribute.customSetterID = "setter-7"
@@ -144,7 +144,7 @@ struct LKDashboardTests {
             fail("a custom attribute with a setter has no payload")
         }
         // -[LKDashboardViewController modifyCustomAttribute:newValue:]
-        let expected = LookinCustomAttrModification()
+        let expected = CustomAttributeModification()
         expected.customSetterID = attribute.customSetterID
         expected.attrType = attribute.attrType
         expected.value = newValue
@@ -152,7 +152,7 @@ struct LKDashboardTests {
     }
 
     private static func testCustomPayloadWithoutSetter() {
-        let attribute = LookinAttribute()
+        let attribute = InspectedAttribute()
         attribute.identifier = LookinAttr_UserCustom
         attribute.attrType = .nsString
         expect(LKDashboardModification.custom(attribute: attribute, newValue: "x") == nil,
@@ -186,7 +186,7 @@ struct LKDashboardTests {
         // The attribute holds its item weakly; keep the item alive.
         let item = makeItem()
         withExtendedLifetime(item) {
-            let attribute = LookinAttribute()
+            let attribute = InspectedAttribute()
             attribute.identifier = LookinAttr_Layout_Frame_Frame
             attribute.attrType = .cgRect
             attribute.targetDisplayItem = item
@@ -202,19 +202,19 @@ struct LKDashboardTests {
     }
 
     private static func testNumberValueClampsOpacity() {
-        let opacity = LookinAttribute()
+        let opacity = InspectedAttribute()
         opacity.identifier = LookinAttr_ViewLayer_Visibility_Opacity
         opacity.value = NSNumber(value: 0.5)
         expect(LKDashboardModification.numberValue(NSNumber(value: 1.7), for: opacity) == NSNumber(value: 1.0), "opacity above 1")
         expect(LKDashboardModification.numberValue(NSNumber(value: -0.2), for: opacity) == NSNumber(value: 0.0), "opacity below 0")
         expect(LKDashboardModification.numberValue(NSNumber(value: 0.5), for: opacity) == nil, "unchanged opacity")
 
-        let shadowOpacity = LookinAttribute()
+        let shadowOpacity = InspectedAttribute()
         shadowOpacity.identifier = LookinAttr_ViewLayer_Shadow_Opacity
         shadowOpacity.value = NSNumber(value: 1.0)
         expect(LKDashboardModification.numberValue(NSNumber(value: 4), for: shadowOpacity) == nil, "shadow opacity clamps to the unchanged 1")
 
-        let radius = LookinAttribute()
+        let radius = InspectedAttribute()
         radius.identifier = LookinAttr_ViewLayer_Corner_Radius
         radius.value = NSNumber(value: 4)
         expect(LKDashboardModification.numberValue(NSNumber(value: 12), for: radius) == NSNumber(value: 12), "radius is not clamped")
@@ -233,8 +233,8 @@ struct LKDashboardTests {
     // MARK: - Constraints
 
     private static func testConstraintOrder() {
-        func constraint(effective: Bool, type: LookinConstraintItemType, attribute: Int, constant: CGFloat) -> LookinAutoLayoutConstraint {
-            let constraint = LookinAutoLayoutConstraint()
+        func constraint(effective: Bool, type: LookinConstraintItemType, attribute: Int, constant: CGFloat) -> AutoLayoutConstraint {
+            let constraint = AutoLayoutConstraint()
             constraint.effective = effective
             constraint.firstItemType = type
             constraint.firstAttribute = attribute

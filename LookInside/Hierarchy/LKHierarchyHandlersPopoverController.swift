@@ -22,7 +22,7 @@ final class LKHierarchyHandlersPopoverController: LKBaseViewController {
 
     /// - Parameter editable: false in read mode, where a gesture recognizer
     ///   cannot be switched on or off.
-    init(displayItem: LookinDisplayItem, editable: Bool) {
+    init(displayItem: DisplayItem, editable: Bool) {
         super.init(containerView: nil)
         let documentView = LKBaseView()
         scrollView.documentView = documentView
@@ -85,7 +85,7 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
         }
     }
 
-    private let eventHandler: LookinEventHandler
+    private let eventHandler: EventHandlerDescription
     private let iconImageView = NSImageView()
     private let titleLabel = LKLabel()
     private var subtitleLabel: LKLabel?
@@ -100,7 +100,7 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
     private let subtitleMarginTop: CGFloat = 3
 
     /// - Parameter editable: false in read mode.
-    init(eventHandler: LookinEventHandler, editable: Bool) {
+    init(eventHandler: EventHandlerDescription, editable: Bool) {
         self.eventHandler = eventHandler
         super.init(frame: .zero)
 
@@ -120,9 +120,9 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
             : NSColor(red: 0, green: 0, blue: 0, alpha: 0.12).cgColor
 
         let isGesture = eventHandler.handlerType == .gesture
-        var texts: [LookinStringTwoTuple] = []
+        var texts: [StringTwoTuple] = []
         if isGesture {
-            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Enabled", comment: ""), second: ""))
+            texts.append(StringTwoTuple(first: NSLocalizedString("Enabled", comment: ""), second: ""))
             if editable {
                 let button = NSButton()
                 button.setButtonType(.switch)
@@ -133,9 +133,9 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
                 renderRecognizerEnabledButton()
                 contentView.add(button, at: 0)
             } else {
-                texts.append(LookinStringTwoTuple(first: NSLocalizedString("Enabled", comment: ""), second: eventHandler.gestureRecognizerIsEnabled ? "YES" : "NO"))
+                texts.append(StringTwoTuple(first: NSLocalizedString("Enabled", comment: ""), second: eventHandler.gestureRecognizerIsEnabled ? "YES" : "NO"))
             }
-            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Delegate", comment: ""), second: eventHandler.gestureRecognizerDelegator ?? "nil"))
+            texts.append(StringTwoTuple(first: NSLocalizedString("Delegate", comment: ""), second: eventHandler.gestureRecognizerDelegator ?? "nil"))
             // Gesture recognizer names are long; use a smaller title.
             titleLabel.font = .boldSystemFont(ofSize: 12)
         } else {
@@ -145,15 +145,15 @@ final class LKHierarchyHandlersPopoverItemView: LKBaseView {
         let targetActions = eventHandler.targetActions ?? []
         switch targetActions.count {
         case 0:
-            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Target", comment: ""), second: "nil"))
-            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Action", comment: ""), second: "NULL"))
+            texts.append(StringTwoTuple(first: NSLocalizedString("Target", comment: ""), second: "nil"))
+            texts.append(StringTwoTuple(first: NSLocalizedString("Action", comment: ""), second: "NULL"))
         case 1:
-            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Target", comment: ""), second: targetActions[0].first))
-            texts.append(LookinStringTwoTuple(first: NSLocalizedString("Action", comment: ""), second: targetActions[0].second))
+            texts.append(StringTwoTuple(first: NSLocalizedString("Target", comment: ""), second: targetActions[0].first))
+            texts.append(StringTwoTuple(first: NSLocalizedString("Action", comment: ""), second: targetActions[0].second))
         default:
             for (index, tuple) in targetActions.enumerated() {
-                texts.append(LookinStringTwoTuple(first: String(format: NSLocalizedString("Target %lld", comment: ""), index + 1), second: tuple.first))
-                texts.append(LookinStringTwoTuple(first: String(format: NSLocalizedString("Action %lld", comment: ""), index + 1), second: tuple.second))
+                texts.append(StringTwoTuple(first: String(format: NSLocalizedString("Target %lld", comment: ""), index + 1), second: tuple.first))
+                texts.append(StringTwoTuple(first: String(format: NSLocalizedString("Action %lld", comment: ""), index + 1), second: tuple.second))
             }
         }
         contentView.texts = texts

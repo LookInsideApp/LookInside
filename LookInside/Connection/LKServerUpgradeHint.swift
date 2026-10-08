@@ -41,7 +41,7 @@ enum LKServerUpgradeHint {
 
     /// The app's bundle identifier, which stays the same across relaunches
     /// and reconnections of that app.
-    private static func appKey(for appInfo: LookinAppInfo?) -> String? {
+    private static func appKey(for appInfo: InspectedAppInfo?) -> String? {
         guard let bundleIdentifier = appInfo?.appBundleIdentifier, !bundleIdentifier.isEmpty else {
             return nil
         }

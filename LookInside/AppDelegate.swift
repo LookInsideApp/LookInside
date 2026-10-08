@@ -194,13 +194,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         /// The dashboard blueprint's group, section and attribute identifiers
         /// must each be unique.
         private static func checkDashboardBlueprintIdentifiers() {
-            let groupIDs = LookinDashboardBlueprint.groupIDs().map { $0 as String }
+            let groupIDs = DashboardBlueprint.groupIDs()
             assert(Set(groupIDs).count == groupIDs.count, "duplicate LookinAttrGroupIdentifier")
 
-            let sectionIDs = groupIDs.flatMap { LookinDashboardBlueprint.sectionIDs(forGroupID: $0).map { $0 as String } }
+            let sectionIDs = groupIDs.flatMap { DashboardBlueprint.sectionIDs(forGroupID: $0) ?? [] }
             assert(Set(sectionIDs).count == sectionIDs.count, "duplicate LookinAttrSectionIdentifier")
 
-            let attrIDs = sectionIDs.flatMap { LookinDashboardBlueprint.attrIDs(forSectionID: $0).map { $0 as String } }
+            let attrIDs = sectionIDs.flatMap { DashboardBlueprint.attrIDs(forSectionID: $0) ?? [] }
             assert(Set(attrIDs).count == attrIDs.count, "duplicate LookinAttrIdentifier")
         }
     #endif

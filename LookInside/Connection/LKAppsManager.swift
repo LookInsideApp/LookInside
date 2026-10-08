@@ -35,12 +35,12 @@ final class LKAppsManager: NSObject {
     /// `serverVersionError` and no channel. Apps in the background, which
     /// cannot answer, and apps that require a license for app info are left
     /// out.
-    func fetchAppInfos(needImages: Bool, localInfos: [LookinAppInfo]?) async -> [LKInspectableApp] {
+    func fetchAppInfos(needImages: Bool, localInfos: [InspectedAppInfo]?) async -> [LKInspectableApp] {
         await scanApps(needImages: needImages, localInfos: localInfos).apps
     }
 
     /// `fetchAppInfos` plus how many channels were connected.
-    func scanApps(needImages: Bool, localInfos: [LookinAppInfo]?) async -> (apps: [LKInspectableApp], channelCount: Int) {
+    func scanApps(needImages: Bool, localInfos: [InspectedAppInfo]?) async -> (apps: [LKInspectableApp], channelCount: Int) {
         let now = Date().timeIntervalSince1970
         let validAppInfos = (localInfos ?? []).filter {
             AppInfoCachePolicy.isFresh(cachedTimestamp: $0.cachedTimestamp, now: now)
@@ -65,7 +65,7 @@ final class LKAppsManager: NSObject {
     private enum AppInfoOutcome {
         /// The app is in the background or did not answer.
         case none
-        case response(LookinConnectionResponseAttachment?)
+        case response(ConnectionResponseAttachment?)
         case versionError(NSError)
     }
 
@@ -112,7 +112,7 @@ final class LKAppsManager: NSObject {
         }
     }
 
-    private func makeApp(from outcome: AppInfoOutcome, channel: LKChannel, validAppInfos: [LookinAppInfo]) -> LKInspectableApp? {
+    private func makeApp(from outcome: AppInfoOutcome, channel: LKChannel, validAppInfos: [InspectedAppInfo]) -> LKInspectableApp? {
         switch outcome {
         case .none:
             return nil
@@ -136,7 +136,7 @@ final class LKAppsManager: NSObject {
                 app.channel = channel
                 return app
             }
-            var receivedInfo = response?.data as? LookinAppInfo
+            var receivedInfo = response?.data as? InspectedAppInfo
             receivedInfo?.cachedTimestamp = Date().timeIntervalSince1970
             if let info = receivedInfo, info.shouldUseCache,
                let localInfo = validAppInfos.first(where: { $0.appInfoIdentifier == info.appInfoIdentifier })

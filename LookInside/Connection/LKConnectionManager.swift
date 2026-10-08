@@ -75,7 +75,7 @@ final class LKConnectionManager: NSObject {
     private let simulatorPorts: [LKConnectionPort]
     private let macPorts: [LKConnectionPort]
     private var usbPorts: [LKConnectionPort] = []
-    private let usbMuxClient = LookinUSBMuxClient(queue: .main)
+    private let usbMuxClient = USBMuxClient(queue: .main)
 
     private let channelWillEndBroadcaster = AsyncBroadcaster<LKChannel>()
     private let pushBroadcaster = AsyncBroadcaster<LKConnectionPush>()
@@ -167,7 +167,7 @@ final class LKConnectionManager: NSObject {
             // A blocking connect: on loopback it succeeds or fails with
             // ECONNREFUSED at once, so the completion runs before this
             // returns.
-            guard let fd = try? LookinSocket.connectLoopback(port: UInt16(port.number)) else {
+            guard let fd = try? SocketConnector.connectLoopback(port: UInt16(port.number)) else {
                 completion(nil)
                 return
             }
@@ -310,7 +310,7 @@ final class LKConnectionManager: NSObject {
     /// throws the transport error or, for a frame that cannot be decoded,
     /// `LookinErr_Inner`. Cancelling the consuming task stops the delivery;
     /// the request on the channel runs to its end or its timeout.
-    func responses(type: UInt32, data: NSObject?, channel: LKChannel) -> AsyncThrowingStream<LookinConnectionResponseAttachment, Error> {
+    func responses(type: UInt32, data: NSObject?, channel: LKChannel) -> AsyncThrowingStream<ConnectionResponseAttachment, Error> {
         AsyncThrowingStream { continuation in
             let sink = LKResponseSink { event in
                 switch event {
@@ -334,7 +334,7 @@ final class LKConnectionManager: NSObject {
     }
 
     /// The first response of a request that answers once.
-    func request(type: UInt32, data: NSObject?, channel: LKChannel) async throws -> LookinConnectionResponseAttachment {
+    func request(type: UInt32, data: NSObject?, channel: LKChannel) async throws -> ConnectionResponseAttachment {
         for try await attachment in responses(type: type, data: data, channel: channel) {
             return attachment
         }
@@ -362,7 +362,7 @@ final class LKConnectionManager: NSObject {
         }
     }
 
-    private func serverVersionError(for pingResponse: LookinConnectionResponseAttachment?) -> NSError? {
+    private func serverVersionError(for pingResponse: ConnectionResponseAttachment?) -> NSError? {
         let serverVersion = Int(pingResponse?.lookinServerVersion ?? 0)
         let supported = Int(LOOKIN_SUPPORTED_SERVER_MIN) ... Int(LOOKIN_SUPPORTED_SERVER_MAX)
         switch ServerVersionCompatibility(serverVersion: serverVersion, supported: supported) {
@@ -428,7 +428,7 @@ final class LKConnectionManager: NSObject {
             channel?.connectionState.remove(request)
         }
 
-        let attachment = LookinConnectionAttachment()
+        let attachment = ConnectionAttachment()
         attachment.data = data
         let payload = archivedPayload(rootObject: attachment)
         // Track the request before the write: the write completion and the
@@ -482,7 +482,7 @@ final class LKConnectionManager: NSObject {
 
         // Wire compatibility with upstream Lookin and the LookInside Server
         // send path: the payload is a non-secure archive of
-        // LookinConnectionResponseAttachment whose `data` is an arbitrary
+        // ConnectionResponseAttachment whose `data` is an arbitrary
         // graph of Lookin models and Foundation collections. Secure coding
         // with NSObject as the allowed class warns on every frame, so the
         // receive path stays non-secure on purpose.
@@ -530,13 +530,13 @@ final class LKConnectionManager: NSObject {
         }
     }
 
-    private static func unarchiveResponse(_ data: Data) -> LookinConnectionResponseAttachment? {
+    private static func unarchiveResponse(_ data: Data) -> ConnectionResponseAttachment? {
         guard let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: data) else {
             return nil
         }
         unarchiver.requiresSecureCoding = false
         defer { unarchiver.finishDecoding() }
-        return unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? LookinConnectionResponseAttachment
+        return unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? ConnectionResponseAttachment
     }
 
     private func handlePush(type: UInt32, data: Any?, channel: LKChannel) {

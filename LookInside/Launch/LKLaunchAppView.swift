@@ -162,7 +162,7 @@ final class LKLaunchAppView: LKBaseControl {
 
     /// Prefer the icon of the actual hardware model the app runs on. Falls back to the
     /// per-family asset when the peer's LookinServer does not report a model identifier.
-    private static func deviceIcon(for appInfo: LookinAppInfo?) -> NSImage? {
+    private static func deviceIcon(for appInfo: InspectedAppInfo?) -> NSImage? {
         if let icon = LKDeviceIconProvider.deviceIcon(forAppInfo: appInfo, pointSize: LKDeviceIconProvider.launchPointSize) {
             return icon
         }

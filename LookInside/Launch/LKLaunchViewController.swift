@@ -37,7 +37,7 @@ final class LKLaunchViewController: LKBaseViewController {
     private var isEnteringApp = false
     /// The infos of the last scan, so an unchanged app does not send its
     /// images again.
-    private var appInfos: [LookinAppInfo]?
+    private var appInfos: [InspectedAppInfo]?
 
     @objc(initWithWindow:)
     convenience init(window: NSWindow?) {
@@ -203,7 +203,7 @@ final class LKLaunchViewController: LKBaseViewController {
         LKPerformanceReporter.sharedInstance().willStartReload()
 
         Task { [weak self] in
-            let info: LookinHierarchyInfo
+            let info: HierarchyInfo
             do {
                 info = try await app.hierarchy()
             } catch {
@@ -218,13 +218,13 @@ final class LKLaunchViewController: LKBaseViewController {
     /// A successful pick opens a live document, which owns its own data
     /// source and update manager. The hierarchy just fetched primes the new
     /// document so its window opens populated.
-    private func didFetchHierarchy(_ info: LookinHierarchyInfo, of app: LKInspectableApp) {
+    private func didFetchHierarchy(_ info: HierarchyInfo, of app: LKInspectableApp) {
         bottomIndicatorView.finish { [weak self] in
             self?.openLiveDocument(for: app, priming: info)
         }
     }
 
-    private func openLiveDocument(for app: LKInspectableApp, priming info: LookinHierarchyInfo) {
+    private func openLiveDocument(for app: LKInspectableApp, priming info: HierarchyInfo) {
         let (document, alreadyOpen) = LookinLiveDocumentController.shared.openLiveDocument(for: app)
         if !alreadyOpen {
             document.hierarchyDataSource?.reload(with: info, keepState: false)

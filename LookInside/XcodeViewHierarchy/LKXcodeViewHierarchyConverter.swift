@@ -1,7 +1,7 @@
 // LKXcodeViewHierarchyConverter.swift
 //
 // Turns a decoded `.viewhierarchy` capture into the model the inspector
-// already knows how to display: a `LookinHierarchyFile`, which the existing
+// already knows how to display: a `HierarchyFile`, which the existing
 // read path opens exactly as it opens a `.lookin` archive.
 //
 // The whole point of producing that type rather than a new one is that no RPC
@@ -138,7 +138,7 @@ enum LKXcodeViewHierarchyConverter {
         from bundle: LKXcodeViewHierarchyBundle,
         screenshots: LKXcodeViewHierarchyScreenshots,
         showingBackingLayers: Bool = false
-    ) throws -> LookinHierarchyFile {
+    ) throws -> HierarchyFile {
         let graph = bundle.graph
         let vocabulary = graph.rootGroups.contains { $0.groupingIdentifier.hasPrefix("com.apple.AppKit.") }
             ? Vocabulary.appKit
@@ -150,12 +150,12 @@ enum LKXcodeViewHierarchyConverter {
         let displayItems = makingRootDisplayItems(session: session)
         guard !displayItems.isEmpty else { throw LKXcodeViewHierarchyConversionError.noWindowsOrRootViews }
 
-        let hierarchyInfo = LookinHierarchyInfo()
+        let hierarchyInfo = HierarchyInfo()
         hierarchyInfo.displayItems = displayItems
         hierarchyInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
         hierarchyInfo.appInfo = makingAppInfo(from: bundle, vocabulary: vocabulary)
 
-        let file = LookinHierarchyFile()
+        let file = HierarchyFile()
         file.serverVersion = Int32(LOOKIN_SERVER_VERSION)
         file.hierarchyInfo = hierarchyInfo
         file.soloScreenshots = session.soloScreenshotsByOid
@@ -218,7 +218,7 @@ enum LKXcodeViewHierarchyConverter {
             groupOf groupIdentifier: String?,
             excludingHostedViews: Bool,
             under keyIdentifier: String,
-            onto item: LookinDisplayItem
+            onto item: DisplayItem
         ) {
             let oid = LKXcodeViewHierarchyConverter.objectIdentifierValue(keyIdentifier)
             guard oid != 0 else { return }
@@ -270,7 +270,7 @@ enum LKXcodeViewHierarchyConverter {
     /// controller's view that is currently detached from any window, say.
     /// Xcode only shows those in its other outline mode ("View Controller
     /// Containment"), which the inspector has no counterpart for.
-    private static func makingRootDisplayItems(session: ConversionSession) -> [LookinDisplayItem] {
+    private static func makingRootDisplayItems(session: ConversionSession) -> [DisplayItem] {
         let graph = session.graph
         let vocabulary = session.vocabulary
         let environment = session.environment
@@ -306,7 +306,7 @@ enum LKXcodeViewHierarchyConverter {
             }
         }
 
-        var rootItems: [LookinDisplayItem] = []
+        var rootItems: [DisplayItem] = []
         for ownerIdentifier in ownerIdentifiers {
             let ownedWindowIdentifiers = windowIdentifiersByOwner[ownerIdentifier] ?? []
             let windowItems = ownedWindowIdentifiers.compactMap { windowIdentifier in
@@ -483,10 +483,10 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingSceneItem(
         sceneNode: LKXcodeViewHierarchyNode,
         windowNodes: [LKXcodeViewHierarchyNode],
-        windowItems: [LookinDisplayItem],
+        windowItems: [DisplayItem],
         graph: LKXcodeViewHierarchyObjectGraph,
         environment: LKXcodeViewHierarchyAttributeEnvironment
-    ) -> LookinDisplayItem {
+    ) -> DisplayItem {
         let item = makingDisplayItem(kind: .windowScene)
         item.windowObject = makingLookinObject(for: sceneNode, graph: graph)
         item.alpha = 1
@@ -529,7 +529,7 @@ enum LKXcodeViewHierarchyConverter {
         environment: LKXcodeViewHierarchyAttributeEnvironment,
         session: ConversionSession,
         convertedViewIdentifiers: inout Set<String>
-    ) -> LookinDisplayItem? {
+    ) -> DisplayItem? {
         guard let windowNode = graph.node(windowIdentifier) else { return nil }
 
         let item = makingDisplayItem(kind: .window)
@@ -579,7 +579,7 @@ enum LKXcodeViewHierarchyConverter {
         }
         rootViewIdentifiers.append(contentsOf: windowNode.associatedIdentifiers(inGroup: vocabulary.viewGroup))
 
-        var rootViewItems: [LookinDisplayItem] = []
+        var rootViewItems: [DisplayItem] = []
         for rootViewIdentifier in rootViewIdentifiers {
             guard let viewItem = makingViewItem(
                 viewIdentifier: rootViewIdentifier,
@@ -626,7 +626,7 @@ enum LKXcodeViewHierarchyConverter {
         environment: LKXcodeViewHierarchyAttributeEnvironment,
         session: ConversionSession,
         convertedViewIdentifiers: inout Set<String>
-    ) -> LookinDisplayItem? {
+    ) -> DisplayItem? {
         // The capture is a graph, not a tree: a view reachable twice would
         // otherwise be converted twice and appear twice.
         guard convertedViewIdentifiers.insert(viewIdentifier).inserted,
@@ -664,7 +664,7 @@ enum LKXcodeViewHierarchyConverter {
             for: viewNode, layerNode: associatedLayerNode(of: viewNode, graph: graph), graph: graph, context: context
         )
 
-        var subviewItems: [LookinDisplayItem] = []
+        var subviewItems: [DisplayItem] = []
         for childIdentifier in viewNode.childIdentifiers {
             guard let childItem = makingViewItem(
                 viewIdentifier: childIdentifier,
@@ -757,21 +757,21 @@ enum LKXcodeViewHierarchyConverter {
     /// view renders as a wireframe, while the group keeps the folded look.
     private static func assemblingLayerAwareChildren(
         ownerIdentifier: String,
-        ownerItem: LookinDisplayItem,
+        ownerItem: DisplayItem,
         ownedLayers: OwnedLayers,
-        subviewItems: [LookinDisplayItem],
+        subviewItems: [DisplayItem],
         session: ConversionSession
-    ) -> [LookinDisplayItem] {
+    ) -> [DisplayItem] {
         let backingIdentifier = ownedLayers.backingNode.objectIdentifier
         if session.showsBackingLayers {
             session.filing(
                 soloOf: nil, groupOf: backingIdentifier, excludingHostedViews: false, under: ownerIdentifier, onto: ownerItem
             )
-            var children: [LookinDisplayItem] = []
+            var children: [DisplayItem] = []
             if let outerNode = ownedLayers.outerNode {
                 // Xcode's nesting for a wrapped view: view → wrapper → backing layer.
                 let outerItem = makingOuterLayerItem(outerNode, session: session)
-                var outerChildren: [LookinDisplayItem] = []
+                var outerChildren: [DisplayItem] = []
                 for sublayerIdentifier in outerNode.childIdentifiers {
                     if sublayerIdentifier == backingIdentifier {
                         outerChildren.append(makingBackingLayerItem(ownedLayers.backingNode, session: session))
@@ -818,12 +818,12 @@ enum LKXcodeViewHierarchyConverter {
     /// layer is not below the backing layer at all keep their own order at
     /// the end.
     private static func interleaving(
-        _ subviewItems: [LookinDisplayItem],
+        _ subviewItems: [DisplayItem],
         amongSublayersOf backingNode: LKXcodeViewHierarchyNode,
         session: ConversionSession
-    ) -> [LookinDisplayItem] {
-        var anchoredItems: [String: [LookinDisplayItem]] = [:]
-        var unanchoredItems: [LookinDisplayItem] = []
+    ) -> [DisplayItem] {
+        var anchoredItems: [String: [DisplayItem]] = [:]
+        var unanchoredItems: [DisplayItem] = []
         for subviewItem in subviewItems {
             guard let subviewIdentifier = subviewItem.viewObject?.memoryAddress,
                   let subviewNode = session.graph.node(subviewIdentifier),
@@ -838,7 +838,7 @@ enum LKXcodeViewHierarchyConverter {
             anchoredItems[anchorIdentifier, default: []].append(subviewItem)
         }
 
-        var orderedItems: [LookinDisplayItem] = []
+        var orderedItems: [DisplayItem] = []
         for sublayerIdentifier in backingNode.childIdentifiers {
             if let anchored = anchoredItems[sublayerIdentifier] {
                 // A container layer wrapping subviews sits at this z position
@@ -863,7 +863,7 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingLayerItem(
         _ layerIdentifier: String,
         session: ConversionSession
-    ) -> LookinDisplayItem? {
+    ) -> DisplayItem? {
         guard !session.topology.isHosted(layerIdentifier),
               let layerNode = session.graph.node(layerIdentifier)
         else { return nil }
@@ -892,7 +892,7 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingBackingLayerItem(
         _ backingNode: LKXcodeViewHierarchyNode,
         session: ConversionSession
-    ) -> LookinDisplayItem {
+    ) -> DisplayItem {
         session.convertedLayerIdentifiers.insert(backingNode.objectIdentifier)
         let item = makingDisplayItem(kind: .backingLayer)
         item.layerObject = makingLookinObject(for: backingNode, graph: session.graph)
@@ -921,7 +921,7 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingOuterLayerItem(
         _ outerNode: LKXcodeViewHierarchyNode,
         session: ConversionSession
-    ) -> LookinDisplayItem {
+    ) -> DisplayItem {
         session.convertedLayerIdentifiers.insert(outerNode.objectIdentifier)
         let item = makingDisplayItem(kind: .viewOuterLayer)
         item.layerObject = makingLookinObject(for: outerNode, graph: session.graph)
@@ -935,7 +935,7 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingLayerAttributeGroups(
         for layerNode: LKXcodeViewHierarchyNode,
         session: ConversionSession
-    ) -> [LookinAttributesGroup] {
+    ) -> [AttributesGroup] {
         let context = LKXcodeViewHierarchyAttributeContext(role: .layer, environment: session.environment)
         return LKXcodeViewHierarchyAttributes.makingGroups(
             for: layerNode, layerNode: layerNode, graph: session.graph, context: context
@@ -965,12 +965,12 @@ enum LKXcodeViewHierarchyConverter {
 
     /// A layer node covering its parent node edge to edge: origin zero, the
     /// layer's own size (the server's shape for backing and wrapper nodes).
-    private static func applyingCoveringGeometry(from layerNode: LKXcodeViewHierarchyNode, to item: LookinDisplayItem) {
+    private static func applyingCoveringGeometry(from layerNode: LKXcodeViewHierarchyNode, to item: DisplayItem) {
         applyingGeometry(from: layerNode, to: item)
         item.frame = CGRect(origin: .zero, size: item.bounds.size)
     }
 
-    private static func applyingLayerVisibility(from layerNode: LKXcodeViewHierarchyNode, to item: LookinDisplayItem) {
+    private static func applyingLayerVisibility(from layerNode: LKXcodeViewHierarchyNode, to item: DisplayItem) {
         applyingVisibility(from: layerNode, to: item)
         // The server reads a layer node's flip off the layer itself.
         item.isFlipped = layerNode.property(named: "geometryFlipped")?.value.boolValue ?? false
@@ -983,7 +983,7 @@ enum LKXcodeViewHierarchyConverter {
         graph: LKXcodeViewHierarchyObjectGraph,
         vocabulary: Vocabulary,
         environment: LKXcodeViewHierarchyAttributeEnvironment
-    ) -> [LookinDisplayItem] {
+    ) -> [DisplayItem] {
         var context = LKXcodeViewHierarchyAttributeContext(role: .layoutGuide, environment: environment)
         context.ownerNode = owner
         return owner.associatedIdentifiers(inGroup: vocabulary.layoutGuideGroup).compactMap { guideIdentifier in
@@ -1012,7 +1012,7 @@ enum LKXcodeViewHierarchyConverter {
         cellGroup: String,
         graph: LKXcodeViewHierarchyObjectGraph,
         environment: LKXcodeViewHierarchyAttributeEnvironment
-    ) -> [LookinDisplayItem] {
+    ) -> [DisplayItem] {
         var context = LKXcodeViewHierarchyAttributeContext(role: .cell, environment: environment)
         context.ownerNode = owner
         return owner.associatedIdentifiers(inGroup: cellGroup).compactMap { cellIdentifier in
@@ -1051,8 +1051,8 @@ enum LKXcodeViewHierarchyConverter {
     /// `noPreview` — the preview then receives nothing (node-model-internals,
     /// trap 1). The server sets the flag per kind and the archive decoder
     /// defaults an absent key to YES; an in-memory producer gets neither.
-    private static func makingDisplayItem(kind: LookinDisplayItemNodeKind) -> LookinDisplayItem {
-        let item = LookinDisplayItem()
+    private static func makingDisplayItem(kind: LookinDisplayItemNodeKind) -> DisplayItem {
+        let item = DisplayItem()
         item.nodeKind = kind
         item.shouldCaptureImage = true
         return item
@@ -1081,8 +1081,8 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingLookinObject(
         for node: LKXcodeViewHierarchyNode,
         graph: LKXcodeViewHierarchyObjectGraph
-    ) -> LookinObject {
-        let object = LookinObject()
+    ) -> InspectedObject {
+        let object = InspectedObject()
         object.oid = objectIdentifierValue(node.objectIdentifier)
         object.memoryAddress = node.objectIdentifier
         let className = node.className ?? "NSObject"
@@ -1093,7 +1093,7 @@ enum LKXcodeViewHierarchyConverter {
     private static func applyingGeometry(
         from node: LKXcodeViewHierarchyNode,
         fallback fallbackNode: LKXcodeViewHierarchyNode? = nil,
-        to item: LookinDisplayItem
+        to item: DisplayItem
     ) {
         if let frameComponents = node.property(named: "frame")?.value.numericComponents(expectedCount: 4) {
             item.frame = rect(from: frameComponents)
@@ -1113,7 +1113,7 @@ enum LKXcodeViewHierarchyConverter {
         }
     }
 
-    private static func applyingVisibility(from node: LKXcodeViewHierarchyNode, to item: LookinDisplayItem) {
+    private static func applyingVisibility(from node: LKXcodeViewHierarchyNode, to item: DisplayItem) {
         item.isHidden = node.property(named: "hidden")?.value.boolValue ?? false
         if let alpha = node.property(named: "alpha")?.value.doubleValue {
             item.alpha = Float(alpha)
@@ -1126,7 +1126,7 @@ enum LKXcodeViewHierarchyConverter {
 
     /// The inspector paints this before a screenshot is available, so a node
     /// with no recovered pixels still reads as something rather than a hole.
-    private static func applyingBackgroundColor(from layerNode: LKXcodeViewHierarchyNode, to item: LookinDisplayItem) {
+    private static func applyingBackgroundColor(from layerNode: LKXcodeViewHierarchyNode, to item: DisplayItem) {
         guard case let .color(color)? = layerNode.property(named: "backgroundColor")?.value,
               color.components.count >= 3
         else { return }
@@ -1159,8 +1159,8 @@ enum LKXcodeViewHierarchyConverter {
     private static func makingAppInfo(
         from bundle: LKXcodeViewHierarchyBundle,
         vocabulary: Vocabulary
-    ) -> LookinAppInfo {
-        let appInfo = LookinAppInfo()
+    ) -> InspectedAppInfo {
+        let appInfo = InspectedAppInfo()
         appInfo.appName = bundle.metadata.runnableDisplayName ?? NSLocalizedString("Xcode Capture", comment: "")
         appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
         // The inspector keys view-versus-layer identifier preference off this,

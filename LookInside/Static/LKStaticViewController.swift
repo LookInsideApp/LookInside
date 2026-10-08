@@ -186,7 +186,7 @@ final class LKStaticViewController: LKBaseViewController, NSSplitViewDelegate {
             queue: nil
         ) { [weak self] note in
             MainActor.assumeIsolated {
-                self?.showConsoleAndPrint(note.object as? LookinDisplayItem)
+                self?.showConsoleAndPrint(note.object as? DisplayItem)
             }
         })
     }
@@ -380,7 +380,7 @@ final class LKStaticViewController: LKBaseViewController, NSSplitViewDelegate {
 
     // MARK: - Console
 
-    private func showConsoleAndPrint(_ item: LookinDisplayItem?) {
+    private func showConsoleAndPrint(_ item: DisplayItem?) {
         let isFirstTimeToShowConsole = consoleController == nil
         showConsole = true
         if isFirstTimeToShowConsole {
@@ -497,7 +497,7 @@ final class LKStaticViewController: LKBaseViewController, NSSplitViewDelegate {
     }
 
     @objc private func handleNoPreviewTipView() {
-        hierarchyController.hierarchyView(nil, needToShowPreviewOf: noPreviewTipView.bindingObject as? LookinDisplayItem)
+        hierarchyController.hierarchyView(nil, needToShowPreviewOf: noPreviewTipView.bindingObject as? DisplayItem)
     }
 
     @objc private func handleCustomViewTipsView() {

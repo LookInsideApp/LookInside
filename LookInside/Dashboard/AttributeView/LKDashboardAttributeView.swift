@@ -14,7 +14,7 @@ import AppKit
 @objc(LKDashboardAttributeView)
 class LKDashboardAttributeView: LKBaseView {
     /// Setting the attribute renders it.
-    @objc var attribute: LookinAttribute? {
+    @objc var attribute: InspectedAttribute? {
         didSet { renderWithAttribute() }
     }
 
@@ -39,7 +39,7 @@ class LKDashboardAttributeView: LKBaseView {
         if attribute.isUserCustom() {
             return !(attribute.customSetterID ?? "").isEmpty
         }
-        let setter = LookinDashboardBlueprint.setter(withAttrID: attribute.identifier)
+        let setter = DashboardBlueprint.setter(withAttrID: attribute.identifier)
         return setter != nil && (dashboardViewController?.isStaticMode ?? false)
     }
 

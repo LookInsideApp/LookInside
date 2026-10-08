@@ -15,7 +15,7 @@ import AppKit
 class LookinArchiveDocument: NSDocument {
     /// The archive's hierarchy. The window controller observes it (KVO) and
     /// builds a reader for every file assigned.
-    @objc dynamic var hierarchyFile: LookinHierarchyFile?
+    @objc dynamic var hierarchyFile: HierarchyFile?
 
     override class var autosavesInPlace: Bool {
         false

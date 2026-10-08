@@ -144,7 +144,7 @@
         /// `completion` runs on the main thread, after this method returns.
         @objc(fetchHierarchyForApp:completion:)
         @MainActor
-        static func fetchHierarchy(for app: LKInspectableApp, completion: @escaping (LookinHierarchyInfo?, Error?) -> Void) {
+        static func fetchHierarchy(for app: LKInspectableApp, completion: @escaping (HierarchyInfo?, Error?) -> Void) {
             Task { @MainActor in
                 do {
                     try completion(await app.hierarchy(), nil)

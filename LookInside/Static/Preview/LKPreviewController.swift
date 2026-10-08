@@ -28,7 +28,7 @@ final class LKPreviewController: LKBaseViewController, NSGestureRecognizerDelega
     private var rightClickRecognizer: NSClickGestureRecognizer!
 
     private let rightClickMenu = NSMenu()
-    private var rightClickingDisplayItem: LookinDisplayItem?
+    private var rightClickingDisplayItem: DisplayItem?
 
     private var eventMonitors: [Any] = []
     private var notificationObservers: [NSObjectProtocol] = []
@@ -40,7 +40,7 @@ final class LKPreviewController: LKBaseViewController, NSGestureRecognizerDelega
     private var rotationBeforeFlattening: CGPoint = .zero
     /// The hierarchy shown before the current one, to tell whether the
     /// app's screen size changed.
-    private var previousHierarchyInfo: LookinHierarchyInfo?
+    private var previousHierarchyInfo: HierarchyInfo?
 
     /// While space is held, panning moves the preview.
     private var isKeyingDownSpace = false {

@@ -101,7 +101,7 @@ final class LKNavigationManager: NSObject, NSWindowDelegate {
     /// so it gets the same document life cycle (Save As, Versions, Recent on
     /// save) as a file-backed archive, and shows its window.
     @objc(showReaderWithHierarchyFile:title:)
-    func showReader(with file: LookinHierarchyFile?, title: String?) {
+    func showReader(with file: HierarchyFile?, title: String?) {
         let document = LookinArchiveDocument()
         document.hierarchyFile = file
         NSDocumentController.shared.addDocument(document)

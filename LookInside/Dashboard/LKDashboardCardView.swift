@@ -76,7 +76,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
     weak var delegate: LKDashboardCardViewDelegate?
 
     /// The group to render; setting it does not render.
-    var attrGroup: LookinAttributesGroup?
+    var attrGroup: AttributesGroup?
 
     var isCollapsed = false {
         didSet {
@@ -181,7 +181,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
         sectionViewPool.recycleAll()
 
         for (idx, section) in (attrGroup.attrSections ?? []).enumerated() {
-            if !section.isUserCustom() && !LKPreferenceManager.shared.isSectionShowing(section.identifier) {
+            if !section.isUserCustom() && !(section.identifier.map { LKPreferenceManager.shared.isSectionShowing($0) } ?? false) {
                 continue
             }
             let sectionView = sectionViewPool.dequeueView(for: section)
@@ -206,7 +206,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
         needsLayout = true
     }
 
-    func querySectionView(with section: LookinAttributesSection) -> LKDashboardSectionView? {
+    func querySectionView(with section: AttributesSection) -> LKDashboardSectionView? {
         sectionViews.first { $0.attrSection === section }
     }
 
@@ -277,7 +277,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
     /// `isSwiftUIGroup`: the SwiftUI groups are user-custom groups whose
     /// title begins with "SwiftUI" ("SwiftUI Type", "SwiftUI Layout"), which
     /// the upstream user-custom path never produces. Remove with v8 support.
-    static func looksLikeSwiftUI(_ group: LookinAttributesGroup) -> Bool {
+    static func looksLikeSwiftUI(_ group: AttributesGroup) -> Bool {
         group.isSwiftUIGroup || (group.userCustomTitle?.hasPrefix("SwiftUI") ?? false)
     }
 
@@ -340,7 +340,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
             // groups once shipped with a borrowed icon. This covers the groups
             // compiled for this platform; the iOS-only groups rely on the
             // per-lookup assertion.
-            for groupID in LookinDashboardBlueprint.groupIDs() ?? [] {
+            for groupID in DashboardBlueprint.groupIDs() {
                 assert(names[groupID] != nil, "missing dashboard icon for group \(groupID)")
             }
         #endif
@@ -351,7 +351,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
     /// places: this table, the group title, the default sections and (when
     /// it has enums) the enum lists. An unregistered group falls back to a
     /// generic icon.
-    static func image(for group: LookinAttributesGroup) -> NSImage? {
+    static func image(for group: AttributesGroup) -> NSImage? {
         let name = groupIconNames[group.identifier ?? ""]
         assert(name != nil, "missing dashboard icon for group \(group.identifier ?? "nil")")
         return LKDashboardStyle.image(name ?? "dashboard_layer")
@@ -445,7 +445,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
 
         sectionViews.forEach { $0.manageState = .canRemove }
 
-        let allSectionIDs = LookinDashboardBlueprint.sectionIDs(forGroupID: attrGroup.identifier) ?? []
+        let allSectionIDs = DashboardBlueprint.sectionIDs(forGroupID: attrGroup.identifier) ?? []
         let hiddenSectionIDs = allSectionIDs.filter { !LKPreferenceManager.shared.isSectionShowing($0) }
         if hiddenSectionIDs.isEmpty {
             controller.window?.contentView?.isHidden = true
@@ -487,7 +487,7 @@ final class LKDashboardCardView: LKBaseView, LKUserActionManagerDelegate, LKDash
         // The group's own section count, not the blueprint's: some groups
         // (Layout for NSWindow, for example) are built with fewer sections.
         let actualCount = attrGroup?.attrSections?.count ?? 0
-        let blueprintCount = LookinDashboardBlueprint.sectionIDs(forGroupID: groupID)?.count ?? 0
+        let blueprintCount = DashboardBlueprint.sectionIDs(forGroupID: groupID)?.count ?? 0
         return min(actualCount, blueprintCount) > 1
     }
 }

@@ -34,7 +34,7 @@ class LKDashboardSearchCardView: LKBaseView {
 }
 
 protocol LKDashboardSearchPropViewDelegate: AnyObject {
-    func dashboardSearchPropView(_ view: LKDashboardSearchPropView, didClickRevealAttribute attribute: LookinAttribute)
+    func dashboardSearchPropView(_ view: LKDashboardSearchPropView, didClickRevealAttribute attribute: InspectedAttribute)
 }
 
 /// One matching attribute: its title, its value as text, and a button that
@@ -45,7 +45,7 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
     private let titleLabel = LKLabel()
     private let contentLabel = LKLabel()
     private let revealControl = LKTextControl()
-    private var attribute: LookinAttribute?
+    private var attribute: InspectedAttribute?
 
     weak var delegate: LKDashboardSearchPropViewDelegate?
 
@@ -100,9 +100,9 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
         revealControl.label.attributedStringValue = text
     }
 
-    func render(attribute: LookinAttribute) {
+    func render(attribute: InspectedAttribute) {
         self.attribute = attribute
-        titleLabel.stringValue = attribute.displayTitle ?? LookinDashboardBlueprint.fullTitle(withAttrID: attribute.identifier) ?? ""
+        titleLabel.stringValue = attribute.displayTitle ?? DashboardBlueprint.fullTitle(withAttrID: attribute.identifier) ?? ""
         contentLabel.stringValue = Self.stringValue(of: attribute)
         needsLayout = true
     }
@@ -113,7 +113,7 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
     }
 
     /// The attribute's value as one line of text.
-    static func stringValue(of attribute: LookinAttribute) -> String {
+    static func stringValue(of attribute: InspectedAttribute) -> String {
         switch attribute.attrType {
         case .none, .void, .customObj:
             assertionFailure()
@@ -127,23 +127,23 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
             return (attribute.value as? NSNumber)?.boolValue == true ? "YES" : "NO"
 
         case .cgPoint:
-            return NSString.lookin_string(from: (attribute.value as? NSValue)?.pointValue ?? .zero)
+            return NSString.string(from: (attribute.value as? NSValue)?.pointValue ?? .zero)
 
         case .cgSize:
-            return NSString.lookin_string(from: (attribute.value as? NSValue)?.sizeValue ?? .zero)
+            return NSString.string(from: (attribute.value as? NSValue)?.sizeValue ?? .zero)
 
         case .cgRect:
-            return NSString.lookin_string(from: (attribute.value as? NSValue)?.rectValue ?? .zero)
+            return NSString.string(from: (attribute.value as? NSValue)?.rectValue ?? .zero)
 
         case .uiEdgeInsets:
-            return NSString.lookin_string(fromInset: (attribute.value as? NSValue)?.edgeInsetsValue ?? NSEdgeInsetsZero)
+            return NSString.string(fromInset: (attribute.value as? NSValue)?.edgeInsetsValue ?? NSEdgeInsetsZero)
 
         case .nsString, .enumString:
             return attribute.value as? String ?? ""
 
         case .enumInt, .enumLong:
             let enumValue = (attribute.value as? NSNumber)?.intValue ?? 0
-            let enumListName = LookinDashboardBlueprint.enumListName(withAttrID: attribute.identifier)
+            let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute.identifier)
             return LKEnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
 
         case .uiColor:

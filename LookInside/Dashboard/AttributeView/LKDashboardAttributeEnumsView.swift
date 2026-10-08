@@ -69,7 +69,7 @@ final class LKDashboardAttributeEnumsView: LKDashboardAttributeView {
     override func renderWithAttribute() {
         guard let attribute else { return }
         // Known attributes show their short title above the value.
-        if !attribute.isUserCustom(), let briefTitle = LookinDashboardBlueprint.briefTitle(withAttrID: attribute.identifier), !briefTitle.isEmpty {
+        if !attribute.isUserCustom(), let briefTitle = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier), !briefTitle.isEmpty {
             titleLabel.stringValue = briefTitle
             titleLabel.isHidden = false
         } else {
@@ -84,7 +84,7 @@ final class LKDashboardAttributeEnumsView: LKDashboardAttributeView {
             textLabel.stringValue = text
         } else {
             let enumValue = (attribute.value as? NSNumber)?.intValue ?? 0
-            let enumListName = LookinDashboardBlueprint.enumListName(withAttrID: attribute.identifier)
+            let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute.identifier)
             textLabel.stringValue = LKEnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
         }
     }
@@ -104,7 +104,7 @@ final class LKDashboardAttributeEnumsView: LKDashboardAttributeView {
         let currentOSVersion = dashboardViewController?.currentDataSource()?.rawHierarchyInfo?.appInfo?.osMainVersion ?? 0
         let menu = NSMenu()
         menu.autoenablesItems = false
-        let enumListName = LookinDashboardBlueprint.enumListName(withAttrID: attribute?.identifier)
+        let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute?.identifier)
         let currentValue = (attribute?.value as? NSNumber)?.intValue ?? 0
         let editable = canEdit()
         for enumItem in LKEnumListRegistry.shared.items(forEnumName: enumListName) ?? [] {

@@ -298,14 +298,14 @@
 
         // MARK: - Driving the UI
 
-        private func node(_ id: String, in nodes: [LookinSnapshotNormalizer.Node]) throws -> LookinDisplayItem {
+        private func node(_ id: String, in nodes: [LookinSnapshotNormalizer.Node]) throws -> DisplayItem {
             guard let node = nodes.first(where: { $0.id == id }) else {
                 throw LookinSnapshotError("no node \(id)")
             }
             return node.item
         }
 
-        private func select(_ item: LookinDisplayItem, in dataSource: LKHierarchyDataSource) {
+        private func select(_ item: DisplayItem, in dataSource: LKHierarchyDataSource) {
             // A fresh selection, so the dashboard renders its cards again
             // with the current collapsed-group preference.
             dataSource.selectedItem = nil

@@ -32,7 +32,7 @@ class LKProgressIndicatorView: LKBaseView {
     private func setUp() {
         fillLayer.backgroundColor = LKHelper.accentColor().cgColor
         layer?.addSublayer(fillLayer)
-        fillLayer.lookin_removeImplicitAnimations()
+        fillLayer.removeImplicitAnimations()
         progress = 0
     }
 

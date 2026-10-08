@@ -75,7 +75,7 @@ class LKTableRowView: NSTableRowView {
         super.init(frame: frameRect)
         wantsLayer = true
 
-        backgroundColorLayer.lookin_removeImplicitAnimations()
+        backgroundColorLayer.removeImplicitAnimations()
         layer?.addSublayer(backgroundColorLayer)
 
         titleLabel.lineBreakMode = .byTruncatingMiddle

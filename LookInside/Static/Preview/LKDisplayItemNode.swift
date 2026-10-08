@@ -12,7 +12,7 @@ import SceneKit
 /// One item's plane in the 3D preview: the screenshot (or background
 /// colour), a tint mask for hover and selection, and an outline.
 @objc(LKDisplayItemNode)
-final class LKDisplayItemNode: SCNNode, LookinDisplayItemDelegate {
+final class LKDisplayItemNode: SCNNode, DisplayItemDelegate {
     /// Rendering order added to a coplanar overlay node's border so it draws
     /// after every ordinary node. Paired with a depth-test-free material,
     /// this puts the highlight box on top of whatever the owning view has
@@ -30,7 +30,7 @@ final class LKDisplayItemNode: SCNNode, LookinDisplayItemDelegate {
     private let contentPlane = SCNPlane()
     private let contentNode: SCNNode
     /// Shows the screenshot when it covers only a region of the node (see
-    /// LookinDisplayItem.groupScreenshotRegion). The content plane stays the
+    /// DisplayItem.groupScreenshotRegion). The content plane stays the
     /// size of the whole node underneath it — it is the plane hit-testing
     /// selects by — and shows the background colour, or nothing.
     private let regionPlane = SCNPlane()
@@ -68,7 +68,7 @@ final class LKDisplayItemNode: SCNNode, LookinDisplayItemDelegate {
         }
     }
 
-    var displayItem: LookinDisplayItem? {
+    var displayItem: DisplayItem? {
         didSet {
             // Never set the contents to nil: some scenes then render the
             // wrong content.
@@ -351,13 +351,13 @@ final class LKDisplayItemNode: SCNNode, LookinDisplayItemDelegate {
         NSColor(red: red / 255, green: green / 255, blue: blue / 255, alpha: alpha)
     }
 
-    // MARK: - LookinDisplayItemDelegate
+    // MARK: - DisplayItemDelegate
 
-    func displayItem(_ displayItem: LookinDisplayItem!, propertyDidChange property: LookinDisplayItemProperty) {
+    func displayItem(_ displayItem: DisplayItem, propertyDidChange property: LookinDisplayItemProperty) {
         render(displayItem, changedProperty: property)
     }
 
-    private func render(_ displayItem: LookinDisplayItem, changedProperty property: LookinDisplayItemProperty) {
+    private func render(_ displayItem: DisplayItem, changedProperty property: LookinDisplayItemProperty) {
         if property == .none || property == .frameToRoot {
             let frameToRoot = displayItem.calculateFrameToRoot()
             let width = frameToRoot.size.width
@@ -408,7 +408,7 @@ final class LKDisplayItemNode: SCNNode, LookinDisplayItemDelegate {
     }
 }
 
-extension LookinDisplayItem {
+extension DisplayItem {
     /// `-appropriateScreenshot`, which returns nil for an item without a
     /// screenshot although its header (inside NS_ASSUME_NONNULL) says it
     /// never does; read through the runtime so Swift sees the nil.

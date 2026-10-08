@@ -3,7 +3,7 @@
 // Which dashboard rows an imported capture can fill, and where in the capture
 // each one's value lives.
 //
-// The dashboard's cards are described by `LookinDashboardBlueprint`: groups,
+// The dashboard's cards are described by `DashboardBlueprint`: groups,
 // their sections, the attributes in each, and per attribute the type, the
 // enum list and whether a nil value hides the row. A live session walks that
 // blueprint on the server and reads each attribute through its getter. An

@@ -16,7 +16,7 @@ final class LKReadHierarchyDataSource: LKHierarchyDataSource {
     private let readPreferenceManager: LKPreferenceManager
 
     @objc(initWithFile:preferenceManager:)
-    init(file: LookinHierarchyFile, preferenceManager manager: LKPreferenceManager) {
+    init(file: HierarchyFile, preferenceManager manager: LKPreferenceManager) {
         readPreferenceManager = manager
         super.init()
 

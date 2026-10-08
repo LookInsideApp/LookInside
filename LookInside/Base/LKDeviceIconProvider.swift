@@ -37,7 +37,7 @@ final class LKDeviceIconProvider: NSObject {
     ///   - appInfo: The inspected app's info, as reported by LookinServer.
     ///   - pointSize: The height the icon is laid out at, in points.
     @objc(deviceIconForAppInfo:pointSize:)
-    static func deviceIcon(forAppInfo appInfo: LookinAppInfo?, pointSize: CGFloat) -> NSImage? {
+    static func deviceIcon(forAppInfo appInfo: InspectedAppInfo?, pointSize: CGFloat) -> NSImage? {
         guard let appInfo,
               let modelIdentifier = appInfo.deviceModelIdentifier,
               modelIdentifier.isEmpty == false

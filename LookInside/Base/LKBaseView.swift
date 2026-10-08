@@ -53,7 +53,7 @@ class LKBaseView: NSView, NSViewToolTipOwner {
             }
             if customBorderLayer == nil {
                 let borderLayer = CALayer()
-                borderLayer.lookin_removeImplicitAnimations()
+                borderLayer.removeImplicitAnimations()
                 customBorderLayer = borderLayer
                 updateColors()
                 layer?.addSublayer(borderLayer)

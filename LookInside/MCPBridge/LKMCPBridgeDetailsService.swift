@@ -129,7 +129,7 @@ final class LKMCPBridgeDetailsService {
         // round-trip; the agent learns which oids vanished without the
         // request blowing up entirely.
         let roots = LKMCPBridgeLiveDocumentLookup.topLevelDisplayItems(in: document)
-        var resolvedItems: [(identifier: String, displayItem: LookinDisplayItem, nativeOid: UInt)] = []
+        var resolvedItems: [(identifier: String, displayItem: DisplayItem, nativeOid: UInt)] = []
         resolvedItems.reserveCapacity(requestedIdentifiers.count)
         var failedIdentifiers: [String] = []
 
@@ -163,8 +163,8 @@ final class LKMCPBridgeDetailsService {
         // cap the batch at 100 entries, so the host inspector's own
         // pixel/count packing thresholds never need to come into play.
         let clientReadableVersion = LKHelper.lookinReadableVersion()
-        let tasks = resolvedItems.map { resolved -> LookinStaticAsyncUpdateTask in
-            let task = LookinStaticAsyncUpdateTask()
+        let tasks = resolvedItems.map { resolved -> StaticAsyncUpdateTask in
+            let task = StaticAsyncUpdateTask()
             task.oid = resolved.nativeOid
             task.taskType = .noScreenshot
             task.attrRequest = .need
@@ -173,7 +173,7 @@ final class LKMCPBridgeDetailsService {
             task.clientReadableVersion = clientReadableVersion
             return task
         }
-        let package = LookinStaticAsyncUpdateTasksPackage()
+        let package = StaticAsyncUpdateTasksPackage()
         package.tasks = tasks
 
         // RPC 203 streams one frame per package; with a single package we
@@ -181,7 +181,7 @@ final class LKMCPBridgeDetailsService {
         // stays correct if batching here ever splits into packages. A
         // stream that ends without a frame leaves every requested
         // identifier in `failedIdentifiers` below.
-        var allDetails: [LookinDisplayItemDetail] = []
+        var allDetails: [DisplayItemDetail] = []
         allDetails.reserveCapacity(resolvedItems.count)
         do {
             for try await frame in document.inspectableApp.hierarchyDetails(packages: [package]) {
@@ -202,14 +202,14 @@ final class LKMCPBridgeDetailsService {
         // matched by exact equality. Trapping on it anyway would turn a future
         // change in identifier syntax into a host crash, which is far worse
         // than serving the first of two equivalent entries.
-        let itemsByOid: [UInt: (identifier: String, displayItem: LookinDisplayItem, nativeOid: UInt)] = Dictionary(
+        let itemsByOid: [UInt: (identifier: String, displayItem: DisplayItem, nativeOid: UInt)] = Dictionary(
             resolvedItems.map { ($0.nativeOid, $0) },
             uniquingKeysWith: { first, _ in first }
         )
 
         // Resolve the concrete data source once. We thread it through
         // the per-detail loop rather than walking back from each
-        // display item, because LookinDisplayItem has no back-reference
+        // display item, because DisplayItem has no back-reference
         // to its owning document.
         let staticDataSource = document.hierarchyDataSource
 
@@ -245,7 +245,7 @@ final class LKMCPBridgeDetailsService {
             // through the read-side encoder so the wire shape matches
             // attributes.read.
             let redactSecureContent = LKMCPBridgeSecureContentDetector.isSecure(displayItem: resolved.displayItem)
-            var rawGroups: [LookinAttributesGroup] = []
+            var rawGroups: [AttributesGroup] = []
             if let inbuiltGroups = detail.attributesGroupList {
                 rawGroups.append(contentsOf: inbuiltGroups)
             }

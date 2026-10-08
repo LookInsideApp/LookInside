@@ -1,5 +1,5 @@
 //
-//  LookinAutoLayoutConstraint+LookinClient.swift
+//  AutoLayoutConstraint+LookinClient.swift
 //  LookInside
 //
 //  How constraints are written in the Dashboard's constraint rows and
@@ -10,9 +10,9 @@
 import AppKit
 import LookInsideHostCore
 
-extension LookinAutoLayoutConstraint {
+extension AutoLayoutConstraint {
     @objc(descriptionWithItemObject:type:detailed:)
-    static func description(withItemObject object: LookinObject?, type: LookinConstraintItemType, detailed: Bool) -> String {
+    static func description(withItemObject object: InspectedObject?, type: LookinConstraintItemType, detailed: Bool) -> String {
         switch type {
         case .`nil`:
             return detailed ? "Nil" : "nil"

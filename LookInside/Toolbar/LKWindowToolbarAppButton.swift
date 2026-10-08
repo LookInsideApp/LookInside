@@ -56,7 +56,7 @@ final class LKWindowToolbarAppButton: NSButton {
         LKTwoColors(colorInLightMode: NSColor(red: 65 / 255.0, green: 65 / 255.0, blue: 65 / 255.0, alpha: 1), colorInDarkMode: .labelColor)
     }
 
-    @objc var appInfo: LookinAppInfo? {
+    @objc var appInfo: InspectedAppInfo? {
         didSet { appInfoDidChange() }
     }
 
@@ -89,7 +89,7 @@ final class LKWindowToolbarAppButton: NSButton {
         needsLayout = true
     }
 
-    private static func familyIcon(for appInfo: LookinAppInfo) -> NSImage? {
+    private static func familyIcon(for appInfo: InspectedAppInfo) -> NSImage? {
         if LKHelper.appInfoLooksLikeMacTarget(appInfo) {
             return NSImage(named: "icon_mac_small")
         }

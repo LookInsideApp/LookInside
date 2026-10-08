@@ -58,7 +58,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     /// What one hierarchy request sent first.
     private enum HierarchyFetchResult {
         /// Its first value; nil when that value is not a hierarchy.
-        case info(LookinHierarchyInfo?)
+        case info(HierarchyInfo?)
         /// It ended without sending a value.
         case noResponse
     }
@@ -213,7 +213,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
             data: LKInspectableApp.hierarchyRequestParameters()
         )
         for try await value in responses {
-            return .info(value as? LookinHierarchyInfo)
+            return .info(value as? HierarchyInfo)
         }
         return .noResponse
     }
@@ -361,7 +361,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     /// reported before this returns.
     private func reloadHierarchy(
         initiator: ReloadInitiator = .host,
-        completion: @escaping (Result<LookinHierarchyInfo?, NSError>) -> Void
+        completion: @escaping (Result<HierarchyInfo?, NSError>) -> Void
     ) {
         if isFetchingHierarchy {
             completion(.failure(ReloadError.make(
@@ -434,7 +434,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
 
     /// `reloadHierarchy(completion:)` for callers outside the UI: no error
     /// sheet, and the error is thrown instead.
-    func reloadHierarchy(initiator: ReloadInitiator) async throws -> LookinHierarchyInfo? {
+    func reloadHierarchy(initiator: ReloadInitiator) async throws -> HierarchyInfo? {
         try await withCheckedThrowingContinuation { continuation in
             reloadHierarchy(initiator: initiator) { result in
                 continuation.resume(with: result)
@@ -752,8 +752,8 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     }
 
     @objc func appMenuManagerDidSelectOpenInNewWindow() {
-        let newHierarchyInfo = hierarchyDataSource.rawHierarchyInfo?.copy() as? LookinHierarchyInfo
-        let file = LookinHierarchyFile()
+        let newHierarchyInfo = hierarchyDataSource.rawHierarchyInfo?.copy() as? HierarchyInfo
+        let file = HierarchyFile()
         file.serverVersion = newHierarchyInfo?.serverVersion ?? 0
         file.hierarchyInfo = newHierarchyInfo
         LKNavigationManager.shared.showReader(with: file, title: nil)
@@ -797,7 +797,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     /// Binds `app` to this window and loads `info`. Every same-window
     /// reload (auto-connect, toolbar same app, SwiftUI mode) goes through
     /// here.
-    private func applyHierarchyInfo(_ info: LookinHierarchyInfo?, for app: LKInspectableApp, keepState: Bool) {
+    private func applyHierarchyInfo(_ info: HierarchyInfo?, for app: LKInspectableApp, keepState: Bool) {
         viewController.progressView.finish(completion: nil)
         inspectableApp = app
         asyncUpdateManager.inspectableApp = app
@@ -855,7 +855,7 @@ final class LKStaticWindowController: LKWindowController, NSToolbarDelegate, @pr
     /// A transient toast that fades out after 2 seconds. Not an alert
     /// sheet: a modal sheet would block switching the segmented control
     /// again until dismissed.
-    private func showSelectionMigratedToast(for item: LookinDisplayItem) {
+    private func showSelectionMigratedToast(for item: DisplayItem) {
         let typeName = item.customInfo?.title ?? NSLocalizedString("SwiftUI item", comment: "Fallback name of a SwiftUI node in the selection-moved toast")
         let message = String(
             format: NSLocalizedString(

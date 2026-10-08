@@ -12,7 +12,7 @@ import LookInsideHostCore
 /// failure or a completion.
 enum LKResponseEvent {
     /// One response frame. `nil` when its payload could not be decoded.
-    case response(LookinConnectionResponseAttachment?)
+    case response(ConnectionResponseAttachment?)
     case failure(NSError)
     case completion
 }
