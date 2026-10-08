@@ -181,7 +181,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         preferenceManager.fastMode.subscribe(self, action: #selector(handleFastModeChange(_:)), relatedObject: nil, sendAtOnce: true)
 
         notificationObservers.append(NotificationCenter.default.addObserver(
-            forName: NSNotification.Name(LKAppShowConsoleNotificationName),
+            forName: NSNotification.Name(appShowConsoleNotificationName),
             object: nil,
             queue: nil
         ) { [weak self] note in
@@ -573,7 +573,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         let item = dataSource?.selectedItem
 
         let showsTooLargeTip = item != nil
-            && item?.lkOptionalAppropriateScreenshot == nil
+            && item?.optionalAppropriateScreenshot == nil
             && item?.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge
         if tooLargeToSyncScreenshotTipsView.isHidden != !showsTooLargeTip {
             tooLargeToSyncScreenshotTipsView.isHidden = !showsTooLargeTip

@@ -294,7 +294,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
 
     private func modifyInbuiltAttribute(_ attribute: InspectedAttribute, newValue: Any?) async throws {
         let modifyingItem = attribute.targetDisplayItem
-        guard let modification = DashboardModification.inbuilt(attribute: attribute, newValue: newValue, clientReadableVersion: AppHelper.lookinReadableVersion()) else {
+        guard let modification = DashboardModification.inbuilt(attribute: attribute, newValue: newValue, clientReadableVersion: AppHelper.readableVersion()) else {
             assertionFailure()
             throw failModification(ConnectionError.inner)
         }

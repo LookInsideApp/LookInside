@@ -123,7 +123,7 @@ final class NavigationManager: NSObject, NSWindowDelegate {
             aboutWindowController = nil
         }
         // Live and archive document windows belong to NSDocumentController,
-        // and live windows save their own frame (`LKWindowSizeName_Static`),
+        // and live windows save their own frame (`windowSizeNameStatic`),
         // so inspection windows need nothing here.
     }
 }

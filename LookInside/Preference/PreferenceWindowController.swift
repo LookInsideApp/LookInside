@@ -3,7 +3,7 @@
 //  LookInside
 //
 //  The Preferences window. Its content is the SwiftUI preference form
-//  (LKPreferenceView.swift) hosted inside an BaseViewController.
+//  (PreferenceView.swift) hosted inside an BaseViewController.
 //
 
 import AppKit

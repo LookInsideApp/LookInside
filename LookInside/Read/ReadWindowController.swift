@@ -107,7 +107,7 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
 
         selectedItemObservation = viewController.hierarchyDataSource.observe(\.selectedItem, options: [.initial, .new]) { [weak self] dataSource, _ in
             MainActor.assumeIsolated {
-                let measureButton = self?.toolbarItemsMap[LKToolBarIdentifier_Measure]?.view as? NSButton
+                let measureButton = self?.toolbarItemsMap[toolbarIdentifierMeasure]?.view as? NSButton
                 measureButton?.isEnabled = dataSource.selectedItem != nil
             }
         }
@@ -127,15 +127,15 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
 
     func toolbarDefaultItemIdentifiers(_: NSToolbar) -> [NSToolbarItem.Identifier] {
         [
-            LKToolBarIdentifier_AppInReadMode,
+            toolbarIdentifierAppInReadMode,
             NSToolbarItem.Identifier.flexibleSpace.rawValue,
-            LKToolBarIdentifier_Dimension,
-            LKToolBarIdentifier_Rotation,
-            LKToolBarIdentifier_Setting,
+            toolbarIdentifierDimension,
+            toolbarIdentifierRotation,
+            toolbarIdentifierSetting,
             NSToolbarItem.Identifier.flexibleSpace.rawValue,
-            LKToolBarIdentifier_Scale,
+            toolbarIdentifierScale,
             NSToolbarItem.Identifier.flexibleSpace.rawValue,
-            LKToolBarIdentifier_Measure,
+            toolbarIdentifierMeasure,
         ].map { NSToolbarItem.Identifier($0) }
     }
 
@@ -150,7 +150,7 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         }
         let helper = WindowToolbarHelper.shared
         let item: NSToolbarItem?
-        if identifier == LKToolBarIdentifier_AppInReadMode {
+        if identifier == toolbarIdentifierAppInReadMode {
             item = helper.makeAppInReadModeItem(with: viewController?.hierarchyDataSource.rawHierarchyInfo?.appInfo)
         } else {
             item = helper.makeToolBarItem(identifier: identifier, preferenceManager: preferenceManager)
@@ -158,11 +158,11 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         guard let item else { return nil }
         toolbarItemsMap[identifier] = item
 
-        if identifier == LKToolBarIdentifier_Setting {
+        if identifier == toolbarIdentifierSetting {
             item.label = NSLocalizedString("View", comment: "")
             item.target = self
             item.action = #selector(handleSetting(_:))
-        } else if identifier == LKToolBarIdentifier_Rotation {
+        } else if identifier == toolbarIdentifierRotation {
             item.target = self
             item.action = #selector(handleFreeRotation)
         }
@@ -228,8 +228,8 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         let value = ToolbarRules.stepped(
             scale.currentDoubleValue,
             by: delta,
-            lower: Double(LookinPreviewMinScale),
-            upper: Double(LookinPreviewMaxScale)
+            lower: Double(previewMinScale),
+            upper: Double(previewMaxScale)
         )
         scale.setDoubleValue(value, ignoreSubscriber: nil)
     }
@@ -239,8 +239,8 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         let value = ToolbarRules.stepped(
             interspace.currentDoubleValue,
             by: delta,
-            lower: Double(LookinPreviewMinZInterspace),
-            upper: Double(LookinPreviewMaxZInterspace)
+            lower: Double(previewMinZInterspace),
+            upper: Double(previewMaxZInterspace)
         )
         interspace.setDoubleValue(value, ignoreSubscriber: nil)
     }

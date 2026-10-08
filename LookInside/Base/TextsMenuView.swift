@@ -48,33 +48,33 @@ class TextsMenuView: BaseView {
             var leftLabelMaxWidth = insets.left
             for (idx, leftLabel) in visibleLeftLabels.enumerated() {
                 let y = idx > 0 ? visibleLeftLabels[idx - 1].frame.maxY + verSpace : 0
-                leftLabel.lkLayout.sizeToFit().y(y)
+                leftLabel.frameLayout.sizeToFit().y(y)
                 leftLabelMaxWidth = max(leftLabelMaxWidth, leftLabel.frame.width + insets.left)
             }
             for (idx, leftLabel) in visibleLeftLabels.enumerated() {
-                leftLabel.lkLayout.maxX(leftLabelMaxWidth)
+                leftLabel.frameLayout.maxX(leftLabelMaxWidth)
                 let midY = leftLabel.frame.midY
                 let rightLabel = visibleRightLabels[idx]
-                rightLabel.lkLayout.x(leftLabelMaxWidth + horSpace).sizeToFit().midY(midY)
+                rightLabel.frameLayout.x(leftLabelMaxWidth + horSpace).sizeToFit().midY(midY)
                 if let button = buttons[idx] {
                     var x = rightLabel.frame.maxX
                     if !rightLabel.stringValue.isEmpty {
                         x += buttonMarginLeft
                     }
-                    button.lkLayout.sizeToFit().x(x).midY(midY + 1)
+                    button.frameLayout.sizeToFit().x(x).midY(midY + 1)
                 }
             }
         } else {
             for (idx, rightLabel) in visibleRightLabels.enumerated() {
                 let leftLabel = visibleLeftLabels[idx]
                 let y = idx > 0 ? visibleLeftLabels[idx - 1].frame.maxY + verSpace : 0
-                leftLabel.lkLayout.sizeToFit().x(0).y(y)
+                leftLabel.frameLayout.sizeToFit().x(0).y(y)
                 var rightLabelMaxX = frame.width
                 if let button = buttons[idx] {
-                    button.lkLayout.sizeToFit().right(0).midY(leftLabel.frame.midY)
+                    button.frameLayout.sizeToFit().right(0).midY(leftLabel.frame.midY)
                     rightLabelMaxX = button.frame.minX - buttonMarginLeft
                 }
-                rightLabel.lkLayout.x(leftLabel.frame.maxX + horSpace).toMaxX(rightLabelMaxX).heightToFit().midY(leftLabel.frame.midY)
+                rightLabel.frameLayout.x(leftLabel.frame.maxX + horSpace).toMaxX(rightLabelMaxX).heightToFit().midY(leftLabel.frame.midY)
             }
         }
     }
@@ -155,10 +155,10 @@ class TextsMenuView: BaseView {
         super.updateColors()
         let isDarkMode = isDarkMode()
         for label in leftLabels {
-            label.textColor = (isDarkMode ? NSColor.lkBaseRGB(216, 220, 228) : NSColor.lkBaseRGB(53, 60, 70)).withAlphaComponent(0.7)
+            label.textColor = (isDarkMode ? NSColor.rgb255(216, 220, 228) : NSColor.rgb255(53, 60, 70)).withAlphaComponent(0.7)
         }
         for label in rightLabels {
-            label.textColor = isDarkMode ? .lkBaseRGB(250, 251, 252) : .lkBaseRGB(13, 20, 30)
+            label.textColor = isDarkMode ? .rgb255(250, 251, 252) : .rgb255(13, 20, 30)
         }
     }
 

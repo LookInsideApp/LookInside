@@ -317,8 +317,8 @@ private final class PreferenceViewModel: ObservableObject {
         setImageContrast(0)
         setDoubleClickBehavior(DoubleClickBehavior.collapse.rawValue)
         setRememberExpansionState(true)
-        setHierarchyTimeout(LKDefaultHierarchyRequestTimeoutInterval)
-        setLicenseTimeoutIfAvailable(LKDefaultLicenseHandshakeTimeoutInterval)
+        setHierarchyTimeout(defaultHierarchyRequestTimeoutInterval)
+        setLicenseTimeoutIfAvailable(defaultLicenseHandshakeTimeoutInterval)
 
         #if DEBUG
             MessageManager.sharedInstance().reset()
@@ -360,7 +360,7 @@ private final class PreferenceViewModel: ObservableObject {
     }
 
     private func setHierarchyTimeout(_ value: Double) {
-        let sanitizedValue = sanitizedTimeout(value, defaultValue: LKDefaultHierarchyRequestTimeoutInterval)
+        let sanitizedValue = sanitizedTimeout(value, defaultValue: defaultHierarchyRequestTimeoutInterval)
         hierarchyTimeout = sanitizedValue
         manager.hierarchyRequestTimeoutInterval = sanitizedValue
     }
@@ -375,7 +375,7 @@ private final class PreferenceViewModel: ObservableObject {
 
     #if DEBUG
         private func setLicenseTimeout(_ value: Double) {
-            let sanitizedValue = sanitizedTimeout(value, defaultValue: LKDefaultLicenseHandshakeTimeoutInterval)
+            let sanitizedValue = sanitizedTimeout(value, defaultValue: defaultLicenseHandshakeTimeoutInterval)
             licenseTimeout = sanitizedValue
             manager.licenseHandshakeTimeoutInterval = sanitizedValue
         }

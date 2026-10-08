@@ -66,12 +66,12 @@ class BaseControl: NSControl {
 
     private func triggerDidChangeAppearanceBlock() {
         if let didChangeAppearance {
-            didChangeAppearance(self, effectiveAppearance.lk_isDarkMode)
+            didChangeAppearance(self, effectiveAppearance.isDarkMode)
         }
     }
 
     override func sizeToFit() {
-        lkLayout.size(bestSize())
+        frameLayout.size(bestSize())
     }
 
     /// 如果子类返回 true，则 mouseEntered: 和 mouseExited: 会被调用。默认为 false

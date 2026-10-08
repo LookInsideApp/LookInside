@@ -17,8 +17,8 @@ class PopPanel: NSPanel {
         contentView.layer?.cornerRadius = 6
         contentView.layer?.borderWidth = 1
         contentView.didChangeAppearanceBlock = { view, isDarkMode in
-            view?.backgroundColor = isDarkMode ? .lkBaseRGB(44, 44, 44) : .lkBaseRGB(236, 236, 236)
-            view?.layer?.borderColor = (isDarkMode ? NSColor.lkBaseRGB(67, 67, 69) : NSColor.lkBaseRGB(215, 215, 215)).cgColor
+            view?.backgroundColor = isDarkMode ? .rgb255(44, 44, 44) : .rgb255(236, 236, 236)
+            view?.layer?.borderColor = (isDarkMode ? NSColor.rgb255(67, 67, 69) : NSColor.rgb255(215, 215, 215)).cgColor
         }
         self.contentView = contentView
         backgroundColor = .clear

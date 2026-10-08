@@ -100,14 +100,14 @@ final class ConnectionManager: NSObject {
             object: nil,
             queue: nil
         ) { [weak self] _ in
-            lkRunOnMain { self?.handleActivationStateDidChange() }
+            runOnMain { self?.handleActivationStateDidChange() }
         }
         center.addObserver(
             forName: SwiftUISupportGatekeeper.licenseHandshakeAvailabilityDidChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            lkRunOnMain { self?.handleLicenseHandshakeAvailabilityDidChange() }
+            runOnMain { self?.handleLicenseHandshakeAvailabilityDidChange() }
         }
     }
 
@@ -581,7 +581,7 @@ extension ConnectionManager: ServerChannelDelegate {
 
 /// Runs `body` on the main actor: at once on the main thread, otherwise on
 /// the next turn of the main queue.
-func lkRunOnMain(_ body: @escaping @MainActor () -> Void) {
+func runOnMain(_ body: @escaping @MainActor () -> Void) {
     if Thread.isMainThread {
         MainActor.assumeIsolated(body)
     } else {

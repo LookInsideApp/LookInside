@@ -149,13 +149,13 @@ struct LaunchToolbarReadTests {
 
     private static func testToolbarIdentifiersKeepTheirValues() {
         let identifiers: [(String, String)] = [
-            (LKToolBarIdentifier_Dimension, "0"), (LKToolBarIdentifier_Scale, "1"),
-            (LKToolBarIdentifier_Setting, "2"), (LKToolBarIdentifier_Reload, "3"),
-            (LKToolBarIdentifier_App, "5"), (LKToolBarIdentifier_AppInReadMode, "12"),
-            (LKToolBarIdentifier_Add, "13"), (LKToolBarIdentifier_Remove, "14"),
-            (LKToolBarIdentifier_Console, "15"), (LKToolBarIdentifier_Rotation, "16"),
-            (LKToolBarIdentifier_Measure, "17"), (LKToolBarIdentifier_Message, "18"),
-            (LKToolBarIdentifier_FastMode, "19"), (LKToolBarIdentifier_SwiftUIMode, "20"),
+            (toolbarIdentifierDimension, "0"), (toolbarIdentifierScale, "1"),
+            (toolbarIdentifierSetting, "2"), (toolbarIdentifierReload, "3"),
+            (toolbarIdentifierApp, "5"), (toolbarIdentifierAppInReadMode, "12"),
+            (toolbarIdentifierAdd, "13"), (toolbarIdentifierRemove, "14"),
+            (toolbarIdentifierConsole, "15"), (toolbarIdentifierRotation, "16"),
+            (toolbarIdentifierMeasure, "17"), (toolbarIdentifierMessage, "18"),
+            (toolbarIdentifierFastMode, "19"), (toolbarIdentifierSwiftUIMode, "20"),
         ]
         for (identifier, value) in identifiers {
             expect(identifier == value, "toolbar identifier \(value)")

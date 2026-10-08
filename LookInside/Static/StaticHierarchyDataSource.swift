@@ -206,9 +206,9 @@ class StaticHierarchyDataSource: HierarchyDataSource {
 
     private func updateMessageStatus() {
         if serverSideIsSwiftProject, appInfo?.swiftEnabledInLookinServer == -1 {
-            MessageManager.sharedInstance().addMessage(LKMessage_SwiftSubspec)
+            MessageManager.sharedInstance().addMessage(swiftSubspecMessageIdentifier)
         } else {
-            MessageManager.sharedInstance().removeMessage(LKMessage_SwiftSubspec)
+            MessageManager.sharedInstance().removeMessage(swiftSubspecMessageIdentifier)
         }
     }
 }

@@ -9,8 +9,8 @@
 import Foundation
 
 /// The notices the inspector window shows under its toolbar message
-/// button. Identifiers are `LKMessage_Jobs` and `LKMessage_SwiftSubspec`
-/// (LKStaticConstants.swift).
+/// button. Identifiers are `jobsMessageIdentifier` and `swiftSubspecMessageIdentifier`
+/// (StaticConstants.swift).
 @objc(LKMessageManager)
 final class MessageManager: NSObject {
     /// Set once the jobs notice was dismissed.
@@ -36,7 +36,7 @@ final class MessageManager: NSObject {
     @objc(removeMessage:)
     func removeMessage(_ message: String) {
         messages.remove(message)
-        if message == LKMessage_Jobs {
+        if message == jobsMessageIdentifier {
             UserDefaults.standard.set(true, forKey: Self.hasReadJobsDefaultsKey)
         }
     }

@@ -124,12 +124,12 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         window.toolbarStyle = .unified
         window.minSize = NSSize(width: HierarchyMinWidth + DashboardViewWidth + 200, height: 500)
         window.center()
-        window.setFrameUsingName(LKWindowSizeName_Static)
+        window.setFrameUsingName(windowSizeNameStatic)
 
         super.init(window: window)
 
         // Saves this window's frame across launches.
-        windowFrameAutosaveName = LKWindowSizeName_Static
+        windowFrameAutosaveName = windowSizeNameStatic
 
         let dataSource = StaticHierarchyDataSource()
         let updateManager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
@@ -140,7 +140,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleSwiftUIModeDidChange(_:)),
-            name: .LKSwiftUIHierarchyDisplayModeDidChange,
+            name: .swiftUIHierarchyDisplayModeDidChange,
             object: nil
         )
 
@@ -165,13 +165,13 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         toolbar.delegate = self
         window.toolbar = toolbar
 
-        fetchingStateReloadItem = toolbarItemsMap[NSToolbarItem.Identifier(LKToolBarIdentifier_Reload)]
+        fetchingStateReloadItem = toolbarItemsMap[NSToolbarItem.Identifier(toolbarIdentifierReload)]
         updateManager.delegate = self
         updateToolbarForFetchingState()
 
         observations.append(dataSource.observe(\.selectedItem, options: [.initial, .new]) { [weak self] dataSource, _ in
             MainActor.assumeIsolated {
-                let measureButton = self?.toolbarItemsMap[NSToolbarItem.Identifier(LKToolBarIdentifier_Measure)]?.view as? NSButton
+                let measureButton = self?.toolbarItemsMap[NSToolbarItem.Identifier(toolbarIdentifierMeasure)]?.view as? NSButton
                 measureButton?.isEnabled = dataSource.selectedItem != nil
             }
         })
@@ -193,14 +193,14 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     private func updateToolbarForFetchingState() {
         let isFetching = isFetchingHierarchy || isFetchingDetails
-        for identifier in [NSToolbarItem.Identifier(LKToolBarIdentifier_App), NSToolbarItem.Identifier(LKToolBarIdentifier_Console), NSToolbarItem.Identifier(LKToolBarIdentifier_FastMode)] {
+        for identifier in [NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierConsole), NSToolbarItem.Identifier(toolbarIdentifierFastMode)] {
             toolbarItemsMap[identifier]?.isEnabled = !isFetching
         }
         fetchingStateReloadItem?.isEnabled = !isFetchingHierarchy
     }
 
     private func updateAppButton() {
-        let appButton = toolbarItemsMap[NSToolbarItem.Identifier(LKToolBarIdentifier_App)]?.view as? WindowToolbarAppButton
+        let appButton = toolbarItemsMap[NSToolbarItem.Identifier(toolbarIdentifierApp)]?.view as? WindowToolbarAppButton
         appButton?.appInfo = inspectableApp?.appInfo
     }
 
@@ -268,7 +268,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     @objc(popupAllInspectableAppsWithSource:)
     func popupAllInspectableApps(with source: MenuPopoverAppsListControllerEventSource) {
-        let appItemView = toolbarItemsMap[NSToolbarItem.Identifier(LKToolBarIdentifier_App)]?.view
+        let appItemView = toolbarItemsMap[NSToolbarItem.Identifier(toolbarIdentifierApp)]?.view
 
         Task { [weak self] in
             let apps = await AppsManager.shared.fetchAppInfos(needImages: true, localInfos: nil)
@@ -450,17 +450,17 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     func toolbarDefaultItemIdentifiers(_: NSToolbar) -> [NSToolbarItem.Identifier] {
         var identifiers: [NSToolbarItem.Identifier] = [
-            NSToolbarItem.Identifier(LKToolBarIdentifier_Reload), NSToolbarItem.Identifier(LKToolBarIdentifier_FastMode), NSToolbarItem.Identifier(LKToolBarIdentifier_App), NSToolbarItem.Identifier(LKToolBarIdentifier_SwiftUIMode),
-            NSToolbarItem.Identifier(LKToolBarIdentifier_GestureDebug),
+            NSToolbarItem.Identifier(toolbarIdentifierReload), NSToolbarItem.Identifier(toolbarIdentifierFastMode), NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierSwiftUIMode),
+            NSToolbarItem.Identifier(toolbarIdentifierGestureDebug),
             .flexibleSpace,
-            NSToolbarItem.Identifier(LKToolBarIdentifier_Dimension), NSToolbarItem.Identifier(LKToolBarIdentifier_Rotation), NSToolbarItem.Identifier(LKToolBarIdentifier_Setting),
+            NSToolbarItem.Identifier(toolbarIdentifierDimension), NSToolbarItem.Identifier(toolbarIdentifierRotation), NSToolbarItem.Identifier(toolbarIdentifierSetting),
             .flexibleSpace,
-            NSToolbarItem.Identifier(LKToolBarIdentifier_Scale),
+            NSToolbarItem.Identifier(toolbarIdentifierScale),
             .flexibleSpace,
-            NSToolbarItem.Identifier(LKToolBarIdentifier_Measure), NSToolbarItem.Identifier(LKToolBarIdentifier_Console),
+            NSToolbarItem.Identifier(toolbarIdentifierMeasure), NSToolbarItem.Identifier(toolbarIdentifierConsole),
         ]
         if !MessageManager.sharedInstance().queryMessages().isEmpty {
-            identifiers.append(NSToolbarItem.Identifier(LKToolBarIdentifier_Message))
+            identifiers.append(NSToolbarItem.Identifier(toolbarIdentifierMessage))
         }
         return identifiers
     }
@@ -482,26 +482,26 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         toolbarItemsMap[itemIdentifier] = item
 
         switch item.itemIdentifier {
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_Reload):
+        case NSToolbarItem.Identifier(toolbarIdentifierReload):
             item.target = self
             item.action = #selector(handleReload)
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_GestureDebug):
+        case NSToolbarItem.Identifier(toolbarIdentifierGestureDebug):
             item.target = self
             item.action = #selector(handleGestureDebug)
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_App):
+        case NSToolbarItem.Identifier(toolbarIdentifierApp):
             item.target = self
             item.action = #selector(handleApp)
             // Shows the bound app's icon; `inspectableApp` updates it when
             // LiveDocument swaps in the reconnected app.
             updateAppButton()
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_Rotation):
+        case NSToolbarItem.Identifier(toolbarIdentifierRotation):
             item.target = self
             item.action = #selector(handleFreeRotation)
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_Setting):
+        case NSToolbarItem.Identifier(toolbarIdentifierSetting):
             item.label = NSLocalizedString("View", comment: "")
             item.target = self
             item.action = #selector(handleSetting(_:))
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_Console):
+        case NSToolbarItem.Identifier(toolbarIdentifierConsole):
             item.target = self
             item.action = #selector(handleConsole)
             observations.append(viewController.observe(\.showConsole, options: [.old, .new]) { [weak item] _, change in
@@ -510,11 +510,11 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
                     (item?.view as? NSButton)?.state = showConsole ? .on : .off
                 }
             })
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_Message):
+        case NSToolbarItem.Identifier(toolbarIdentifierMessage):
             item.label = NSLocalizedString("Notifications", comment: "")
             item.target = self
             item.action = #selector(handleMessage(_:))
-        case NSToolbarItem.Identifier(LKToolBarIdentifier_FastMode):
+        case NSToolbarItem.Identifier(toolbarIdentifierFastMode):
             item.target = self
             item.action = #selector(handleFastMode)
         default:
@@ -595,7 +595,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     private func handleMessage(_ button: NSButton) {
         let menu = NSMenu()
         for message in MessageManager.sharedInstance().queryMessages() {
-            if message == LKMessage_Jobs {
+            if message == jobsMessageIdentifier {
                 let item = NSMenuItem()
                 item.image = NSImage(named: "Icon_Inspiration_small")
                 item.title = NSLocalizedString("Job openings…(China)", comment: "")
@@ -603,7 +603,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
                 item.action = #selector(handleJobsMenuItem)
                 menu.addItem(item)
                 menu.addItem(.separator())
-            } else if message == LKMessage_SwiftSubspec {
+            } else if message == swiftSubspecMessageIdentifier {
                 let tipItem = NSMenuItem()
                 tipItem.image = NSImage(named: "Icon_Inspiration_small")
                 tipItem.title = NSLocalizedString("Your iOS project seems to use Swift, but you haven't turn on Swift optimization for LookInside", comment: "")
@@ -637,7 +637,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     @objc func handleJobsMenuItem() {
         AppHelper.showDisabledExternalLinkAlert(withMessage: NSLocalizedString("This upstream community link is not available in this build.", comment: ""))
-        MessageManager.sharedInstance().removeMessage(LKMessage_Jobs)
+        MessageManager.sharedInstance().removeMessage(jobsMessageIdentifier)
     }
 
     @objc func handleTurnOnSwift() {
@@ -680,7 +680,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     private func adjustPreviewScale(by delta: Double) {
         let scale = PreferenceManager.shared.previewScale
-        let target = min(max(scale.currentDoubleValue + delta, Double(LookinPreviewMinScale)), Double(LookinPreviewMaxScale))
+        let target = min(max(scale.currentDoubleValue + delta, Double(previewMinScale)), Double(previewMaxScale))
         scale.setDoubleValue(target, ignoreSubscriber: nil)
     }
 
@@ -694,7 +694,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     private func adjustZInterspace(by delta: Double) {
         let interspace = PreferenceManager.shared.zInterspace
-        let target = min(max(interspace.currentDoubleValue + delta, Double(LookinPreviewMinZInterspace)), Double(LookinPreviewMaxZInterspace))
+        let target = min(max(interspace.currentDoubleValue + delta, Double(previewMinZInterspace)), Double(previewMaxZInterspace))
         interspace.setDoubleValue(target, ignoreSubscriber: nil)
     }
 
@@ -766,7 +766,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     // MARK: - StaticAsyncUpdateManagerDelegate
 
     func detailUpdateTasksTotalCount(_ totalCount: UInt, finishedCount: UInt) {
-        let reloadItem = toolbarItemsMap[NSToolbarItem.Identifier(LKToolBarIdentifier_Reload)]
+        let reloadItem = toolbarItemsMap[NSToolbarItem.Identifier(toolbarIdentifierReload)]
         let reloadButton = reloadItem?.view as? NSButton
 
         if totalCount > finishedCount {

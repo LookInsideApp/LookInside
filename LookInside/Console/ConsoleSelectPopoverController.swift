@@ -169,7 +169,7 @@ final class ConsoleSelectPopoverController: BaseViewController {
     }
 
     private static func title(of object: InspectedObject) -> String {
-        "<\(object.lk_simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
+        "<\(object.simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
     }
 
     /// Keeps the first `count` controls, adds new ones as needed, removes the

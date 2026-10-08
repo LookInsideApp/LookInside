@@ -6,7 +6,7 @@
 import AppKit
 
 extension NSControl {
-    private static let lk_unlimitedSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
+    private static let unlimitedSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
 
     @objc(heightForWidth:)
     func height(forWidth width: CGFloat) -> CGFloat {
@@ -14,14 +14,14 @@ extension NSControl {
     }
 
     @objc func bestHeight() -> CGFloat {
-        sizeThatFits(Self.lk_unlimitedSize).height
+        sizeThatFits(Self.unlimitedSize).height
     }
 
     @objc func bestWidth() -> CGFloat {
-        sizeThatFits(Self.lk_unlimitedSize).width
+        sizeThatFits(Self.unlimitedSize).width
     }
 
     @objc func bestSize() -> NSSize {
-        sizeThatFits(Self.lk_unlimitedSize)
+        sizeThatFits(Self.unlimitedSize)
     }
 }

@@ -148,7 +148,7 @@ final class InspectableApp: NSObject {
     /// 1.0.4), the SwiftUI display mode, and whether to include backing
     /// layers (old Servers ignore the keys they do not know).
     static func hierarchyRequestParameters() -> NSDictionary {
-        let parameters = NSMutableDictionary(dictionary: ["clientVersion": AppHelper.lookinReadableVersion() as NSString])
+        let parameters = NSMutableDictionary(dictionary: ["clientVersion": AppHelper.readableVersion() as NSString])
         parameters[LookinParam_SwiftUIDisplayMode] = NSNumber(value: SwiftUIHierarchyDisplayModeStore.currentMode().rawValue)
         parameters["showBackingLayers"] = NSNumber(value: PreferenceManager.shared.showBackingLayers.currentBOOLValue)
         return parameters

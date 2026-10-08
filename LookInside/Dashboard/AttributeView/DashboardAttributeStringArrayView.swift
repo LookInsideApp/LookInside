@@ -117,7 +117,7 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
         if let danceButton {
             return danceButton
         }
-        let button = NSButton.lk_normalButton(withTitle: "", target: self, action: #selector(handleDanceButton))
+        let button = NSButton.normalButton(withTitle: "", target: self, action: #selector(handleDanceButton))
         button.font = DashboardStyle.font(12)
         addSubview(button)
         danceButton = button

@@ -325,8 +325,8 @@ enum DashboardMetrics {
     static let cardCornerRadius = DashboardCardCornerRadius
     static let searchCardInset = DashboardSearchCardInset
 
-    static let numberInputHorizontalHeight = LKNumberInputHorizontalHeight
-    static let numberInputVerticalHeight = LKNumberInputVerticalHeight
+    static let numberInputHorizontalHeight = NumberInputView.horizontalHeight
+    static let numberInputVerticalHeight = NumberInputView.verticalHeight
 
     static let maxSize = NSSize(width: CGFloat.greatestFiniteMagnitude, height: .greatestFiniteMagnitude)
 }

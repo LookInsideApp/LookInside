@@ -215,7 +215,7 @@ class TableView: NSScrollView {
 
     // MARK: - Hover and selection
 
-    private func lkRowView(at row: Int) -> TableRowView? {
+    private func tableRowView(at row: Int) -> TableRowView? {
         guard row >= 0, row < tableView.numberOfRows else {
             return nil
         }
@@ -223,12 +223,12 @@ class TableView: NSScrollView {
     }
 
     private func hoveredRowDidChange(from previousRow: Int) {
-        lkRowView(at: previousRow)?.isHovered = false
+        tableRowView(at: previousRow)?.isHovered = false
 
         if hoveredRow >= 0, hoveredRow < tableView.numberOfRows {
             let canHover = delegate?.tableView?(tableView, shouldSelectRow: hoveredRow) ?? true
             if canHover {
-                lkRowView(at: hoveredRow)?.isHovered = true
+                tableRowView(at: hoveredRow)?.isHovered = true
             }
         }
         delegate?.tableView?(self, didHoverAtRow: hoveredRow)
@@ -241,10 +241,10 @@ class TableView: NSScrollView {
         let previousRow = selectedRow
         selectedRow = row
 
-        lkRowView(at: previousRow)?.isRowSelected = false
+        tableRowView(at: previousRow)?.isRowSelected = false
 
         if row >= 0, row < tableView.numberOfRows {
-            lkRowView(at: row)?.isRowSelected = true
+            tableRowView(at: row)?.isRowSelected = true
             delegate?.tableView?(self, didSelectRow: row)
         }
     }

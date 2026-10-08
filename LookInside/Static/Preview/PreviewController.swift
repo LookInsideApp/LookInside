@@ -382,7 +382,7 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
             return
         }
         // The app's screen size changed: reset the scale.
-        dataSource?.preferenceManager().previewScale.setDoubleValue(Double(LKInitialPreviewScale), ignoreSubscriber: nil)
+        dataSource?.preferenceManager().previewScale.setDoubleValue(Double(initialPreviewScale), ignoreSubscriber: nil)
     }
 
     // MARK: - Gestures
@@ -502,7 +502,7 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
             guard let manager = dataSource?.preferenceManager() else { return }
             let targetScale = manager.previewScale.currentDoubleValue - event.deltaY * 0.005
             manager.previewScale.setDoubleValue(
-                min(max(targetScale, LookinPreviewMinScale), LookinPreviewMaxScale),
+                min(max(targetScale, previewMinScale), previewMaxScale),
                 ignoreSubscriber: nil
             )
         } else {
@@ -597,7 +597,7 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
 
     @objc private func handlePrintItem(_: NSMenuItem) {
         NotificationCenter.default.post(
-            name: NSNotification.Name(LKAppShowConsoleNotificationName),
+            name: NSNotification.Name(appShowConsoleNotificationName),
             object: rightClickingDisplayItem
         )
     }

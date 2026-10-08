@@ -34,7 +34,7 @@ final class DashboardAttributeConstraintsItemControl: TextControl {
     private func updateLabelColor() {
         if constraint?.effective == true {
             label.textColor = .labelColor
-        } else if effectiveAppearance.lk_isDarkMode {
+        } else if effectiveAppearance.isDarkMode {
             label.textColor = DashboardStyle.rgb(130, 131, 132)
         } else {
             label.textColor = DashboardStyle.rgb(150, 151, 152)

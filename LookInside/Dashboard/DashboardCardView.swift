@@ -404,7 +404,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
 
     // MARK: - UserActionManagerDelegate
 
-    func lkUserActionManager(_: UserActionManager, didAct type: UserActionType) {
+    func userActionManager(_: UserActionManager, didAct type: UserActionType) {
         guard let accessoryWindowController else { return }
         guard [.previewOperation, .dashboardClick, .selectedItemChange].contains(type) else { return }
         accessoryWindowController.close()

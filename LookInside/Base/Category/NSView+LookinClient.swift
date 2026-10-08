@@ -5,7 +5,7 @@
 
 import AppKit
 
-private var lk_backgroundColorNameKey: UInt8 = 0
+private var backgroundColorNameKey: UInt8 = 0
 
 extension NSView {
     /// Not hidden and not fully transparent.
@@ -17,10 +17,10 @@ extension NSView {
     /// clears it.
     @objc var backgroundColorName: String? {
         get {
-            objc_getAssociatedObject(self, &lk_backgroundColorNameKey) as? String
+            objc_getAssociatedObject(self, &backgroundColorNameKey) as? String
         }
         set {
-            objc_setAssociatedObject(self, &lk_backgroundColorNameKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
+            objc_setAssociatedObject(self, &backgroundColorNameKey, newValue, .OBJC_ASSOCIATION_COPY_NONATOMIC)
             if let newValue {
                 layer?.backgroundColor = NSColor(named: newValue)?.cgColor
             } else {
@@ -31,7 +31,7 @@ extension NSView {
 
     /// Adds `view` below every existing subview.
     @objc(lk_insertSubviewAtBottom:)
-    func lk_insertSubviewAtBottom(_ view: NSView) {
+    func insertSubviewAtBottom(_ view: NSView) {
         if let first = subviews.first {
             addSubview(view, positioned: .below, relativeTo: first)
         } else {

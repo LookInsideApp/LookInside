@@ -1,4 +1,4 @@
-// LKMCPBridgeFrame.swift
+// MCPBridgeFrame.swift
 //
 // Newline-delimited JSON wire frames spoken on the MCPBridge Unix domain socket.
 //

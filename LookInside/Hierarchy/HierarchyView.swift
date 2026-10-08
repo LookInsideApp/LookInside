@@ -549,10 +549,10 @@ extension HierarchyView: NSMenuDelegate {
         if !((title.hasPrefix("UI") || title.hasPrefix("CA")) && (title as NSString).length < 10) {
             stringsToCopy.append(title)
         }
-        if let name = displayItem.hostViewControllerObject?.lk_simpleDemangledClassName(), !name.isEmpty {
+        if let name = displayItem.hostViewControllerObject?.simpleDemangledClassName(), !name.isEmpty {
             stringsToCopy.append(name)
         }
-        if let name = displayItem.hostWindowControllerObject?.lk_simpleDemangledClassName(), !name.isEmpty {
+        if let name = displayItem.hostWindowControllerObject?.simpleDemangledClassName(), !name.isEmpty {
             stringsToCopy.append(name)
         }
         let ivarTraces = displayItem.displayingObject()?.ivarTraces ?? []

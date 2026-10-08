@@ -268,7 +268,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         let isSelected = dataSource?.selectedItem === displayItem
         let isHovered = dataSource?.hoveredItem === displayItem
 
-        let screenshot = displayItem?.lkOptionalAppropriateScreenshot
+        let screenshot = displayItem?.optionalAppropriateScreenshot
         if let rep = screenshot?.representations.first {
             assert(CGFloat(Swift.max(rep.pixelsWide, rep.pixelsHigh)) <= CGFloat(LookinNodeImageMaxLengthInPx), "image is too large")
         }
@@ -378,7 +378,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
             maskPlane.width = contentPlane.width
             maskPlane.height = contentPlane.height
             if !regionNode.isHidden {
-                let region = region(of: self.displayItem?.lkOptionalAppropriateScreenshot) ?? .zero
+                let region = region(of: self.displayItem?.optionalAppropriateScreenshot) ?? .zero
                 layoutRegionNode(region: region, frameToRoot: frameToRoot)
             }
 
@@ -412,7 +412,7 @@ extension DisplayItem {
     /// `-appropriateScreenshot`, which returns nil for an item without a
     /// screenshot although its header (inside NS_ASSUME_NONNULL) says it
     /// never does; read through the runtime so Swift sees the nil.
-    var lkOptionalAppropriateScreenshot: NSImage? {
+    var optionalAppropriateScreenshot: NSImage? {
         value(forKey: "appropriateScreenshot") as? NSImage
     }
 }

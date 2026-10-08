@@ -27,17 +27,17 @@ final class WindowToolbarHelper: NSObject {
     /// reader's app item.
     @objc(makeToolBarItemWithIdentifier:preferenceManager:)
     func makeToolBarItem(identifier: String, preferenceManager manager: PreferenceManager) -> NSToolbarItem? {
-        assert(identifier != LKToolBarIdentifier_AppInReadMode, "Use makeAppInReadModeItemWithAppInfo:")
+        assert(identifier != toolbarIdentifierAppInReadMode, "Use makeAppInReadModeItemWithAppInfo:")
 
         switch identifier {
-        case LKToolBarIdentifier_GestureDebug:
+        case toolbarIdentifierGestureDebug:
             let item = NSToolbarItem(itemIdentifier: NSToolbarItem.Identifier(identifier))
             item.label = NSLocalizedString("Gestures", comment: "")
             item.toolTip = NSLocalizedString("Inspect SwiftUI responders and gesture events", comment: "")
             item.image = NSImage(systemSymbolName: "hand.point.up.left", accessibilityDescription: item.label)
             return item
 
-        case LKToolBarIdentifier_Measure:
+        case toolbarIdentifierMeasure:
             let button = ToolbarPreferenceButton()
             button.preferenceManager = manager
             button.image = Self.templateImage("icon_measure")
@@ -46,14 +46,14 @@ final class WindowToolbarHelper: NSObject {
             button.target = self
             button.action = #selector(handleToggleMeasureButton(_:))
             manager.measureState.subscribe(self, action: #selector(handleMeasureStateDidChange(_:)), relatedObject: button, sendAtOnce: true)
-            return Self.item(LKToolBarIdentifier_Measure, label: NSLocalizedString("Measure", comment: ""), view: button)
+            return Self.item(toolbarIdentifierMeasure, label: NSLocalizedString("Measure", comment: ""), view: button)
 
-        case LKToolBarIdentifier_Rotation:
+        case toolbarIdentifierRotation:
             let button = Self.imageButton("icon_rotation", buttonType: .pushOnPushOff)
             manager.freeRotation.subscribe(self, action: #selector(handleOnOffDidChange(_:)), relatedObject: button, sendAtOnce: true)
-            return Self.item(LKToolBarIdentifier_Rotation, label: NSLocalizedString("Free Rotation", comment: ""), view: button)
+            return Self.item(toolbarIdentifierRotation, label: NSLocalizedString("Free Rotation", comment: ""), view: button)
 
-        case LKToolBarIdentifier_Dimension:
+        case toolbarIdentifierDimension:
             let images = [Self.templateImage("icon_2d"), Self.templateImage("icon_3d")].compactMap { $0 }
             let control = ToolbarPreferenceSegmentedControl(
                 images: images,
@@ -66,14 +66,14 @@ final class WindowToolbarHelper: NSObject {
             control.setWidth(45, forSegment: 0)
             control.setWidth(45, forSegment: 1)
             manager.previewDimension.subscribe(self, action: #selector(handleDimensionDidChange(_:)), relatedObject: control, sendAtOnce: true)
-            return Self.item(LKToolBarIdentifier_Dimension, label: "2D / 3D", view: control)
+            return Self.item(toolbarIdentifierDimension, label: "2D / 3D", view: control)
 
-        case LKToolBarIdentifier_Scale:
+        case toolbarIdentifierScale:
             let scaleView = WindowToolbarScaleView()
             let slider = scaleView.slider
             slider.preferenceManager = manager
-            slider.minValue = Double(LookinPreviewMinScale)
-            slider.maxValue = Double(LookinPreviewMaxScale)
+            slider.minValue = Double(previewMinScale)
+            slider.maxValue = Double(previewMaxScale)
             slider.doubleValue = manager.previewScale.currentDoubleValue
             slider.target = self
             slider.action = #selector(handleScaleSlider(_:))
@@ -84,22 +84,22 @@ final class WindowToolbarHelper: NSObject {
             scaleView.decreaseButton.action = #selector(handleScaleDecreaseButton(_:))
             scaleView.decreaseButton.preferenceManager = manager
             manager.previewScale.subscribe(self, action: #selector(handlePreviewScaleDidChange(_:)), relatedObject: slider, sendAtOnce: true)
-            return Self.item(LKToolBarIdentifier_Scale, label: NSLocalizedString("Zoom", comment: ""), view: scaleView)
+            return Self.item(toolbarIdentifierScale, label: NSLocalizedString("Zoom", comment: ""), view: scaleView)
 
-        case LKToolBarIdentifier_Setting:
-            return Self.item(LKToolBarIdentifier_Setting, label: nil, view: Self.imageButton("icon_setting"))
+        case toolbarIdentifierSetting:
+            return Self.item(toolbarIdentifierSetting, label: nil, view: Self.imageButton("icon_setting"))
 
-        case LKToolBarIdentifier_Reload:
-            return Self.item(LKToolBarIdentifier_Reload, label: NSLocalizedString("Reload", comment: ""), view: Self.imageButton("icon_reload"))
+        case toolbarIdentifierReload:
+            return Self.item(toolbarIdentifierReload, label: NSLocalizedString("Reload", comment: ""), view: Self.imageButton("icon_reload"))
 
-        case LKToolBarIdentifier_App:
+        case toolbarIdentifierApp:
             let button = WindowToolbarAppButton()
             button.bezelStyle = .texturedRounded
             // The owning live document's window controller binds the button
             // to its inspected app.
-            return Self.item(LKToolBarIdentifier_App, label: NSLocalizedString("Select App", comment: ""), view: button)
+            return Self.item(toolbarIdentifierApp, label: NSLocalizedString("Select App", comment: ""), view: button)
 
-        case LKToolBarIdentifier_SwiftUIMode:
+        case toolbarIdentifierSwiftUIMode:
             let segmented = NSSegmentedControl(
                 labels: [NSLocalizedString("Compact", comment: ""), NSLocalizedString("Verbose", comment: "")],
                 trackingMode: .selectOne,
@@ -107,30 +107,30 @@ final class WindowToolbarHelper: NSObject {
                 action: #selector(SwiftUIHierarchyDisplayModeStore.swiftUIModeSegmentChanged(_:))
             )
             segmented.selectedSegment = SwiftUIHierarchyDisplayModeStore.currentMode() == .compact ? 0 : 1
-            return Self.item(LKToolBarIdentifier_SwiftUIMode, label: NSLocalizedString("SwiftUI", comment: ""), view: segmented)
+            return Self.item(toolbarIdentifierSwiftUIMode, label: NSLocalizedString("SwiftUI", comment: ""), view: segmented)
 
-        case LKToolBarIdentifier_Console:
+        case toolbarIdentifierConsole:
             let button = Self.imageButton("icon_console", buttonType: .pushOnPushOff)
-            return Self.item(LKToolBarIdentifier_Console, label: NSLocalizedString("Console", comment: ""), view: button)
+            return Self.item(toolbarIdentifierConsole, label: NSLocalizedString("Console", comment: ""), view: button)
 
-        case LKToolBarIdentifier_FastMode:
+        case toolbarIdentifierFastMode:
             let button = Self.imageButton("icon_turbo", buttonType: .pushOnPushOff)
             manager.fastMode.subscribe(self, action: #selector(handleOnOffDidChange(_:)), relatedObject: button, sendAtOnce: true)
-            return Self.item(LKToolBarIdentifier_FastMode, label: NSLocalizedString("Fast Mode", comment: ""), view: button)
+            return Self.item(toolbarIdentifierFastMode, label: NSLocalizedString("Fast Mode", comment: ""), view: button)
 
-        case LKToolBarIdentifier_Add:
+        case toolbarIdentifierAdd:
             let button = NSButton()
             let image = NSImage(named: NSImage.addTemplateName)
             image?.isTemplate = true
             button.image = image
             button.bezelStyle = .texturedRounded
-            return Self.item(LKToolBarIdentifier_Add, label: nil, view: button)
+            return Self.item(toolbarIdentifierAdd, label: nil, view: button)
 
-        case LKToolBarIdentifier_Remove:
-            return Self.item(LKToolBarIdentifier_Remove, label: nil, view: Self.imageButton("icon_delete"))
+        case toolbarIdentifierRemove:
+            return Self.item(toolbarIdentifierRemove, label: nil, view: Self.imageButton("icon_delete"))
 
-        case LKToolBarIdentifier_Message:
-            return Self.item(LKToolBarIdentifier_Message, label: nil, view: Self.imageButton("icon_notification"))
+        case toolbarIdentifierMessage:
+            return Self.item(toolbarIdentifierMessage, label: nil, view: Self.imageButton("icon_notification"))
 
         default:
             assertionFailure("Unknown toolbar item identifier \(identifier)")
@@ -144,7 +144,7 @@ final class WindowToolbarHelper: NSObject {
         let button = WindowToolbarAppButton()
         button.bezelStyle = .texturedRounded
         button.appInfo = appInfo
-        return Self.item(LKToolBarIdentifier_AppInReadMode, label: "iOS App", view: button)
+        return Self.item(toolbarIdentifierAppInReadMode, label: "iOS App", view: button)
     }
 
     // MARK: - Building
@@ -197,8 +197,8 @@ final class WindowToolbarHelper: NSObject {
         let scale = ToolbarRules.stepped(
             manager.previewScale.currentDoubleValue,
             by: delta,
-            lower: Double(LookinPreviewMinScale),
-            upper: Double(LookinPreviewMaxScale)
+            lower: Double(previewMinScale),
+            upper: Double(previewMaxScale)
         )
         manager.previewScale.setDoubleValue(scale, ignoreSubscriber: nil)
     }

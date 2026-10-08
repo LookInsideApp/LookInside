@@ -84,7 +84,7 @@ class TableRowView: NSTableRowView {
         addSubview(subtitleLabel)
 
         // Through the method, so subclasses see the initial value.
-        setIsDarkMode(effectiveAppearance.lk_isDarkMode)
+        setIsDarkMode(effectiveAppearance.isDarkMode)
 
         updateBackgroundLayerColor()
     }
@@ -95,7 +95,7 @@ class TableRowView: NSTableRowView {
 
     override func layout() {
         super.layout()
-        backgroundColorLayer.lkLayout.fullFrame()
+        backgroundColorLayer.frameLayout.fullFrame()
     }
 
     override var isFlipped: Bool {
@@ -104,7 +104,7 @@ class TableRowView: NSTableRowView {
 
     override func viewDidChangeEffectiveAppearance() {
         super.viewDidChangeEffectiveAppearance()
-        setIsDarkMode(effectiveAppearance.lk_isDarkMode)
+        setIsDarkMode(effectiveAppearance.isDarkMode)
         updateBackgroundLayerColor()
     }
 
@@ -112,7 +112,7 @@ class TableRowView: NSTableRowView {
         if isRowSelected {
             backgroundColorLayer.backgroundColor = AppHelper.accentColor().cgColor
         } else if isHovered {
-            backgroundColorLayer.backgroundColor = isDarkMode ? NSColor.lkBaseRGB(255, 255, 255, 0.15).cgColor : NSColor.lkBaseRGB(0, 0, 0, 0.1).cgColor
+            backgroundColorLayer.backgroundColor = isDarkMode ? NSColor.rgb255(255, 255, 255, 0.15).cgColor : NSColor.rgb255(0, 0, 0, 0.1).cgColor
         } else {
             backgroundColorLayer.backgroundColor = NSColor.clear.cgColor
         }

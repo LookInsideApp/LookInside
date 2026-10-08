@@ -175,7 +175,7 @@ final class MCPBridgeModificationService {
         modification.setterSelector = setterSelector
         modification.attrType = attribute.attrType
         modification.value = nativeValue
-        modification.clientReadableVersion = AppHelper.lookinReadableVersion()
+        modification.clientReadableVersion = AppHelper.readableVersion()
 
         let detail: DisplayItemDetail
         do {

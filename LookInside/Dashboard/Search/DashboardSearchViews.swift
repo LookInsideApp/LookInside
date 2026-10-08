@@ -1,5 +1,5 @@
 //
-//  LKDashboardSearchViews.swift
+//  DashboardSearchViews.swift
 //  LookInside
 //
 //  Created by Li Kai on 2019/9/5.
@@ -147,7 +147,7 @@ final class DashboardSearchPropertyView: DashboardSearchCardView {
             return EnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
 
         case .uiColor:
-            guard let color = NSColor.lk_color(fromRGBAComponents: attribute.value as? [NSNumber]) else {
+            guard let color = NSColor.sRGBColor(fromRGBAComponents: attribute.value as? [NSNumber]) else {
                 return "nil"
             }
             return PreferenceManager.shared.rgbaFormat ? color.rgbaString() : color.hexString()

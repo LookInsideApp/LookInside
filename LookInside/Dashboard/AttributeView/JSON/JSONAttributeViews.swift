@@ -1,5 +1,5 @@
 //
-//  LKJSONAttributeViews.swift
+//  JSONAttributeViews.swift
 //  LookInside
 //
 //  Created by likai.123 on 2023/11/30.

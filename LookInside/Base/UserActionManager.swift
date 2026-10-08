@@ -18,7 +18,7 @@ import Foundation
 @objc protocol UserActionManagerDelegate: NSObjectProtocol {
     /// Called for every `sendAction:`.
     @objc(LKUserActionManager:didAct:)
-    func lkUserActionManager(_ manager: UserActionManager, didAct type: UserActionType)
+    func userActionManager(_ manager: UserActionManager, didAct type: UserActionType)
 }
 
 /// Broadcasts user actions (preview gestures, Dashboard clicks) to weakly
@@ -50,9 +50,9 @@ final class UserActionManager: NSObject {
             return
         }
         for case let delegate as UserActionManagerDelegate in delegates.allObjects
-            where delegate.responds(to: #selector(UserActionManagerDelegate.lkUserActionManager(_:didAct:)))
+            where delegate.responds(to: #selector(UserActionManagerDelegate.userActionManager(_:didAct:)))
         {
-            delegate.lkUserActionManager(self, didAct: type)
+            delegate.userActionManager(self, didAct: type)
         }
     }
 }

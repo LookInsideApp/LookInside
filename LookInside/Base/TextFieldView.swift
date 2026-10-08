@@ -63,21 +63,21 @@ class TextFieldView: BaseView {
         if let imageView {
             if textField.isEditable {
                 // An input, like the hierarchy's filter field.
-                imageView.lkLayout.sizeToFit().x(insets.left).verAlign().offsetY(1)
+                imageView.frameLayout.sizeToFit().x(insets.left).verAlign().offsetY(1)
                 if let closeButton {
-                    closeButton.lkLayout.y(1).toBottom(0).width(100).right(insets.right)
-                    textField.lkLayout.x(imageView.frame.maxX + 5).toMaxX(closeButton.frame.minX - 5).heightToFit().verAlign()
+                    closeButton.frameLayout.y(1).toBottom(0).width(100).right(insets.right)
+                    textField.frameLayout.x(imageView.frame.maxX + 5).toMaxX(closeButton.frame.minX - 5).heightToFit().verAlign()
                 } else {
-                    textField.lkLayout.x(imageView.frame.maxX + 5).toRight(insets.right).heightToFit().verAlign()
+                    textField.frameLayout.x(imageView.frame.maxX + 5).toRight(insets.right).heightToFit().verAlign()
                 }
             } else {
                 // A plain label, like the constraint popover's title.
                 FrameLayout([imageView, textField]).sizeToFit().verAlign()
-                textField.lkLayout.x(imageView.frame.maxX)
+                textField.frameLayout.x(imageView.frame.maxX)
                 FrameLayout([imageView, textField]).groupHorAlign()
             }
         } else {
-            textField.lkLayout.x(insets.left).toRight(insets.right).heightToFit().verAlign().offsetY(insets.top - insets.bottom)
+            textField.frameLayout.x(insets.left).toRight(insets.right).heightToFit().verAlign().offsetY(insets.top - insets.bottom)
         }
     }
 

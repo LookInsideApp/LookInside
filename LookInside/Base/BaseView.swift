@@ -90,7 +90,7 @@ class BaseView: NSView, NSViewToolTipOwner {
                 effectView.blendingMode = .withinWindow
                 effectView.state = .active
                 backgroundEffectView = effectView
-                lk_insertSubviewAtBottom(effectView)
+                insertSubviewAtBottom(effectView)
                 needsLayout = true
             } else {
                 backgroundEffectView?.removeFromSuperview()
@@ -107,7 +107,7 @@ class BaseView: NSView, NSViewToolTipOwner {
         super.init(frame: frameRect)
         wantsLayer = true
 
-        borderColors = TwoColors(colorInLightMode: .lkBaseRGB(215, 215, 215), colorInDarkMode: .lkBaseRGB(67, 67, 69))
+        borderColors = TwoColors(colorInLightMode: .rgb255(215, 215, 215), colorInDarkMode: .rgb255(67, 67, 69))
         beginObservingAppearanceIfNeeded()
     }
 
@@ -142,7 +142,7 @@ class BaseView: NSView, NSViewToolTipOwner {
         super.layout()
 
         if let backgroundEffectView {
-            backgroundEffectView.lkLayout.fullFrame()
+            backgroundEffectView.frameLayout.fullFrame()
         }
 
         if tooltipString != nil {
@@ -153,13 +153,13 @@ class BaseView: NSView, NSViewToolTipOwner {
 
         switch borderPosition {
         case .top:
-            customBorderLayer?.lkLayout.fullWidth().height(1).y(0)
+            customBorderLayer?.frameLayout.fullWidth().height(1).y(0)
         case .left:
-            customBorderLayer?.lkLayout.fullHeight().width(1).x(0)
+            customBorderLayer?.frameLayout.fullHeight().width(1).x(0)
         case .bottom:
-            customBorderLayer?.lkLayout.fullFrame().height(1).bottom(0)
+            customBorderLayer?.frameLayout.fullFrame().height(1).bottom(0)
         case .right:
-            customBorderLayer?.lkLayout.fullHeight().width(1).right(0)
+            customBorderLayer?.frameLayout.fullHeight().width(1).right(0)
         default:
             break
         }
@@ -215,7 +215,7 @@ class BaseView: NSView, NSViewToolTipOwner {
     }
 
     func isDarkMode() -> Bool {
-        effectiveAppearance.lk_isDarkMode
+        effectiveAppearance.isDarkMode
     }
 
     // MARK: - Subclassing hooks

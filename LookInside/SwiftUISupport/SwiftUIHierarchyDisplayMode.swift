@@ -14,7 +14,7 @@ extension Notification.Name {
     /// Posted on the main thread whenever
     /// `SwiftUIHierarchyDisplayModeStore.currentMode()` changes.
     /// Notification object: the store class.
-    static let LKSwiftUIHierarchyDisplayModeDidChange = Notification.Name("LKSwiftUIHierarchyDisplayModeDidChangeNotification")
+    static let swiftUIHierarchyDisplayModeDidChange = Notification.Name("LKSwiftUIHierarchyDisplayModeDidChangeNotification")
 }
 
 @objc(LKSwiftUIHierarchyDisplayModeStore)
@@ -31,13 +31,13 @@ final class SwiftUIHierarchyDisplayModeStore: NSObject {
     }
 
     /// Persist the new mode to UserDefaults and post
-    /// LKSwiftUIHierarchyDisplayModeDidChange if the value actually changed.
+    /// swiftUIHierarchyDisplayModeDidChange if the value actually changed.
     static func setCurrentMode(_ mode: SwiftUIHierarchyDisplayMode) {
         guard currentMode() != mode else {
             return
         }
         UserDefaults.standard.set(mode.rawValue, forKey: defaultsKey)
-        NotificationCenter.default.post(name: .LKSwiftUIHierarchyDisplayModeDidChange, object: self)
+        NotificationCenter.default.post(name: .swiftUIHierarchyDisplayModeDidChange, object: self)
     }
 
     /// Action of an NSSegmentedControl whose segment 0 is Compact and

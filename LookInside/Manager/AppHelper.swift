@@ -38,7 +38,7 @@ final class AppHelper {
     private init() {}
 
     /// 使用 UIImageView 的 “使用预览打开该图片” 功能时会创建临时图片文件，它们的路径会保存在这里，Lookin 退出时应当删除这些临时文件
-    /// 创建图片的相关逻辑见 LKDashboardAttributeReadOnlyViews.swift
+    /// 创建图片的相关逻辑见 DashboardAttributeReadOnlyViews.swift
     var tempImageFiles: [String] = []
 
     static func showDisabledExternalLinkAlert(withMessage message: String) {
@@ -54,7 +54,7 @@ final class AppHelper {
         return NSFont(descriptor: fontDescriptor, size: fontSize)
     }
 
-    static func lookinReadableVersion() -> String {
+    static func readableVersion() -> String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     }
 

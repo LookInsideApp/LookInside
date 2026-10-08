@@ -1,5 +1,5 @@
 //
-//  LKDashboardAttributeReadOnlyViews.swift
+//  DashboardAttributeReadOnlyViews.swift
 //  LookInside
 //
 //  Created by Li Kai on 2019/6/12.
@@ -94,7 +94,7 @@ final class DashboardAttributeShadowView: DashboardAttributeView {
 
         // Re-render when the user switches between hex and RGBA.
         rgbaFormatObservation = PreferenceManager.shared.observe(\.rgbaFormat, options: [.new]) { [weak self] _, _ in
-            lkRunOnMain { self?.renderWithAttribute() }
+            runOnMain { self?.renderWithAttribute() }
         }
     }
 
@@ -134,7 +134,7 @@ final class DashboardAttributeShadowView: DashboardAttributeView {
             return
         }
         // The colour may be nil.
-        let color = NSColor.lk_color(fromRGBAComponents: info["color"] as? [NSNumber])
+        let color = NSColor.sRGBColor(fromRGBAComponents: info["color"] as? [NSNumber])
         let offset = offsetValue.sizeValue
 
         colorIndicatorLayer.color = color

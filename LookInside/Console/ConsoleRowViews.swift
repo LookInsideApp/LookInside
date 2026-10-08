@@ -1,5 +1,5 @@
 //
-//  LKConsoleRowViews.swift
+//  ConsoleRowViews.swift
 //  LookInside
 //
 //  The Console transcript rows: the input row (target picker and text
@@ -103,7 +103,7 @@ final class ConsoleInputRowView: TableRowView, InputSearchViewDelegate {
         let color = lkpConsoleTargetColor(isDarkMode: isDarkMode)
         let title: String
         if let object = dataSource.currentObject {
-            title = "<\(object.lk_simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
+            title = "<\(object.simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
             inputView.textField.isEditable = true
             inputView.textField.placeholderString = NSLocalizedString("Type property or method name here", comment: "")
         } else {

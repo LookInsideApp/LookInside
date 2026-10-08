@@ -13,7 +13,7 @@ class ColorIndicatorLayer: CALayer {
     private var imageLayer: CALayer?
 
     /// Defaults to black.
-    @objc var color: NSColor? = .lkBaseRGB(0, 0, 0) {
+    @objc var color: NSColor? = .rgb255(0, 0, 0) {
         didSet { updateForColor() }
     }
 
@@ -57,7 +57,7 @@ class ColorIndicatorLayer: CALayer {
     }
 
     private func contrastColor(for color: NSColor?) -> NSColor {
-        guard let color else { return .lkBaseRGB(191, 191, 191) }
+        guard let color else { return .rgb255(191, 191, 191) }
         var hue: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
         color.getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
         let newBrightness = brightness > 0.5 ? brightness - 0.2 : brightness + 0.2

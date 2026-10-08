@@ -21,7 +21,7 @@ extension DisplayItem {
         } else if let customDisplayTitle, !customDisplayTitle.isEmpty {
             baseTitle = customDisplayTitle
         } else {
-            baseTitle = displayingObject()?.lk_simpleDemangledClassName()
+            baseTitle = displayingObject()?.simpleDemangledClassName()
         }
         return PrivateDiscriminatorStore.shared.displayTitle(for: self, fallback: baseTitle) ?? ""
     }
@@ -32,10 +32,10 @@ extension DisplayItem {
         if let customInfo {
             return customInfo.subtitle
         }
-        if let windowControllerName = hostWindowControllerObject?.lk_simpleDemangledClassName(), !windowControllerName.isEmpty {
+        if let windowControllerName = hostWindowControllerObject?.simpleDemangledClassName(), !windowControllerName.isEmpty {
             return "\(windowControllerName).window"
         }
-        if let viewControllerName = hostViewControllerObject?.lk_simpleDemangledClassName(), !viewControllerName.isEmpty {
+        if let viewControllerName = hostViewControllerObject?.simpleDemangledClassName(), !viewControllerName.isEmpty {
             return "\(viewControllerName).view"
         }
         let representedObject = displayingObject()
@@ -78,7 +78,7 @@ extension DisplayItem {
             // layer oid belongs to the separate BackingLayer child node —
             // requests keyed by it would land on that node on both ends. The
             // view node itself must route by its view oid.
-            if let viewOid = viewObject?.oid, viewOid != 0, lk_ownsSeparateBackingLayerNode() {
+            if let viewOid = viewObject?.oid, viewOid != 0, ownsSeparateBackingLayerNode() {
                 return viewOid
             }
             // Prefer the layer oid, as upstream does: the server's detail
@@ -99,7 +99,7 @@ extension DisplayItem {
     /// layer oid (backing-layer toggle ON); requests for this node must then
     /// route by the view oid. Read off the tree rather than the preference,
     /// so it stays false against servers that ignored the toggle.
-    @objc func lk_ownsSeparateBackingLayerNode() -> Bool {
+    @objc func ownsSeparateBackingLayerNode() -> Bool {
         guard let layerOid = layerObject?.oid, layerOid != 0,
               let viewOid = viewObject?.oid, viewOid != 0
         else { return false }
@@ -252,7 +252,7 @@ extension DisplayItem {
 
     // MARK: - SwiftUI
 
-    @objc func lk_isSwiftUISupportRelated() -> Bool {
+    @objc func isSwiftUISupportRelated() -> Bool {
         func looksLikeSwiftUISupport(_ object: InspectedObject?) -> Bool {
             guard let object else { return false }
             if ClientDisplayText.looksLikeSwiftUISupport(object.rawClassName()) {
@@ -270,13 +270,13 @@ extension DisplayItem {
 
     /// Addresses of the layers named by "… Backed By" rows in the
     /// "SwiftUI Layers" group.
-    @objc func lk_swiftUIBackingLayerMemoryAddresses() -> [String] {
+    @objc func swiftUIBackingLayerMemoryAddresses() -> [String] {
         var addresses: [String] = []
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI Layers" {
-            for attribute in group.lk_allAttributes {
+            for attribute in group.allAttributes {
                 guard let title = attribute.displayTitle, title.hasSuffix("Backed By"),
                       let value = attribute.value as? String,
-                      let address = Self.lk_memoryAddress(inObjectDescription: value),
+                      let address = Self.memoryAddress(inObjectDescription: value),
                       !addresses.contains(address)
                 else { continue }
                 addresses.append(address)
@@ -287,13 +287,13 @@ extension DisplayItem {
 
     /// Display-list IDs from "… Display List ID" rows of "SwiftUI Layers"
     /// and "Identity IDs" rows of "SwiftUI Display List".
-    @objc func lk_swiftUIBackingDisplayListIDs() -> [NSNumber] {
+    @objc func swiftUIBackingDisplayListIDs() -> [NSNumber] {
         var displayListIDs: [UInt64] = []
         for group in allAttributeGroups {
             let isLayersGroup = group.userCustomTitle == "SwiftUI Layers"
             let isDisplayListGroup = group.userCustomTitle == "SwiftUI Display List"
             guard isLayersGroup || isDisplayListGroup else { continue }
-            for attribute in group.lk_allAttributes {
+            for attribute in group.allAttributes {
                 guard let value = attribute.value as? String else { continue }
                 let title = attribute.displayTitle ?? ""
                 let isLayerDisplayListID = isLayersGroup && title.hasSuffix("Display List ID")
@@ -308,10 +308,10 @@ extension DisplayItem {
     }
 
     /// The first "Display List ID" of the "SwiftUI" group, for layer nodes.
-    @objc func lk_swiftUILayerDisplayListID() -> NSNumber? {
+    @objc func swiftUILayerDisplayListID() -> NSNumber? {
         guard layerObject != nil else { return nil }
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI" {
-            for attribute in group.lk_allAttributes {
+            for attribute in group.allAttributes {
                 guard attribute.displayTitle == "Display List ID", let value = attribute.value as? String else { continue }
                 if let first = ClientDisplayText.swiftUIDisplayListIDs(in: value).first {
                     return NSNumber(value: first)
@@ -322,10 +322,10 @@ extension DisplayItem {
     }
 
     /// "Source" and "Full Source" values of the "SwiftUI" group.
-    @objc func lk_swiftUILayerSourceTypeNames() -> [String] {
+    @objc func swiftUILayerSourceTypeNames() -> [String] {
         var sourceNames: [String] = []
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI" {
-            for attribute in group.lk_allAttributes {
+            for attribute in group.allAttributes {
                 guard attribute.displayTitle == "Source" || attribute.displayTitle == "Full Source",
                       let value = attribute.value as? String, !sourceNames.contains(value)
                 else { continue }
@@ -337,13 +337,13 @@ extension DisplayItem {
 
     /// The custom node's title, then "Type" and "Full Type" values of the
     /// "SwiftUI Type" group.
-    @objc func lk_swiftUITypeNames() -> [String] {
+    @objc func swiftUITypeNames() -> [String] {
         var typeNames: [String] = []
         if let customTitle = customInfo?.title {
             typeNames.append(customTitle)
         }
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI Type" {
-            for attribute in group.lk_allAttributes {
+            for attribute in group.allAttributes {
                 guard attribute.displayTitle == "Type" || attribute.displayTitle == "Full Type",
                       let value = attribute.value as? String, !typeNames.contains(value)
                 else { continue }
@@ -354,12 +354,12 @@ extension DisplayItem {
     }
 
     @objc(lk_validSwiftUIDisplayListIDsInString:)
-    static func lk_validSwiftUIDisplayListIDs(in string: String) -> [NSNumber] {
+    static func validSwiftUIDisplayListIDs(in string: String) -> [NSNumber] {
         ClientDisplayText.swiftUIDisplayListIDs(in: string).map { NSNumber(value: $0) }
     }
 
     @objc(lk_memoryAddressInObjectDescription:)
-    static func lk_memoryAddress(inObjectDescription description: String) -> String? {
+    static func memoryAddress(inObjectDescription description: String) -> String? {
         ClientDisplayText.memoryAddress(inObjectDescription: description)
     }
 
@@ -396,7 +396,7 @@ extension DisplayItem {
 
 private extension AttributesGroup {
     /// Every attribute of every section, in order.
-    var lk_allAttributes: [InspectedAttribute] {
+    var allAttributes: [InspectedAttribute] {
         (attrSections ?? []).flatMap { $0.attributes ?? [] }
     }
 }

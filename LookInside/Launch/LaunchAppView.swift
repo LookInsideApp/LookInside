@@ -193,7 +193,7 @@ final class LaunchAppView: BaseControl {
 
     override func updateLayer() {
         super.updateLayer()
-        let isDarkMode = effectiveAppearance.lk_isDarkMode
+        let isDarkMode = effectiveAppearance.isDarkMode
         hoverBgLayer.backgroundColor = NSColor(red: 0, green: 0, blue: 0, alpha: isDarkMode ? 0.17 : 0.08).cgColor
         if hasServerVersionError {
             layer?.backgroundColor = NSColor(red: 0, green: 0, blue: 0, alpha: isDarkMode ? 0.13 : 0.05).cgColor

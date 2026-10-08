@@ -53,10 +53,10 @@ final class ConstraintPopoverController: BaseViewController {
         }
         let texts = [
             tuple("FirstItem", AutoLayoutConstraint.description(withItemObject: constraint.firstItem, type: constraint.firstItemType, detailed: true)),
-            tuple("FirstAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute) as NSString).lk_capitalizedString()),
+            tuple("FirstAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute) as NSString).capitalizingFirstLetter()),
             tuple("Relation", AutoLayoutConstraint.description(with: constraint.relation)),
             tuple("SecondItem", AutoLayoutConstraint.description(withItemObject: constraint.secondItem, type: constraint.secondItemType, detailed: true)),
-            tuple("SecondAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.secondAttribute) as NSString).lk_capitalizedString()),
+            tuple("SecondAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.secondAttribute) as NSString).capitalizingFirstLetter()),
             tuple("Multiplier", "\(NSNumber(value: Double(constraint.multiplier)))"),
             tuple("Constant", "\(NSNumber(value: Double(constraint.constant)))"),
             tuple("Priority", "\(NSNumber(value: Double(constraint.priority)))"),
@@ -99,7 +99,7 @@ final class ConstraintPopoverController: BaseViewController {
     }
 
     private func jumpButton(for jumpObject: InspectedObject, canJumpToObject: ((InspectedObject) -> Bool)?) -> NSButton {
-        let button = NSButton.lk_button(with: DashboardStyle.image("Icon_JumpDisclosure"), target: self, action: #selector(handleJumpButton(_:)))
+        let button = NSButton.borderlessImageButton(with: DashboardStyle.image("Icon_JumpDisclosure"), target: self, action: #selector(handleJumpButton(_:)))
         jumpObjects[ObjectIdentifier(button)] = jumpObject
         if let canJumpToObject, !canJumpToObject(jumpObject) {
             button.isEnabled = false

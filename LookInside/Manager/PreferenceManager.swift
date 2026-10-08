@@ -16,15 +16,15 @@
 import AppKit
 import LookInsideHostCore
 
-let LKWindowSizeName_Dynamic = "LKWindowSizeName_Dynamic"
-let LKWindowSizeName_Static = "LKWindowSizeName_Static"
+let windowSizeNameDynamic = "LKWindowSizeName_Dynamic"
+let windowSizeNameStatic = "LKWindowSizeName_Static"
 
 /// The initial preview scale.
-let LKInitialPreviewScale: CGFloat = 0.27
+let initialPreviewScale: CGFloat = 0.27
 
 /// The default hierarchy request timeout, in seconds.
-let LKDefaultHierarchyRequestTimeoutInterval: TimeInterval = 15
-let LKDefaultLicenseHandshakeTimeoutInterval: TimeInterval = 5
+let defaultHierarchyRequestTimeoutInterval: TimeInterval = 15
+let defaultLicenseHandshakeTimeoutInterval: TimeInterval = 5
 
 /// Posted when a dashboard section is added or removed.
 let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectionShowing"
@@ -193,7 +193,7 @@ final class PreferenceManager: NSObject {
     @objc dynamic var hierarchyRequestTimeoutInterval: TimeInterval {
         get { storedHierarchyRequestTimeoutInterval }
         set {
-            let value = newValue <= 0 ? LKDefaultHierarchyRequestTimeoutInterval : newValue
+            let value = newValue <= 0 ? defaultHierarchyRequestTimeoutInterval : newValue
             guard storedHierarchyRequestTimeoutInterval != value else { return }
             storedHierarchyRequestTimeoutInterval = value
             store(value, forKey: Key.hierarchyRequestTimeoutInterval)
@@ -206,7 +206,7 @@ final class PreferenceManager: NSObject {
     @objc dynamic var licenseHandshakeTimeoutInterval: TimeInterval {
         get { storedLicenseHandshakeTimeoutInterval }
         set {
-            let value = newValue <= 0 ? LKDefaultLicenseHandshakeTimeoutInterval : newValue
+            let value = newValue <= 0 ? defaultLicenseHandshakeTimeoutInterval : newValue
             guard storedLicenseHandshakeTimeoutInterval != value else { return }
             storedLicenseHandshakeTimeoutInterval = value
             store(value, forKey: Key.licenseHandshakeTimeoutInterval)
@@ -267,7 +267,7 @@ final class PreferenceManager: NSObject {
     override init() {
         let defaults = UserDefaults.standard
 
-        previewScale = DoubleMessageAttribute(double: Double(LKInitialPreviewScale))
+        previewScale = DoubleMessageAttribute(double: Double(initialPreviewScale))
         previewDimension = IntegerMessageAttribute(integer: Int(PreviewDimension.dimension3D.rawValue))
         measureState = IntegerMessageAttribute(integer: MeasureState.no.rawValue)
         isQuickSelecting = BoolMessageAttribute(bool: false)
@@ -294,7 +294,7 @@ final class PreferenceManager: NSObject {
 
         // 默认值为 0.22
         let zInterspaceValue = number(Key.zInterspace, default: 0.22).doubleValue
-        zInterspace = DoubleMessageAttribute(double: max(min(zInterspaceValue, Double(LookinPreviewMaxZInterspace)), Double(LookinPreviewMinZInterspace)))
+        zInterspace = DoubleMessageAttribute(double: max(min(zInterspaceValue, Double(previewMaxZInterspace)), Double(previewMinZInterspace)))
 
         appearanceType = PreferredAppearanceType(rawValue: number(Key.appearanceType, default: NSNumber(value: PreferredAppearanceType.system.rawValue)).intValue) ?? .system
         expansionIndex = number(Key.expansionIndex, default: 3).intValue
@@ -317,10 +317,10 @@ final class PreferenceManager: NSObject {
         preferredExportCompression = CGFloat(number(Key.preferredExportCompression, default: 0.5).doubleValue)
 
         storedHierarchyRequestTimeoutInterval = Self.positiveInterval(
-            defaults, key: Key.hierarchyRequestTimeoutInterval, fallback: LKDefaultHierarchyRequestTimeoutInterval
+            defaults, key: Key.hierarchyRequestTimeoutInterval, fallback: defaultHierarchyRequestTimeoutInterval
         )
         storedLicenseHandshakeTimeoutInterval = Self.positiveInterval(
-            defaults, key: Key.licenseHandshakeTimeoutInterval, fallback: LKDefaultLicenseHandshakeTimeoutInterval
+            defaults, key: Key.licenseHandshakeTimeoutInterval, fallback: defaultLicenseHandshakeTimeoutInterval
         )
 
         receivingConfigTime_Color = defaults.double(forKey: Key.receivingConfigTimeColor)

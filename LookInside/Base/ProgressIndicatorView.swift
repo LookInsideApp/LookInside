@@ -42,7 +42,7 @@ class ProgressIndicatorView: BaseView {
     }
 
     private func layoutFillLayer() {
-        fillLayer.lkLayout.x(0).width(frame.width * progress).height(frame.height).y(0)
+        fillLayer.frameLayout.x(0).width(frame.width * progress).height(frame.height).y(0)
     }
 
     override func animation(forKey key: NSAnimatablePropertyKey) -> Any? {

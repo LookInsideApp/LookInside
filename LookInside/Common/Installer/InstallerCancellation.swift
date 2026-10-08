@@ -13,7 +13,7 @@ final class InstallerCancellation {
     private weak var unzipProcess: Process?
 
     var isCancelled: Bool {
-        lock.lkLock { cancelled }
+        lock.withLock { cancelled }
     }
 
     func cancel() {
@@ -32,7 +32,7 @@ final class InstallerCancellation {
     }
 
     func register(downloadTask task: URLSessionDownloadTask?) {
-        let shouldCancel = lock.lkLock {
+        let shouldCancel = lock.withLock {
             downloadTask = task
             return cancelled
         }
@@ -42,7 +42,7 @@ final class InstallerCancellation {
     }
 
     func register(unzipProcess process: Process?) {
-        let shouldCancel = lock.lkLock {
+        let shouldCancel = lock.withLock {
             unzipProcess = process
             return cancelled
         }

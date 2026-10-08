@@ -3,7 +3,7 @@ import Foundation
 import LookInsideActivation
 import LookInsideActivationUI
 
-@objc public enum SwiftUISupportActivationState: Int {
+@objc public enum SwiftUISupportActivationState: Int, CustomDebugStringConvertible {
     case unknown
     case notActivated
     case activated
@@ -16,7 +16,7 @@ import LookInsideActivationUI
         self = decision.grantsAccess ? .activated : .notActivated
     }
 
-    var lkDebugDescription: String {
+    public var debugDescription: String {
         switch self {
         case .unknown: return "unknown"
         case .notActivated: return "notActivated"
@@ -99,7 +99,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         SwiftUISupportLogger.activation.info(
             // Logger interpolations are escaping autoclosures.
             // swiftformat:disable:next redundantSelf
-            "activation runtime ready, state=\(self.publishedState.lkDebugDescription, privacy: .public)"
+            "activation runtime ready, state=\(self.publishedState.debugDescription, privacy: .public)"
         )
         decisionObservation = runtime.addDecisionObserver { [weak self] decision in
             self?.recordDecision(decision)
@@ -226,7 +226,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         }
         guard shouldNotify else { return }
         SwiftUISupportLogger.activation.info(
-            "activation state changed: \(previousState.lkDebugDescription, privacy: .public) -> \(newState.lkDebugDescription, privacy: .public) (decision=\(decision.decision.rawValue, privacy: .public))"
+            "activation state changed: \(previousState.debugDescription, privacy: .public) -> \(newState.debugDescription, privacy: .public) (decision=\(decision.decision.rawValue, privacy: .public))"
         )
         DispatchQueue.main.async {
             NotificationCenter.default.post(

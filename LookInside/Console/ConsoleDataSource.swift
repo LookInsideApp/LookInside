@@ -124,7 +124,7 @@ final class ConsoleDataSource {
         let result = try await inspectableApp.invokeMethod(oid: object.oid, text: text)
         let returnDescription = result["description"] as? String
         let returnObject = result["object"] as? InspectedObject
-        let target = "<\(object.lk_simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
+        let target = "<\(object.simpleDemangledClassName()): \(object.memoryAddress ?? "(null)")>"
 
         var rows = rowItems
         rows.insert(ConsoleRowItem(kind: .submit, highlightText: target, normalText: text), at: rows.count - 1)

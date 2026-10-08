@@ -89,20 +89,20 @@ class TipsView: BaseView {
 
         var x = insetLeft
         if !imageView.isHidden {
-            imageView.lkLayout.size(imageSize).verAlign().x(x)
+            imageView.frameLayout.size(imageSize).verAlign().x(x)
             x = imageView.frame.maxX + imageRight
         }
 
-        titleLabel.lkLayout.sizeToFit().verAlign().x(x)
+        titleLabel.frameLayout.sizeToFit().verAlign().x(x)
         x = titleLabel.frame.maxX
 
         if !sepLayer.isHidden {
-            sepLayer.lkLayout.width(1).fullHeight().x(x + sepLeft)
+            sepLayer.frameLayout.width(1).fullHeight().x(x + sepLeft)
             x = sepLayer.frame.maxX
         }
 
         if !button.isHidden {
-            button.lkLayout.x(x).toRight(insetRightWithButton).fullHeight()
+            button.frameLayout.x(x).toRight(insetRightWithButton).fullHeight()
         }
     }
 
@@ -127,9 +127,9 @@ class TipsView: BaseView {
     override func updateColors() {
         super.updateColors()
         let isDarkMode = isDarkMode()
-        backgroundColor = isDarkMode ? .lkBaseRGB(0, 0, 0, 0.8) : .lkBaseRGB(255, 255, 255, 0.9)
-        titleLabel.textColor = isDarkMode ? .lkBaseRGB(197, 198, 199) : .lkBaseRGB(108, 109, 110)
-        let borderColor: NSColor = isDarkMode ? .lkBaseRGB(43, 44, 45) : .lkBaseRGB(216, 217, 218)
+        backgroundColor = isDarkMode ? .rgb255(0, 0, 0, 0.8) : .rgb255(255, 255, 255, 0.9)
+        titleLabel.textColor = isDarkMode ? .rgb255(197, 198, 199) : .rgb255(108, 109, 110)
+        let borderColor: NSColor = isDarkMode ? .rgb255(43, 44, 45) : .rgb255(216, 217, 218)
         layer?.borderColor = borderColor.cgColor
         sepLayer.backgroundColor = borderColor.cgColor
         updateButton()
@@ -204,7 +204,7 @@ class TipsView: BaseView {
 
     /// Subclasses override this to recolour the button text.
     func buttonTextColor() -> NSColor {
-        isDarkMode() ? .lkBaseRGB(64, 134, 216) : .lkBaseRGB(74, 145, 228)
+        isDarkMode() ? .rgb255(64, 134, 216) : .rgb255(74, 145, 228)
     }
 }
 
@@ -216,7 +216,7 @@ class YellowTipsView: TipsView {
     @objc func startAnimation() {
         guard !isAnimating else { return }
         let animation = CABasicAnimation(keyPath: "backgroundColor")
-        if effectiveAppearance.lk_isDarkMode {
+        if effectiveAppearance.isDarkMode {
             animation.fromValue = NSColor.systemOrange.withAlphaComponent(0.7).cgColor
             animation.toValue = NSColor.systemOrange.withAlphaComponent(0.64).cgColor
         } else {
@@ -240,7 +240,7 @@ class YellowTipsView: TipsView {
         super.updateColors()
         titleLabel.textColor = .white
         layer?.borderColor = NSColor.clear.cgColor
-        sepLayer.backgroundColor = NSColor.lkBaseRGB(255, 255, 255, 0.5).cgColor
+        sepLayer.backgroundColor = NSColor.rgb255(255, 255, 255, 0.5).cgColor
     }
 
     override func buttonTextColor() -> NSColor {
@@ -253,8 +253,8 @@ class YellowTipsView: TipsView {
 class RedTipsView: TipsView {
     @objc func startAnimation() {
         let animation = CABasicAnimation(keyPath: "backgroundColor")
-        animation.fromValue = NSColor.lkBaseRGB(208, 2, 27, 0.9).cgColor
-        animation.toValue = NSColor.lkBaseRGB(208, 2, 27, 0.7).cgColor
+        animation.fromValue = NSColor.rgb255(208, 2, 27, 0.9).cgColor
+        animation.toValue = NSColor.rgb255(208, 2, 27, 0.7).cgColor
         animation.duration = 0.8
         animation.repeatCount = .infinity
         animation.autoreverses = true
@@ -270,7 +270,7 @@ class RedTipsView: TipsView {
         super.updateColors()
         titleLabel.textColor = .white
         layer?.borderColor = NSColor.clear.cgColor
-        sepLayer.backgroundColor = NSColor.lkBaseRGB(255, 255, 255, 0.5).cgColor
+        sepLayer.backgroundColor = NSColor.rgb255(255, 255, 255, 0.5).cgColor
     }
 
     override func buttonTextColor() -> NSColor {

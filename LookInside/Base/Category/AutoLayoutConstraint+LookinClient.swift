@@ -23,7 +23,7 @@ extension AutoLayoutConstraint {
         case .view, .layoutGuide:
             return detailed
                 ? "<\(object?.rawClassName() ?? "(null)"): \(object?.memoryAddress ?? "(null)")>"
-                : "(\(object?.lk_simpleDemangledClassName() ?? "(null)")*)"
+                : "(\(object?.simpleDemangledClassName() ?? "(null)")*)"
         default:
             assertionFailure("unknown constraint item type \(type.rawValue)")
             return detailed

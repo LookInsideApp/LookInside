@@ -10,21 +10,21 @@ import Foundation
 
 // Toolbar item identifiers. The values are stored in the toolbar
 // configuration; never change them.
-let LKToolBarIdentifier_Dimension = "0"
-let LKToolBarIdentifier_Scale = "1"
-let LKToolBarIdentifier_Setting = "2"
-let LKToolBarIdentifier_Reload = "3"
-let LKToolBarIdentifier_App = "5"
-let LKToolBarIdentifier_AppInReadMode = "12"
-let LKToolBarIdentifier_Add = "13"
-let LKToolBarIdentifier_Remove = "14"
-let LKToolBarIdentifier_Console = "15"
-let LKToolBarIdentifier_Rotation = "16"
-let LKToolBarIdentifier_Measure = "17"
-let LKToolBarIdentifier_Message = "18"
-let LKToolBarIdentifier_FastMode = "19"
-let LKToolBarIdentifier_SwiftUIMode = "20"
-let LKToolBarIdentifier_GestureDebug = "21"
+let toolbarIdentifierDimension = "0"
+let toolbarIdentifierScale = "1"
+let toolbarIdentifierSetting = "2"
+let toolbarIdentifierReload = "3"
+let toolbarIdentifierApp = "5"
+let toolbarIdentifierAppInReadMode = "12"
+let toolbarIdentifierAdd = "13"
+let toolbarIdentifierRemove = "14"
+let toolbarIdentifierConsole = "15"
+let toolbarIdentifierRotation = "16"
+let toolbarIdentifierMeasure = "17"
+let toolbarIdentifierMessage = "18"
+let toolbarIdentifierFastMode = "19"
+let toolbarIdentifierSwiftUIMode = "20"
+let toolbarIdentifierGestureDebug = "21"
 
 /// What opened the apps popover.
 @objc enum MenuPopoverAppsListControllerEventSource: Int {

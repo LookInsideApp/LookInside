@@ -466,14 +466,14 @@ final class FrameLayout: NSObject {
 
 extension NSView {
     /// Frame layout for this view, replacing ShortCocoa's `$(view)`.
-    var lkLayout: FrameLayout {
+    var frameLayout: FrameLayout {
         FrameLayout([self])
     }
 }
 
 extension CALayer {
     /// Frame layout for this layer, replacing ShortCocoa's `$(layer)`.
-    var lkLayout: FrameLayout {
+    var frameLayout: FrameLayout {
         FrameLayout([self])
     }
 }

@@ -53,7 +53,7 @@ final class PreviewView: SCNView {
         }
     }
 
-    /// Zoom, from LookinPreviewMinScale to LookinPreviewMaxScale.
+    /// Zoom, from previewMinScale to previewMaxScale.
     var scale: CGFloat = 0 {
         didSet {
             // A smaller focal length shows a smaller image.
@@ -61,8 +61,8 @@ final class PreviewView: SCNView {
         }
     }
 
-    /// The spacing between layers, from LookinPreviewMinZInterspace to
-    /// LookinPreviewMaxZInterspace.
+    /// The spacing between layers, from previewMinZInterspace to
+    /// previewMaxZInterspace.
     var zInterspace: CGFloat {
         get { storedZInterspace }
         set {

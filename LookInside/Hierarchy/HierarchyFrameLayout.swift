@@ -257,7 +257,7 @@ struct HierarchyFrameLayout {
 extension NSView {
     /// ShortCocoa's visibility test for layout: shown, in a superview and
     /// not transparent.
-    var lkHierarchyIsLaidOutVisible: Bool {
+    var hierarchyIsLaidOutVisible: Bool {
         !isHidden && superview != nil && alphaValue >= 0.01
     }
 }

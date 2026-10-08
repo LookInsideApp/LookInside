@@ -58,8 +58,8 @@ final class MenuPopoverSettingController: BaseViewController {
             isOn: manager.showBackingLayers.currentBOOLValue
         )
 
-        spaceSlider.minValue = Double(LookinPreviewMinZInterspace)
-        spaceSlider.maxValue = Double(LookinPreviewMaxZInterspace)
+        spaceSlider.minValue = Double(previewMinZInterspace)
+        spaceSlider.maxValue = Double(previewMaxZInterspace)
         spaceSlider.target = self
         spaceSlider.action = #selector(handleSpaceSlider(_:))
         view.addSubview(spaceSlider)

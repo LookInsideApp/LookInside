@@ -58,7 +58,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
 
         // Re-render when the user switches between hex and RGBA.
         rgbaFormatObservation = PreferenceManager.shared.observe(\.rgbaFormat, options: [.new]) { [weak self] _, _ in
-            lkRunOnMain { self?.renderWithAttribute() }
+            runOnMain { self?.renderWithAttribute() }
         }
     }
 
@@ -80,7 +80,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
     override func renderWithAttribute() {
         iconImageView.isHidden = !canEdit()
 
-        let color = NSColor.lk_color(fromRGBAComponents: attribute?.value as? [NSNumber])
+        let color = NSColor.sRGBColor(fromRGBAComponents: attribute?.value as? [NSNumber])
         indicatorLayer.color = color
 
         if let color {
@@ -164,7 +164,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
         let currentValue = attribute?.value as? NSObject
         let isCurrent: Bool
         if let color {
-            isCurrent = currentValue?.isEqual(color.lk_rgbaComponents()) ?? false
+            isCurrent = currentValue?.isEqual(color.sRGBAComponents()) ?? false
         } else {
             // Both nil: the item for "no colour" while the value is nil.
             isCurrent = currentValue == nil
@@ -177,7 +177,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
     }
 
     @objc private func handleCustomColorMenuItem() {
-        let initialColor = NSColor.lk_color(fromRGBAComponents: attribute?.value as? [NSNumber])
+        let initialColor = NSColor.sRGBColor(fromRGBAComponents: attribute?.value as? [NSNumber])
         let panel = NSColorPanel.shared
         panel.showsAlpha = true
         panel.isContinuous = false
@@ -199,7 +199,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
     }
 
     private func modify(to targetColor: NSColor?) {
-        let expectedValue = targetColor?.lk_rgbaComponents()
+        let expectedValue = targetColor?.sRGBAComponents()
         if let currentValue = attribute?.value as? NSObject, let expectedValue, currentValue.isEqual(expectedValue) {
             NSLog("修改没有变化，不做任何提交")
             return

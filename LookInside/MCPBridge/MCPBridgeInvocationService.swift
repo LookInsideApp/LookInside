@@ -186,13 +186,13 @@ final class MCPBridgeInvocationService {
     }
 
     private func makeReturnedObject(from rawObject: Any?) -> MCPBridgeReturnedObject? {
-        guard let lookinObject = rawObject as? InspectedObject else { return nil }
-        let oidString = String(format: "0x%lx", lookinObject.oid)
+        guard let inspectedObject = rawObject as? InspectedObject else { return nil }
+        let oidString = String(format: "0x%lx", inspectedObject.oid)
         return MCPBridgeReturnedObject(
             objectIdentifier: oidString,
-            memoryAddress: lookinObject.memoryAddress ?? "",
-            classChainList: lookinObject.classChainList ?? [],
-            specialTrace: lookinObject.specialTrace
+            memoryAddress: inspectedObject.memoryAddress ?? "",
+            classChainList: inspectedObject.classChainList ?? [],
+            specialTrace: inspectedObject.specialTrace
         )
     }
 

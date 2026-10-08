@@ -8,13 +8,13 @@ import LookInsideHostCore
 
 extension InspectedObject {
     /// The demangled class name, module prefix included.
-    @objc func lk_completedDemangledClassName() -> String {
+    @objc func completedDemangledClassName() -> String {
         SwiftDemangler.completedParse(input: rawClassName() ?? "")
     }
 
     /// The demangled class name without its module prefix; generic
     /// arguments keep theirs.
-    @objc func lk_simpleDemangledClassName() -> String {
+    @objc func simpleDemangledClassName() -> String {
         ClientDisplayText.removingModulePrefix(SwiftDemangler.simpleParse(input: rawClassName() ?? ""))
     }
 }

@@ -95,7 +95,7 @@ class OutlineRowView: TableRowView {
             HierarchyFrameLayout(subtitleLabel).sizeToFit().x(titleLabel.frame.maxX + subtitleLeft).verAlign()
             maxX = subtitleLabel.frame.maxX
         }
-        for view: NSView in [disclosureButton!, titleLabel!, subtitleLabel!] where view.lkHierarchyIsLaidOutVisible {
+        for view: NSView in [disclosureButton!, titleLabel!, subtitleLabel!] where view.hierarchyIsLaidOutVisible {
             HierarchyFrameLayout(view).offsetY(-1)
         }
 

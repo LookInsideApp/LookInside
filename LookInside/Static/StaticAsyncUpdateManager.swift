@@ -234,7 +234,7 @@ final class StaticAsyncUpdateManager: NSObject {
             if item.isUserCustom() {
                 return nil
             }
-            if item.lkOptionalAppropriateScreenshot != nil {
+            if item.optionalAppropriateScreenshot != nil {
                 // Has its image, and so its attributes too.
                 return nil
             }
@@ -314,7 +314,7 @@ final class StaticAsyncUpdateManager: NSObject {
             // layers on): then the view node has to use the view oid.
             let viewOid = item.viewObject?.oid ?? 0
             let layerOid = item.layerObject?.oid ?? 0
-            let prefersViewOid = AppHelper.appInfoLooksLikeMacTarget(appInfo) || item.lk_ownsSeparateBackingLayerNode()
+            let prefersViewOid = AppHelper.appInfoLooksLikeMacTarget(appInfo) || item.ownsSeparateBackingLayerNode()
             if prefersViewOid, viewOid != 0 {
                 oid = viewOid
             } else if layerOid != 0 {
@@ -330,12 +330,12 @@ final class StaticAsyncUpdateManager: NSObject {
         task.frameSize = item.frame.size
         task.taskType = type
         task.needBasisVisualInfo = true
-        task.clientReadableVersion = AppHelper.lookinReadableVersion()
+        task.clientReadableVersion = AppHelper.readableVersion()
         return task
     }
 
     private static func allowsSwiftUISupportAccess(for item: DisplayItem, appInfo: InspectedAppInfo?) -> Bool {
-        guard AppHelper.appInfoLooksLikeMacTarget(appInfo), item.lk_isSwiftUISupportRelated() else {
+        guard AppHelper.appInfoLooksLikeMacTarget(appInfo), item.isSwiftUISupportRelated() else {
             return true
         }
         return SwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: NSApplication.shared.keyWindow)
@@ -454,7 +454,7 @@ final class StaticAsyncUpdateManager: NSObject {
             comment: ""
         )
         if SwiftUISupportGatekeeper.sharedInstance().activationState == .activated,
-           (dataSource?.flatItems ?? []).contains(where: { $0.lk_isSwiftUISupportRelated() })
+           (dataSource?.flatItems ?? []).contains(where: { $0.isSwiftUISupportRelated() })
         {
             detail += "\n" + NSLocalizedString(
                 "First-time loading of SwiftUI details may take longer because LookInside needs to collect and match SwiftUI debug data.",
@@ -562,7 +562,7 @@ extension StaticAsyncUpdateManager {
             return false
         }
         if AppHelper.appInfoLooksLikeMacTarget(appInfo),
-           item.lk_isSwiftUISupportRelated(),
+           item.isSwiftUISupportRelated(),
            !SwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: NSApplication.shared.keyWindow)
         {
             return false
@@ -576,7 +576,7 @@ extension StaticAsyncUpdateManager {
         let task = StaticAsyncUpdateTask()
         task.oid = oid
         task.frameSize = item.frame.size
-        task.clientReadableVersion = AppHelper.lookinReadableVersion()
+        task.clientReadableVersion = AppHelper.readableVersion()
         return task
     }
 }

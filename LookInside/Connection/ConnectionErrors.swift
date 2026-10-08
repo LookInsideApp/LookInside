@@ -1,5 +1,5 @@
 //
-//  LKConnectionErrors.swift
+//  ConnectionErrors.swift
 //  LookInside
 //
 //  The NSErrors the Connection layer reports. Swift does not import the

@@ -27,8 +27,8 @@ class ImageTextView: BaseView {
 
     override func layout() {
         super.layout()
-        imageView.lkLayout.sizeToFit().x(imageMargins.left).verAlign()
-        label.lkLayout.x(imageView.frame.maxX + imageMargins.right).toRight(0).heightToFit().verAlign()
+        imageView.frameLayout.sizeToFit().x(imageMargins.left).verAlign()
+        label.frameLayout.x(imageView.frame.maxX + imageMargins.right).toRight(0).heightToFit().verAlign()
     }
 
     override func sizeThatFits(_: NSSize) -> NSSize {

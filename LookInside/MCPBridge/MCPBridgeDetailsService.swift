@@ -162,7 +162,7 @@ final class MCPBridgeDetailsService {
         // Build the RPC 203 task package. Single package — we already
         // cap the batch at 100 entries, so the host inspector's own
         // pixel/count packing thresholds never need to come into play.
-        let clientReadableVersion = AppHelper.lookinReadableVersion()
+        let clientReadableVersion = AppHelper.readableVersion()
         let tasks = resolvedItems.map { resolved -> StaticAsyncUpdateTask in
             let task = StaticAsyncUpdateTask()
             task.oid = resolved.nativeOid

@@ -5,8 +5,11 @@
 
 import AppKit
 
-let LKNumberInputHorizontalHeight: CGFloat = 21
-let LKNumberInputVerticalHeight: CGFloat = 38
+extension NumberInputView {
+    /// The field's height in the horizontal and the vertical style.
+    static let horizontalHeight: CGFloat = 21
+    static let verticalHeight: CGFloat = 38
+}
 
 @objc enum NumberInputViewStyle: UInt {
     /// The title sits inside the field, on its right.
@@ -74,17 +77,17 @@ class NumberInputView: BaseView {
 
     override func layout() {
         super.layout()
-        textFieldView.lkLayout.fullWidth().height(LKNumberInputHorizontalHeight)
+        textFieldView.frameLayout.fullWidth().height(NumberInputView.horizontalHeight)
         switch viewStyle {
         case .horizontal:
-            titleLabel.lkLayout.sizeToFit().minWidth(15).verAlign().right(2)
+            titleLabel.frameLayout.sizeToFit().minWidth(15).verAlign().right(2)
             var insets = textFieldView.insets
             insets.right = frame.width - titleLabel.frame.minX + 2
             textFieldView.insets = insets
         case .vertical:
             // Clamped to the column width, so a title wider than its column
             // no longer overlaps whatever sits to its left and right.
-            titleLabel.lkLayout.width(frame.width).heightToFit().x(0).y(textFieldView.frame.maxY + 3)
+            titleLabel.frameLayout.width(frame.width).heightToFit().x(0).y(textFieldView.frame.maxY + 3)
         }
     }
 
@@ -92,9 +95,9 @@ class NumberInputView: BaseView {
         var size = limitedSize
         switch viewStyle {
         case .horizontal:
-            size.height = LKNumberInputHorizontalHeight
+            size.height = NumberInputView.horizontalHeight
         case .vertical:
-            size.height = LKNumberInputVerticalHeight
+            size.height = NumberInputView.verticalHeight
         }
         return size
     }

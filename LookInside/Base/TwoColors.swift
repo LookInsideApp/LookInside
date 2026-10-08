@@ -30,7 +30,7 @@ final class TwoColors: NSObject {
     /// The dark colour while the app's effective appearance is dark, the
     /// light one otherwise.
     @objc var color: NSColor? {
-        let isDarkMode = NSApp?.effectiveAppearance.lk_isDarkMode ?? false
+        let isDarkMode = NSApp?.effectiveAppearance.isDarkMode ?? false
         return isDarkMode ? colorInDarkMode : colorInLightMode
     }
 }

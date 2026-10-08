@@ -129,13 +129,13 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         messageLabel.maximumNumberOfLines = 0
         messageLabel.lineBreakMode = .byWordWrapping
 
-        importButton = NSButton.lk_normalButton(withTitle: NSLocalizedString("Import from your codebase", comment: ""), target: self, action: #selector(handleImportButton(_:)))
+        importButton = NSButton.normalButton(withTitle: NSLocalizedString("Import from your codebase", comment: ""), target: self, action: #selector(handleImportButton(_:)))
         importButton.font = DashboardStyle.font(12)
 
-        guessButton = NSButton.lk_normalButton(withTitle: NSLocalizedString("Guess by swift-pd-guess", comment: ""), target: self, action: #selector(handleGuessButton(_:)))
+        guessButton = NSButton.normalButton(withTitle: NSLocalizedString("Guess by swift-pd-guess", comment: ""), target: self, action: #selector(handleGuessButton(_:)))
         guessButton.font = DashboardStyle.font(12)
 
-        cancelButton = NSButton.lk_normalButton(withTitle: NSLocalizedString("Cancel", comment: ""), target: self, action: #selector(handleCancelButton(_:)))
+        cancelButton = NSButton.normalButton(withTitle: NSLocalizedString("Cancel", comment: ""), target: self, action: #selector(handleCancelButton(_:)))
         cancelButton.font = DashboardStyle.font(12)
 
         toastView.layer?.cornerRadius = DashboardMetrics.cardControlCornerRadius
@@ -164,7 +164,7 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
         updateColors()
 
         stateObserver = NotificationCenter.default.addObserver(forName: Self.dashboardStateDidChangeNotification, object: nil, queue: nil) { [weak self] _ in
-            lkRunOnMain { self?.dashboardViewController?.reloadCurrentDisplayItem() }
+            runOnMain { self?.dashboardViewController?.reloadCurrentDisplayItem() }
         }
     }
 
@@ -456,7 +456,7 @@ final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
 
     private func makeCopyButton() -> NSButton {
         let image = NSImage(systemSymbolName: "doc.on.doc", accessibilityDescription: NSLocalizedString("Copy", comment: ""))
-        let button = NSButton.lk_button(with: image ?? NSImage(), target: self, action: #selector(handleCopyButton(_:)))
+        let button = NSButton.borderlessImageButton(with: image ?? NSImage(), target: self, action: #selector(handleCopyButton(_:)))
         button.imagePosition = .imageOnly
         button.toolTip = NSLocalizedString("Copy", comment: "")
         image?.isTemplate = true

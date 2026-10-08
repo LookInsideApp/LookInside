@@ -66,12 +66,12 @@ class TextControl: BaseControl {
         super.layout()
         var labelMaxX = frame.width - insets.right
         if let rightImageView {
-            rightImageView.lkLayout.sizeToFit().verAlign().right(insets.right).offsetY(rightImageOffsetY)
+            rightImageView.frameLayout.sizeToFit().verAlign().right(insets.right).offsetY(rightImageOffsetY)
             labelMaxX = rightImageView.frame.minX - spaceBetweenLabelAndImage
         }
-        label.lkLayout.x(insets.left).toMaxX(labelMaxX).heightToFit().verAlign()
+        label.frameLayout.x(insets.left).toMaxX(labelMaxX).heightToFit().verAlign()
         if insets.top != insets.bottom {
-            label.lkLayout.offsetY(insets.top - insets.bottom)
+            label.frameLayout.offsetY(insets.top - insets.bottom)
         }
     }
 

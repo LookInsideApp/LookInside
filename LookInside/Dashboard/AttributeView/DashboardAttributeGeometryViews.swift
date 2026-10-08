@@ -1,5 +1,5 @@
 //
-//  LKDashboardAttributeGeometryViews.swift
+//  DashboardAttributeGeometryViews.swift
 //  LookInside
 //
 //  Created by Li Kai on 2019/6/10.

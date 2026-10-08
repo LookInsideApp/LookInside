@@ -81,7 +81,7 @@ class BaseViewController: NSViewController {
         super.viewDidLayout()
         if let connectionTipsView, connectionTipsView.isVisible {
             let windowTitleHeight = NavigationManager.shared.windowTitleBarHeight
-            connectionTipsView.lkLayout.sizeToFit().horAlign().y(windowTitleHeight + 10)
+            connectionTipsView.frameLayout.sizeToFit().horAlign().y(windowTitleHeight + 10)
         }
     }
 

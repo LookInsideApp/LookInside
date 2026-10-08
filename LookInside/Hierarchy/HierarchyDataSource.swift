@@ -74,7 +74,7 @@ private func swiftUINode(_ item: DisplayItem, matchesSourceTypes sourceTypes: [S
     guard !sourceTypes.isEmpty else {
         return true
     }
-    let itemTypes = item.lk_swiftUITypeNames()
+    let itemTypes = item.swiftUITypeNames()
     return sourceTypes.contains { itemTypes.contains($0) }
 }
 
@@ -280,7 +280,7 @@ class HierarchyDataSource: NSObject {
                     node.doNotFetchScreenshotReason = .doNotFetchScreenshotForUserConfig
                 }
             }
-            if !serverSideIsSwiftProject, item.displayingObject()?.lk_completedDemangledClassName().contains(".") == true {
+            if !serverSideIsSwiftProject, item.displayingObject()?.completedDemangledClassName().contains(".") == true {
                 storedServerSideIsSwiftProject = true
             }
             if let source = item.customInfo?.danceuiSource, !source.isEmpty {
@@ -896,10 +896,10 @@ class HierarchyDataSource: NSObject {
                 result.append(candidate)
             }
         }
-        for address in item.lk_swiftUIBackingLayerMemoryAddresses() {
+        for address in item.swiftUIBackingLayerMemoryAddresses() {
             add(layerItem(withMemoryAddress: address))
         }
-        for displayListID in item.lk_swiftUIBackingDisplayListIDs() {
+        for displayListID in item.swiftUIBackingDisplayListIDs() {
             add(layerItem(withDisplayListID: displayListID))
         }
         return result
@@ -908,7 +908,7 @@ class HierarchyDataSource: NSObject {
     /// CALayer node -> its SwiftUI node, or nil.
     @objc(swiftUISourceItemForLayerItem:)
     func swiftUISourceItem(forLayerItem item: DisplayItem!) -> DisplayItem! {
-        guard let item, let displayListID = item.lk_swiftUILayerDisplayListID() else {
+        guard let item, let displayListID = item.swiftUILayerDisplayListID() else {
             return nil
         }
         return swiftUIItem(withDisplayListID: displayListID) ?? swiftUIItemForLayerItemByFrameAndSource(item)
@@ -923,15 +923,15 @@ class HierarchyDataSource: NSObject {
         }
         let title = attribute.displayTitle ?? ""
         let sourceIsSwiftUI = sourceItem.customInfo?.isSwiftUI == true
-            || !sourceItem.lk_swiftUIBackingDisplayListIDs().isEmpty
-            || !sourceItem.lk_swiftUIBackingLayerMemoryAddresses().isEmpty
+            || !sourceItem.swiftUIBackingDisplayListIDs().isEmpty
+            || !sourceItem.swiftUIBackingLayerMemoryAddresses().isEmpty
 
         if sourceIsSwiftUI {
             if title.hasSuffix("Backed By") {
-                return layerItem(withMemoryAddress: DisplayItem.lk_memoryAddress(inObjectDescription: value))
+                return layerItem(withMemoryAddress: DisplayItem.memoryAddress(inObjectDescription: value))
             }
             if title.hasSuffix("Display List ID") || title == "Identity IDs" {
-                for displayListID in DisplayItem.lk_validSwiftUIDisplayListIDs(in: value) {
+                for displayListID in DisplayItem.validSwiftUIDisplayListIDs(in: value) {
                     if let target = layerItem(withDisplayListID: displayListID) {
                         return target
                     }
@@ -945,8 +945,8 @@ class HierarchyDataSource: NSObject {
         }
 
         if sourceItem.layerObject != nil, title == "Display List ID" {
-            let displayListID = DisplayItem.lk_validSwiftUIDisplayListIDs(in: value).first
-                ?? sourceItem.lk_swiftUILayerDisplayListID()
+            let displayListID = DisplayItem.validSwiftUIDisplayListIDs(in: value).first
+                ?? sourceItem.swiftUILayerDisplayListID()
             return swiftUIItem(withDisplayListID: displayListID) ?? swiftUIItemForLayerItemByFrameAndSource(sourceItem)
         }
         return nil
@@ -965,7 +965,7 @@ class HierarchyDataSource: NSObject {
             return nil
         }
         return (rawFlatItems ?? []).first { item in
-            item.layerObject != nil && item.lk_swiftUILayerDisplayListID()?.isEqual(to: displayListID) == true
+            item.layerObject != nil && item.swiftUILayerDisplayListID()?.isEqual(to: displayListID) == true
         }
     }
 
@@ -975,7 +975,7 @@ class HierarchyDataSource: NSObject {
             return nil
         }
         var result: DisplayItem?
-        for item in rawFlatItems ?? [] where item.lk_swiftUIBackingDisplayListIDs().contains(displayListID) {
+        for item in rawFlatItems ?? [] where item.swiftUIBackingDisplayListIDs().contains(displayListID) {
             if result == nil || item.indentLevel() > result!.indentLevel() {
                 result = item
             }
@@ -989,7 +989,7 @@ class HierarchyDataSource: NSObject {
             return nil
         }
         let layerFrame = layerItem.calculateFrameToRoot()
-        let sourceTypes = layerItem.lk_swiftUILayerSourceTypeNames()
+        let sourceTypes = layerItem.swiftUILayerSourceTypeNames()
         var result: DisplayItem?
         for item in rawFlatItems ?? [] {
             guard item.customInfo?.isSwiftUI == true, item.hasValidFrameToRoot() else {

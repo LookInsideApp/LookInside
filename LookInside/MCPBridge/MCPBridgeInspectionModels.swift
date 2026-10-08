@@ -1,4 +1,4 @@
-// LKMCPBridgeInspectionModels.swift
+// MCPBridgeInspectionModels.swift
 //
 // Codable DTOs returned in MCPBridge response frames. These are deliberately
 // flat, JSON-friendly value types so the wire format stays self-describing
