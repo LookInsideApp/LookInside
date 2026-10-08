@@ -10,9 +10,11 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// Number fields, two per row. Subclasses fill them from the attribute's
 /// `NSValue` and turn an edited field into the value to submit.
+@Loggable(subsystem: "com.lookinside.app")
 class DashboardAttributeFieldsView: DashboardAttributeView, NSTextFieldDelegate {
     /// The field titles, in field order.
     class var fieldTitles: [String] {
@@ -103,20 +105,20 @@ class DashboardAttributeFieldsView: DashboardAttributeView, NSTextFieldDelegate 
         // flag changes, although textShouldBeginEditing refused input.
         guard canEdit() else { return }
         if DashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent {
-            NSLog("忽略 controlTextDidEndEditing 事件，驳回")
+            #log(.default, "忽略 controlTextDidEndEditing 事件，驳回")
             return
         }
         guard let editingTextField = notification.object as? NSTextField,
               let parsed = NumberInputView.parsedValue(with: editingTextField.stringValue, attrType: .double) as? NSNumber
         else {
-            NSLog("输入格式校验不通过，驳回")
+            #log(.default, "输入格式校验不通过，驳回")
             renderWithAttribute()
             return
         }
         guard let oldValue = attribute?.value as? NSValue else { return }
         let index = inputViews.firstIndex { $0.textFieldView.textField === editingTextField } ?? NSNotFound
         guard let newValue = editedValue(from: oldValue, field: index, number: parsed.doubleValue) else {
-            NSLog("修改没有变化，不做任何提交")
+            #log(.default, "修改没有变化，不做任何提交")
             renderWithAttribute()
             return
         }
@@ -130,7 +132,7 @@ class DashboardAttributeFieldsView: DashboardAttributeView, NSTextFieldDelegate 
     }
 }
 
-@objc(LKDashboardAttributeRectView)
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardAttributeRectView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["X", "Y", "W", "H"]
@@ -177,14 +179,13 @@ final class DashboardAttributeRectView: DashboardAttributeFieldsView {
                     )
                 }
             } catch {
-                NSLog("修改返回 error")
+                #log(.default, "修改返回 error")
                 self?.renderWithAttribute()
             }
         }
     }
 }
 
-@objc(LKDashboardAttributeInsetsView)
 final class DashboardAttributeInsetsView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["T", "L", "B", "R"]
@@ -216,7 +217,6 @@ final class DashboardAttributeInsetsView: DashboardAttributeFieldsView {
     }
 }
 
-@objc(LKDashboardAttributePointView)
 final class DashboardAttributePointView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["X", "Y"]
@@ -236,7 +236,6 @@ final class DashboardAttributePointView: DashboardAttributeFieldsView {
     }
 }
 
-@objc(LKDashboardAttributeSizeView)
 final class DashboardAttributeSizeView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["W", "H"]

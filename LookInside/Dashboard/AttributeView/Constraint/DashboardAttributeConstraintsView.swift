@@ -84,7 +84,6 @@ final class DashboardAttributeConstraintsItemControl: TextControl {
 
 /// The constraints that affect (or mention) the view; a click shows the
 /// details of one.
-@objc(LKDashboardAttributeConstraintsView)
 final class DashboardAttributeConstraintsView: DashboardAttributeView {
     private let verInterSpace: CGFloat = 8
     private var textControls: [DashboardAttributeConstraintsItemControl] = []

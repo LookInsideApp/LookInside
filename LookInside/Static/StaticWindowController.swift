@@ -14,8 +14,9 @@
 import AppKit
 import LookInsideHostCore
 import UniformTypeIdentifiers
+import FoundationToolbox
 
-@objc(LKStaticWindowController)
+@Loggable(subsystem: "com.lookinside.app")
 @MainActor
 final class StaticWindowController: WindowController, NSToolbarDelegate, @preconcurrency StaticAsyncUpdateManagerDelegate {
     /// Who asked for a hierarchy reload. Recorded when a reload actually
@@ -744,7 +745,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             do {
                 try exportedData.write(to: url)
             } catch {
-                NSLog("LookinClient - write fail:%@", error as NSError)
+                #log(.default, "LookinClient - write fail:\(error as NSError, privacy: .public)")
             }
         }
     }

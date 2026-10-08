@@ -3,7 +3,6 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @MainActor
-@objc(LKGestureDebugWindowController)
 final class GestureDebugWindowController: NSWindowController, NSWindowDelegate {
     private let session = GestureDebugSession()
     private var appObservation: NSKeyValueObservation?

@@ -19,8 +19,9 @@ import Darwin
 import Dispatch
 import Foundation
 import os
+import FoundationToolbox
 
-@objc(LKMCPBridgeServer)
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Server")
 final class MCPBridgeServer: NSObject {
     // MARK: - Singleton
 
@@ -31,7 +32,6 @@ final class MCPBridgeServer: NSObject {
     /// Maximum number of pending connections in the kernel accept queue.
     private static let listenBacklog: Int32 = 16
 
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Server")
 
     // MARK: - State
 
@@ -115,10 +115,10 @@ final class MCPBridgeServer: NSObject {
             do {
                 try self.bindAndListen()
                 self.isRunning = true
-                Self.logger.notice("MCPBridge started at \(MCPBridgeServer.socketURL.path, privacy: .public)")
+                #log(.default, "MCPBridge started at \(MCPBridgeServer.socketURL.path, privacy: .public)")
                 self.startEventPublisher()
             } catch {
-                Self.logger.error("MCPBridge failed to start: \(error.localizedDescription, privacy: .public)")
+                #log(.error, "MCPBridge failed to start: \(error.localizedDescription, privacy: .public)")
                 self.cleanUpListenSocket()
             }
         }
@@ -145,7 +145,7 @@ final class MCPBridgeServer: NSObject {
             }
             self.openConnections.removeAll()
             self.activeConnections.removeAll()
-            Self.logger.notice("MCPBridge stopped")
+            #log(.default, "MCPBridge stopped")
             Task { @MainActor in
                 Self.eventPublisher?.stop()
                 Self.eventPublisher = nil
@@ -221,7 +221,7 @@ final class MCPBridgeServer: NSObject {
                 if errorNumber == EAGAIN || errorNumber == EWOULDBLOCK {
                     return
                 }
-                Self.logger.error("accept() failed (errno \(errorNumber))")
+                #log(.error, "accept() failed (errno \(errorNumber))")
                 return
             }
             let connection = MCPBridgeConnection(
@@ -240,7 +240,7 @@ final class MCPBridgeServer: NSObject {
             let key = ObjectIdentifier(connection)
             openConnections[key] = connection
             activeConnections.insert(key)
-            Self.logger.notice("Accepted connection (fd=\(clientDescriptor))")
+            #log(.default, "Accepted connection (fd=\(clientDescriptor))")
             connection.start()
         }
     }

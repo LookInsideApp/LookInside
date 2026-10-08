@@ -14,7 +14,6 @@ import Foundation
 /// 5. Brief sleep so the target app's Server listener can bind; the existing
 ///    `LaunchViewController` 1.5s refresh tick then discovers the newly
 ///    inspectable app automatically.
-@objc(LKInjectionFlow)
 final class InjectionFlow: NSObject {
     @objc(sharedInstance) static let shared = InjectionFlow()
 

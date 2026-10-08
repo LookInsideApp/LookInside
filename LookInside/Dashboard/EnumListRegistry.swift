@@ -14,7 +14,6 @@ import Foundation
 
 /// One case of an enum: its name, raw value, and the first OS major
 /// version that has it (0 for every version).
-@objc(LKEnumListRegistryKeyValueItem)
 final class EnumListRegistryKeyValueItem: NSObject {
     @objc let desc: String
     @objc let value: Int
@@ -27,7 +26,6 @@ final class EnumListRegistryKeyValueItem: NSObject {
     }
 }
 
-@objc(LKEnumListRegistry)
 final class EnumListRegistry: NSObject {
     @objc(sharedInstance)
     static let shared = EnumListRegistry()

@@ -9,6 +9,7 @@
 
 import Foundation
 import LookInsideHostCore
+import FoundationToolbox
 
 extension ConnectionManager {
     /// Makes sure the license handshake has run on `channel`, then calls
@@ -45,12 +46,7 @@ extension ConnectionManager {
         LicenseHandshakeFlow.run(in: environment, channelDescription: String(format: "%p", channel)) { failure in
             if let failure {
                 let error = ConnectionError.licenseHandshakeError(failure)
-                NSLog(
-                    "LookinClient - license handshake failed, domain:%@, code:%@, description:%@",
-                    error.domain,
-                    NSNumber(value: error.code),
-                    error.localizedDescription
-                )
+                #log(.default, "LookinClient - license handshake failed, domain:\(error.domain, privacy: .public), code:\(NSNumber(value: error.code), privacy: .public), description:\(error.localizedDescription, privacy: .public)")
             }
             state.licenseHandshake.finish(verified: failure == nil)
         }
@@ -71,7 +67,7 @@ extension ConnectionManager {
         }
         for channel in channels {
             ensureLicenseHandshake(on: channel, force: true) { verified in
-                NSLog("LookinClient - activation-state license handshake finished, verified:%@", NSNumber(value: verified))
+                #log(.default, "LookinClient - activation-state license handshake finished, verified:\(NSNumber(value: verified), privacy: .public)")
             }
         }
     }
@@ -85,7 +81,7 @@ extension ConnectionManager {
         guard SwiftUISupportGatekeeper.sharedInstance().activationState == .activated else { return }
         for channel in connectedChannels() {
             ensureLicenseHandshake(on: channel, force: false) { verified in
-                NSLog("LookinClient - resumed license handshake finished, verified:%@", NSNumber(value: verified))
+                #log(.default, "LookinClient - resumed license handshake finished, verified:\(NSNumber(value: verified), privacy: .public)")
             }
         }
     }
@@ -94,6 +90,7 @@ extension ConnectionManager {
 /// The Host side of `LicenseHandshakeFlow` for one channel: Lookin
 /// frames through the connection manager, and the activation runtime's
 /// signing policy and license key through the gatekeeper.
+@Loggable(subsystem: "com.lookinside.app")
 @MainActor
 private final class ServerChannelLicenseEnvironment: LicenseHandshakeEnvironment {
     private let channel: ServerChannel
@@ -174,7 +171,7 @@ private final class ServerChannelLicenseEnvironment: LicenseHandshakeEnvironment
     }
 
     func log(_ message: String) {
-        NSLog("%@", message)
+        #log(.default, "\(message, privacy: .public)")
     }
 
     private func send(type: UInt32, data: NSObject?, completion: @escaping (LicenseExchangeResult) -> Void) {

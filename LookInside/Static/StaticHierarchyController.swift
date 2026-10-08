@@ -9,18 +9,15 @@
 import AppKit
 
 /// The hierarchy tree of a live inspector window.
-@objc(LKStaticHierarchyController)
 final class StaticHierarchyController: HierarchyController {
     // MARK: - HierarchyViewDelegate
 
-    @objc(hierarchyView:needToCancelPreviewOfItem:)
-    func hierarchyView(_: HierarchyView, needToCancelPreviewOf item: DisplayItem) {
+    override func hierarchyView(_: HierarchyView, needToCancelPreviewOf item: DisplayItem) {
         item.noPreview = true
         dataSource.itemDidChangeNoPreview.send()
     }
 
-    @objc(hierarchyView:needToShowPreviewOfItem:)
-    func hierarchyView(_: HierarchyView, needToShowPreviewOf item: DisplayItem) {
+    override func hierarchyView(_: HierarchyView, needToShowPreviewOf item: DisplayItem) {
         item.enumerateSelfAndAncestors { item, _ in
             if item.noPreview {
                 item.noPreview = false

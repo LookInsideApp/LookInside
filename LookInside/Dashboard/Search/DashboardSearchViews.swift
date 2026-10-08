@@ -10,6 +10,7 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// A search result card on a blurred background.
 class DashboardSearchCardView: BaseView {
@@ -168,6 +169,7 @@ protocol DashboardSearchMethodsViewDelegate: AnyObject {
 
 /// The methods without arguments that match the search; a click invokes
 /// one.
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardSearchMethodsView: DashboardSearchCardView {
     private let insetTop: CGFloat = 5
     private let contentMarginTop: CGFloat = 10
@@ -256,7 +258,7 @@ final class DashboardSearchMethodsView: DashboardSearchCardView {
     }
 
     func render(error: Error) {
-        NSLog("%@", String(describing: error))
+        #log(.default, "\(String(describing: error), privacy: .public)")
         itemViews.forEach { $0.isHidden = true }
         titleLabel.isHidden = true
         let label: TextLabel

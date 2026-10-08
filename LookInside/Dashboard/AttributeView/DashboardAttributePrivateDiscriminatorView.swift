@@ -52,7 +52,6 @@ private final class PrivateDiscriminatorCopyLabel: TextLabel {
     }
 }
 
-@objc(LKDashboardAttributePrivateDiscriminatorView)
 final class DashboardAttributePrivateDiscriminatorView: DashboardAttributeView {
     private typealias Metrics = PrivateDiscriminatorMetrics
 

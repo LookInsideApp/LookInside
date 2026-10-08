@@ -1,6 +1,8 @@
 import Foundation
 import Security
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "Installer")
 enum InstallerCodeSignature {
     struct TeamIdentifierMismatch: LocalizedError {
         let expected: String
@@ -72,7 +74,7 @@ enum InstallerCodeSignature {
     ) throws {
         let hostTeamID = try? teamIdentifier(atPath: Bundle.main.bundlePath)
         guard let hostTeamID, hostTeamID.isEmpty == false else {
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "verifyTeamIdentifierMatchesHost: host has no team identifier (dev build); skipping target team check at \(targetURL.path, privacy: .public)"
             )
             return
@@ -87,7 +89,7 @@ enum InstallerCodeSignature {
         guard hostTeamID == targetTeamID else {
             throw mismatchErrorBuilder(hostTeamID, targetTeamID)
         }
-        InstallerLogger.installer.info(
+        #log(.info, 
             "verifyTeamIdentifierMatchesHost: host=\(hostTeamID, privacy: .public) matches target at \(targetURL.path, privacy: .public)"
         )
     }

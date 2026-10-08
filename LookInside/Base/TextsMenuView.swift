@@ -14,7 +14,6 @@ import AppKit
 
 /// Two columns of key / value labels, optionally with a button after a
 /// value.
-@objc(LKTextsMenuView)
 class TextsMenuView: BaseView {
     /// Defaults to {0, 3, 0, 5}.
     @objc var insets = NSEdgeInsets(top: 0, left: 3, bottom: 0, right: 5)

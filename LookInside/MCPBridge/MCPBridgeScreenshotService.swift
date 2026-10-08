@@ -37,7 +37,9 @@ import AppKit
 import CoreGraphics
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Screenshot")
 @MainActor
 final class MCPBridgeScreenshotService {
     // MARK: - Configuration
@@ -57,7 +59,6 @@ final class MCPBridgeScreenshotService {
     /// Lower bound, purely to reject nonsense input (0, negatives).
     private static let minimumPixelDimension = 16
 
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Screenshot")
 
     init() {}
 
@@ -364,7 +365,7 @@ final class MCPBridgeScreenshotService {
             let payload = try encodeAsJSONValue(result)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("screenshot.read encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "screenshot.read encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -475,7 +476,7 @@ final class MCPBridgeScreenshotService {
                 message: "The target app did not render within the request timeout. Check whether the target is paused in Xcode."
             )
         default:
-            Self.logger.error("screenshot.read received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            #log(.error, "screenshot.read received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return MCPBridgeErrorPayload(
                 code: "screenshot.internalError",
                 message: "The target app reported an unexpected error (code \(error.code))."

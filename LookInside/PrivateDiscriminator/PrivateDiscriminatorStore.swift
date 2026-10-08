@@ -62,7 +62,6 @@ struct PrivateDiscriminatorInvalidDiagnostic: Identifiable, Hashable {
 
 /// The private-discriminator indexes and settings. The settings window
 /// observes the state below through Observation.
-@objc(LKPrivateDiscriminatorStore)
 @Observable
 final class PrivateDiscriminatorStore: NSObject {
     @objc(shared) static let shared = PrivateDiscriminatorStore()
@@ -1384,7 +1383,6 @@ private enum GuessState {
     }
 }
 
-@objc(LKPrivateDiscriminatorDashboardPayload)
 final class PrivateDiscriminatorDashboardPayload: NSObject {
     @objc let discriminatorID: String
     @objc let module: String

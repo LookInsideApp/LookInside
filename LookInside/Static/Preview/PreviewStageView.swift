@@ -16,7 +16,6 @@ protocol PreviewStageViewDelegate: AnyObject {
 
 /// The preview controller's root view: reports mouse moves anywhere over it
 /// and lets the delegate add cursor rects.
-@objc(LKPreviewStageView)
 final class PreviewStageView: BaseView {
     weak var delegate: PreviewStageViewDelegate?
 
@@ -46,7 +45,6 @@ final class PreviewStageView: BaseView {
 
 /// The preview's pan gesture: rotates the preview, or moves it while space
 /// is held.
-@objc(LKPreviewPanGestureRecognizer)
 final class PreviewPanGestureRecognizer: NSPanGestureRecognizer {
     enum Purpose {
         case rotate

@@ -70,8 +70,6 @@ private func rgba(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat, _ alpha: CG
     NSColor(red: red / 255, green: green / 255, blue: blue / 255, alpha: alpha)
 }
 
-@objc(LKHierarchyRowView)
-@objcMembers
 class HierarchyRowView: OutlineRowView {
     /// Weak: the table keeps many row views around, and a strong reference
     /// would keep display items (and their screenshots) alive across

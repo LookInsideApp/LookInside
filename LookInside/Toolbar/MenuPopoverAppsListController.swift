@@ -10,7 +10,6 @@ import AppKit
 
 /// The popover that lists the inspectable apps, opened from the app button,
 /// the reload button or the connection-lost tips.
-@objc(LKMenuPopoverAppsListController)
 final class MenuPopoverAppsListController: BaseViewController {
     private let insets = NSEdgeInsets(top: 9, left: 18, bottom: 35, right: 14)
     private let titleMarginBottom: CGFloat = 3

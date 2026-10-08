@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 
-@objc(LKPrivateDiscriminatorSettingsWindowController)
 final class PrivateDiscriminatorSettingsWindowController: NSWindowController {
     private static let sharedController = PrivateDiscriminatorSettingsWindowController()
 

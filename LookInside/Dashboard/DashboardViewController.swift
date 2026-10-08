@@ -7,12 +7,13 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// The attribute panel on the right of the inspector: one card per
 /// attribute group of the selected item, and a search over attributes and
 /// methods. Edits are sent to the inspected app on a live document; a
 /// document read from a file is read-only.
-@objc(LKDashboardViewController)
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardViewController: BaseViewController, DashboardCardViewDelegate, DashboardHeaderViewDelegate, DashboardSearchPropertyViewDelegate, DashboardSearchMethodsViewDelegate {
     /// Read by key by the DEBUG UI snapshots.
     @objc let scrollView = NSScrollView()
@@ -282,7 +283,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         } catch {
             throw failModification(error)
         }
-        NSLog("custom modification - succ")
+        #log(.default, "custom modification - succ")
         attribute.value = newValue
     }
 
@@ -302,7 +303,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         } catch {
             throw failModification(error)
         }
-        NSLog("modification - succ")
+        #log(.default, "modification - succ")
         guard let staticDataSource else {
             assertionFailure()
             return

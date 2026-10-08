@@ -11,7 +11,6 @@ import AppKit
 import LookInsideHostCore
 import UniformTypeIdentifiers
 
-@objc(LKExportManager)
 final class ExportManager: NSObject {
     private static let shared = ExportManager()
 

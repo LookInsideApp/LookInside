@@ -28,7 +28,9 @@ import AppKit
 import CoreGraphics
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Details")
 @MainActor
 final class MCPBridgeDetailsService {
     /// Hard cap on per-call batch size. Matches the host inspector's
@@ -37,7 +39,6 @@ final class MCPBridgeDetailsService {
     /// need more issue multiple calls.
     private static let maximumObjectIdentifiersPerCall = 100
 
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Details")
 
     init() {}
 
@@ -80,7 +81,7 @@ final class MCPBridgeDetailsService {
         case let .success(parsed):
             requestedIdentifiers = parsed.identifiers
             if parsed.droppedDuplicateCount > 0 {
-                Self.logger.debug(
+                #log(.debug, 
                     "details.read collapsed \(parsed.droppedDuplicateCount, privacy: .public) duplicate object identifier(s)"
                 )
             }
@@ -310,7 +311,7 @@ final class MCPBridgeDetailsService {
             let payload = try encodeAsJSONValue(result)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("details.read encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "details.read encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -340,7 +341,7 @@ final class MCPBridgeDetailsService {
                 message: "The target app did not respond within the request timeout. Reduce the batch size or check whether the target is paused in Xcode."
             )
         default:
-            Self.logger.error("details.read received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            #log(.error, "details.read received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return MCPBridgeErrorPayload(
                 code: "details.internalError",
                 message: "The target app reported an unexpected error (code \(error.code))."

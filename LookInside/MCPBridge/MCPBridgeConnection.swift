@@ -26,7 +26,9 @@ import Darwin
 import Dispatch
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Connection")
 final class MCPBridgeConnection {
     typealias RequestHandler = @Sendable (MCPBridgeRequest) async -> MCPBridgeResponse
 
@@ -35,7 +37,6 @@ final class MCPBridgeConnection {
     /// limit is generous; this is purely a safety cap against runaway peers.
     private static let maximumFrameBytes = 8 * 1024 * 1024
 
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Connection")
 
     private let fileDescriptor: Int32
     private let connectionQueue: DispatchQueue
@@ -101,7 +102,7 @@ final class MCPBridgeConnection {
         dispatchPrecondition(condition: .onQueue(connectionQueue))
         guard isClosed == false else { return }
         isClosed = true
-        Self.logger.notice("Connection closed: \(reason, privacy: .public)")
+        #log(.default, "Connection closed: \(reason, privacy: .public)")
         readSource?.cancel()
         readSource = nil
         onClose(self)
@@ -157,7 +158,7 @@ final class MCPBridgeConnection {
                 self.send(response: response)
             }
         } catch {
-            Self.logger.error("Failed to decode inbound frame as request: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "Failed to decode inbound frame as request: \(error.localizedDescription, privacy: .public)")
             // No identifier available — push a generic error event so the peer
             // can observe the malformed frame without correlating to a request.
             let event = MCPBridgeEvent(
@@ -187,7 +188,7 @@ final class MCPBridgeConnection {
             encoded.append(UInt8(ascii: "\n"))
             data = encoded
         } catch {
-            Self.logger.error("Failed to encode outbound frame: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "Failed to encode outbound frame: \(error.localizedDescription, privacy: .public)")
             return
         }
         connectionQueue.async { [weak self] in

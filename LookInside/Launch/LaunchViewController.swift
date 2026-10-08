@@ -11,7 +11,6 @@ import AppKit
 /// The launch window's content: the inspectable apps found so far, rescanned
 /// every 1.5 seconds, and the attach-to-running-app button. Picking an app
 /// fetches its hierarchy and opens a live document for it.
-@objc(LKLaunchViewController)
 final class LaunchViewController: BaseViewController {
     private static let appViewInterSpace: CGFloat = 10
     private static let contentHorInset: CGFloat = 30

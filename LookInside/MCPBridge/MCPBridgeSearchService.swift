@@ -22,7 +22,9 @@
 import AppKit
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Search")
 @MainActor
 final class MCPBridgeSearchService {
     /// Default number of matches returned when the caller doesn't ask.
@@ -35,7 +37,6 @@ final class MCPBridgeSearchService {
     /// asking for the whole tree and should use `hierarchy.read`.
     private static let maximumMatchLimit = 500
 
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Search")
 
     init() {}
 
@@ -225,7 +226,7 @@ final class MCPBridgeSearchService {
             let payload = try encodeAsJSONValue(result)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("hierarchy.find encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "hierarchy.find encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }

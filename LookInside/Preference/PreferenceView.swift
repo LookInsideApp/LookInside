@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 
-@objc(LKPreferenceHostingController)
 public final class PreferenceHostingController: NSViewController {
     override public func loadView() {
         view = NSHostingView(rootView: PreferenceRootView())

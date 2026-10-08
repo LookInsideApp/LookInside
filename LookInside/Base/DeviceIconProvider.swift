@@ -13,7 +13,6 @@ import UIFoundationToolbox
 /// their asset catalog artwork. That happens for a LookinServer predating
 /// `deviceModelIdentifier`, for a host appInfo cached before this field existed, and for
 /// a model this macOS does not declare (hardware newer than the host OS, or a VM).
-@objc(LKDeviceIconProvider)
 final class DeviceIconProvider: NSObject {
     /// Height of the device icon in the window toolbar, matching the legacy
     /// `icon_*_small` assets (32 pixels at 2x).

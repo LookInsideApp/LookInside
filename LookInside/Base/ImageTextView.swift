@@ -6,7 +6,6 @@
 import AppKit
 
 /// An image followed by a one-line label, centred vertically.
-@objc(LKImageTextView)
 class ImageTextView: BaseView {
     @objc let imageView = NSImageView()
     @objc let label = TextLabel()

@@ -11,7 +11,6 @@
 
 import AppKit
 
-@objc(LKConnectionTipsBinding)
 final class ConnectionTipsBinding: NSObject {
     private var observations: [NSKeyValueObservation] = []
 

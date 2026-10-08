@@ -7,7 +7,6 @@ import AppKit
 
 /// A pill-shaped notice: optional image, a title, and an optional button
 /// after a separator.
-@objc(LKTipsView)
 class TipsView: BaseView {
     @objc weak var bindingObject: AnyObject?
 
@@ -209,7 +208,6 @@ class TipsView: BaseView {
 }
 
 /// An orange notice that can pulse.
-@objc(LKYellowTipsView)
 class YellowTipsView: TipsView {
     private var isAnimating = false
 
@@ -249,7 +247,6 @@ class YellowTipsView: TipsView {
 }
 
 /// A red notice that pulses, used for connection loss.
-@objc(LKRedTipsView)
 class RedTipsView: TipsView {
     @objc func startAnimation() {
         let animation = CABasicAnimation(keyPath: "backgroundColor")

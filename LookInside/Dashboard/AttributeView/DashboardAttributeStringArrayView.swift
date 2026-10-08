@@ -130,7 +130,6 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
 }
 
 /// The class chain of the object, one class list per entry, demangled.
-@objc(LKDashboardAttributeClassView)
 final class DashboardAttributeClassView: DashboardAttributeStringArrayView {
     override func stringList(with attribute: InspectedAttribute) -> [String] {
         let lists = attribute.value as? [[String]] ?? []
@@ -142,7 +141,6 @@ final class DashboardAttributeClassView: DashboardAttributeStringArrayView {
 
 /// The relations of the object ("(AAA : BBB *)" and "(AAA *)" texts), with
 /// the Swift class names demangled. Cached on the attribute.
-@objc(LKDashboardAttributeRelationView)
 final class DashboardAttributeRelationView: DashboardAttributeStringArrayView {
     private static let cacheKey = "cachedDemangled"
 

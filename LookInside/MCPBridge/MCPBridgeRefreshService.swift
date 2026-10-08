@@ -28,10 +28,11 @@
 import AppKit
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Refresh")
 @MainActor
 final class MCPBridgeRefreshService {
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Refresh")
 
     init() {}
 
@@ -120,7 +121,7 @@ final class MCPBridgeRefreshService {
             let payload = try encodeAsJSONValue(result)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("hierarchy.refresh encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "hierarchy.refresh encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -162,7 +163,7 @@ final class MCPBridgeRefreshService {
                     message: "The target app finished the hierarchy request without returning a hierarchy. The channel may have been closed mid-request."
                 )
             default:
-                Self.logger.error("hierarchy.refresh received unmapped host refusal \(error.code, privacy: .public)")
+                #log(.error, "hierarchy.refresh received unmapped host refusal \(error.code, privacy: .public)")
                 return MCPBridgeErrorPayload(
                     code: "refresh.internalError",
                     message: "The inspector declined the reload for an unexpected reason (code \(error.code))."
@@ -184,7 +185,7 @@ final class MCPBridgeRefreshService {
                 message: "The target app did not return its hierarchy within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."
             )
         default:
-            Self.logger.error("hierarchy.refresh received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            #log(.error, "hierarchy.refresh received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return MCPBridgeErrorPayload(
                 code: "refresh.internalError",
                 message: "The target app reported an unexpected error (code \(error.code))."

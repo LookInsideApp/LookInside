@@ -7,10 +7,11 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// A string attribute in an editable text view. SwiftUI attributes that
 /// name another node get a button that jumps to it.
-@objc(LKDashboardAttributeTextView)
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardAttributeTextView: DashboardAttributeView, NSTextViewDelegate {
     private let titleLabel = TextLabel()
     private let scrollView: NSScrollView
@@ -128,7 +129,7 @@ final class DashboardAttributeTextView: DashboardAttributeView, NSTextViewDelega
     func textDidEndEditing(_: Notification) {
         let expectedValue = textView.string
         if expectedValue == initialText {
-            NSLog("修改没有变化，不做任何提交")
+            #log(.default, "修改没有变化，不做任何提交")
             renderWithAttribute()
             return
         }

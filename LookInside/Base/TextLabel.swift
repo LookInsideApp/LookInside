@@ -8,7 +8,6 @@
 
 import AppKit
 
-@objc(LKLabel)
 class TextLabel: NSTextField {
     /// 默认为 nil
     @objc var textColors: TwoColors? {

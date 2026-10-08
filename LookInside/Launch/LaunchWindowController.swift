@@ -9,7 +9,6 @@
 import AppKit
 
 /// The small launch window that lists the inspectable apps.
-@objc(LKLaunchWindowController)
 final class LaunchWindowController: WindowController {
     @objc let launchViewController: LaunchViewController
 

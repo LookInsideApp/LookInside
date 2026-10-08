@@ -41,7 +41,6 @@
     /// Host was active and the window key, the window's backing scale). The
     /// comparison (`lookin-probe ui-diff`) skips a scene whose state differs
     /// from the baseline's, and never loosens a threshold for it.
-    @objc(LKDebugUISnapshots)
     @MainActor
     final class DebugUISnapshots: NSObject {
         static let directoryVariable = "LOOKINSIDE_DEBUG_UI_SNAPSHOT_DIR"

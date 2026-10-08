@@ -10,7 +10,6 @@ import AppKit
 let InitialIndicatorProgressWhenFetchHierarchy: CGFloat = 0.7
 
 /// A thin accent-coloured bar that fills from the left.
-@objc(LKProgressIndicatorView)
 class ProgressIndicatorView: BaseView {
     private let fillLayer = CALayer()
 

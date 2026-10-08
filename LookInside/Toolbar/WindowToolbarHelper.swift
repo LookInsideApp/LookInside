@@ -13,7 +13,6 @@ import AppKit
 /// The items for dimension, rotation, scale, measure and fast mode follow a
 /// preference manager both ways. The window sets the click action of the
 /// others itself: Reload, App, Setting, Console, Add, Remove and Message.
-@objc(LKWindowToolbarHelper)
 @MainActor
 final class WindowToolbarHelper: NSObject {
     @objc(sharedInstance)

@@ -12,7 +12,6 @@
 import AppKit
 
 /// The number of rows in each section of a table view.
-@objc(LKDashboardAttributeRowsCountView)
 final class DashboardAttributeRowsCountView: DashboardAttributeView {
     private var inputViews: [NumberInputView] = []
 
@@ -63,7 +62,6 @@ final class DashboardAttributeRowsCountView: DashboardAttributeView {
 }
 
 /// A layer shadow: colour, then opacity, radius and offset.
-@objc(LKDashboardAttributeShadowView)
 final class DashboardAttributeShadowView: DashboardAttributeView {
     private let colorContainerView = BaseView()
     private let colorIndicatorLayer = ColorIndicatorLayer()
@@ -155,7 +153,6 @@ final class DashboardAttributeShadowView: DashboardAttributeView {
 
 /// Opens the image of an image view in Preview, fetched from the app (or
 /// taken from an imported Xcode capture).
-@objc(LKDashboardAttributeOpenImageView)
 final class DashboardAttributeOpenImageView: DashboardAttributeView {
     private let control = TextControl()
 

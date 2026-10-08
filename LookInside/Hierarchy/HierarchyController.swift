@@ -7,9 +7,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
-@objc(LKHierarchyController)
-@objcMembers
+@Loggable(subsystem: "com.lookinside.app")
 class HierarchyController: BaseViewController, HierarchyViewDelegate {
     private(set) var dataSource: HierarchyDataSource
     private(set) var hierarchyView: HierarchyView
@@ -48,12 +48,10 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
 
     // MARK: - HierarchyViewDelegate
 
-    @objc(hierarchyView:didSelectItem:)
     func hierarchyView(_: HierarchyView, didSelect item: DisplayItem?) {
         dataSource.selectedItem = item
     }
 
-    @objc(hierarchyView:didDoubleClickItem:)
     func hierarchyView(_: HierarchyView, didDoubleClick item: DisplayItem) {
         switch PreferenceManager.shared.doubleClickBehavior {
         case .collapse:
@@ -73,22 +71,18 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
     }
 
     /// `item` is nil when the mouse leaves the rows.
-    @objc(hierarchyView:didHoverAtItem:)
     func hierarchyView(_: HierarchyView, didHoverAt item: DisplayItem?) {
         dataSource.hoveredItem = item
     }
 
-    @objc(hierarchyView:needToCollapseItem:)
     func hierarchyView(_: HierarchyView, needToCollapse item: DisplayItem) {
         dataSource.collapse(item)
     }
 
-    @objc(hierarchyView:needToCollapseChildrenOfItem:)
     func hierarchyView(_: HierarchyView, needToCollapseChildrenOf item: DisplayItem) {
         dataSource.collapseAllChildren(of: item)
     }
 
-    @objc(hierarchyView:needToExpandItem:recursively:)
     func hierarchyView(_: HierarchyView, needToExpand item: DisplayItem, recursively: Bool) {
         if recursively {
             dataSource.expandItemsRooted(by: item)
@@ -97,9 +91,8 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
         }
     }
 
-    @objc(hierarchyView:didInputSearchString:)
     func hierarchyView(_: HierarchyView, didInputSearch string: String?) {
-        NSLog("search string:%@", string ?? "(null)")
+        #log(.default, "search string:\(string ?? "(null)", privacy: .public)")
         if let string, !string.isEmpty {
             dataSource.search(with: string)
             return
@@ -112,4 +105,9 @@ class HierarchyController: BaseViewController, HierarchyViewDelegate {
             }
         }
     }
+
+    /// Subclasses that show previews override these two.
+    func hierarchyView(_: HierarchyView, needToCancelPreviewOf _: DisplayItem) {}
+
+    func hierarchyView(_: HierarchyView, needToShowPreviewOf _: DisplayItem) {}
 }

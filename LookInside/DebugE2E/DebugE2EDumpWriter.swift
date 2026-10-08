@@ -13,7 +13,6 @@
     /// The Host decodes screenshots into images it does not archive, so a
     /// node's `host` record names their pixel sizes; the pixels themselves are
     /// covered by lookin-probe.
-    @objc(LKDebugE2EDumpWriter)
     final class DebugE2EDumpWriter: NSObject {
         @objc(writeSnapshotForDataSource:app:platform:toDirectory:error:)
         static func writeSnapshot(

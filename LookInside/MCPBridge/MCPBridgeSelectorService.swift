@@ -19,7 +19,9 @@
 import AppKit
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Selectors")
 @MainActor
 final class MCPBridgeSelectorService {
     /// Default cap on returned selectors. Deliberately far below the
@@ -31,7 +33,6 @@ final class MCPBridgeSelectorService {
     /// Ceiling on `limit`.
     private static let maximumSelectorLimit = 2000
 
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Selectors")
 
     init() {}
 
@@ -228,7 +229,7 @@ final class MCPBridgeSelectorService {
             let payload = try encodeAsJSONValue(result)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("selectors.list encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "selectors.list encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -257,7 +258,7 @@ final class MCPBridgeSelectorService {
                 message: "The target app did not respond within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."
             )
         default:
-            Self.logger.error("selectors.list received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            #log(.error, "selectors.list received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return MCPBridgeErrorPayload(
                 code: "selectors.internalError",
                 message: "The target app reported an unexpected error (code \(error.code))."

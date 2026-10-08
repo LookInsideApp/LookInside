@@ -23,10 +23,11 @@ import AppKit
 import CoreGraphics
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Modification")
 @MainActor
 final class MCPBridgeModificationService {
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Modification")
 
     init() {}
 
@@ -165,7 +166,7 @@ final class MCPBridgeModificationService {
                 )
             )
         } catch {
-            Self.logger.error("Unexpected decode error: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "Unexpected decode error: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
 
@@ -250,7 +251,7 @@ final class MCPBridgeModificationService {
             let payload = try encodeAsJSONValue(result)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("attribute.modify encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "attribute.modify encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -329,7 +330,7 @@ final class MCPBridgeModificationService {
                 message: "The target app did not respond within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."
             )
         default:
-            Self.logger.error("attribute.modify received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            #log(.error, "attribute.modify received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return MCPBridgeErrorPayload(
                 code: "modify.internalError",
                 message: "The target app reported an unexpected error (code \(error.code))."

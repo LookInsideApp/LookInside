@@ -7,9 +7,10 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// A single number: opacity, corner radius, font size and the like.
-@objc(LKDashboardAttributeNumberInputView)
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFieldDelegate {
     @objc let inputView = NumberInputView()
 
@@ -179,16 +180,16 @@ final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFie
         // flag changes, although textShouldBeginEditing refused input.
         guard canEdit(), let attribute else { return }
         if DashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent {
-            NSLog("忽略 controlTextDidEndEditing 事件，驳回")
+            #log(.default, "忽略 controlTextDidEndEditing 事件，驳回")
             return
         }
         guard let parsed = NumberInputView.parsedValue(with: inputView.textFieldView.textField.stringValue, attrType: attribute.attrType) as? NSNumber else {
-            NSLog("输入格式校验不通过，驳回")
+            #log(.default, "输入格式校验不通过，驳回")
             renderWithAttribute()
             return
         }
         guard let expectedValue = DashboardModification.numberValue(parsed, for: attribute) else {
-            NSLog("修改没有变化，不做任何提交")
+            #log(.default, "修改没有变化，不做任何提交")
             renderWithAttribute()
             return
         }

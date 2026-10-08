@@ -19,7 +19,6 @@ extension NumberInputView {
 }
 
 /// A Dashboard number field with a short title.
-@objc(LKNumberInputView)
 class NumberInputView: BaseView {
     @objc let textFieldView = TextFieldView()
     private let titleLabel = TextLabel()

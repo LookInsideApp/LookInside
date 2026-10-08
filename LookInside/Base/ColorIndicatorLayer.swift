@@ -7,7 +7,6 @@ import AppKit
 
 /// A round colour swatch: a checkerboard behind translucent colours, a
 /// "no colour" image for nil, and a contrasting border.
-@objc(LKColorIndicatorLayer)
 class ColorIndicatorLayer: CALayer {
     private var colorLayer: CALayer?
     private var imageLayer: CALayer?

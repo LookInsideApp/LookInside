@@ -18,8 +18,6 @@ private let effectiveAppearanceContext = UnsafeMutableRawPointer.allocate(byteCo
     case right
 }
 
-@objc(LKBaseView)
-@objcMembers
 class BaseView: NSView, NSViewToolTipOwner {
     var tooltipString: String? {
         didSet {
@@ -227,7 +225,6 @@ class BaseView: NSView, NSViewToolTipOwner {
     func sizeToFit() {}
 }
 
-@objc(LKVisualEffectView)
 class VisualEffectView: NSVisualEffectView {
     override var isFlipped: Bool {
         true

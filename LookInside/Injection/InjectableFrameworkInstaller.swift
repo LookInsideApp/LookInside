@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import FoundationToolbox
 
 enum InjectableFrameworkInstallerError: LocalizedError {
     case downloadFailed(String)
@@ -104,6 +105,7 @@ struct InjectableFrameworkInstallation {
     let frameworkURL: URL
 }
 
+@Loggable(subsystem: "com.lookinside.app", category: "Installer")
 final class InjectableFrameworkInstaller {
     static let shared = InjectableFrameworkInstaller()
 
@@ -133,32 +135,32 @@ final class InjectableFrameworkInstaller {
         installLock.lock()
         defer { installLock.unlock() }
 
-        InstallerLogger.installer.info("ensureInstalled: entered")
+        #log(.info, "ensureInstalled: entered")
 
         let targetVersion = resolveTargetVersion()
-        InstallerLogger.installer.info(
+        #log(.info, 
             "ensureInstalled: resolved target version=\(targetVersion, privacy: .public)"
         )
         let installedURL = InjectableFrameworkInstallerLayout.installedFrameworkURL(for: targetVersion)
-        InstallerLogger.installer.info(
+        #log(.info, 
             "ensureInstalled: checking existing path=\(installedURL.path, privacy: .public)"
         )
 
         if FileManager.default.fileExists(atPath: installedURL.path) {
             do {
                 try verifyTeamIdentifier(of: installedURL)
-                InstallerLogger.installer.info(
+                #log(.info, 
                     "ensureInstalled: existing framework valid; reusing version=\(targetVersion, privacy: .public)"
                 )
                 return InjectableFrameworkInstallation(version: targetVersion, frameworkURL: installedURL)
             } catch {
-                InstallerLogger.installer.notice(
+                #log(.default, 
                     "ensureInstalled: existing framework signature invalid (\(error.localizedDescription, privacy: .public)); will re-download"
                 )
                 try? FileManager.default.removeItem(at: installedURL)
             }
         } else {
-            InstallerLogger.installer.info("ensureInstalled: no existing framework; running modal install")
+            #log(.info, "ensureInstalled: no existing framework; running modal install")
         }
 
         return try runInstallWithModal(version: targetVersion, presentingWindow: presentingWindow)
@@ -179,7 +181,7 @@ final class InjectableFrameworkInstaller {
     private func resolveTargetVersion() -> String {
         let minimum = InjectableFrameworkInstallerLayout.minimumServerVersion
         guard let latest = fetchLatestVersionFromGitHub() else {
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "GH latest-release lookup unavailable, falling back to minimum version=\(minimum, privacy: .public)"
             )
             return minimum
@@ -187,7 +189,7 @@ final class InjectableFrameworkInstaller {
         if compareSemver(latest, minimum) >= 0 {
             return latest
         }
-        InstallerLogger.installer.notice(
+        #log(.default, 
             "GH latest=\(latest, privacy: .public) is older than minimum=\(minimum, privacy: .public); using minimum"
         )
         return minimum
@@ -206,7 +208,7 @@ final class InjectableFrameworkInstaller {
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             defer { semaphore.signal() }
             if let error {
-                InstallerLogger.installer.warning(
+                #log(.error, 
                     "GH latest fetch failed: \(error.localizedDescription, privacy: .public)"
                 )
                 return
@@ -216,7 +218,7 @@ final class InjectableFrameworkInstaller {
                   let data
             else {
                 let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-                InstallerLogger.installer.warning("GH latest fetch returned status=\(status)")
+                #log(.error, "GH latest fetch returned status=\(status)")
                 return
             }
             do {
@@ -225,7 +227,7 @@ final class InjectableFrameworkInstaller {
                     capturedTag = tag
                 }
             } catch {
-                InstallerLogger.installer.warning(
+                #log(.error, 
                     "GH latest JSON parse failed: \(error.localizedDescription, privacy: .public)"
                 )
             }
@@ -259,7 +261,7 @@ final class InjectableFrameworkInstaller {
     private func runInstallWithModal(version: String, presentingWindow _: NSWindow?) throws -> InjectableFrameworkInstallation {
         precondition(Thread.isMainThread, "runInstallWithModal must run on the main thread")
 
-        InstallerLogger.installer.info("runInstallWithModal: start version=\(version, privacy: .public)")
+        #log(.info, "runInstallWithModal: start version=\(version, privacy: .public)")
 
         let cancellation = InstallerCancellation()
         let controller = InstallerProgressWindowController(
@@ -273,24 +275,24 @@ final class InjectableFrameworkInstaller {
             NSApp.stopModal()
         }
         controller.showWindow(self)
-        InstallerLogger.installer.info("runInstallWithModal: progress window shown")
+        #log(.info, "runInstallWithModal: progress window shown")
 
         var captured: Result<InjectableFrameworkInstallation, Error>?
         let semaphore = DispatchSemaphore(value: 0)
 
         Thread.detachNewThread {
-            InstallerLogger.installer.info("install worker: thread started")
+            #log(.info, "install worker: thread started")
             do {
                 let installation = try self.performInstall(version: version, cancellation: cancellation) { stage in
-                    InstallerLogger.installer.info("install worker: stage=\(String(describing: stage), privacy: .public)")
+                    #log(.info, "install worker: stage=\(String(describing: stage), privacy: .public)")
                     RunLoop.main.perform(inModes: [.default, .modalPanel, .common]) {
                         controller.updateStatus(stage.localizedDescription)
                     }
                 }
-                InstallerLogger.installer.info("install worker: success")
+                #log(.info, "install worker: success")
                 captured = .success(installation)
             } catch {
-                InstallerLogger.installer.error(
+                #log(.error, 
                     "install worker: failed error=\(error.localizedDescription, privacy: .public)"
                 )
                 captured = .failure(error)
@@ -301,18 +303,18 @@ final class InjectableFrameworkInstaller {
             }
         }
 
-        InstallerLogger.installer.info("runInstallWithModal: entering runModal")
+        #log(.info, "runInstallWithModal: entering runModal")
         NSApp.runModal(for: controller.window!)
-        InstallerLogger.installer.info("runInstallWithModal: runModal returned")
+        #log(.info, "runInstallWithModal: runModal returned")
         let waitResult = semaphore.wait(timeout: .now() + 5)
         controller.close()
 
         if cancelledByUser {
-            InstallerLogger.installer.info("runInstallWithModal: cancelled by user")
+            #log(.info, "runInstallWithModal: cancelled by user")
             throw InjectableFrameworkInstallerError.cancelled
         }
         if waitResult == .timedOut {
-            InstallerLogger.installer.error("runInstallWithModal: worker did not signal within 5s after modal stop")
+            #log(.error, "runInstallWithModal: worker did not signal within 5s after modal stop")
             cancellation.cancel()
             throw InjectableFrameworkInstallerError.cancelled
         }
@@ -335,7 +337,7 @@ final class InjectableFrameworkInstaller {
             let stagingRoot = fileManager.temporaryDirectory
                 .appendingPathComponent("LookInsideServerFramework-\(UUID().uuidString)", isDirectory: true)
             try fileManager.createDirectory(at: stagingRoot, withIntermediateDirectories: true)
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "performInstall: staging root=\(stagingRoot.path, privacy: .public)"
             )
             defer {
@@ -346,7 +348,7 @@ final class InjectableFrameworkInstaller {
             onStage(.downloading)
             let zipURL = stagingRoot.appendingPathComponent("server.xcframework.zip", isDirectory: false)
             let downloadURL = InjectableFrameworkInstallerLayout.assetDownloadURL(for: version)
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "performInstall: starting download url=\(downloadURL.absoluteString, privacy: .public)"
             )
             try InstallerDownloader.download(
@@ -357,30 +359,30 @@ final class InjectableFrameworkInstaller {
                 errorBuilder: { InjectableFrameworkInstallerError.downloadFailed($0) }
             )
             let zipSize = (try? fileManager.attributesOfItem(atPath: zipURL.path)[.size] as? Int) ?? -1
-            InstallerLogger.installer.info("performInstall: download complete bytes=\(zipSize)")
+            #log(.info, "performInstall: download complete bytes=\(zipSize)")
 
             try cancellation.checkCancellation()
             onStage(.extracting)
             let extractDir = stagingRoot.appendingPathComponent("extracted", isDirectory: true)
             try fileManager.createDirectory(at: extractDir, withIntermediateDirectories: true)
-            InstallerLogger.installer.info("performInstall: starting unzip into=\(extractDir.path, privacy: .public)")
+            #log(.info, "performInstall: starting unzip into=\(extractDir.path, privacy: .public)")
             try InstallerArchiveExtractor.unzip(
                 zipURL,
                 into: extractDir,
                 cancellation: cancellation,
                 errorBuilder: { InjectableFrameworkInstallerError.unzipFailed($0) }
             )
-            InstallerLogger.installer.info("performInstall: unzip complete")
+            #log(.info, "performInstall: unzip complete")
 
             try cancellation.checkCancellation()
             let stagedFramework = try locateMacFramework(in: extractDir)
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "performInstall: located macOS framework path=\(stagedFramework.path, privacy: .public)"
             )
 
             onStage(.verifying)
             try verifyTeamIdentifier(of: stagedFramework)
-            InstallerLogger.installer.info("performInstall: signature verified")
+            #log(.info, "performInstall: signature verified")
 
             try cancellation.checkCancellation()
             onStage(.installing)
@@ -398,7 +400,7 @@ final class InjectableFrameworkInstaller {
             } catch {
                 throw InjectableFrameworkInstallerError.installFailed(error.localizedDescription)
             }
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "performInstall: moved into place path=\(destinationFramework.path, privacy: .public)"
             )
 
@@ -406,12 +408,12 @@ final class InjectableFrameworkInstaller {
             onStage(.finishing)
             try verifyTeamIdentifier(of: destinationFramework)
 
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "performInstall: done version=\(version, privacy: .public)"
             )
             return InjectableFrameworkInstallation(version: version, frameworkURL: destinationFramework)
         } catch is InstallerCancelled {
-            InstallerLogger.installer.info("performInstall: cancelled")
+            #log(.info, "performInstall: cancelled")
             throw InjectableFrameworkInstallerError.cancelled
         }
     }

@@ -1,5 +1,7 @@
 import Foundation
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "Installer")
 enum InstallerDownloader {
     static func download(
         from url: URL,
@@ -10,7 +12,7 @@ enum InstallerDownloader {
     ) throws {
         try cancellation.checkCancellation()
 
-        InstallerLogger.installer.info(
+        #log(.info, 
             "downloader: start url=\(url.absoluteString, privacy: .public) timeout=\(timeout)"
         )
 
@@ -25,7 +27,7 @@ enum InstallerDownloader {
         let task = URLSession.shared.downloadTask(with: request) { tempURL, response, error in
             defer { semaphore.signal() }
             let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-            InstallerLogger.installer.info(
+            #log(.info, 
                 "downloader: completion status=\(status) error=\(error?.localizedDescription ?? "nil", privacy: .public)"
             )
             if let error {
@@ -58,7 +60,7 @@ enum InstallerDownloader {
                 }
                 try FileManager.default.moveItem(at: tempURL, to: destination)
                 let movedSize = (try? FileManager.default.attributesOfItem(atPath: destination.path)[.size] as? Int) ?? -1
-                InstallerLogger.installer.info("downloader: moved to destination bytes=\(movedSize)")
+                #log(.info, "downloader: moved to destination bytes=\(movedSize)")
                 downloadedToDestination = true
             } catch {
                 capturedError = errorBuilder(error.localizedDescription)
@@ -66,14 +68,14 @@ enum InstallerDownloader {
         }
         cancellation.register(downloadTask: task)
         task.resume()
-        InstallerLogger.installer.info("downloader: task.resume() called, waiting on semaphore")
+        #log(.info, "downloader: task.resume() called, waiting on semaphore")
         semaphore.wait()
-        InstallerLogger.installer.info("downloader: semaphore released")
+        #log(.info, "downloader: semaphore released")
         cancellation.register(downloadTask: nil)
 
         try cancellation.checkCancellation()
         if let capturedError {
-            InstallerLogger.installer.error(
+            #log(.error, 
                 "downloader: throwing error=\(capturedError.localizedDescription, privacy: .public)"
             )
             throw capturedError

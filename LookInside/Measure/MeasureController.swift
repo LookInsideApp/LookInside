@@ -10,7 +10,6 @@
 import AppKit
 import LookInsideHostCore
 
-@objc(LKMeasureController)
 final class MeasureController: BaseViewController {
     private static let placeholderInsets = NSEdgeInsets(top: 15, left: 5, bottom: 12, right: 5)
 

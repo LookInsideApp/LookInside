@@ -11,7 +11,6 @@
     /// not capture, so each one's `SCNView.snapshot()` is drawn over its area,
     /// clipped away from the views that sit on top of it (outline, dashboard,
     /// toolbar).
-    @objc(LKDebugWindowImage)
     final class DebugWindowImage: NSObject {
         /// PNG of `window`'s frame view: title bar and toolbar included.
         @objc(pngDataOfWindow:)

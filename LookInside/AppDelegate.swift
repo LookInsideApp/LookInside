@@ -7,7 +7,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app")
 @main
 @objc(AppDelegate)
 @MainActor
@@ -115,7 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func installActivationStateObserver() {
         let gatekeeper = SwiftUISupportGatekeeper.sharedInstance()
-        NSLog("[LK-Activation] initial state=%ld (re-evaluated every 60s in process)", gatekeeper.activationState.rawValue)
+        #log(.default, "[LK-Activation] initial state=\(gatekeeper.activationState.rawValue, privacy: .public) (re-evaluated every 60s in process)")
 
         NotificationCenter.default.addObserver(
             self,
@@ -134,7 +136,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .activated: label = "activated"
         default: label = "(null)"
         }
-        NSLog("[LK-Activation] state changed -> %@ (raw=%@)", label, state?.description ?? "(null)")
+        #log(.default, "[LK-Activation] state changed -> \(label, privacy: .public) (raw=\(state?.description ?? "(null)", privacy: .public))")
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {

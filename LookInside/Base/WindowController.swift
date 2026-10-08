@@ -7,10 +7,11 @@
 //
 
 import AppKit
+import FoundationToolbox
 
-@objc(LKWindowController)
+@Loggable(subsystem: "com.lookinside.app")
 class WindowController: NSWindowController, AppMenuManagerDelegate {
     deinit {
-        NSLog("%@ dealloc", NSStringFromClass(type(of: self)))
+        #log(.default, "\(NSStringFromClass(type(of: self)), privacy: .public) dealloc")
     }
 }

@@ -11,7 +11,6 @@ import SceneKit
 
 /// One item's plane in the 3D preview: the screenshot (or background
 /// colour), a tint mask for hover and selection, and an outline.
-@objc(LKDisplayItemNode)
 final class DisplayItemNode: SCNNode, DisplayItemDelegate {
     /// Rendering order added to a coplanar overlay node's border so it draws
     /// after every ordinary node. Paired with a depth-test-free material,

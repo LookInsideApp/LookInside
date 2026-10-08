@@ -6,7 +6,6 @@
 import AppKit
 
 /// A borderless rounded panel for small editors that pop up over a window.
-@objc(LKPopPanel)
 class PopPanel: NSPanel {
     @objc(initWithSize:)
     init(size: NSSize) {

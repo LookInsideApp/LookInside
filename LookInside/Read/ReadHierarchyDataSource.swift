@@ -11,7 +11,6 @@ import AppKit
 /// The hierarchy of a `.lookin` file: the tree the file holds, with the
 /// stored screenshots put back on the items. It uses the reader window's own
 /// preference set.
-@objc(LKReadHierarchyDataSource)
 final class ReadHierarchyDataSource: HierarchyDataSource {
     private let readPreferenceManager: PreferenceManager
 

@@ -10,7 +10,6 @@ import AppKit
 
 /// The data source of a live document: applies the details the update
 /// tasks deliver and starts those tasks.
-@objc(LKStaticHierarchyDataSource)
 class StaticHierarchyDataSource: HierarchyDataSource {
     @objc var appInfo: InspectedAppInfo? {
         storedAppInfo

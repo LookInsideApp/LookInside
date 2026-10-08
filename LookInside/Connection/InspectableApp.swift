@@ -19,7 +19,6 @@ enum AppResponseEvent {
     case completion
 }
 
-@objc(LKInspectableApp)
 final class InspectableApp: NSObject {
     /// Set when the app's Server is too old or too new for this Host, or
     /// answered the app info request with another error.

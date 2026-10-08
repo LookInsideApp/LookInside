@@ -8,7 +8,6 @@
 
 import Foundation
 
-@objc(LKTableViewHorizontalScrollWidthManager)
 class TableViewHorizontalScrollWidthManager: NSObject {
     @objc var maxRowWidth: CGFloat = 0
 

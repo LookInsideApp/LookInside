@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// The rounded box of a colour attribute; a click opens the colour menu.
 private final class DashboardAttributeColorContainerView: BaseView {
@@ -20,7 +21,7 @@ private final class DashboardAttributeColorContainerView: BaseView {
 
 /// A colour: swatch, hex or RGBA text, and the colour's alias names from
 /// the app's colour configuration.
-@objc(LKDashboardAttributeColorView)
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate {
     private let mainContainerHeight: CGFloat = 30
     private let aliasLabelMarginTop: CGFloat = 1
@@ -201,7 +202,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
     private func modify(to targetColor: NSColor?) {
         let expectedValue = targetColor?.sRGBAComponents()
         if let currentValue = attribute?.value as? NSObject, let expectedValue, currentValue.isEqual(expectedValue) {
-            NSLog("修改没有变化，不做任何提交")
+            #log(.default, "修改没有变化，不做任何提交")
             return
         }
         submitRenderingOnSuccess(expectedValue)

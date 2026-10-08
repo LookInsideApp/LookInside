@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import LookInsideActivation
 import LookInsideActivationUI
+import FoundationToolbox
 
 @objc public enum SwiftUISupportActivationState: Int, CustomDebugStringConvertible {
     case unknown
@@ -38,7 +39,7 @@ private enum SwiftUISupportGatekeeperConstants {
 /// connection, menu, launch and static-update code call it unchanged. The
 /// runtime reads and writes the helper's `state.json` and keychain key; this
 /// class never launches, updates or removes the helper.
-@objcMembers
+@Loggable(subsystem: "com.lookinside.app", category: "Activation")
 public final class SwiftUISupportGatekeeper: NSObject {
     private static let shared = SwiftUISupportGatekeeper(runtime: ActivationRuntime())
 
@@ -96,7 +97,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         publishedStatusSummary = initialDecision?.statusSummary
         presentsKeychainExplainer = monitorsState
         super.init()
-        SwiftUISupportLogger.activation.info(
+        #log(.info, 
             // Logger interpolations are escaping autoclosures.
             // swiftformat:disable:next redundantSelf
             "activation runtime ready, state=\(self.publishedState.debugDescription, privacy: .public)"
@@ -155,7 +156,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
             return handshakeGeneration != status.handshakeGeneration
         }
         guard shouldNotify else { return }
-        SwiftUISupportLogger.activation.info(
+        #log(.info, 
             "license handshakes may start again (generation \(status.handshakeGeneration, privacy: .public))"
         )
         DispatchQueue.main.async {
@@ -173,7 +174,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         onMain { coordinator in
             guard runtime.signingStatus.needsKeychainAccessExplainer else { return }
             let window = NSApp.mainWindow ?? NSApp.keyWindow ?? NSApp.windows.first { $0.isVisible }
-            SwiftUISupportLogger.activation.info("showing the keychain access explainer")
+            #log(.info, "showing the keychain access explainer")
             coordinator.showKeychainAccessExplainer(over: window)
         }
     }
@@ -225,7 +226,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
             return true
         }
         guard shouldNotify else { return }
-        SwiftUISupportLogger.activation.info(
+        #log(.info, 
             "activation state changed: \(previousState.debugDescription, privacy: .public) -> \(newState.debugDescription, privacy: .public) (decision=\(decision.decision.rawValue, privacy: .public))"
         )
         DispatchQueue.main.async {
@@ -384,7 +385,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
             result = measured.signature
             keyUseDurationOut?.pointee = measured.keyUseDuration
         } catch let error as ActivationError {
-            SwiftUISupportLogger.activation.error(
+            #log(.error, 
                 "sign_challenge failed code=\(error.errorCode, privacy: .public)"
             )
             throw error
@@ -440,7 +441,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
                         ActivationAlert(title: decision.title, message: decision.message, style: .warning)
                     )
                 } catch {
-                    SwiftUISupportLogger.activation.error(
+                    #log(.error, 
                         "license status refresh failed: \(error.localizedDescription, privacy: .public)"
                     )
                     coordinator.showAlert(
@@ -528,8 +529,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
     }
 
     private func isInspectorWindow(_ window: NSWindow?) -> Bool {
-        guard let wc = window?.windowController else { return false }
-        return NSStringFromClass(type(of: wc)) == "LKStaticWindowController"
+        window?.windowController is StaticWindowController
     }
 
     /// Shown as a sheet on the inspector window that triggered it. As in
@@ -540,7 +540,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         let runtime = runtime
         Task { [weak self, weak window] in
             guard await runtime.hasLicenseMaterial() else {
-                SwiftUISupportLogger.activation.info(
+                #log(.info, 
                     "activation prompt skipped: no local license material"
                 )
                 return

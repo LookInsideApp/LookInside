@@ -9,7 +9,6 @@
 import AppKit
 import LookInsideHostCore
 
-@objc(LKExportAccessoryView)
 final class ExportAccessoryView: BaseView {
     private static let insetTop: CGFloat = 20
     private static let insetBottom: CGFloat = 10

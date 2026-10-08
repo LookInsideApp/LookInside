@@ -9,7 +9,6 @@
 import Foundation
 import LookInsideHostCore
 
-@objc(LKVersionComparer)
 final class VersionComparer: NSObject {
     /// latest 指网上最高的 LookinServer 版本号，user 指用户真实的版本号。如果用户版本号低于最高版本号，则该方法返回 NO，此时应该提示用户升级。
     @objc(compareWithNewest:user:)

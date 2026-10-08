@@ -8,15 +8,13 @@
 
 import AppKit
 import LookInsideHostCore
+import FoundationToolbox
 
-@objc(LKStaticAsyncUpdateManagerDelegate)
-protocol StaticAsyncUpdateManagerDelegate: NSObjectProtocol {
+protocol StaticAsyncUpdateManagerDelegate: AnyObject {
     /// Called whenever the number of unfinished tasks changes: `totalCount`
     /// tasks in all, `finishedCount` of them done.
-    @objc(detailUpdateTasksTotalCount:finishedCount:)
     func detailUpdateTasksTotalCount(_ totalCount: UInt, finishedCount: UInt)
 
-    @objc(detailUpdateReceivedError:)
     func detailUpdateReceivedError(_ error: Error)
 }
 
@@ -29,7 +27,7 @@ enum ModifyingUpdateEvent {
 
 /// Fetches the details (screenshots, attributes, sub items) of the items in
 /// one inspector window's hierarchy from the inspected app.
-@objc(LKStaticAsyncUpdateManager)
+@Loggable(subsystem: "com.lookinside.app")
 @MainActor
 final class StaticAsyncUpdateManager: NSObject {
     /// Set by the owner (window controller / live document), which holds it
@@ -40,7 +38,7 @@ final class StaticAsyncUpdateManager: NSObject {
     /// hierarchy arrives or the document reconnects.
     @objc weak var inspectableApp: InspectableApp?
 
-    @objc weak var delegate: StaticAsyncUpdateManagerDelegate?
+    weak var delegate: StaticAsyncUpdateManagerDelegate?
 
     /// Events of `updateAfterModifyingDisplayItem(_:)`.
     let modifyingUpdates = AsyncBroadcaster<ModifyingUpdateEvent>()
@@ -99,7 +97,7 @@ final class StaticAsyncUpdateManager: NSObject {
     /// Stops the running fetch.
     @objc func endUpdating() {
         guard ongoingRequest != nil else { return }
-        NSLog("AsyncUpdate - endUpdating")
+        #log(.default, "AsyncUpdate - endUpdating")
         // Completes the running details request synchronously, which runs
         // its completion below and notifies the delegate.
         inspectableApp?.cancelHierarchyDetailFetching()
@@ -387,7 +385,7 @@ final class StaticAsyncUpdateManager: NSObject {
         ongoingRequest = request
         notifyTasksCountToDelegate()
 
-        NSLog("AsyncUpdate - Will send %@ tasks.", NSNumber(value: newTasks.count))
+        #log(.default, "AsyncUpdate - Will send \(NSNumber(value: newTasks.count), privacy: .public) tasks.")
 
         startRequest(app: app, type: LookinRequestTypeHierarchyDetails, tasks: packages as NSArray) { [weak self] event in
             guard let self else { return }
@@ -425,17 +423,7 @@ final class StaticAsyncUpdateManager: NSObject {
                 let viewAddress: String = failedItem?.viewObject?.memoryAddress ?? "-"
                 let layerClass: String = failedItem?.layerObject?.rawClassName() ?? "-"
                 let layerAddress: String = failedItem?.layerObject?.memoryAddress ?? "-"
-                NSLog(
-                    "AsyncUpdate - task %@: oid %lu, item %@ (nodeKind %ld, view %@ %@, layer %@ %@)",
-                    outcome as NSString,
-                    detail.displayItemOid,
-                    title as NSString,
-                    nodeKind,
-                    viewClass as NSString,
-                    viewAddress as NSString,
-                    layerClass as NSString,
-                    layerAddress as NSString
-                )
+                #log(.default, "AsyncUpdate - task \(outcome as NSString, privacy: .public): oid \(detail.displayItemOid, privacy: .public), item \(title as NSString, privacy: .public) (nodeKind \(nodeKind, privacy: .public), view \(viewClass as NSString, privacy: .public) \(viewAddress as NSString, privacy: .public), layer \(layerClass as NSString, privacy: .public) \(layerAddress as NSString, privacy: .public))")
             } else {
                 dataSource?.modify(with: detail)
             }
@@ -496,7 +484,7 @@ final class StaticAsyncUpdateManager: NSObject {
     private func notifyTasksCountToDelegate() {
         let totalCount = ongoingRequest?.tasksTotalCount ?? 0
         let finishedCount = ongoingRequest?.finishedTasksCount ?? 0
-        NSLog("AsyncUpdate - notify delagate: %@/%@", NSNumber(value: finishedCount), NSNumber(value: totalCount))
+        #log(.default, "AsyncUpdate - notify delagate: \(NSNumber(value: finishedCount), privacy: .public)/\(NSNumber(value: totalCount), privacy: .public)")
         delegate?.detailUpdateTasksTotalCount(UInt(totalCount), finishedCount: UInt(max(finishedCount, 0)))
     }
 }

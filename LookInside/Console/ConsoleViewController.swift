@@ -8,8 +8,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
-@objc(LKConsoleViewController)
+@Loggable(subsystem: "com.lookinside.app")
 final class ConsoleViewController: BaseViewController, TableViewDelegate, TableViewDataSource {
     private let dataSource: ConsoleDataSource
     private let tableView = TableView()
@@ -125,7 +126,7 @@ final class ConsoleViewController: BaseViewController, TableViewDelegate, TableV
             do {
                 try await dataSource.submit(object: obj, text: text)
             } catch {
-                NSLog("Submit error: %@", String(describing: error))
+                #log(.default, "Submit error: \(String(describing: error), privacy: .public)")
             }
         }
     }

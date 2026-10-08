@@ -11,7 +11,6 @@ import Foundation
 /// The notices the inspector window shows under its toolbar message
 /// button. Identifiers are `jobsMessageIdentifier` and `swiftSubspecMessageIdentifier`
 /// (StaticConstants.swift).
-@objc(LKMessageManager)
 final class MessageManager: NSObject {
     /// Set once the jobs notice was dismissed.
     private static let hasReadJobsDefaultsKey = "LKMessageManager_HasReadJobs"

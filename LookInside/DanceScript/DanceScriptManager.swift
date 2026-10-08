@@ -10,7 +10,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app")
 @objc(DanceScriptManager)
 final class DanceScriptManager: NSObject {
     private static let sharedManager = DanceScriptManager()
@@ -101,11 +103,11 @@ final class DanceScriptManager: NSObject {
         do {
             try task.run()
         } catch {
-            NSLog("DanceScript failed to launch: %@", String(describing: error))
+            #log(.default, "DanceScript failed to launch: \(String(describing: error), privacy: .public)")
             return
         }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8) ?? ""
-        NSLog("脚本执行输出：%@", output)
+        #log(.default, "脚本执行输出：\(output, privacy: .public)")
     }
 }

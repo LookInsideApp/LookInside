@@ -17,8 +17,6 @@ private let disclosureWidth: CGFloat = 16
     case collapsed
 }
 
-@objc(LKOutlineRowView)
-@objcMembers
 class OutlineRowView: TableRowView {
     let disclosureButton: NSButton
     let imageView: NSImageView

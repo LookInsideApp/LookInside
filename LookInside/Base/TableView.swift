@@ -19,7 +19,7 @@ private final class KeyForwardingTableView: NSTableView {
 }
 
 /// Every row argument may be -1.
-@objc(LKTableViewDelegate)
+@objc
 protocol TableViewDelegate: NSTableViewDelegate {
     @objc(tableView:didSelectRow:)
     optional func tableView(_ tableView: TableView, didSelectRow row: Int)
@@ -32,10 +32,9 @@ protocol TableViewDelegate: NSTableViewDelegate {
     optional func tableViewDidClickBlankArea(_ tableView: TableView)
 }
 
-@objc(LKTableViewDataSource)
+@objc
 protocol TableViewDataSource: NSTableViewDataSource {}
 
-@objc(LKTableView)
 class TableView: NSScrollView {
     @objc let tableView: NSTableView
 

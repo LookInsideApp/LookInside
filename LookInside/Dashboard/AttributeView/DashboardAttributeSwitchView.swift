@@ -9,7 +9,6 @@
 import AppKit
 
 /// A BOOL attribute as a checkbox.
-@objc(LKDashboardAttributeSwitchView)
 final class DashboardAttributeSwitchView: DashboardAttributeView {
     private let button = NSButton()
 

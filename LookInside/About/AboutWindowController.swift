@@ -8,7 +8,6 @@
 
 import AppKit
 
-@objc(LKAboutWindowController)
 final class AboutWindowController: WindowController {
     @objc init() {
         let window = AppWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 460),
@@ -33,7 +32,6 @@ final class AboutWindowController: WindowController {
     }
 }
 
-@objc(LKAboutViewController)
 final class AboutViewController: BaseViewController {
     private static let upstreamURL = "https://github.com/QMUI/LookinServer"
     private static let homeURL = "https://lookinside-app.com"

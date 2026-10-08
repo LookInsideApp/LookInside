@@ -6,7 +6,6 @@
 import AppKit
 
 /// A split view without visible dividers that reports its first layout.
-@objc(LKSplitView)
 class SplitView: NSSplitView {
     /// Called once, after the first `layout`.
     @objc var didFinishFirstLayout: ((SplitView) -> Void)?

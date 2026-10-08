@@ -17,7 +17,6 @@ extension Notification.Name {
     static let swiftUIHierarchyDisplayModeDidChange = Notification.Name("LKSwiftUIHierarchyDisplayModeDidChangeNotification")
 }
 
-@objc(LKSwiftUIHierarchyDisplayModeStore)
 final class SwiftUIHierarchyDisplayModeStore: NSObject {
     private static let defaultsKey = "LookInside.SwiftUIHierarchyDisplayMode"
 

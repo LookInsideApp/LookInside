@@ -11,7 +11,6 @@
 
 import AppKit
 
-@objc(LookinLiveDocumentController)
 @MainActor
 final class LiveDocumentController: NSObject {
     @objc(sharedInstance)

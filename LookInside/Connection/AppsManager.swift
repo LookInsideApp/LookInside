@@ -11,8 +11,9 @@
 
 import Foundation
 import LookInsideHostCore
+import FoundationToolbox
 
-@objc(LKAppsManager)
+@Loggable(subsystem: "com.lookinside.app")
 @MainActor
 final class AppsManager: NSObject {
     @objc(sharedInstance)
@@ -122,12 +123,7 @@ final class AppsManager: NSObject {
             return app
         case let .response(response):
             if let error = response?.error as NSError? {
-                NSLog(
-                    "LookinClient - app info request failed, domain:%@, code:%@, description:%@",
-                    error.domain,
-                    NSNumber(value: error.code),
-                    error.localizedDescription
-                )
+                #log(.default, "LookinClient - app info request failed, domain:\(error.domain, privacy: .public), code:\(NSNumber(value: error.code), privacy: .public), description:\(error.localizedDescription, privacy: .public)")
                 if error.code == LookinErrCode_LicenseRequired {
                     return nil
                 }

@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// Whether a section shows a button that adds it to, or removes it from,
 /// its card.
@@ -18,6 +19,7 @@ enum DashboardSectionManageState {
 
 /// One section of a card: an optional title and separator, then the
 /// attribute views flowed into rows.
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardSectionView: BaseView {
     private let titleMarginTop: CGFloat = 6
 
@@ -208,7 +210,7 @@ final class DashboardSectionView: BaseView {
             guard let viewClass = Self.attrViewClass(for: attr.attrType, identifier: attr.identifier) else {
                 // Debug builds stop here so a missing case surfaces at once;
                 // release builds skip the attribute and log it.
-                NSLog("LookInside dashboard: skipping attribute with unsupported attrType=%ld identifier=%@", attr.attrType.rawValue, attr.identifier ?? "nil")
+                #log(.default, "LookInside dashboard: skipping attribute with unsupported attrType=\(attr.attrType.rawValue, privacy: .public) identifier=\(attr.identifier ?? "nil", privacy: .public)")
                 assertionFailure("LookInside dashboard: no attrView class for attrType=\(attr.attrType.rawValue) identifier=\(attr.identifier ?? "nil")")
                 continue
             }

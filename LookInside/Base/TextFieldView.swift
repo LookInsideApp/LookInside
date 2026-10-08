@@ -7,7 +7,6 @@ import AppKit
 
 /// A text field with insets, an optional leading image and an optional
 /// trailing button that clears a search.
-@objc(LKTextFieldView)
 class TextFieldView: BaseView {
     @objc let textField = NSTextField()
 

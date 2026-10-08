@@ -11,7 +11,6 @@
 
 import AppKit
 
-@objc(LKFrameLayout)
 final class FrameLayout: NSObject {
     private enum Target {
         case view(NSView)

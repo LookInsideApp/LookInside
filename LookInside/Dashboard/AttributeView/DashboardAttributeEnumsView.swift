@@ -7,9 +7,10 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// An enum attribute: the case name, and a menu of the cases on click.
-@objc(LKDashboardAttributeEnumsView)
+@Loggable(subsystem: "com.lookinside.app")
 final class DashboardAttributeEnumsView: DashboardAttributeView {
     private let labelX: CGFloat = 5
     private let labelRight: CGFloat = 20
@@ -145,7 +146,7 @@ final class DashboardAttributeEnumsView: DashboardAttributeView {
     @objc private func handleMenuItem(_ item: NSMenuItem) {
         let expectedValue = item.representedObject as? NSObject
         if let expectedValue, let current = attribute?.value, expectedValue.isEqual(current) {
-            NSLog("修改没有变化，不做任何提交")
+            #log(.default, "修改没有变化，不做任何提交")
             return
         }
         submitRenderingOnSuccess(expectedValue)

@@ -7,9 +7,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
-@objc(LKBaseViewController)
-@objcMembers
+@Loggable(subsystem: "com.lookinside.app")
 class BaseViewController: NSViewController {
     private(set) var isViewAppeared = false
 
@@ -33,7 +33,7 @@ class BaseViewController: NSViewController {
     }
 
     deinit {
-        NSLog("%@ dealloc", NSStringFromClass(type(of: self)))
+        #log(.default, "\(NSStringFromClass(type(of: self)), privacy: .public) dealloc")
     }
 
     override func viewDidAppear() {

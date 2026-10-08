@@ -8,7 +8,6 @@
 
 import AppKit
 
-@objc(LKTextControl)
 class TextControl: BaseControl {
     @objc let label = TextLabel()
 

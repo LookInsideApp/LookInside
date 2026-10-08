@@ -5,29 +5,27 @@
 
 import Foundation
 
-@objc enum UserActionType: Int {
-    @objc(LKUserActionType_None) case none
+enum UserActionType {
+    case none
     /// A click, double click, pan or similar in the preview.
-    @objc(LKUserActionType_PreviewOperation) case previewOperation
+    case previewOperation
     /// A click in the Dashboard.
-    @objc(LKUserActionType_DashboardClick) case dashboardClick
+    case dashboardClick
     /// The selected item changed.
-    @objc(LKUserActionType_SelectedItemChange) case selectedItemChange
+    case selectedItemChange
 }
 
-@objc protocol UserActionManagerDelegate: NSObjectProtocol {
-    /// Called for every `sendAction:`.
-    @objc(LKUserActionManager:didAct:)
+protocol UserActionManagerDelegate: AnyObject {
+    /// Called for every `send(_:)`.
     func userActionManager(_ manager: UserActionManager, didAct type: UserActionType)
 }
 
 /// Broadcasts user actions (preview gestures, Dashboard clicks) to weakly
 /// held delegates, for example so an open Dashboard editor can close.
-@objc(LKUserActionManager)
 final class UserActionManager: NSObject {
     private static let shared = UserActionManager()
 
-    @objc static func sharedInstance() -> UserActionManager {
+    static func sharedInstance() -> UserActionManager {
         shared
     }
 
@@ -35,7 +33,6 @@ final class UserActionManager: NSObject {
 
     /// Delegates are held weakly and need no removal; adding one twice
     /// keeps a single entry.
-    @objc(addDelegate:)
     func add(_ delegate: UserActionManagerDelegate) {
         if delegates.allObjects.contains(where: { ($0 as AnyObject) === delegate }) {
             return
@@ -43,15 +40,12 @@ final class UserActionManager: NSObject {
         delegates.addPointer(Unmanaged.passUnretained(delegate as AnyObject).toOpaque())
     }
 
-    @objc(sendAction:)
     func send(_ type: UserActionType) {
         guard type != .none else {
-            assertionFailure("sendAction: needs an action")
+            assertionFailure("send(_:) needs an action")
             return
         }
-        for case let delegate as UserActionManagerDelegate in delegates.allObjects
-            where delegate.responds(to: #selector(UserActionManagerDelegate.userActionManager(_:didAct:)))
-        {
+        for case let delegate as UserActionManagerDelegate in delegates.allObjects {
             delegate.userActionManager(self, didAct: type)
         }
     }

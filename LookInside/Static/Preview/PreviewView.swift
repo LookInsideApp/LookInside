@@ -13,10 +13,11 @@
 import AppKit
 import LookInsideHostCore
 import SceneKit
+import FoundationToolbox
 
 /// The 3D (or flat) preview of the hierarchy: one DisplayItemNode per
 /// item, stacked along the z axis.
-@objc(LKPreviewView)
+@Loggable(subsystem: "com.lookinside.app")
 final class PreviewView: SCNView {
     private let dataSource: HierarchyDataSource?
 
@@ -185,7 +186,7 @@ final class PreviewView: SCNView {
     /// use are dropped; otherwise they are only removed from the scene and
     /// kept for later renders.
     func render(displayItems items: [DisplayItem], discardCache: Bool) {
-        NSLog("LKPreviewView - render %@ items", NSNumber(value: items.count))
+        #log(.default, "LKPreviewView - render \(NSNumber(value: items.count), privacy: .public) items")
 
         flatDisplayItems = items
 

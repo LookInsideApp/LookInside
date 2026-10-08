@@ -11,7 +11,6 @@ import AppKit
 /// The toolbar button that names the inspected app and its device: app
 /// icon, app name, a chevron, device icon, device and OS. Without an app it
 /// shows a plain app icon.
-@objc(LKWindowToolbarAppButton)
 final class WindowToolbarAppButton: NSButton {
     private let appImageView = NSImageView()
     private let appNameLabel = TextLabel()

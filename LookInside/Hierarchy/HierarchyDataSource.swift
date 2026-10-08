@@ -8,6 +8,7 @@
 
 import AppKit
 import LookInsideHostCore
+import FoundationToolbox
 
 /// What the data source is showing. KVO-observable through `state`.
 @objc enum HierarchyDataSourceState: UInt {
@@ -96,7 +97,7 @@ private func selfAndDescendants(of item: DisplayItem) -> [DisplayItem] {
 
 /// The hierarchy tree of a document: the flat rows, selection, hover,
 /// expansion, search and focus. Subclasses supply the preference manager.
-@objc(LKHierarchyDataSource)
+@Loggable(subsystem: "com.lookinside.app")
 class HierarchyDataSource: NSObject {
     /// KVO-observable.
     @objc dynamic var state: HierarchyDataSourceState {
@@ -216,7 +217,7 @@ class HierarchyDataSource: NSObject {
 
     deinit {
         eventBroadcaster.finish()
-        NSLog("%@ dealloc", NSStringFromClass(type(of: self)))
+        #log(.default, "\(NSStringFromClass(type(of: self)), privacy: .public) dealloc")
     }
 
     // MARK: - Reload

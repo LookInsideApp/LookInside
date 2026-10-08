@@ -61,7 +61,6 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     case locked
 }
 
-@objc(LKPreferenceManager)
 final class PreferenceManager: NSObject {
     /// User-defaults keys. Never rename: they hold existing users' settings.
     private enum Key {

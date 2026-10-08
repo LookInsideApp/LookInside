@@ -19,7 +19,6 @@ import RunningApplicationKit
 /// leaves the foreground, so the ordinary path stops running into them. They
 /// are still bugs and still need fixing; this just stops them being hit every
 /// single time.
-@objc(LKDeviceInjectionFlow)
 final class DeviceInjectionFlow: NSObject {
     @objc(sharedInstance) static let shared = DeviceInjectionFlow()
 

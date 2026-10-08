@@ -40,10 +40,11 @@
 import AppKit
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Events")
 @MainActor
 final class MCPBridgeEventPublisher {
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Events")
 
     /// Where finished events go. Injected rather than reaching for the
     /// server singleton so this type can be exercised without a socket.

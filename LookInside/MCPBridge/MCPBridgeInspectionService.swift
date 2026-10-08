@@ -12,10 +12,11 @@ import AppKit
 import CoreGraphics
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Inspection")
 @MainActor
 final class MCPBridgeInspectionService {
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Inspection")
 
     init() {}
 
@@ -44,7 +45,7 @@ final class MCPBridgeInspectionService {
             let payload = try encodeAsJSONValue(infos)
             return .success(identifier: identifier, result: .object(["targets": payload]))
         } catch {
-            Self.logger.error("targets.list encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "targets.list encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -160,7 +161,7 @@ final class MCPBridgeInspectionService {
             let payload = try encodeAsJSONValue(nodes)
             return .success(identifier: identifier, result: .object(["roots": payload]))
         } catch {
-            Self.logger.error("hierarchy.read encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "hierarchy.read encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -306,7 +307,7 @@ final class MCPBridgeInspectionService {
                 ])
             )
         } catch {
-            Self.logger.error("attributes.read encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "attributes.read encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }

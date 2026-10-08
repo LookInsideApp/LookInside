@@ -14,7 +14,6 @@ import AppKit
 /// `NavigationManager.showReaderWithHierarchyFile:title:` wraps in-memory
 /// hierarchies in an untitled document, and archives on disk open through
 /// `NSDocumentController.openDocumentWithContentsOfURL:`.
-@objc(LKReadWindowController)
 final class ReadWindowController: WindowController, NSToolbarDelegate {
     /// This window's own preference set: the reader's view settings, including
     /// the show-backing-layers toggle, are per document window. A document that

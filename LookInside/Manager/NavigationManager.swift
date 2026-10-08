@@ -11,7 +11,6 @@
 
 import AppKit
 
-@objc(LKNavigationManager)
 @MainActor
 final class NavigationManager: NSObject, NSWindowDelegate {
     static let shared = NavigationManager()

@@ -11,7 +11,6 @@ import AppKit
 /// The reader window's content: the hierarchy list on the left; the
 /// preview, the dashboard or the measure panel on the right; and a tip
 /// while the tree is in focus mode.
-@objc(LKReadViewController)
 final class ReadViewController: BaseViewController, NSSplitViewDelegate {
     @objc let hierarchyDataSource: ReadHierarchyDataSource
 

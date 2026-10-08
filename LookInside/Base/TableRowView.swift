@@ -8,8 +8,6 @@
 
 import AppKit
 
-@objc(LKTableRowView)
-@objcMembers
 class TableRowView: NSTableRowView {
     let titleLabel: TextLabel
     let subtitleLabel: TextLabel
@@ -119,5 +117,4 @@ class TableRowView: NSTableRowView {
     }
 }
 
-@objc(LKTableBlankRowView)
 final class TableBlankRowView: TableRowView {}

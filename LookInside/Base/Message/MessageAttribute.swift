@@ -14,8 +14,6 @@
 import AppKit
 
 /// The sender of a subscriber's action.
-@objc(LookinMsgActionParams)
-@objcMembers
 final class MessageActionParameters: NSObject {
     var value: Any?
     weak var relatedObject: AnyObject?
@@ -46,8 +44,6 @@ final class MessageActionParameters: NSObject {
     }
 }
 
-@objc(LookinMsgAttribute)
-@objcMembers
 class MessageAttribute: NSObject {
     /// One target-action pair. Two subscriptions are the same when the target
     /// and the related object are the same objects and the action has the same name.
@@ -136,8 +132,6 @@ class MessageAttribute: NSObject {
     }
 }
 
-@objc(LookinDoubleMsgAttribute)
-@objcMembers
 final class DoubleMessageAttribute: MessageAttribute {
     convenience init(double value: Double) {
         self.init(value: NSNumber(value: value))
@@ -157,8 +151,6 @@ final class DoubleMessageAttribute: MessageAttribute {
     }
 }
 
-@objc(LookinIntegerMsgAttribute)
-@objcMembers
 final class IntegerMessageAttribute: MessageAttribute {
     convenience init(integer value: Int) {
         self.init(value: NSNumber(value: value))
@@ -178,8 +170,6 @@ final class IntegerMessageAttribute: MessageAttribute {
     }
 }
 
-@objc(LookinBOOLMsgAttribute)
-@objcMembers
 final class BoolMessageAttribute: MessageAttribute {
     convenience init(bool value: Bool) {
         self.init(value: NSNumber(value: value))

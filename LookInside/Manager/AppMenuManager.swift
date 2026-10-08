@@ -16,7 +16,7 @@ import Sparkle
 
 /// The menu sends each command to the key window's controller, and enables
 /// the item only when the controller implements the method.
-@objc(LKAppMenuManagerDelegate)
+@objc
 @MainActor
 protocol AppMenuManagerDelegate: NSObjectProtocol {
     @objc optional func appMenuManagerDidSelectReload()
@@ -33,7 +33,6 @@ protocol AppMenuManagerDelegate: NSObjectProtocol {
     @objc optional func appMenuManagerDidSelectOpenInNewWindow()
 }
 
-@objc(LKAppMenuManager)
 @MainActor
 final class AppMenuManager: NSObject, NSMenuDelegate {
     static let shared = AppMenuManager()

@@ -6,7 +6,6 @@
 import AppKit
 
 /// A colour pair resolved against the app's current appearance.
-@objc(LKTwoColors)
 final class TwoColors: NSObject {
     @objc var colorInLightMode: NSColor?
     @objc var colorInDarkMode: NSColor?

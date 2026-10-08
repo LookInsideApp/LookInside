@@ -10,7 +10,6 @@ import AppKit
 
 /// Hosts the 3D preview and turns mouse, trackpad and keyboard input into
 /// rotation, translation, zoom, selection and the context menu.
-@objc(LKPreviewController)
 final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, NSMenuDelegate, PreviewStageViewDelegate {
     @objc weak var staticViewController: StaticViewController?
 

@@ -17,10 +17,11 @@
 import AppKit
 import Foundation
 import os
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Invocation")
 @MainActor
 final class MCPBridgeInvocationService {
-    private static let logger = Logger(subsystem: "com.lookinside.app", category: "MCPBridge.Invocation")
 
     init() {}
 
@@ -152,7 +153,7 @@ final class MCPBridgeInvocationService {
             let payload = try encodeAsJSONValue(invocationResult)
             return .success(identifier: identifier, result: payload)
         } catch {
-            Self.logger.error("invoke.method encode failed: \(error.localizedDescription, privacy: .public)")
+            #log(.error, "invoke.method encode failed: \(error.localizedDescription, privacy: .public)")
             return .failure(identifier: identifier, error: .internalError)
         }
     }
@@ -223,7 +224,7 @@ final class MCPBridgeInvocationService {
                 message: "The target app did not respond within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."
             )
         default:
-            Self.logger.error("invoke.method received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            #log(.error, "invoke.method received unmapped error code \(error.code, privacy: .public): \(error.localizedDescription, privacy: .public)")
             return MCPBridgeErrorPayload(
                 code: "invoke.internalError",
                 message: "The target app reported an unexpected error (code \(error.code))."

@@ -11,7 +11,6 @@ import AppKit
 /// The content of a live inspector window: the hierarchy tree on the left;
 /// on the right the preview with the dashboard (or measure panel) over it,
 /// and the console under them; tips float above the preview.
-@objc(LKStaticViewController)
 final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     /// Set when the fast mode tip is dismissed for good.
     private static let ignoreFastModeTipsDefaultsKey = "IgnoreFastModeTips"

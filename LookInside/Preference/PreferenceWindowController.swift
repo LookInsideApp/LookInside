@@ -8,7 +8,6 @@
 
 import AppKit
 
-@objc(LKPreferenceWindowController)
 final class PreferenceWindowController: WindowController {
     @objc init() {
         #if DEBUG
@@ -36,7 +35,6 @@ final class PreferenceWindowController: WindowController {
     }
 }
 
-@objc(LKPreferenceViewController)
 final class PreferenceViewController: BaseViewController {
     init() {
         super.init(containerView: nil)

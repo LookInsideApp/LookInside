@@ -40,43 +40,33 @@ private final class HierarchyDebouncer {
     }
 }
 
-@objc protocol HierarchyViewDelegate: NSObjectProtocol {
-    @objc(hierarchyView:didSelectItem:)
+protocol HierarchyViewDelegate: AnyObject {
     func hierarchyView(_ view: HierarchyView, didSelect item: DisplayItem?)
 
-    @objc(hierarchyView:didDoubleClickItem:)
     func hierarchyView(_ view: HierarchyView, didDoubleClick item: DisplayItem)
 
-    @objc(hierarchyView:didHoverAtItem:)
     func hierarchyView(_ view: HierarchyView, didHoverAt item: DisplayItem?)
 
-    @objc(hierarchyView:needToExpandItem:recursively:)
     func hierarchyView(_ view: HierarchyView, needToExpand item: DisplayItem, recursively: Bool)
 
-    @objc(hierarchyView:needToCollapseItem:)
     func hierarchyView(_ view: HierarchyView, needToCollapse item: DisplayItem)
 
-    @objc(hierarchyView:needToCollapseChildrenOfItem:)
     func hierarchyView(_ view: HierarchyView, needToCollapseChildrenOf item: DisplayItem)
 
     /// 在底部的搜索框里输入了文字，string 可能为空字符串或 nil
     /// 当用户通过搜索框的关闭按钮、ESC 等方式手动结束搜索时，该方法同样会被调用，参数是 nil
-    @objc(hierarchyView:didInputSearchString:)
     func hierarchyView(_ view: HierarchyView, didInputSearch string: String?)
 
-    @objc(hierarchyView:needToCancelPreviewOfItem:)
-    optional func hierarchyView(_ view: HierarchyView, needToCancelPreviewOf item: DisplayItem)
+    func hierarchyView(_ view: HierarchyView, needToCancelPreviewOf item: DisplayItem)
 
-    @objc(hierarchyView:needToShowPreviewOfItem:)
-    optional func hierarchyView(_ view: HierarchyView, needToShowPreviewOf item: DisplayItem)
+    func hierarchyView(_ view: HierarchyView, needToShowPreviewOf item: DisplayItem)
 }
 
-@objc(LKHierarchyView)
-@objcMembers
 class HierarchyView: BaseView {
     let tableView: TableView
-    /// The filter field under the rows. The DEBUG UI snapshots type into it.
-    let searchTextFieldView: TextFieldView
+    /// The filter field under the rows. The DEBUG UI snapshots type into it
+    /// and read it by key.
+    @objc let searchTextFieldView: TextFieldView
     var dataSource: HierarchyDataSource
     /// Phase A 引入:由 owner(StaticHierarchyController / StaticViewController 链路)注入的 per-instance update manager(weak)。
     /// 若 nil 则 fallback 到 +sharedInstance,以保留 read-only / archive workspace 的 legacy 行为。
@@ -403,12 +393,12 @@ class HierarchyView: BaseView {
 
     @objc fileprivate func handleShowPreview(_ menuItem: NSMenuItem) {
         guard let item = displayItem(of: menuItem) else { return }
-        delegate?.hierarchyView?(self, needToShowPreviewOf: item)
+        delegate?.hierarchyView(self, needToShowPreviewOf: item)
     }
 
     @objc fileprivate func handleCancelPreview(_ menuItem: NSMenuItem) {
         guard let item = displayItem(of: menuItem) else { return }
-        delegate?.hierarchyView?(self, needToCancelPreviewOf: item)
+        delegate?.hierarchyView(self, needToCancelPreviewOf: item)
     }
 
     @objc fileprivate func handleExportScreenshot(_ menuItem: NSMenuItem) {

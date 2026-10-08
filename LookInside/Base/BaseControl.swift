@@ -8,7 +8,6 @@
 
 import AppKit
 
-@objc(LKBaseControl)
 class BaseControl: NSControl {
     @objc var clickAction: Selector?
 

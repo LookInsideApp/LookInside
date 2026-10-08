@@ -60,7 +60,6 @@ private final class JSONAttributeTree {
 }
 
 /// The tree on a Dashboard card.
-@objc(LKJSONAttributeContentView)
 final class JSONAttributeContentView: BaseView, TableViewDelegate, TableViewDataSource {
     private static let rowIdentifier = NSUserInterfaceItemIdentifier("myView")
 
@@ -153,7 +152,6 @@ final class JSONAttributeContentView: BaseView, TableViewDelegate, TableViewData
 
 /// A JSON attribute on a card; the section's pop-out button shows it in a
 /// window.
-@objc(LKDashboardAttributeJsonView)
 final class DashboardAttributeJSONView: DashboardAttributeView {
     private let contentView = JSONAttributeContentView(bigFont: false)
 
@@ -200,7 +198,6 @@ final class DashboardAttributeJSONView: DashboardAttributeView {
 }
 
 /// The JSON tree in a window of its own, with the bigger font.
-@objc(LKJSONAttributeViewController)
 final class JSONAttributeViewController: BaseViewController, TableViewDelegate, TableViewDataSource {
     private static let rowIdentifier = NSUserInterfaceItemIdentifier("myView")
 
@@ -275,7 +272,6 @@ final class JSONAttributeViewController: BaseViewController, TableViewDelegate, 
 }
 
 /// The window of `JSONAttributeViewController`.
-@objc(LKJSONAttributeWindowController)
 final class JSONAttributeWindowController: WindowController {
     @objc convenience init() {
         let window = AppWindow(

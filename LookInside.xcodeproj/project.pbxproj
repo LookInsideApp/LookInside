@@ -19,6 +19,7 @@
 		E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */ = {isa = PBXBuildFile; productRef = E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */; };
 		E9FE990C3026C657008692AF /* UIFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990B3026C657008692AF /* UIFoundation */; };
 		E9FE990E3026C657008692AF /* UIFoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990D3026C657008692AF /* UIFoundationToolbox */; };
+		F0F0A10E2FD0000100A1B2C3 /* FoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */; };
 		15FFB4D96CB7375162952FFE /* LookInsideActivation in Frameworks */ = {isa = PBXBuildFile; productRef = 4CF60A9D44E04A6BE91035EF /* LookInsideActivation */; };
 		79CC3F736CA547232F1827F4 /* LookInsideActivationUI in Frameworks */ = {isa = PBXBuildFile; productRef = F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */; };
 		C0DE5A1E2FA0000100A1B2C3 /* LookInsideHostCore in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */; };
@@ -93,7 +94,6 @@
 				Common/Installer/InstallerCodeSignature.swift,
 				Common/Installer/InstallerDownloader.swift,
 				Common/Installer/InstallerFilesystem.swift,
-				Common/Installer/InstallerLogger.swift,
 				Common/Installer/InstallerProgressWindowController.swift,
 				"Connection/ConnectionManager+License.swift",
 				Connection/AppsManager.swift,
@@ -225,7 +225,6 @@
 				Static/Preview/PreviewView.swift,
 				SwiftUISupport/SwiftUIHierarchyDisplayMode.swift,
 				SwiftUISupport/SwiftUISupportGatekeeper.swift,
-				SwiftUISupport/SwiftUISupportLogger.swift,
 				Toolbar/MenuPopoverAppsListController.swift,
 				Toolbar/MenuPopoverSettingController.swift,
 				Toolbar/ToolbarRules.swift,
@@ -300,6 +299,7 @@
 				E972100B2FC2E5C0003AAEA6 /* HelperCommunication in Frameworks */,
 				E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */,
 				E9FE990E3026C657008692AF /* UIFoundationToolbox in Frameworks */,
+				F0F0A10E2FD0000100A1B2C3 /* FoundationToolbox in Frameworks */,
 				15FFB4D96CB7375162952FFE /* LookInsideActivation in Frameworks */,
 				79CC3F736CA547232F1827F4 /* LookInsideActivationUI in Frameworks */,
 				C0DE5A1E2FA0000100A1B2C3 /* LookInsideHostCore in Frameworks */,
@@ -366,6 +366,7 @@
 				E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */,
 				E9FE990B3026C657008692AF /* UIFoundation */,
 				E9FE990D3026C657008692AF /* UIFoundationToolbox */,
+				F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */,
 				4CF60A9D44E04A6BE91035EF /* LookInsideActivation */,
 				F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */,
 				C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */,
@@ -426,6 +427,7 @@
 				E97210042FC2D5C0003AAEA6 /* XCRemoteSwiftPackageReference "RunningApplicationKit" */,
 				E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */,
 				E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */,
+				F0F0A10A2FD0000100A1B2C3 /* XCRemoteSwiftPackageReference "FrameworkToolbox" */,
 				E81BCA16A46AEA38803B27B7 /* XCLocalSwiftPackageReference "Packages/LookInsideActivation" */,
 				C0DE5A1D2FA0000100A1B2C3 /* XCLocalSwiftPackageReference "Packages/LookInsideHostCore" */,
 			);
@@ -884,6 +886,14 @@
 				AppleInternal,
 			);
 		};
+		F0F0A10A2FD0000100A1B2C3 /* XCRemoteSwiftPackageReference "FrameworkToolbox" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Mx-Iris/FrameworkToolbox";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -931,6 +941,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */;
 			productName = UIFoundationToolbox;
+		};
+		F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F0F0A10A2FD0000100A1B2C3 /* XCRemoteSwiftPackageReference "FrameworkToolbox" */;
+			productName = FoundationToolbox;
 		};
 		4CF60A9D44E04A6BE91035EF /* LookInsideActivation */ = {
 			isa = XCSwiftPackageProductDependency;

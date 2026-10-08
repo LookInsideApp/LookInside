@@ -12,7 +12,6 @@ import AppKit
 /// screenshot over the device icon, device name and OS. An app whose Server
 /// version is unsupported shows the error and a link to the explanation
 /// instead.
-@objc(LKLaunchAppView)
 final class LaunchAppView: BaseControl {
     private let hoverBgLayer = CALayer()
     private let previewImageView = NSImageView()

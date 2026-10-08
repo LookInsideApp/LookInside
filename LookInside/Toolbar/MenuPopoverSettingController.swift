@@ -11,7 +11,6 @@ import AppKit
 /// The View popover of a window toolbar: outline, hidden items, system
 /// layout guides, backing layers, item separation, and a way to the
 /// preferences.
-@objc(LKMenuPopoverSettingController)
 final class MenuPopoverSettingController: BaseViewController {
     private let manager: PreferenceManager
 

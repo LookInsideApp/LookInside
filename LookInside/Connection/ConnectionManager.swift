@@ -23,6 +23,7 @@
 
 import AppKit
 import LookInsideHostCore
+import FoundationToolbox
 
 /// A push frame the Server sent without a request.
 struct ConnectionPush {
@@ -66,7 +67,7 @@ private final class ConnectionPort {
     }
 }
 
-@objc(LKConnectionManager)
+@Loggable(.internal, subsystem: "com.lookinside.app")
 @MainActor
 final class ConnectionManager: NSObject {
     @objc(sharedInstance)
@@ -223,7 +224,7 @@ final class ConnectionManager: NSObject {
                     for number in Int32(LookinUSBDeviceIPv4PortNumberStart) ... Int32(LookinUSBDeviceIPv4PortNumberEnd) {
                         self.usbPorts.append(ConnectionPort(number: number, kind: .usb(deviceID: deviceID)))
                     }
-                    NSLog("Lookin - USB device attached, DeviceID: %@", NSNumber(value: deviceID))
+                    #log(.default, "Lookin - USB device attached, DeviceID: \(NSNumber(value: deviceID), privacy: .public)")
                 case let .detached(deviceID):
                     self.usbPorts.removeAll { port in
                         if case let .usb(portDeviceID) = port.kind {
@@ -231,7 +232,7 @@ final class ConnectionManager: NSObject {
                         }
                         return false
                     }
-                    NSLog("Lookin - USB device detached, DeviceID: %@", NSNumber(value: deviceID))
+                    #log(.default, "Lookin - USB device detached, DeviceID: \(NSNumber(value: deviceID), privacy: .public)")
                 }
             }
         }
@@ -244,7 +245,7 @@ final class ConnectionManager: NSObject {
     func push(type: UInt32, data: NSObject?, channel: ServerChannel?) {
         guard let channel, channel.isConnected else { return }
         let payload = archivedPayload(rootObject: data)
-        NSLog("LookinClient - pushData, type:%@", NSNumber(value: type))
+        #log(.default, "LookinClient - pushData, type:\(NSNumber(value: type), privacy: .public)")
         channel.send(type: type, tag: 0, payload: payload)
     }
 
@@ -303,7 +304,7 @@ final class ConnectionManager: NSObject {
         request.endTimeoutCount()
         state.remove(request)
         request.sink.send(.completion)
-        NSLog("Lookin - request cancelled by the user, type:%@", NSNumber(value: type))
+        #log(.default, "Lookin - request cancelled by the user, type:\(NSNumber(value: type), privacy: .public)")
     }
 
     /// Response frames of one request, until it completes. The stream
@@ -418,7 +419,7 @@ final class ConnectionManager: NSObject {
                 discarded.sink.send(.failure(ConnectionError.discarded))
                 discarded.endTimeoutCount()
                 state.remove(discarded)
-                NSLog("LookinClient - will discard request, type:%@, tag:%@", NSNumber(value: discarded.type), NSNumber(value: discarded.tag))
+                #log(.default, "LookinClient - will discard request, type:\(NSNumber(value: discarded.type), privacy: .public), tag:\(NSNumber(value: discarded.tag), privacy: .public)")
             }
         }
 
@@ -459,7 +460,7 @@ final class ConnectionManager: NSObject {
         if channel.connectionState.activeRequest(type: type, tag: tag) != nil {
             return true
         }
-        NSLog("LookinClient - will refuse, type:%@, tag:%@", NSNumber(value: type), NSNumber(value: tag))
+        #log(.default, "LookinClient - will refuse, type:\(NSNumber(value: type), privacy: .public), tag:\(NSNumber(value: tag), privacy: .public)")
         return false
     }
 
@@ -492,7 +493,7 @@ final class ConnectionManager: NSObject {
             request.endTimeoutCount()
             state.remove(request)
             request.sink.send(.failure(ConnectionError.appInBackground))
-            NSLog("Lookin - the iOS app reported that it is in the background; request failed")
+            #log(.default, "Lookin - the iOS app reported that it is in the background; request failed")
             return
         }
 
@@ -516,13 +517,7 @@ final class ConnectionManager: NSObject {
             let duration = CACurrentMediaTime() - responseStartTime
             let megabytes = Double(receivedResponseBytes) / 1024 / 1024
             if megabytes > 0.5 {
-                NSLog(
-                    "Lookin - received all responses %@ / %@, %.2fs, %.2fM",
-                    NSNumber(value: request.frameProgress.receivedDataCount),
-                    NSNumber(value: attachment?.dataTotalCount ?? 0),
-                    duration,
-                    megabytes
-                )
+                #log(.default, "Lookin - received all responses \(NSNumber(value: request.frameProgress.receivedDataCount), privacy: .public) / \(NSNumber(value: attachment?.dataTotalCount ?? 0), privacy: .public), \(duration, format: .fixed(precision: 2), privacy: .public)s, \(megabytes, format: .fixed(precision: 2), privacy: .public)M")
             }
         } else {
             // A multi-frame response restarts the timeout with each frame.
@@ -541,7 +536,7 @@ final class ConnectionManager: NSObject {
 
     private func handlePush(type: UInt32, data: Any?, channel: ServerChannel) {
         guard type == UInt32(LookinPush_SwiftUISupportDetected) else { return }
-        NSLog("LookinClient - received SwiftUI support detection push from channel:%@ data:%@", channel, data.map { String(describing: $0) } ?? "(null)")
+        #log(.default, "LookinClient - received SwiftUI support detection push from channel:\(channel, privacy: .public) data:\(data.map { String(describing: $0) } ?? "(null)", privacy: .public)")
         DispatchQueue.main.async {
             let gatekeeper = SwiftUISupportGatekeeper.sharedInstance()
             gatekeeper.noteDetectedSwiftUISupport()

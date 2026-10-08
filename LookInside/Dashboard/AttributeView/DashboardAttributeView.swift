@@ -7,11 +7,12 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 /// One attribute row on a Dashboard card. Subclasses render `attribute`,
 /// size themselves through `sizeThatFits(_:)` and say how many of them fit
 /// in a row.
-@objc(LKDashboardAttributeView)
+@Loggable(subsystem: "com.lookinside.app")
 class DashboardAttributeView: BaseView {
     /// Setting the attribute renders it.
     @objc var attribute: InspectedAttribute? {
@@ -70,7 +71,7 @@ class DashboardAttributeView: BaseView {
             do {
                 try await self?.submit(newValue)
             } catch {
-                NSLog("修改返回 error")
+                #log(.default, "修改返回 error")
                 self?.renderWithAttribute()
             }
         }
@@ -90,7 +91,6 @@ class DashboardAttributeView: BaseView {
 /// removes the editing card, which ends text editing again; the text
 /// fields ignore that second end-of-editing so the value is not submitted
 /// twice.
-@objc(LKDashboardTextControlEditingFlag)
 final class DashboardTextControlEditingFlag: NSObject {
     @objc(sharedInstance)
     static let shared = DashboardTextControlEditingFlag()
