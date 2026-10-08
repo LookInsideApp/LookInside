@@ -13,18 +13,18 @@ import AppKit
 
 /// Number fields, two per row. Subclasses fill them from the attribute's
 /// `NSValue` and turn an edited field into the value to submit.
-class LKDashboardAttributeFieldsView: LKDashboardAttributeView, NSTextFieldDelegate {
+class DashboardAttributeFieldsView: DashboardAttributeView, NSTextFieldDelegate {
     /// The field titles, in field order.
     class var fieldTitles: [String] {
         []
     }
 
-    private(set) var inputViews: [LKNumberInputView] = []
+    private(set) var inputViews: [NumberInputView] = []
 
     required init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         inputViews = Self.fieldTitles.map { title in
-            let view = LKNumberInputView()
+            let view = NumberInputView()
             view.title = title
             view.viewStyle = .horizontal
             view.textFieldView.textField.delegate = self
@@ -44,12 +44,12 @@ class LKDashboardAttributeFieldsView: LKDashboardAttributeView, NSTextFieldDeleg
 
     override func layout() {
         super.layout()
-        let horSpace = LKDashboardMetrics.attrItemHorInterspace
-        let rowHeight = LKDashboardMetrics.numberInputHorizontalHeight
+        let horSpace = DashboardMetrics.attrItemHorInterspace
+        let rowHeight = DashboardMetrics.numberInputHorizontalHeight
         let itemWidth = (frame.width - horSpace) / 2.0
         for (idx, view) in inputViews.enumerated() {
             let x = idx % 2 == 0 ? 0 : itemWidth + horSpace
-            let y = CGFloat(idx / 2) * (rowHeight + LKDashboardMetrics.attrItemVerInterspace)
+            let y = CGFloat(idx / 2) * (rowHeight + DashboardMetrics.attrItemVerInterspace)
             view.dashboardLayout.width(itemWidth).height(rowHeight).x(x).y(y)
         }
     }
@@ -57,7 +57,7 @@ class LKDashboardAttributeFieldsView: LKDashboardAttributeView, NSTextFieldDeleg
     override func sizeThatFits(_ limitedSize: NSSize) -> NSSize {
         var size = limitedSize
         let rows = CGFloat(rowCount)
-        size.height = LKDashboardMetrics.numberInputHorizontalHeight * rows + LKDashboardMetrics.attrItemVerInterspace * (rows - 1)
+        size.height = DashboardMetrics.numberInputHorizontalHeight * rows + DashboardMetrics.attrItemVerInterspace * (rows - 1)
         return size
     }
 
@@ -102,12 +102,12 @@ class LKDashboardAttributeFieldsView: LKDashboardAttributeView, NSTextFieldDeleg
         // notification when the field leaves the window or its editable
         // flag changes, although textShouldBeginEditing refused input.
         guard canEdit() else { return }
-        if LKDashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent {
+        if DashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent {
             NSLog("忽略 controlTextDidEndEditing 事件，驳回")
             return
         }
         guard let editingTextField = notification.object as? NSTextField,
-              let parsed = LKNumberInputView.parsedValue(with: editingTextField.stringValue, attrType: .double) as? NSNumber
+              let parsed = NumberInputView.parsedValue(with: editingTextField.stringValue, attrType: .double) as? NSNumber
         else {
             NSLog("输入格式校验不通过，驳回")
             renderWithAttribute()
@@ -131,7 +131,7 @@ class LKDashboardAttributeFieldsView: LKDashboardAttributeView, NSTextFieldDeleg
 }
 
 @objc(LKDashboardAttributeRectView)
-final class LKDashboardAttributeRectView: LKDashboardAttributeFieldsView {
+final class DashboardAttributeRectView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["X", "Y", "W", "H"]
     }
@@ -152,7 +152,7 @@ final class LKDashboardAttributeRectView: LKDashboardAttributeFieldsView {
     }
 
     override func editedValue(from value: NSValue, field index: Int, number: Double) -> NSValue? {
-        guard let rect = LKDashboardModification.rect(value.rectValue, replacingField: index, with: number) else {
+        guard let rect = DashboardModification.rect(value.rectValue, replacingField: index, with: number) else {
             return nil
         }
         let newValue = NSValue(rect: rect)
@@ -166,11 +166,11 @@ final class LKDashboardAttributeRectView: LKDashboardAttributeFieldsView {
             do {
                 guard let self, try await self.submit(newValue) else { return }
                 let currentRect = (self.attribute?.value as? NSValue)?.rectValue ?? .zero
-                if LKDashboardModification.rectEditWasReverted(old: oldRect, expected: expectedRect, current: currentRect) {
+                if DashboardModification.rectEditWasReverted(old: oldRect, expected: expectedRect, current: currentRect) {
                     // The Server applied the new frame, then the app's own
                     // code (layoutSubviews, for example) set it back. Say so,
                     // or it looks as if the edit failed.
-                    LKDashboardStyle.alert(
+                    DashboardStyle.alert(
                         title: NSLocalizedString("The modification seems to have no effect.", comment: ""),
                         detail: NSLocalizedString("After modifying successfully by LookInside, the value seems to be recovered by the code in your iOS app. For example, modifying \"frame\" of a view may trigger \"layoutSubviews\", and \"layoutSubviews\" may modify the value again.", comment: ""),
                         window: self.window
@@ -185,7 +185,7 @@ final class LKDashboardAttributeRectView: LKDashboardAttributeFieldsView {
 }
 
 @objc(LKDashboardAttributeInsetsView)
-final class LKDashboardAttributeInsetsView: LKDashboardAttributeFieldsView {
+final class DashboardAttributeInsetsView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["T", "L", "B", "R"]
     }
@@ -207,8 +207,8 @@ final class LKDashboardAttributeInsetsView: LKDashboardAttributeFieldsView {
 
     override func editedValue(from value: NSValue, field index: Int, number: Double) -> NSValue? {
         let oldInsets = value.edgeInsetsValue
-        guard let insets = LKDashboardModification.insets(oldInsets, replacingField: index, with: number),
-              LKDashboardModification.insetsDiffer(oldInsets, insets)
+        guard let insets = DashboardModification.insets(oldInsets, replacingField: index, with: number),
+              DashboardModification.insetsDiffer(oldInsets, insets)
         else {
             return nil
         }
@@ -217,7 +217,7 @@ final class LKDashboardAttributeInsetsView: LKDashboardAttributeFieldsView {
 }
 
 @objc(LKDashboardAttributePointView)
-final class LKDashboardAttributePointView: LKDashboardAttributeFieldsView {
+final class DashboardAttributePointView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["X", "Y"]
     }
@@ -228,7 +228,7 @@ final class LKDashboardAttributePointView: LKDashboardAttributeFieldsView {
     }
 
     override func editedValue(from value: NSValue, field index: Int, number: Double) -> NSValue? {
-        guard let point = LKDashboardModification.point(value.pointValue, replacingField: index, with: number) else {
+        guard let point = DashboardModification.point(value.pointValue, replacingField: index, with: number) else {
             return nil
         }
         let newValue = NSValue(point: point)
@@ -237,7 +237,7 @@ final class LKDashboardAttributePointView: LKDashboardAttributeFieldsView {
 }
 
 @objc(LKDashboardAttributeSizeView)
-final class LKDashboardAttributeSizeView: LKDashboardAttributeFieldsView {
+final class DashboardAttributeSizeView: DashboardAttributeFieldsView {
     override class var fieldTitles: [String] {
         ["W", "H"]
     }
@@ -259,7 +259,7 @@ final class LKDashboardAttributeSizeView: LKDashboardAttributeFieldsView {
     }
 
     override func editedValue(from value: NSValue, field index: Int, number: Double) -> NSValue? {
-        guard let size = LKDashboardModification.size(value.sizeValue, replacingField: index, with: number) else {
+        guard let size = DashboardModification.size(value.sizeValue, replacingField: index, with: number) else {
             return nil
         }
         let newValue = NSValue(size: size)

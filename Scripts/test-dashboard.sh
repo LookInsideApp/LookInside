@@ -39,11 +39,11 @@ swiftc -parse-as-library \
 	-D SHOULD_COMPILE_LOOKIN_SERVER -D LOOKIN_CORE_STANDALONE \
 	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" \
 	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
-	"$SOURCE_DIR/LKDashboardModification.swift" \
-	"$SOURCE_DIR/LKEnumListRegistry.swift" \
-	"$SOURCE_DIR/AttributeView/JSON/LKJSONAttributeItem.swift" \
+	"$SOURCE_DIR/DashboardModification.swift" \
+	"$SOURCE_DIR/EnumListRegistry.swift" \
+	"$SOURCE_DIR/AttributeView/JSON/JSONAttributeItem.swift" \
 	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
-	"$TEST_DIR/LKDashboardTests.swift" \
+	"$TEST_DIR/DashboardTests.swift" \
 	"$TMPDIR"/lookin-core/*.o \
 	-framework AppKit -framework QuartzCore \
 	-o "$TMPDIR/dashboard-test"

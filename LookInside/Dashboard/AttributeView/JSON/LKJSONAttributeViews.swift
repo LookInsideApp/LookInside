@@ -11,33 +11,33 @@
 import AppKit
 
 /// The JSON tree rows of the card, flush with the card's left edge.
-private final class LKJSONAttributeContentRowView: LKOutlineRowView {
+private final class JSONAttributeContentRowView: OutlineRowView {
     override class func insetLeft() -> CGFloat {
         0
     }
 }
 
 /// The tree of rows shared by the card and the window.
-private final class LKJSONAttributeTree {
-    var rootItems: [LKJSONAttributeItem]?
-    private(set) var flatItems: [LKJSONAttributeItem] = []
+private final class JSONAttributeTree {
+    var rootItems: [JSONAttributeItem]?
+    private(set) var flatItems: [JSONAttributeItem] = []
 
     func render(json: String?) {
-        rootItems = LKJSONAttributeItem.rootItems(fromJSON: json)
+        rootItems = JSONAttributeItem.rootItems(fromJSON: json)
         rebuild()
     }
 
     func rebuild() {
-        flatItems = LKJSONAttributeItem.flatItems(of: rootItems)
+        flatItems = JSONAttributeItem.flatItems(of: rootItems)
     }
 
-    func item(at row: Int) -> LKJSONAttributeItem? {
+    func item(at row: Int) -> JSONAttributeItem? {
         flatItems.indices.contains(row) ? flatItems[row] : nil
     }
 
     /// Fills a row with `item`: title, description, indentation and
     /// disclosure state.
-    static func configure(_ view: LKOutlineRowView, row: Int, with item: LKJSONAttributeItem) {
+    static func configure(_ view: OutlineRowView, row: Int, with item: JSONAttributeItem) {
         view.titleLabel.stringValue = item.titleText ?? ""
         view.subtitleLabel.stringValue = item.desc ?? ""
         view.disclosureButton.tag = row
@@ -61,11 +61,11 @@ private final class LKJSONAttributeTree {
 
 /// The tree on a Dashboard card.
 @objc(LKJSONAttributeContentView)
-final class LKJSONAttributeContentView: LKBaseView, LKTableViewDelegate, LKTableViewDataSource {
+final class JSONAttributeContentView: BaseView, TableViewDelegate, TableViewDataSource {
     private static let rowIdentifier = NSUserInterfaceItemIdentifier("myView")
 
-    private let tableView = LKTableView()
-    private let tree = LKJSONAttributeTree()
+    private let tableView = TableView()
+    private let tree = JSONAttributeTree()
     private let rowHeight: CGFloat
     /// Never set: the rows use the small font even in the big-font layout,
     /// as they always have.
@@ -110,7 +110,7 @@ final class LKJSONAttributeContentView: LKBaseView, LKTableViewDelegate, LKTable
         CGFloat(tree.flatItems.count) * rowHeight
     }
 
-    // MARK: - LKTableView
+    // MARK: - TableView
 
     func numberOfRows(in _: NSTableView) -> Int {
         tree.flatItems.count
@@ -122,13 +122,13 @@ final class LKJSONAttributeContentView: LKBaseView, LKTableViewDelegate, LKTable
 
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
         guard let item = tree.item(at: row) else {
-            return LKTableBlankRowView()
+            return TableBlankRowView()
         }
-        let view: LKOutlineRowView
-        if let reused = tableView.makeView(withIdentifier: Self.rowIdentifier, owner: self) as? LKOutlineRowView {
+        let view: OutlineRowView
+        if let reused = tableView.makeView(withIdentifier: Self.rowIdentifier, owner: self) as? OutlineRowView {
             view = reused
         } else {
-            view = LKJSONAttributeContentRowView(compactUI: true)
+            view = JSONAttributeContentRowView(compactUI: true)
             view.titleLabel.textColor = .secondaryLabelColor
             let fontSize: CGFloat = useBigFont ? 14 : 12
             view.titleLabel.font = .monospacedDigitSystemFont(ofSize: fontSize, weight: .regular)
@@ -140,7 +140,7 @@ final class LKJSONAttributeContentView: LKBaseView, LKTableViewDelegate, LKTable
             view.disclosureButton.action = #selector(handleExpand(_:))
             view.identifier = Self.rowIdentifier
         }
-        LKJSONAttributeTree.configure(view, row: row, with: item)
+        JSONAttributeTree.configure(view, row: row, with: item)
         return view
     }
 
@@ -154,12 +154,12 @@ final class LKJSONAttributeContentView: LKBaseView, LKTableViewDelegate, LKTable
 /// A JSON attribute on a card; the section's pop-out button shows it in a
 /// window.
 @objc(LKDashboardAttributeJsonView)
-final class LKDashboardAttributeJsonView: LKDashboardAttributeView {
-    private let contentView = LKJSONAttributeContentView(bigFont: false)
+final class DashboardAttributeJSONView: DashboardAttributeView {
+    private let contentView = JSONAttributeContentView(bigFont: false)
 
     required init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        layer?.cornerRadius = LKDashboardMetrics.cardControlCornerRadius
+        layer?.cornerRadius = DashboardMetrics.cardControlCornerRadius
         contentView.didReloadData = { [weak self] in
             self?.dashboardViewController?.view.needsLayout = true
         }
@@ -195,22 +195,22 @@ final class LKDashboardAttributeJsonView: LKDashboardAttributeView {
             assertionFailure()
             return
         }
-        LKNavigationManager.shared.showJSONWindow(json)
+        NavigationManager.shared.showJSONWindow(json)
     }
 }
 
 /// The JSON tree in a window of its own, with the bigger font.
 @objc(LKJSONAttributeViewController)
-final class LKJSONAttributeViewController: LKBaseViewController, LKTableViewDelegate, LKTableViewDataSource {
+final class JSONAttributeViewController: BaseViewController, TableViewDelegate, TableViewDataSource {
     private static let rowIdentifier = NSUserInterfaceItemIdentifier("myView")
 
-    private var tableView: LKTableView!
-    private let tree = LKJSONAttributeTree()
+    private var tableView: TableView!
+    private let tree = JSONAttributeTree()
 
     override func makeContainerView() -> NSView {
-        let containerView = LKBaseView()
+        let containerView = BaseView()
 
-        let tableView = LKTableView()
+        let tableView = TableView()
         tableView.drawsBackground = false
         tableView.delegate = self
         tableView.dataSource = self
@@ -236,7 +236,7 @@ final class LKJSONAttributeViewController: LKBaseViewController, LKTableViewDele
         tableView.reloadData()
     }
 
-    // MARK: - LKTableView
+    // MARK: - TableView
 
     func numberOfRows(in _: NSTableView) -> Int {
         tree.flatItems.count
@@ -248,13 +248,13 @@ final class LKJSONAttributeViewController: LKBaseViewController, LKTableViewDele
 
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
         guard let item = tree.item(at: row) else {
-            return LKTableBlankRowView()
+            return TableBlankRowView()
         }
-        let view: LKOutlineRowView
-        if let reused = tableView.makeView(withIdentifier: Self.rowIdentifier, owner: self) as? LKOutlineRowView {
+        let view: OutlineRowView
+        if let reused = tableView.makeView(withIdentifier: Self.rowIdentifier, owner: self) as? OutlineRowView {
             view = reused
         } else {
-            view = LKOutlineRowView()
+            view = OutlineRowView()
             view.titleLabel.textColor = .secondaryLabelColor
             view.titleLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
             view.titleLabel.isSelectable = true
@@ -265,7 +265,7 @@ final class LKJSONAttributeViewController: LKBaseViewController, LKTableViewDele
             view.disclosureButton.action = #selector(handleExpand(_:))
             view.identifier = Self.rowIdentifier
         }
-        LKJSONAttributeTree.configure(view, row: row, with: item)
+        JSONAttributeTree.configure(view, row: row, with: item)
         return view
     }
 
@@ -275,11 +275,11 @@ final class LKJSONAttributeViewController: LKBaseViewController, LKTableViewDele
     }
 }
 
-/// The window of `LKJSONAttributeViewController`.
+/// The window of `JSONAttributeViewController`.
 @objc(LKJSONAttributeWindowController)
-final class LKJSONAttributeWindowController: LKWindowController {
+final class JSONAttributeWindowController: WindowController {
     @objc convenience init() {
-        let window = LKWindow(
+        let window = AppWindow(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 320),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
@@ -292,7 +292,7 @@ final class LKJSONAttributeWindowController: LKWindowController {
 
         self.init(window: window)
 
-        let viewController = LKJSONAttributeViewController()
+        let viewController = JSONAttributeViewController()
         window.contentView = viewController.view
         contentViewController = viewController
     }

@@ -16,19 +16,19 @@ private func lkpConsoleTargetColor(isDarkMode: Bool) -> NSColor {
 
 /// The last transcript row: a button showing the call target (it opens the
 /// target picker) and the input field with selector suggestions.
-final class LKConsoleInputRowView: LKTableRowView, LKInputSearchViewDelegate {
-    private let dataSource: LKConsoleDataSource
+final class ConsoleInputRowView: TableRowView, InputSearchViewDelegate {
+    private let dataSource: ConsoleDataSource
     private let selectButton = NSButton()
-    private let inputView = LKInputSearchView(throttleTime: 0.15)
-    private let selectPopoverController: LKConsoleSelectPopoverController
+    private let inputView = InputSearchView(throttleTime: 0.15)
+    private let selectPopoverController: ConsoleSelectPopoverController
 
-    init(dataSource: LKConsoleDataSource) {
+    init(dataSource: ConsoleDataSource) {
         self.dataSource = dataSource
-        selectPopoverController = LKConsoleSelectPopoverController(dataSource: dataSource)
+        selectPopoverController = ConsoleSelectPopoverController(dataSource: dataSource)
         super.init(frame: .zero)
 
         selectPopoverController.needShowError = { [weak self] error in
-            LKPeripheralAlerts.show(error, in: self?.window)
+            PeripheralAlerts.show(error, in: self?.window)
         }
 
         selectButton.font = .systemFont(ofSize: 13)
@@ -84,7 +84,7 @@ final class LKConsoleInputRowView: LKTableRowView, LKInputSearchViewDelegate {
         let popover = NSPopover()
         popover.animates = false
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: LKHelper.isEnglish() ? 465 : 400,
+        popover.contentSize = NSSize(width: AppHelper.isEnglish() ? 465 : 400,
                                      height: selectPopoverController.bestHeight())
         popover.contentViewController = selectPopoverController
         popover.show(relativeTo: NSRect(origin: .zero, size: selectButton.bounds.size),
@@ -95,7 +95,7 @@ final class LKConsoleInputRowView: LKTableRowView, LKInputSearchViewDelegate {
     }
 
     private func handleCurrentObjectDidChange() {
-        // Called from LKTableRowView's initializer through setIsDarkMode
+        // Called from TableRowView's initializer through setIsDarkMode
         // before this row is set up; the init call repeats it.
         guard selectButton.target != nil else { return }
         inputView.clearContentAndSuggestions()
@@ -115,35 +115,35 @@ final class LKConsoleInputRowView: LKTableRowView, LKInputSearchViewDelegate {
         needsLayout = true
     }
 
-    // MARK: - LKInputSearchViewDelegate
+    // MARK: - InputSearchViewDelegate
 
-    func inputSearchView(_: LKInputSearchView, suggestionsFor string: String) -> [LKInputSearchSuggestionItem]? {
+    func inputSearchView(_: InputSearchView, suggestionsFor string: String) -> [InputSearchSuggestionItem]? {
         guard string.count >= 3 else { return nil }
-        let matches = LKHelper.bestMatches(inCandidates: dataSource.currentObjectSelectorNames, input: string,
+        let matches = AppHelper.bestMatches(inCandidates: dataSource.currentObjectSelectorNames, input: string,
                                            maxResultsCount: 8)
         return matches.map { name in
-            let item = LKInputSearchSuggestionItem()
+            let item = InputSearchSuggestionItem()
             item.image = NSImage(named: "icon_method")
             item.text = name
             return item
         }
     }
 
-    func inputSearchView(_ view: LKInputSearchView, submitText text: String) {
+    func inputSearchView(_ view: InputSearchView, submitText text: String) {
         Task { [weak self, weak view] in
             guard let self else { return }
             do {
                 try await dataSource.submit(text)
                 view?.clearContentAndSuggestions()
             } catch {
-                LKPeripheralAlerts.show(error, in: window)
+                PeripheralAlerts.show(error, in: window)
             }
         }
     }
 }
 
 /// A submitted call: the target in green, then the method name.
-final class LKConsoleSubmitRowView: LKTableRowView {
+final class ConsoleSubmitRowView: TableRowView {
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
         titleLabel.isSelectable = true
@@ -181,7 +181,7 @@ final class LKConsoleSubmitRowView: LKTableRowView {
 }
 
 /// A returned description, wrapped to the row width.
-final class LKConsoleReturnRowView: LKTableRowView {
+final class ConsoleReturnRowView: TableRowView {
     private static let insets = NSEdgeInsets(top: 0, left: ConsoleInsetLeft, bottom: 5, right: ConsoleInsetRight)
 
     override init(frame frameRect: NSRect) {

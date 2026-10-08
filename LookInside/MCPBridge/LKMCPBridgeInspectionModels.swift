@@ -6,7 +6,7 @@
 // remote inspectors). They do not depend on AppKit / UIKit types.
 //
 // The naming follows the wire vocabulary: a "target" is one inspection
-// session bound to a running app (one `LookinLiveDocument`); a "view node"
+// session bound to a running app (one `LiveDocument`); a "view node"
 // is one row in a target's UI hierarchy (one `DisplayItem`).
 
 import CoreGraphics
@@ -16,7 +16,7 @@ import Foundation
 
 /// CGRect represented as JSON-friendly doubles. Origin is the root coordinate
 /// space of the inspected hierarchy.
-struct LKMCPBridgeRect: Sendable, Codable, Equatable {
+struct MCPBridgeRect: Sendable, Codable, Equatable {
     let x: Double
     let y: Double
     let width: Double
@@ -43,7 +43,7 @@ struct LKMCPBridgeRect: Sendable, Codable, Equatable {
 
 /// One row in a `targets.list` response: a single live inspection session
 /// (typically corresponding to one inspector window in the host UI).
-struct LKMCPBridgeTargetInfo: Sendable, Codable {
+struct MCPBridgeTargetInfo: Sendable, Codable {
     /// Stable identifier for the duration of the inspection session.
     /// Derived from `InspectedAppInfo.appInfoIdentifier` (randomly generated per
     /// app launch and reused across reconnects to the same app instance).
@@ -81,7 +81,7 @@ struct LKMCPBridgeTargetInfo: Sendable, Codable {
 /// and the immediate parent / child relationship. Per-attribute reads and
 /// screenshot URIs live in separate methods to be added in subsequent
 /// commits.
-struct LKMCPBridgeViewNode: Sendable, Codable {
+struct MCPBridgeViewNode: Sendable, Codable {
     /// Hex-encoded `InspectedObject.oid`, prefixed with `0x` (for example,
     /// `0x600000abc123`). Stable within a single connected app instance.
     let objectIdentifier: String
@@ -98,7 +98,7 @@ struct LKMCPBridgeViewNode: Sendable, Codable {
     let nodeKind: String
 
     /// Frame in the root coordinate space (host calls this `frameToRoot`).
-    let frame: LKMCPBridgeRect
+    let frame: MCPBridgeRect
 
     /// `true` when the view is hidden via UIKit / AppKit visibility flags.
     let isHidden: Bool
@@ -115,14 +115,14 @@ struct LKMCPBridgeViewNode: Sendable, Codable {
     /// Inlined child nodes when the request asked for a depth greater than
     /// one. `nil` means children were not expanded; an empty array means
     /// children were expanded and there are none.
-    let children: [LKMCPBridgeViewNode]?
+    let children: [MCPBridgeViewNode]?
 }
 
 // MARK: - AttributeGroup / Section / Attribute
 
 /// One attribute "card" in the host's inspector — a coherent bundle of
 /// related attributes (Frame, View, Layer, AutoLayout, UIControl, …).
-struct LKMCPBridgeAttributeGroup: Sendable, Codable {
+struct MCPBridgeAttributeGroup: Sendable, Codable {
     /// Group identifier (`LookinAttrGroupIdentifier`, e.g. `Layout`,
     /// `UIScrollView`, `NSWindow`), or the user-supplied title when the
     /// group originates from `lookin_customDebugInfos`.
@@ -136,17 +136,17 @@ struct LKMCPBridgeAttributeGroup: Sendable, Codable {
     /// extension; agents can use this to flag paid-feature data origin.
     let isSwiftUIGroup: Bool
 
-    let sections: [LKMCPBridgeAttributeSection]
+    let sections: [MCPBridgeAttributeSection]
 }
 
 /// One sub-row inside an attribute group.
-struct LKMCPBridgeAttributeSection: Sendable, Codable {
+struct MCPBridgeAttributeSection: Sendable, Codable {
     let identifier: String
-    let attributes: [LKMCPBridgeAttribute]
+    let attributes: [MCPBridgeAttribute]
 }
 
 /// One inspected attribute value with a type-discriminating `kind`.
-struct LKMCPBridgeAttribute: Sendable, Codable {
+struct MCPBridgeAttribute: Sendable, Codable {
     /// `LookinAttrIdentifier` string (e.g. `BasicViewClass_Frame`,
     /// `BasicViewClass_Hidden`). Stable across LookinServer versions.
     let identifier: String
@@ -158,7 +158,7 @@ struct LKMCPBridgeAttribute: Sendable, Codable {
     /// `true` when this attribute originates from `lookin_customDebugInfos`.
     let isUserCustom: Bool
 
-    /// Type discriminator for `value`. See `LKMCPBridgeAttributeEncoder`
+    /// Type discriminator for `value`. See `MCPBridgeAttributeEncoder`
     /// for the full kind → JSON-shape mapping. Common values:
     /// `integer`, `double`, `bool`, `string`, `selector`, `class`,
     /// `point`, `size`, `rect`, `edgeInsets`, `offset`, `transform`,
@@ -170,12 +170,12 @@ struct LKMCPBridgeAttribute: Sendable, Codable {
     /// The encoded attribute value, shape-correlated with `kind`. `nil`
     /// when the source attribute carries no value (`LookinAttrTypeVoid`
     /// or genuinely empty optional fields).
-    let value: LKMCPBridgeJSONValue?
+    let value: MCPBridgeJSONValue?
 
     /// Auxiliary payload for select kinds. For `enum` types, this is the
     /// list of all enum case names the inspected object can hold (the
     /// host calls these `extraValue` on `InspectedAttribute`).
-    let extraValue: LKMCPBridgeJSONValue?
+    let extraValue: MCPBridgeJSONValue?
 
     /// Server-side identifier of a custom-attribute setter, present only
     /// when the host can write to this attribute through a registered
@@ -192,7 +192,7 @@ struct LKMCPBridgeAttribute: Sendable, Codable {
 /// `InspectedObject.oid` and is NOT guaranteed to appear in a subsequent
 /// `hierarchy.read` (the hierarchy walks the view tree, not the server's
 /// general object registry).
-struct LKMCPBridgeReturnedObject: Sendable, Codable {
+struct MCPBridgeReturnedObject: Sendable, Codable {
     /// Hex-encoded `InspectedObject.oid` for the returned object, prefixed
     /// with `0x` (matches the form used everywhere else on the bridge).
     let objectIdentifier: String
@@ -215,7 +215,7 @@ struct LKMCPBridgeReturnedObject: Sendable, Codable {
 /// callers can disambiguate "method returned `nil` / `0` / empty string"
 /// from "method returned void"; the two cases produce the same JSON
 /// `description: null` shape on most type-erased clients otherwise.
-struct LKMCPBridgeInvocationResult: Sendable, Codable {
+struct MCPBridgeInvocationResult: Sendable, Codable {
     /// Stringified return value. `nil` when the method returned `void`
     /// or when `secureContent` is `true`. For scalar (non-object,
     /// non-void) returns the server fills in a generic `"Method invoked."`
@@ -232,10 +232,10 @@ struct LKMCPBridgeInvocationResult: Sendable, Codable {
     /// `oid` — matching the redaction philosophy of `attributes.read`
     /// (string-bearing attribute values get redacted; structural
     /// metadata does not).
-    let returnObject: LKMCPBridgeReturnedObject?
+    let returnObject: MCPBridgeReturnedObject?
 
     /// `true` when the receiver display item is treated as carrying
-    /// secure user content (see `LKMCPBridgeSecureContentDetector`). In
+    /// secure user content (see `MCPBridgeSecureContentDetector`). In
     /// that case `description` is redacted to `nil` to avoid leaking
     /// passwords / OTPs into agent transcripts. `returnObject` is kept;
     /// see its doc comment for the redaction rationale.
@@ -246,14 +246,14 @@ struct LKMCPBridgeInvocationResult: Sendable, Codable {
 
 /// Wire envelope for an attribute value passed across the bridge in a
 /// modification context: `kind` is the same string the read-side
-/// `LKMCPBridgeAttributeEncoder` produces, `data` is its corresponding
+/// `MCPBridgeAttributeEncoder` produces, `data` is its corresponding
 /// JSON-friendly payload. The bridge consumes this in both directions:
 /// requests carry it as the value to apply; responses echo it as
 /// `requestedValue` so agents can compare against `effectiveAttribute`
 /// without having to reconstruct the wire form.
-struct LKMCPBridgeAttributeValueWire: Sendable, Codable {
+struct MCPBridgeAttributeValueWire: Sendable, Codable {
     let kind: String
-    let data: LKMCPBridgeJSONValue?
+    let data: MCPBridgeJSONValue?
 }
 
 /// Result envelope for `attribute.modify`. Echoes the requested value,
@@ -261,21 +261,21 @@ struct LKMCPBridgeAttributeValueWire: Sendable, Codable {
 /// host-visible side-effect snapshot (frame / bounds / hidden / alpha)
 /// that the server captures in `DisplayItemDetail` after the
 /// setter has run and a layout pass has completed.
-struct LKMCPBridgeModificationResult: Sendable, Codable {
+struct MCPBridgeModificationResult: Sendable, Codable {
     /// Echo of the attribute identifier the agent asked to modify.
     let attributeIdentifier: String
 
     /// Echo of the wire `value` payload the agent supplied. Lets the
     /// agent diff against `effectiveAttribute.value` without re-deriving
     /// the wire shape from the encoded result.
-    let requestedValue: LKMCPBridgeAttributeValueWire
+    let requestedValue: MCPBridgeAttributeValueWire
 
     /// Fully-encoded attribute as the host saw it AFTER the setter ran
     /// and a layout pass settled. May differ from the request (autolayout
     /// adjusts frames; some setters round to pixel boundaries; some
     /// setters are no-ops). When `secureContent` is `true` the value
     /// here is redacted in the same way `read_attributes` redacts.
-    let effectiveAttribute: LKMCPBridgeAttribute
+    let effectiveAttribute: MCPBridgeAttribute
 
     /// `true` when the effective wire value is structurally equal to
     /// the requested wire value. Strict equality — no float epsilon.
@@ -286,10 +286,10 @@ struct LKMCPBridgeModificationResult: Sendable, Codable {
 
     /// Post-modification frame snapshot. Often differs from the previous
     /// `get_hierarchy` result when the modification touched layout.
-    let frame: LKMCPBridgeRect
+    let frame: MCPBridgeRect
 
     /// Post-modification bounds snapshot.
-    let bounds: LKMCPBridgeRect
+    let bounds: MCPBridgeRect
 
     /// Post-modification `isHidden` snapshot.
     let isHidden: Bool
@@ -309,9 +309,9 @@ struct LKMCPBridgeModificationResult: Sendable, Codable {
 /// already consume `attributes.read` can reuse their `groups` parsing
 /// code unchanged. The `secureContent` flag is per-item because a
 /// single batch may contain both regular and secure-input views.
-struct LKMCPBridgeViewDetail: Sendable, Codable {
+struct MCPBridgeViewDetail: Sendable, Codable {
     let objectIdentifier: String
-    let groups: [LKMCPBridgeAttributeGroup]
+    let groups: [MCPBridgeAttributeGroup]
     let secureContent: Bool
 }
 
@@ -320,8 +320,8 @@ struct LKMCPBridgeViewDetail: Sendable, Codable {
 /// hierarchy or returned `failureCode = -1` from the server fall
 /// into `failedIdentifiers` — the call as a whole still succeeds so
 /// agents can act on whatever did come back.
-struct LKMCPBridgeDetailsReadResult: Sendable, Codable {
-    let details: [LKMCPBridgeViewDetail]
+struct MCPBridgeDetailsReadResult: Sendable, Codable {
+    let details: [MCPBridgeViewDetail]
     let failedIdentifiers: [String]
 }
 
@@ -331,7 +331,7 @@ struct LKMCPBridgeDetailsReadResult: Sendable, Codable {
 /// base64 rather than as a URI: the bridge has no static file server,
 /// and the consuming MCP shim needs the bytes anyway to build an image
 /// content block.
-struct LKMCPBridgeScreenshotResult: Sendable, Codable {
+struct MCPBridgeScreenshotResult: Sendable, Codable {
     /// The object actually captured. Differs from the request when the
     /// caller omitted `objectIdentifier` and the service resolved the
     /// key window on their behalf.
@@ -365,7 +365,7 @@ struct LKMCPBridgeScreenshotResult: Sendable, Codable {
     /// Frame of the captured view in the hierarchy's root coordinate
     /// space, in points. Lets an agent map pixel coordinates in the
     /// image back onto the coordinates `hierarchy.read` reports.
-    let frame: LKMCPBridgeRect
+    let frame: MCPBridgeRect
 
     /// `true` when the image came from the host's existing cache rather
     /// than a fresh render in the target app. Cached images can lag
@@ -390,7 +390,7 @@ struct LKMCPBridgeScreenshotResult: Sendable, Codable {
 /// `hierarchy.read`: the identifier for subsequent calls, the ancestor
 /// chain for orientation, and the fields that matched so the caller can
 /// tell a class-name hit apart from an incidental substring in a subtitle.
-struct LKMCPBridgeSearchMatch: Sendable, Codable {
+struct MCPBridgeSearchMatch: Sendable, Codable {
     let objectIdentifier: String
 
     /// Leaf Objective-C class name, matching `hierarchy.read`'s field of
@@ -406,7 +406,7 @@ struct LKMCPBridgeSearchMatch: Sendable, Codable {
     let subtitle: String?
 
     /// Frame in the hierarchy's root coordinate space, in points.
-    let frame: LKMCPBridgeRect
+    let frame: MCPBridgeRect
 
     let isHidden: Bool
     let alpha: Double
@@ -439,8 +439,8 @@ struct LKMCPBridgeSearchMatch: Sendable, Codable {
 /// `totalMatchCount` counts every hit in the searched scope, so a caller
 /// that receives `truncated: true` knows how much it is not seeing and
 /// can narrow the query rather than paginate blindly.
-struct LKMCPBridgeSearchResult: Sendable, Codable {
-    let matches: [LKMCPBridgeSearchMatch]
+struct MCPBridgeSearchResult: Sendable, Codable {
+    let matches: [MCPBridgeSearchMatch]
 
     /// Hits found before `limit` was applied.
     let totalMatchCount: Int
@@ -463,7 +463,7 @@ struct LKMCPBridgeSearchResult: Sendable, Codable {
 /// The server walks the entire class chain up to `NSObject`, so
 /// `totalCount` on a UIKit / AppKit view runs into four digits. Callers
 /// are expected to narrow with `nameFilter` rather than raise `limit`.
-struct LKMCPBridgeSelectorListResult: Sendable, Codable {
+struct MCPBridgeSelectorListResult: Sendable, Codable {
     /// The class actually queried. Differs from the request when the
     /// caller passed `objectIdentifier` and the service resolved the leaf
     /// class on their behalf.
@@ -500,7 +500,7 @@ struct LKMCPBridgeSelectorListResult: Sendable, Codable {
 /// to tell a refresh that found a whole new screen from one that found the
 /// same screen it already had. Reporting both counts answers that without a
 /// follow-up `hierarchy.read`.
-struct LKMCPBridgeRefreshResult: Sendable, Codable {
+struct MCPBridgeRefreshResult: Sendable, Codable {
     /// Echo of the requested target.
     let targetIdentifier: String
 

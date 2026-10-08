@@ -14,7 +14,7 @@ import Foundation
 // MARK: - Envelope
 
 /// Discriminates the three frame kinds carried on the wire.
-enum LKMCPBridgeFrameKind: String, Sendable, Codable {
+enum MCPBridgeFrameKind: String, Sendable, Codable {
     case request
     case response
     case event
@@ -27,11 +27,11 @@ enum LKMCPBridgeFrameKind: String, Sendable, Codable {
 /// `identifier` correlates request and response frames; it is opaque to the
 /// server and echoed back verbatim. `method` selects an inspection verb on the
 /// server side (for example, `targets.list`, `hierarchy.read`).
-struct LKMCPBridgeRequest: Sendable, Codable {
-    let kind: LKMCPBridgeFrameKind
+struct MCPBridgeRequest: Sendable, Codable {
+    let kind: MCPBridgeFrameKind
     let identifier: String
     let method: String
-    let parameters: [String: LKMCPBridgeJSONValue]?
+    let parameters: [String: MCPBridgeJSONValue]?
 
     enum CodingKeys: String, CodingKey {
         case kind
@@ -47,11 +47,11 @@ struct LKMCPBridgeRequest: Sendable, Codable {
 ///
 /// Exactly one of `result` or `error` is set. The server MUST echo the
 /// request's `identifier` verbatim.
-struct LKMCPBridgeResponse: Sendable, Codable {
-    let kind: LKMCPBridgeFrameKind
+struct MCPBridgeResponse: Sendable, Codable {
+    let kind: MCPBridgeFrameKind
     let identifier: String
-    let result: LKMCPBridgeJSONValue?
-    let error: LKMCPBridgeErrorPayload?
+    let result: MCPBridgeJSONValue?
+    let error: MCPBridgeErrorPayload?
 
     enum CodingKeys: String, CodingKey {
         case kind
@@ -60,12 +60,12 @@ struct LKMCPBridgeResponse: Sendable, Codable {
         case error
     }
 
-    static func success(identifier: String, result: LKMCPBridgeJSONValue?) -> LKMCPBridgeResponse {
-        return LKMCPBridgeResponse(kind: .response, identifier: identifier, result: result, error: nil)
+    static func success(identifier: String, result: MCPBridgeJSONValue?) -> MCPBridgeResponse {
+        return MCPBridgeResponse(kind: .response, identifier: identifier, result: result, error: nil)
     }
 
-    static func failure(identifier: String, error: LKMCPBridgeErrorPayload) -> LKMCPBridgeResponse {
-        return LKMCPBridgeResponse(kind: .response, identifier: identifier, result: nil, error: error)
+    static func failure(identifier: String, error: MCPBridgeErrorPayload) -> MCPBridgeResponse {
+        return MCPBridgeResponse(kind: .response, identifier: identifier, result: nil, error: error)
     }
 }
 
@@ -74,12 +74,12 @@ struct LKMCPBridgeResponse: Sendable, Codable {
 /// An unsolicited event frame pushed by the server. The `topic` is a dotted
 /// path identifying the event category (for example, `hierarchy.invalidated`,
 /// `targets.attached`); the `payload` carries topic-specific structure.
-struct LKMCPBridgeEvent: Sendable, Codable {
-    let kind: LKMCPBridgeFrameKind
+struct MCPBridgeEvent: Sendable, Codable {
+    let kind: MCPBridgeFrameKind
     let topic: String
-    let payload: [String: LKMCPBridgeJSONValue]?
+    let payload: [String: MCPBridgeJSONValue]?
 
-    init(topic: String, payload: [String: LKMCPBridgeJSONValue]?) {
+    init(topic: String, payload: [String: MCPBridgeJSONValue]?) {
         kind = .event
         self.topic = topic
         self.payload = payload
@@ -92,26 +92,26 @@ struct LKMCPBridgeEvent: Sendable, Codable {
 /// dotted-namespace convention (for example, `dispatch.unknownMethod`,
 /// `license.entitlementRequired`); free-form messages may be present for
 /// debuggability but must not be relied on for programmatic dispatch.
-struct LKMCPBridgeErrorPayload: Sendable, Codable, Error {
+struct MCPBridgeErrorPayload: Sendable, Codable, Error {
     let code: String
     let message: String
 
-    static let unknownMethod = LKMCPBridgeErrorPayload(
+    static let unknownMethod = MCPBridgeErrorPayload(
         code: "dispatch.unknownMethod",
         message: "The requested method is not implemented by this server."
     )
 
-    static let invalidParameters = LKMCPBridgeErrorPayload(
+    static let invalidParameters = MCPBridgeErrorPayload(
         code: "dispatch.invalidParameters",
         message: "The request parameters could not be decoded into the expected shape."
     )
 
-    static let licenseRequired = LKMCPBridgeErrorPayload(
+    static let licenseRequired = MCPBridgeErrorPayload(
         code: "license.entitlementRequired",
         message: "The connected LookInside license does not include the required entitlement."
     )
 
-    static let internalError = LKMCPBridgeErrorPayload(
+    static let internalError = MCPBridgeErrorPayload(
         code: "dispatch.internalError",
         message: "An unexpected internal error occurred while servicing the request."
     )
@@ -123,14 +123,14 @@ struct LKMCPBridgeErrorPayload: Sendable, Codable, Error {
 /// the inspection schema to be statically typed at the wire layer. Used inside
 /// request `parameters`, response `result`, and event `payload` containers so
 /// the server can route opaque JSON to method-specific handlers.
-enum LKMCPBridgeJSONValue: Sendable, Codable {
+enum MCPBridgeJSONValue: Sendable, Codable {
     case null
     case bool(Bool)
     case integer(Int64)
     case double(Double)
     case string(String)
-    case array([LKMCPBridgeJSONValue])
-    case object([String: LKMCPBridgeJSONValue])
+    case array([MCPBridgeJSONValue])
+    case object([String: MCPBridgeJSONValue])
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
@@ -144,9 +144,9 @@ enum LKMCPBridgeJSONValue: Sendable, Codable {
             self = .double(floating)
         } else if let text = try? container.decode(String.self) {
             self = .string(text)
-        } else if let elements = try? container.decode([LKMCPBridgeJSONValue].self) {
+        } else if let elements = try? container.decode([MCPBridgeJSONValue].self) {
             self = .array(elements)
-        } else if let object = try? container.decode([String: LKMCPBridgeJSONValue].self) {
+        } else if let object = try? container.decode([String: MCPBridgeJSONValue].self) {
             self = .object(object)
         } else {
             throw DecodingError.dataCorruptedError(

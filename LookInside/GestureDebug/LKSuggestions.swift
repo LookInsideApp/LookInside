@@ -1,20 +1,20 @@
 import Foundation
 
-struct LKInteractionSnapshot: Codable {
-    var targets: [LKInteractionTarget]
+struct InteractionSnapshot: Codable {
+    var targets: [InteractionTarget]
     var swiftUIStatus: String
     var nativeStatus: String
     var truncated: Bool
 }
 
-struct LKInteractionTarget: Codable, Identifiable {
+struct InteractionTarget: Codable, Identifiable {
     var id: String
     var source: String
     var name: String
     var targetAddress: String
     var hostAddress: String?
     var windowAddress: String?
-    var geometry: LKGestureCaptureGeometry
+    var geometry: GestureCaptureGeometry
     var geometryKind: String
     var shapeKind: String?
 
@@ -24,7 +24,7 @@ struct LKInteractionTarget: Codable, Identifiable {
 }
 
 /// Product rules in logical points, selected from the inspected device, not the Mac host.
-enum LKSuggestionPlatform: String, Codable {
+enum HitTargetSuggestionPlatform: String, Codable {
     case iPhone, mac, unsupported
 
     var minimumTargetSize: Double? {
@@ -57,9 +57,9 @@ enum LKSuggestionPlatform: String, Codable {
     }
 }
 
-struct LKSuggestion: Identifiable {
+struct HitTargetSuggestion: Identifiable {
     let ruleID = "interaction.minimum-target-size"
-    let target: LKInteractionTarget
+    let target: InteractionTarget
     let minimumSize: Double
     var id: String {
         "\(ruleID):\(target.id)"
@@ -70,26 +70,26 @@ struct LKSuggestion: Identifiable {
     }
 }
 
-enum LKHitTargetSuggestionRule {
-    static func evaluate(_ targets: [LKInteractionTarget], platform: LKSuggestionPlatform) -> [LKSuggestion] {
+enum HitTargetSuggestionRule {
+    static func evaluate(_ targets: [InteractionTarget], platform: HitTargetSuggestionPlatform) -> [HitTargetSuggestion] {
         guard let minimum = platform.minimumTargetSize else { return [] }
         var seen: Set<String> = []
         return targets.compactMap { target in
             guard let width = target.geometry.width, let height = target.geometry.height,
                   LookinHitTargetSizeDeficit(width, height, minimum) > 0,
                   seen.insert(target.id).inserted else { return nil }
-            return LKSuggestion(target: target, minimumSize: minimum)
+            return HitTargetSuggestion(target: target, minimumSize: minimum)
         }.sorted { $0.id < $1.id }
     }
 }
 
 /// Replaced by each current-page sample. Historical events never revive warnings.
-struct LKSuggestionReport {
-    private(set) var warnings: [LKSuggestion] = []
+struct HitTargetSuggestionReport {
+    private(set) var warnings: [HitTargetSuggestion] = []
     private(set) var inspectedCount = 0
     private(set) var coverageMessage = NSLocalizedString("Start capture to inspect the current page.", comment: "")
 
-    mutating func replace(with snapshot: LKInteractionSnapshot?, platform: LKSuggestionPlatform, isCapturing: Bool) {
+    mutating func replace(with snapshot: InteractionSnapshot?, platform: HitTargetSuggestionPlatform, isCapturing: Bool) {
         warnings = []
         inspectedCount = 0
         guard isCapturing else {
@@ -104,7 +104,7 @@ struct LKSuggestionReport {
             coverageMessage = NSLocalizedString("Waiting for current interaction regions. Older Servers need an update to provide Suggestions.", comment: "")
             return
         }
-        warnings = LKHitTargetSuggestionRule.evaluate(snapshot.targets, platform: platform)
+        warnings = HitTargetSuggestionRule.evaluate(snapshot.targets, platform: platform)
         inspectedCount = snapshot.targets.count
         var notes = [NSLocalizedString("Checks reported interaction regions; custom hit testing and occlusion may change the effective target.", comment: "")]
         if snapshot.swiftUIStatus != "available" {

@@ -12,18 +12,18 @@ import CoreGraphics
 /// print that item's view in it.
 let LKAppShowConsoleNotificationName = "LKAppShowConsoleNotificationName"
 
-/// Message identifiers of LKMessageManager.
+/// Message identifiers of MessageManager.
 let LKMessage_Jobs = "LKMessage_Jobs"
 let LKMessage_SwiftSubspec = "LKMessage_SwiftSubspec"
 
-/// Bounds of LKPreviewView's scale and zInterspace (and of the preference
+/// Bounds of PreviewView's scale and zInterspace (and of the preference
 /// values that drive them).
 let LookinPreviewMinScale: CGFloat = 0
 let LookinPreviewMaxScale: CGFloat = 1
 let LookinPreviewMinZInterspace: CGFloat = 0
 let LookinPreviewMaxZInterspace: CGFloat = 1
 
-@objc enum LookinPreviewDimension: UInt {
+@objc enum PreviewDimension: UInt {
     case dimension2D
     case dimension3D
 }

@@ -1,0 +1,31 @@
+//
+//  StaticHierarchyController.swift
+//  LookInside
+//
+//  Created by Li Kai on 2018/8/4.
+//  https://lookin.work
+//
+
+import AppKit
+
+/// The hierarchy tree of a live inspector window.
+@objc(LKStaticHierarchyController)
+final class StaticHierarchyController: HierarchyController {
+    // MARK: - HierarchyViewDelegate
+
+    @objc(hierarchyView:needToCancelPreviewOfItem:)
+    func hierarchyView(_: HierarchyView?, needToCancelPreviewOf item: DisplayItem?) {
+        item?.noPreview = true
+        dataSource?.itemDidChangeNoPreview.send()
+    }
+
+    @objc(hierarchyView:needToShowPreviewOfItem:)
+    func hierarchyView(_: HierarchyView?, needToShowPreviewOf item: DisplayItem?) {
+        item?.enumerateSelfAndAncestors { item, _ in
+            if item.noPreview {
+                item.noPreview = false
+            }
+        }
+        dataSource?.itemDidChangeNoPreview.send()
+    }
+}

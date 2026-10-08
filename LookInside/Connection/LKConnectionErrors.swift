@@ -10,7 +10,7 @@
 import Foundation
 import LookInsideHostCore
 
-enum LKConnectionError {
+enum ConnectionError {
     private static func make(_ code: Int, _ description: String, recovery: String? = nil) -> NSError {
         var userInfo: [String: Any] = [NSLocalizedDescriptionKey: description]
         if let recovery {

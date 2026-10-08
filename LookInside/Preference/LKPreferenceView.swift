@@ -2,14 +2,14 @@ import AppKit
 import SwiftUI
 
 @objc(LKPreferenceHostingController)
-public final class LKPreferenceHostingController: NSViewController {
+public final class PreferenceHostingController: NSViewController {
     override public func loadView() {
-        view = NSHostingView(rootView: LKPreferenceRootView())
+        view = NSHostingView(rootView: PreferenceRootView())
     }
 }
 
-private struct LKPreferenceRootView: View {
-    @StateObject private var model = LKPreferenceViewModel()
+private struct PreferenceRootView: View {
+    @StateObject private var model = PreferenceViewModel()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -214,7 +214,7 @@ private struct TimeoutEditor: View {
 /// Stays an ObservableObject: as an @Observable model the segmented pickers
 /// laid out narrower than before (the ui-snapshots preferences scene).
 @MainActor
-private final class LKPreferenceViewModel: ObservableObject {
+private final class PreferenceViewModel: ObservableObject {
     @Published private var appearanceType: Int
     @Published private var colorFormat: Int
     @Published private var imageContrast: Int
@@ -226,9 +226,9 @@ private final class LKPreferenceViewModel: ObservableObject {
         @Published private var licenseTimeout: Double
     #endif
 
-    private let manager: LKPreferenceManager
+    private let manager: PreferenceManager
 
-    init(manager: LKPreferenceManager = LKPreferenceManager.shared) {
+    init(manager: PreferenceManager = PreferenceManager.shared) {
         self.manager = manager
         appearanceType = manager.appearanceType.rawValue
         colorFormat = manager.rgbaFormat ? 0 : 1
@@ -312,23 +312,23 @@ private final class LKPreferenceViewModel: ObservableObject {
     }
 
     func reset() {
-        setAppearanceType(LookinPreferredAppeanranceType.system.rawValue)
+        setAppearanceType(PreferredAppearanceType.system.rawValue)
         setColorFormat(0)
         setImageContrast(0)
-        setDoubleClickBehavior(LookinDoubleClickBehavior.collapse.rawValue)
+        setDoubleClickBehavior(DoubleClickBehavior.collapse.rawValue)
         setRememberExpansionState(true)
         setHierarchyTimeout(LKDefaultHierarchyRequestTimeoutInterval)
         setLicenseTimeoutIfAvailable(LKDefaultLicenseHandshakeTimeoutInterval)
 
         #if DEBUG
-            LKMessageManager.sharedInstance().reset()
+            MessageManager.sharedInstance().reset()
             manager.reset()
             UserDefaults.standard.removeObject(forKey: "IgnoreFastModeTips")
         #endif
     }
 
     private func setAppearanceType(_ rawValue: Int) {
-        guard let type = LookinPreferredAppeanranceType(rawValue: rawValue) else {
+        guard let type = PreferredAppearanceType(rawValue: rawValue) else {
             return
         }
         appearanceType = rawValue
@@ -347,7 +347,7 @@ private final class LKPreferenceViewModel: ObservableObject {
     }
 
     private func setDoubleClickBehavior(_ rawValue: Int) {
-        guard let behavior = LookinDoubleClickBehavior(rawValue: rawValue) else {
+        guard let behavior = DoubleClickBehavior(rawValue: rawValue) else {
             return
         }
         doubleClickBehavior = rawValue

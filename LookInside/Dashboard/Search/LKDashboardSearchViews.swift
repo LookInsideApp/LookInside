@@ -12,12 +12,12 @@
 import AppKit
 
 /// A search result card on a blurred background.
-class LKDashboardSearchCardView: LKBaseView {
-    private let backgroundEffectView = LKVisualEffectView()
+class DashboardSearchCardView: BaseView {
+    private let backgroundEffectView = VisualEffectView()
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        layer?.cornerRadius = LKDashboardMetrics.cardCornerRadius
+        layer?.cornerRadius = DashboardMetrics.cardCornerRadius
         backgroundEffectView.blendingMode = .withinWindow
         backgroundEffectView.state = .active
         addSubview(backgroundEffectView)
@@ -33,29 +33,29 @@ class LKDashboardSearchCardView: LKBaseView {
     }
 }
 
-protocol LKDashboardSearchPropViewDelegate: AnyObject {
-    func dashboardSearchPropView(_ view: LKDashboardSearchPropView, didClickRevealAttribute attribute: InspectedAttribute)
+protocol DashboardSearchPropertyViewDelegate: AnyObject {
+    func dashboardSearchPropView(_ view: DashboardSearchPropertyView, didClickRevealAttribute attribute: InspectedAttribute)
 }
 
 /// One matching attribute: its title, its value as text, and a button that
 /// reveals it on its card.
-final class LKDashboardSearchPropView: LKDashboardSearchCardView {
+final class DashboardSearchPropertyView: DashboardSearchCardView {
     private let contentLabelY: CGFloat = 21
 
-    private let titleLabel = LKLabel()
-    private let contentLabel = LKLabel()
-    private let revealControl = LKTextControl()
+    private let titleLabel = TextLabel()
+    private let contentLabel = TextLabel()
+    private let revealControl = TextControl()
     private var attribute: InspectedAttribute?
 
-    weak var delegate: LKDashboardSearchPropViewDelegate?
+    weak var delegate: DashboardSearchPropertyViewDelegate?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        titleLabel.font = LKDashboardStyle.font(12)
+        titleLabel.font = DashboardStyle.font(12)
         titleLabel.textColor = .secondaryLabelColor
         addSubview(titleLabel)
 
-        contentLabel.font = LKDashboardStyle.font(15)
+        contentLabel.font = DashboardStyle.font(15)
         addSubview(contentLabel)
 
         revealControl.addTarget(self, clickAction: #selector(handleRevealButton))
@@ -71,7 +71,7 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
 
     override func layout() {
         super.layout()
-        let inset = LKDashboardMetrics.searchCardInset
+        let inset = DashboardMetrics.searchCardInset
         let width = frame.width - inset * 2
         titleLabel.dashboardLayout.x(inset).width(width).heightToFit().y(5)
         contentLabel.dashboardLayout.x(inset).width(width).heightToFit().y(contentLabelY)
@@ -79,7 +79,7 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
     }
 
     override func sizeThatFits(_ limitedSize: NSSize) -> NSSize {
-        let inset = LKDashboardMetrics.searchCardInset
+        let inset = DashboardMetrics.searchCardInset
         let width = limitedSize.width - inset * 2
         var size = limitedSize
         size.height = contentLabelY + contentLabel.height(forWidth: width) + inset + 25
@@ -89,14 +89,14 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
     override func updateColors() {
         super.updateColors()
         let isDarkMode = isDarkMode()
-        contentLabel.textColor = isDarkMode ? LKDashboardStyle.rgb(250, 251, 252) : LKDashboardStyle.rgb(56, 57, 58)
+        contentLabel.textColor = isDarkMode ? DashboardStyle.rgb(250, 251, 252) : DashboardStyle.rgb(56, 57, 58)
 
-        let text = LKDashboardText.attributed(
+        let text = DashboardText.attributed(
             NSLocalizedString("Reveal in panel…", comment: ""),
-            font: LKDashboardStyle.font(11),
-            color: isDarkMode ? LKDashboardStyle.rgb(245, 166, 30) : LKDashboardStyle.rgb(229, 135, 67)
+            font: DashboardStyle.font(11),
+            color: isDarkMode ? DashboardStyle.rgb(245, 166, 30) : DashboardStyle.rgb(229, 135, 67)
         )
-        LKDashboardText.appendImage(named: "icon_arrowRight_orange", baselineOffset: 0, marginLeft: 2, marginRight: 0, to: text)
+        DashboardText.appendImage(named: "icon_arrowRight_orange", baselineOffset: 0, marginLeft: 2, marginRight: 0, to: text)
         revealControl.label.attributedStringValue = text
     }
 
@@ -144,13 +144,13 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
         case .enumInt, .enumLong:
             let enumValue = (attribute.value as? NSNumber)?.intValue ?? 0
             let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute.identifier)
-            return LKEnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
+            return EnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
 
         case .uiColor:
             guard let color = NSColor.lk_color(fromRGBAComponents: attribute.value as? [NSNumber]) else {
                 return "nil"
             }
-            return LKPreferenceManager.shared.rgbaFormat ? color.rgbaString() : color.hexString()
+            return PreferenceManager.shared.rgbaFormat ? color.rgbaString() : color.hexString()
 
         case .shadow, .json:
             return "……"
@@ -162,28 +162,28 @@ final class LKDashboardSearchPropView: LKDashboardSearchCardView {
     }
 }
 
-protocol LKDashboardSearchMethodsViewDelegate: AnyObject {
-    func dashboardSearchMethodsView(_ view: LKDashboardSearchMethodsView, requestToInvokeMethod method: String, oid: UInt)
+protocol DashboardSearchMethodsViewDelegate: AnyObject {
+    func dashboardSearchMethodsView(_ view: DashboardSearchMethodsView, requestToInvokeMethod method: String, oid: UInt)
 }
 
 /// The methods without arguments that match the search; a click invokes
 /// one.
-final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
+final class DashboardSearchMethodsView: DashboardSearchCardView {
     private let insetTop: CGFloat = 5
     private let contentMarginTop: CGFloat = 10
     private let itemInterspace: CGFloat = 8
 
-    private let titleLabel = LKLabel()
-    private var errorLabel: LKLabel?
-    private var itemViews: [LKTextControl] = []
+    private let titleLabel = TextLabel()
+    private var errorLabel: TextLabel?
+    private var itemViews: [TextControl] = []
     private var methodNames: [ObjectIdentifier: String] = [:]
     private var oid: UInt = 0
 
-    weak var delegate: LKDashboardSearchMethodsViewDelegate?
+    weak var delegate: DashboardSearchMethodsViewDelegate?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
-        titleLabel.font = LKDashboardStyle.font(12)
+        titleLabel.font = DashboardStyle.font(12)
         titleLabel.textColor = .secondaryLabelColor
         titleLabel.stringValue = NSLocalizedString("Click to invoke methods below and get the return value.", comment: "")
         addSubview(titleLabel)
@@ -195,7 +195,7 @@ final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
 
     override func layout() {
         super.layout()
-        let inset = LKDashboardMetrics.searchCardInset
+        let inset = DashboardMetrics.searchCardInset
         let width = frame.width - inset * 2
         if titleLabel.isVisible {
             titleLabel.dashboardLayout.x(inset).width(width).heightToFit().y(insetTop)
@@ -211,7 +211,7 @@ final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
     }
 
     override func sizeThatFits(_ limitedSize: NSSize) -> NSSize {
-        let contentWidth = limitedSize.width - LKDashboardMetrics.searchCardInset * 2
+        let contentWidth = limitedSize.width - DashboardMetrics.searchCardInset * 2
         var size = limitedSize
         if titleLabel.isVisible {
             var height = titleLabel.height(forWidth: contentWidth) + insetTop + contentMarginTop
@@ -232,7 +232,7 @@ final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
         errorLabel?.isHidden = true
 
         while itemViews.count < methods.count {
-            let control = LKTextControl()
+            let control = TextControl()
             control.label.alignment = .left
             control.label.maximumNumberOfLines = 0
             control.adjustAlphaWhenClick = true
@@ -247,8 +247,8 @@ final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
             }
             view.isHidden = false
             methodNames[ObjectIdentifier(view)] = methods[idx]
-            let text = LKDashboardText.attributed(methods[idx], font: LKDashboardStyle.font(13), color: LKDashboardStyle.rgb(74, 144, 226))
-            LKDashboardText.appendImage(named: "icon_arrowRight_blue", baselineOffset: -1, marginLeft: 2, marginRight: 0, to: text)
+            let text = DashboardText.attributed(methods[idx], font: DashboardStyle.font(13), color: DashboardStyle.rgb(74, 144, 226))
+            DashboardText.appendImage(named: "icon_arrowRight_blue", baselineOffset: -1, marginLeft: 2, marginRight: 0, to: text)
             view.label.attributedStringValue = text
             view.needsLayout = true
         }
@@ -259,13 +259,13 @@ final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
         NSLog("%@", String(describing: error))
         itemViews.forEach { $0.isHidden = true }
         titleLabel.isHidden = true
-        let label: LKLabel
+        let label: TextLabel
         if let errorLabel {
             label = errorLabel
         } else {
-            label = LKLabel()
+            label = TextLabel()
             label.textColor = .labelColor
-            label.font = LKDashboardStyle.font(12)
+            label.font = DashboardStyle.font(12)
             addSubview(label)
             errorLabel = label
         }
@@ -285,10 +285,10 @@ final class LKDashboardSearchMethodsView: LKDashboardSearchCardView {
 
 /// The selectors without arguments of each class, fetched once per class
 /// until the hierarchy reloads.
-final class LKDashboardSearchMethodsDataSource {
+final class DashboardSearchMethodsDataSource {
     /// The live document whose app answers; nil for a document read from a
     /// file.
-    weak var liveDocument: LookinLiveDocument?
+    weak var liveDocument: LiveDocument?
 
     /// Class name to selector names.
     private var classesToSelectors: [String: [String]] = [:]
@@ -296,10 +296,10 @@ final class LKDashboardSearchMethodsDataSource {
     @MainActor
     func nonArgMethods(ofClass className: String?) async throws -> [String] {
         guard let className, !className.isEmpty else {
-            throw LKConnectionError.inner
+            throw ConnectionError.inner
         }
         guard let inspectableApp = liveDocument?.inspectableApp else {
-            throw LKConnectionError.noConnect
+            throw ConnectionError.noConnect
         }
         if let cached = classesToSelectors[className] {
             return cached

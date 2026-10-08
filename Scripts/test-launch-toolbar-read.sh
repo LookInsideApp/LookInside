@@ -68,10 +68,10 @@ swiftc -parse-as-library \
 	-D SHOULD_COMPILE_LOOKIN_SERVER -D LOOKIN_CORE_STANDALONE \
 	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" \
 	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
-	"$SOURCE_DIR/Read/LookinArchiveCoding.swift" \
-	"$SOURCE_DIR/Read/LKReadScreenshotLookup.swift" \
-	"$SOURCE_DIR/Toolbar/LKToolbarRules.swift" \
-	"$SOURCE_DIR/Launch/LKLaunchRules.swift" \
+	"$SOURCE_DIR/Read/ArchiveCoding.swift" \
+	"$SOURCE_DIR/Read/ReadScreenshotLookup.swift" \
+	"$SOURCE_DIR/Toolbar/ToolbarRules.swift" \
+	"$SOURCE_DIR/Launch/LaunchRules.swift" \
 	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
 	"$TEST_DIR/LaunchToolbarReadTests.swift" \
 	"$WORK"/lookin-core/*.o \

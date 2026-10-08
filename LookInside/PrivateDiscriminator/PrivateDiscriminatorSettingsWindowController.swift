@@ -1,0 +1,393 @@
+import AppKit
+import SwiftUI
+
+@objc(LKPrivateDiscriminatorSettingsWindowController)
+final class PrivateDiscriminatorSettingsWindowController: NSWindowController {
+    private static let sharedController = PrivateDiscriminatorSettingsWindowController()
+
+    @objc(showSettingsWindow)
+    static func showSettingsWindow() {
+        sharedController.showWindow(nil)
+        sharedController.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private init() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 660, height: 640),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = NSLocalizedString("Private Discriminator Settings", comment: "")
+        window.titlebarAppearsTransparent = true
+        window.isReleasedWhenClosed = false
+        window.minSize = NSSize(width: 640, height: 520)
+        window.contentViewController = NSHostingController(rootView: PrivateDiscriminatorSettingsRootView())
+        window.center()
+        super.init(window: window)
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+private struct PrivateDiscriminatorSettingsRootView: View {
+    private var store = PrivateDiscriminatorStore.shared
+    @State private var importError: String?
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Private Discriminator")
+                        .font(.system(size: 24, weight: .semibold))
+                        .padding(.bottom, 18)
+
+                    SettingsRow(
+                        title: "Enable",
+                        message: "Resolve Swift private-discriminator hashes from imported module CSVs. Disabled by default.",
+                        controlWidth: 84
+                    ) {
+                        Toggle(
+                            "",
+                            isOn: Binding(
+                                get: { store.featureEnabled },
+                                set: { store.setFeatureEnabled($0) }
+                            )
+                        )
+                        .toggleStyle(.switch)
+                    }
+
+                    SettingsDivider()
+
+                    SettingsRow(
+                        title: "Default Library",
+                        message: "Download SwiftUI and SwiftUICore indexes from GitHub into local imported CSVs.",
+                        controlWidth: 190
+                    ) {
+                        Button {
+                            importError = nil
+                            store.updateDefaultLibrary()
+                        } label: {
+                            if store.isUpdatingDefaultLibrary {
+                                Label("Updating…", systemImage: "arrow.down.circle")
+                            } else {
+                                Label("Update Default Library", systemImage: "arrow.down.circle")
+                            }
+                        }
+                        .disabled(store.isUpdatingDefaultLibrary)
+                    }
+
+                    if let message = store.lastDefaultLibraryUpdateMessage {
+                        HStack(spacing: 8) {
+                            if store.isUpdatingDefaultLibrary {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
+                            Text(message)
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.top, -5)
+                        .padding(.bottom, 13)
+                    }
+
+                    if store.featureEnabled {
+                        SettingsDivider()
+
+                        SettingsRow(
+                            title: "Autosave",
+                            message: "Allow future guessed rows to use autosaved module CSVs.",
+                            controlWidth: 84
+                        ) {
+                            Toggle(
+                                "",
+                                isOn: Binding(
+                                    get: { store.autosaveEnabled },
+                                    set: { store.setAutosaveEnabled($0) }
+                                )
+                            )
+                            .toggleStyle(.switch)
+                        }
+
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 8) {
+                                Button {
+                                    beginImport()
+                                } label: {
+                                    Label("Import Module", systemImage: "square.and.arrow.down")
+                                }
+
+                                Button {
+                                    store.revealStorageDirectory()
+                                } label: {
+                                    Label("Reveal Storage", systemImage: "folder")
+                                }
+
+                                Spacer()
+                            }
+
+                            if store.moduleStatuses.isEmpty {
+                                Text("No modules imported yet.")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                VStack(spacing: 0) {
+                                    ForEach(store.moduleStatuses) { status in
+                                        ModuleStatusRow(status: status, store: store) { message in
+                                            importError = message
+                                        }
+
+                                        if status.id != store.moduleStatuses.last?.id {
+                                            Divider()
+                                        }
+                                    }
+                                }
+                            }
+
+                            diagnosticsView
+                            errorView
+                        }
+                        .padding(.vertical, 13)
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.top, 28)
+                .padding(.bottom, 24)
+            }
+
+            Divider()
+
+            HStack {
+                Spacer()
+                Button("Done") {
+                    NSApp.keyWindow?.performClose(nil)
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 14)
+            .background(.bar)
+        }
+        .frame(minWidth: 640, idealWidth: 660, minHeight: 520, idealHeight: 640)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .onAppear {
+            store.reloadFromDisk()
+        }
+    }
+
+    @ViewBuilder
+    private var diagnosticsView: some View {
+        if !store.invalidDiagnostics.isEmpty {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Invalid CSV Diagnostics")
+                    .font(.system(size: 12, weight: .medium))
+                ForEach(store.invalidDiagnostics) { diagnostic in
+                    Text("\(diagnostic.module) \(diagnostic.source): \(diagnostic.message)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var errorView: some View {
+        if let importError {
+            Text(importError)
+                .font(.system(size: 11))
+                .foregroundStyle(.red)
+                .fixedSize(horizontal: false, vertical: true)
+        } else if let error = store.lastSettingsError {
+            Text(error)
+                .font(.system(size: 11))
+                .foregroundStyle(.red)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func beginImport() {
+        importError = nil
+        guard let module = promptForModuleName() else {
+            return
+        }
+
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = NSLocalizedString("Import", comment: "")
+        panel.message = String(
+            format: NSLocalizedString("Choose the local Swift source folder for %@.", comment: ""),
+            module
+        )
+
+        guard panel.runModal() == .OK, let url = panel.url else {
+            return
+        }
+
+        do {
+            try store.importModule(named: module, from: url)
+        } catch {
+            importError = error.localizedDescription
+        }
+    }
+
+    private func promptForModuleName() -> String? {
+        let alert = NSAlert()
+        alert.messageText = NSLocalizedString("Import Private Discriminator Module", comment: "")
+        alert.informativeText = NSLocalizedString("Enter the Swift module name for this source folder.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Continue", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+
+        let textField = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
+        textField.placeholderString = NSLocalizedString("ModuleName", comment: "")
+        alert.accessoryView = textField
+
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            return nil
+        }
+
+        let module = textField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if module.isEmpty {
+            importError = NSLocalizedString("Module name is required.", comment: "")
+            return nil
+        }
+        return module
+    }
+}
+
+private struct SettingsRow<Control: View>: View {
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey?
+    let controlWidth: CGFloat
+    @ViewBuilder let control: Control
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 24) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.primary)
+
+                if let message {
+                    Text(message)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            control
+                .labelsHidden()
+                .frame(width: controlWidth, alignment: .trailing)
+        }
+        .padding(.vertical, 13)
+    }
+}
+
+private struct SettingsDivider: View {
+    var body: some View {
+        Divider()
+    }
+}
+
+private struct ModuleStatusRow: View {
+    let status: PrivateDiscriminatorModuleStatus
+    let store: PrivateDiscriminatorStore
+    let onError: (String) -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Toggle(
+                "",
+                isOn: Binding(
+                    get: { status.isEnabled },
+                    set: { store.setModule(status.module, enabled: $0) }
+                )
+            )
+            .labelsHidden()
+            .toggleStyle(.switch)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(status.module)
+                    .font(.system(size: 13, weight: .medium))
+
+                Text(status.sourceSummary)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+
+                if let diagnostic = status.diagnostic {
+                    Text(diagnostic)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.red)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            Spacer(minLength: 8)
+
+            Button {
+                reimport()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .buttonStyle(.borderless)
+            .help("Reimport from saved source folder")
+            .disabled(status.sourceFolderPath == nil)
+
+            Button {
+                store.revealModule(status.module)
+            } label: {
+                Image(systemName: "folder")
+            }
+            .buttonStyle(.borderless)
+            .help("Reveal CSV")
+
+            Button(role: .destructive) {
+                remove()
+            } label: {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+            .help("Remove module CSVs")
+        }
+        .padding(.vertical, 8)
+    }
+
+    private func reimport() {
+        do {
+            try store.reimportModule(status.module)
+        } catch {
+            onError(error.localizedDescription)
+        }
+    }
+
+    private func remove() {
+        let alert = NSAlert()
+        alert.messageText = String(
+            format: NSLocalizedString("Remove %@?", comment: ""),
+            status.module
+        )
+        alert.informativeText = NSLocalizedString("This removes imported and autosaved CSVs for the module.", comment: "")
+        alert.addButton(withTitle: NSLocalizedString("Remove", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+        alert.alertStyle = .warning
+
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            return
+        }
+
+        do {
+            try store.removeModule(status.module)
+        } catch {
+            onError(error.localizedDescription)
+        }
+    }
+}

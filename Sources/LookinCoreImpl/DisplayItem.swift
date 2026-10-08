@@ -163,16 +163,16 @@
         public var screenshotEncodeType: LookinDisplayItemImageEncodeType = .none
         // `previewLayer` and `previewNode` keep their Objective-C accessors
         // (same selectors, same weak storage). Only the host app has the
-        // LKDisplayItemNode class, so only its build types previewNode;
+        // DisplayItemNode class, so only its build types previewNode;
         // SwiftPM builds and the host's standalone test builds
         // (LOOKIN_CORE_STANDALONE) store an untyped object.
         // LookinPreviewItemLayer no longer exists anywhere.
         #if SWIFT_PACKAGE || LOOKIN_CORE_STANDALONE
             @objc private weak var previewNode: AnyObject?
         #else
-            // Internal: LKDisplayItemNode is the host app's own class.
+            // Internal: DisplayItemNode is the host app's own class.
             @objc(previewNode)
-            weak var previewNode: LKDisplayItemNode?
+            weak var previewNode: DisplayItemNode?
         #endif
         @objc private weak var previewLayer: AnyObject?
         @objc(previewZIndex)

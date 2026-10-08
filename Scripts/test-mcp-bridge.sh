@@ -15,14 +15,14 @@ TMPDIR="${TMPDIR:-/tmp}/lookinside-mcp-bridge-tests.$$"
 mkdir -p "$TMPDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
-LISTEN_SOCKET="$ROOT/LookInside/MCPBridge/LKMCPBridgeListenSocket.swift"
-LISTEN_SOCKET_TEST="$ROOT/Tests/MCPBridge/LKMCPBridgeListenSocketTests.swift"
+LISTEN_SOCKET="$ROOT/LookInside/MCPBridge/MCPBridgeListenSocket.swift"
+LISTEN_SOCKET_TEST="$ROOT/Tests/MCPBridge/MCPBridgeListenSocketTests.swift"
 
 swiftc -parse-as-library "$LISTEN_SOCKET" "$LISTEN_SOCKET_TEST" -o "$TMPDIR/listen-socket-test"
 "$TMPDIR/listen-socket-test"
 
-SEARCH_QUERY="$ROOT/LookInside/MCPBridge/LKMCPBridgeSearchQuery.swift"
-SEARCH_QUERY_TEST="$ROOT/Tests/MCPBridge/LKMCPBridgeSearchQueryTests.swift"
+SEARCH_QUERY="$ROOT/LookInside/MCPBridge/MCPBridgeSearchQuery.swift"
+SEARCH_QUERY_TEST="$ROOT/Tests/MCPBridge/MCPBridgeSearchQueryTests.swift"
 
 swiftc -parse-as-library "$SEARCH_QUERY" "$SEARCH_QUERY_TEST" -o "$TMPDIR/search-query-test"
 "$TMPDIR/search-query-test"
@@ -30,8 +30,8 @@ swiftc -parse-as-library "$SEARCH_QUERY" "$SEARCH_QUERY_TEST" -o "$TMPDIR/search
 # The identifier list needs LKMCPBridgeFrame.swift alongside it for
 # LKMCPBridgeJSONValue; that file is Foundation-only, so it compiles here.
 FRAME="$ROOT/LookInside/MCPBridge/LKMCPBridgeFrame.swift"
-OBJECT_IDENTIFIER_LIST="$ROOT/LookInside/MCPBridge/LKMCPBridgeObjectIdentifierList.swift"
-OBJECT_IDENTIFIER_LIST_TEST="$ROOT/Tests/MCPBridge/LKMCPBridgeObjectIdentifierListTests.swift"
+OBJECT_IDENTIFIER_LIST="$ROOT/LookInside/MCPBridge/MCPBridgeObjectIdentifierList.swift"
+OBJECT_IDENTIFIER_LIST_TEST="$ROOT/Tests/MCPBridge/MCPBridgeObjectIdentifierListTests.swift"
 
 swiftc -parse-as-library "$FRAME" "$OBJECT_IDENTIFIER_LIST" "$OBJECT_IDENTIFIER_LIST_TEST" -o "$TMPDIR/object-identifier-list-test"
 "$TMPDIR/object-identifier-list-test"

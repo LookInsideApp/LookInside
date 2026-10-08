@@ -1,51 +1,51 @@
 import Foundation
 
 /// Version 1 of the gesture capture JSON carried by Peertalk push 306.
-struct LKGestureCaptureBatch: Codable {
+struct GestureCaptureBatch: Codable {
     var schemaVersion: Int
     var sessionID: String
     var sequence: Int
-    var snapshots: [LKGestureCaptureSnapshot]
-    var records: [LKGestureCaptureRecord]
+    var snapshots: [GestureCaptureSnapshot]
+    var records: [GestureCaptureRecord]
     var recordCount: Int
     var redactedCount: Int
     var droppedCount: Int
     var state: String
     var message: String
     var pollDurationMS: Double
-    var overlayStatus: LKGestureOverlayStatus?
-    var nativeRegions: [LKNativeInteractionRegion]?
-    var interactions: LKInteractionSnapshot?
+    var overlayStatus: GestureOverlayStatus?
+    var nativeRegions: [NativeInteractionRegion]?
+    var interactions: InteractionSnapshot?
 }
 
-struct LKNativeInteractionRegion: Codable, Identifiable {
+struct NativeInteractionRegion: Codable, Identifiable {
     var id: String
     var source: String
     var viewClass: String
     var viewAddress: String
     var windowAddress: String
     var label: String
-    var handlers: [LKNativeInteractionHandler]
-    var geometry: LKGestureCaptureGeometry
+    var handlers: [NativeInteractionHandler]
+    var geometry: GestureCaptureGeometry
     var isActive: Bool
     var geometryKind: String
 }
 
-struct LKNativeInteractionHandler: Codable {
+struct NativeInteractionHandler: Codable {
     var kind: String
     var name: String
     var target: String?
     var events: UInt?
 }
 
-struct LKGestureOverlayStatus: Codable {
+struct GestureOverlayStatus: Codable {
     var mode: String
     var isEnabled: Bool
     var regionCount: Int
     var hostingViewCount: Int
 }
 
-struct LKGestureCaptureRecord: Codable, Identifiable {
+struct GestureCaptureRecord: Codable, Identifiable {
     var sequence: Int
     var timestamp: TimeInterval
     var receivedAt: TimeInterval
@@ -58,7 +58,7 @@ struct LKGestureCaptureRecord: Codable, Identifiable {
     }
 }
 
-struct LKGestureCaptureSnapshot: Codable, Identifiable {
+struct GestureCaptureSnapshot: Codable, Identifiable {
     var id: String
     var timestamp: TimeInterval
     var receivedAt: TimeInterval
@@ -68,10 +68,10 @@ struct LKGestureCaptureSnapshot: Codable, Identifiable {
     var inputPhase: String?
     var eventText: String
     var hitTest: String
-    var responders: [LKGestureCaptureNode]
-    var gestures: [LKGestureCaptureNode]
-    var bindings: [LKGestureCaptureBinding]
-    var rawRecords: [LKGestureCaptureRecord]
+    var responders: [GestureCaptureNode]
+    var gestures: [GestureCaptureNode]
+    var bindings: [GestureCaptureBinding]
+    var rawRecords: [GestureCaptureRecord]
     var complete: Bool
     var responderTreeComplete: Bool?
     var warnings: [String]
@@ -81,7 +81,7 @@ struct LKGestureCaptureSnapshot: Codable, Identifiable {
     }
 }
 
-struct LKGestureCaptureNode: Codable, Identifiable {
+struct GestureCaptureNode: Codable, Identifiable {
     var id: String
     var parentID: String?
     var depth: Int
@@ -90,19 +90,19 @@ struct LKGestureCaptureNode: Codable, Identifiable {
     var address: String?
     var attributeID: String?
     var phase: String?
-    var geometry: LKGestureCaptureGeometry?
-    var contentShape: LKGestureContentShape?
+    var geometry: GestureCaptureGeometry?
+    var contentShape: GestureContentShape?
     var detail: String
     var recordSequence: Int
 }
 
-struct LKGestureContentShape: Codable {
+struct GestureContentShape: Codable {
     var typeName: String
     var kind: String?
     var source: String
 }
 
-struct LKGestureCaptureGeometry: Codable {
+struct GestureCaptureGeometry: Codable {
     var x: Double?
     var y: Double?
     var width: Double?
@@ -111,37 +111,37 @@ struct LKGestureCaptureGeometry: Codable {
     var coordinateSpace: String
 }
 
-struct LKGestureCaptureBinding: Codable {
+struct GestureCaptureBinding: Codable {
     var eventID: String
     var responderAddresses: [String]
 }
 
-struct LKGestureCaptureArchive: Codable {
+struct GestureCaptureArchive: Codable {
     var schemaVersion = 1
     var appName: String
     var bundleIdentifier: String
     var sessionID: String?
-    var snapshots: [LKGestureCaptureSnapshot]
-    var records: [LKGestureCaptureRecord]
-    var nativeRegions: [LKNativeInteractionRegion]?
-    var interactions: LKInteractionSnapshot?
-    var suggestionPlatform: LKSuggestionPlatform?
+    var snapshots: [GestureCaptureSnapshot]
+    var records: [GestureCaptureRecord]
+    var nativeRegions: [NativeInteractionRegion]?
+    var interactions: InteractionSnapshot?
+    var suggestionPlatform: HitTargetSuggestionPlatform?
 }
 
-struct LKGestureTreeItem: Identifiable {
-    var node: LKGestureCaptureNode
-    var children: [LKGestureTreeItem]?
+struct GestureTreeItem: Identifiable {
+    var node: GestureCaptureNode
+    var children: [GestureTreeItem]?
     var id: String {
         node.id
     }
 
-    static func roots(from nodes: [LKGestureCaptureNode]) -> [LKGestureTreeItem] {
+    static func roots(from nodes: [GestureCaptureNode]) -> [GestureTreeItem] {
         let grouped = Dictionary(grouping: nodes, by: \.parentID)
-        func children(of parentID: String?, depth: Int) -> [LKGestureTreeItem] {
+        func children(of parentID: String?, depth: Int) -> [GestureTreeItem] {
             guard depth < 64 else { return [] }
             return (grouped[parentID] ?? []).map { node in
                 let nested = children(of: node.id, depth: depth + 1)
-                return LKGestureTreeItem(node: node, children: nested.isEmpty ? nil : nested)
+                return GestureTreeItem(node: node, children: nested.isEmpty ? nil : nested)
             }
         }
         return children(of: nil, depth: 0)
