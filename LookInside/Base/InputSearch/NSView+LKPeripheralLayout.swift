@@ -5,7 +5,7 @@
 //  Frame helpers for the Swift peripheral modules (About, Console, Export,
 //  Measure, Preference, InputSearch). They keep the arithmetic of the
 //  ShortCocoa calls they replace: setters snap to the main screen's pixel
-//  grid, `lkpSizeToFit` / `lkpHeightToFit` only size LKBaseView and NSControl
+//  grid, `lkpSizeToFit` / `lkpHeightToFit` only size BaseView and NSControl
 //  instances, and edges are measured against the superview's bounds.
 //
 
@@ -129,9 +129,9 @@ extension NSView {
         }
     }
 
-    /// Sizes LKBaseView and NSControl instances to their fitting size; other views stay as they are.
+    /// Sizes BaseView and NSControl instances to their fitting size; other views stay as they are.
     func lkpSizeToFit() {
-        if let view = self as? LKBaseView {
+        if let view = self as? BaseView {
             view.setFrameSize(view.sizeThatFits(lkpMaxSize))
         } else if let control = self as? NSControl {
             var size = control.sizeThatFits(lkpMaxSize)
@@ -145,10 +145,10 @@ extension NSView {
         }
     }
 
-    /// Sets the fitting height for the current width (LKBaseView and NSControl only).
+    /// Sets the fitting height for the current width (BaseView and NSControl only).
     func lkpHeightToFit() {
         let limit = NSSize(width: bounds.width, height: .greatestFiniteMagnitude)
-        if let view = self as? LKBaseView {
+        if let view = self as? BaseView {
             frame.size.height = view.sizeThatFits(limit).height
         } else if let control = self as? NSControl {
             frame.size.height = control.sizeThatFits(limit).height

@@ -20,35 +20,35 @@ TEST_DIR="$ROOT/Tests/XcodeViewHierarchy"
 # Gzip inflation: response entries are gzip members whose header length varies,
 # and whose payload exceeds the inflater's buffer.
 swiftc -parse-as-library \
-	"$SOURCE_DIR/LKXcodeViewHierarchyGzip.swift" \
-	"$TEST_DIR/LKXcodeViewHierarchyGzipTests.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyGzip.swift" \
+	"$TEST_DIR/XcodeViewHierarchyGzipTests.swift" \
 	-o "$TMPDIR/gzip-test"
 "$TMPDIR/gzip-test"
 
 # Property value decoding: the format-specifier scheme, including the
 # hexadecimal floats and the per-specifier integer radix.
 swiftc -parse-as-library \
-	"$SOURCE_DIR/LKXcodeViewHierarchyValue.swift" \
-	"$TEST_DIR/LKXcodeViewHierarchyValueTests.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyValue.swift" \
+	"$TEST_DIR/XcodeViewHierarchyValueTests.swift" \
 	-o "$TMPDIR/value-test"
 "$TMPDIR/value-test"
 
 # Object graph assembly: merge rules across responses.
 swiftc -parse-as-library \
-	"$SOURCE_DIR/LKXcodeViewHierarchyValue.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyObjectGraph.swift" \
-	"$TEST_DIR/LKXcodeViewHierarchyObjectGraphTests.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyValue.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyObjectGraph.swift" \
+	"$TEST_DIR/XcodeViewHierarchyObjectGraphTests.swift" \
 	-o "$TMPDIR/object-graph-test"
 "$TMPDIR/object-graph-test"
 
 # Pixel recovery: the two-part orientation correction for y-down captures.
 swiftc -parse-as-library \
-	"$SOURCE_DIR/LKXcodeViewHierarchyValue.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyObjectGraph.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyLayerArchive.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyLayerTopology.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyPixelRecovery.swift" \
-	"$TEST_DIR/LKXcodeViewHierarchyPixelRecoveryTests.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyValue.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyObjectGraph.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyLayerArchive.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyLayerTopology.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyPixelRecovery.swift" \
+	"$TEST_DIR/XcodeViewHierarchyPixelRecoveryTests.swift" \
 	-o "$TMPDIR/pixel-recovery-test"
 "$TMPDIR/pixel-recovery-test"
 
@@ -82,18 +82,18 @@ swiftc -parse-as-library \
 	-D SHOULD_COMPILE_LOOKIN_SERVER -D LOOKIN_CORE_STANDALONE \
 	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" \
 	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyGzip.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyValue.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyObjectGraph.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyBundleReader.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyLayerArchive.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyLayerTopology.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyPixelRecovery.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyAttributeCatalog.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyAttributes.swift" \
-	"$SOURCE_DIR/LKXcodeViewHierarchyConverter.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyGzip.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyValue.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyObjectGraph.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyBundleReader.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyLayerArchive.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyLayerTopology.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyPixelRecovery.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyAttributeCatalog.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyAttributes.swift" \
+	"$SOURCE_DIR/XcodeViewHierarchyConverter.swift" \
 	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
-	"$TEST_DIR/LKXcodeViewHierarchyConverterTests.swift" \
+	"$TEST_DIR/XcodeViewHierarchyConverterTests.swift" \
 	"$TMPDIR"/lookin-core/*.o \
 	-framework AppKit -framework QuartzCore \
 	-o "$TMPDIR/converter-test"

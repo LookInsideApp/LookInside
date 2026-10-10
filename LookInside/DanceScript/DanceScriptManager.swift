@@ -10,7 +10,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app")
 @objc(DanceScriptManager)
 final class DanceScriptManager: NSObject {
     private static let sharedManager = DanceScriptManager()
@@ -50,17 +52,17 @@ final class DanceScriptManager: NSObject {
     @objc(handleText:)
     func handleText(_ json: String?) {
         guard let json else {
-            LKPeripheralAlerts.show(LKConnectionError.inner, in: LKPeripheralAlerts.keyWindow)
+            PeripheralAlerts.show(ConnectionError.inner, in: PeripheralAlerts.keyWindow)
             return
         }
         switch Self.parse(json) {
         case let .success(request):
             execute(request)
         case .failure(.invalidJSON):
-            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to parse the request: %@", comment: ""), json), in: LKPeripheralAlerts.keyWindow)
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to parse the request: %@", comment: ""), json), in: PeripheralAlerts.keyWindow)
             assertionFailure("DanceScript payload is not JSON")
         case .failure(.unexpectedFormat):
-            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unexpected request format: %@", comment: ""), json), in: LKPeripheralAlerts.keyWindow)
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unexpected request format: %@", comment: ""), json), in: PeripheralAlerts.keyWindow)
         }
     }
 
@@ -73,18 +75,18 @@ final class DanceScriptManager: NSObject {
         }
         let scriptPath = Bundle.main.url(forResource: "DanceScript", withExtension: "sh")?.relativePath
         guard let scriptPath, fileManager.fileExists(atPath: scriptPath) else {
-            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to find the script at %@.", comment: ""), scriptPath ?? "(null)"),
-                                    in: LKPeripheralAlerts.keyWindow)
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to find the script at %@.", comment: ""), scriptPath ?? "(null)"),
+                                    in: PeripheralAlerts.keyWindow)
             return nil
         }
         let copied = (try? fileManager.copyItem(atPath: scriptPath, toPath: newScriptPath)) != nil
         try? fileManager.setAttributes([.posixPermissions: NSNumber(value: Int16(0o755))], ofItemAtPath: newScriptPath)
         guard copied else {
-            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("Unable to copy the script.", comment: ""), in: LKPeripheralAlerts.keyWindow)
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("Unable to copy the script.", comment: ""), in: PeripheralAlerts.keyWindow)
             return nil
         }
         guard fileManager.fileExists(atPath: newScriptPath) else {
-            LKPeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("The copied script is missing.", comment: ""), in: LKPeripheralAlerts.keyWindow)
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("The copied script is missing.", comment: ""), in: PeripheralAlerts.keyWindow)
             return nil
         }
         return newScriptPath
@@ -101,11 +103,11 @@ final class DanceScriptManager: NSObject {
         do {
             try task.run()
         } catch {
-            NSLog("DanceScript failed to launch: %@", String(describing: error))
+            #log(.default, "DanceScript failed to launch: \(String(describing: error), privacy: .public)")
             return
         }
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8) ?? ""
-        NSLog("脚本执行输出：%@", output)
+        #log(.default, "脚本执行输出：\(output, privacy: .public)")
     }
 }

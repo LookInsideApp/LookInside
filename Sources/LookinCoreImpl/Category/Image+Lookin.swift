@@ -16,7 +16,7 @@
 
     public extension NSImage {
         @objc(lookin_data)
-        func lookin_data() -> Data! {
+        func encodedData() -> Data? {
             if representations.isEmpty {
                 return nil
             }
@@ -31,6 +31,11 @@
             }
             let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
             return bitmapRep.representation(using: .png, properties: [:])
+        }
+
+        @available(*, deprecated, renamed: "encodedData()")
+        func lookin_data() -> Data? {
+            encodedData()
         }
     }
 

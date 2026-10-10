@@ -8,7 +8,7 @@ import LookInsideHostCore
 
 extension NSString {
     /// The string with its first UTF-16 unit uppercased; nil when empty.
-    @objc func lk_capitalizedString() -> String? {
+    @objc func capitalizingFirstLetter() -> String? {
         guard length > 0 else { return nil }
         return (substring(to: 1) as NSString).uppercased + substring(from: 1)
     }

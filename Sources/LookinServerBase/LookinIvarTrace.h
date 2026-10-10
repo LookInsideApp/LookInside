@@ -10,7 +10,7 @@
 //  Created by Li Kai on 2019/4/30.
 //  https://lookin.work
 //
-//  The LookinIvarTrace class is plain Swift (LookinCoreImpl/LookinIvarTrace.swift,
+//  The LookinIvarTrace class is plain Swift (LookinCoreImpl/InstanceVariableTrace.swift,
 //  `@objc(LookinIvarTrace)`); `-[NSObject lks_ivarTraces]` is a Swift `@objc`
 //  extension member in LookinServerImpl. Only the exported C constant stays
 //  here (defined in LookinIvarTraceConstants.m).

@@ -22,22 +22,22 @@
     #if canImport(UIKit)
         import UIKit
 
-        public typealias LookinColor = UIColor
-        public typealias LookinInsets = UIEdgeInsets
-        public typealias LookinImage = UIImage
-        public typealias LookinWindow = UIWindow
-        public typealias LookinApplication = UIApplication
-        public typealias LookinImageView = UIImageView
-        public typealias LookinView = UIView
-        public typealias LookinViewController = UIViewController
-        public typealias LookinFont = UIFont
-        public typealias LookinResponder = UIResponder
-        public typealias LookinLayoutGuide = UILayoutGuide
-        public typealias LookinGestureRecognizer = UIGestureRecognizer
-        public typealias LookinControl = UIControl
-        public typealias LookinCollectionView = UICollectionView
-        public typealias LookinTextField = UITextField
-        public typealias LookinTextView = UITextView
+        public typealias PlatformColor = UIColor
+        public typealias PlatformEdgeInsets = UIEdgeInsets
+        public typealias PlatformImage = UIImage
+        public typealias PlatformWindow = UIWindow
+        public typealias PlatformApplication = UIApplication
+        public typealias PlatformImageView = UIImageView
+        public typealias PlatformView = UIView
+        public typealias PlatformViewController = UIViewController
+        public typealias PlatformFont = UIFont
+        public typealias PlatformResponder = UIResponder
+        public typealias PlatformLayoutGuide = UILayoutGuide
+        public typealias PlatformGestureRecognizer = UIGestureRecognizer
+        public typealias PlatformControl = UIControl
+        public typealias PlatformCollectionView = UICollectionView
+        public typealias PlatformTextField = UITextField
+        public typealias PlatformTextView = UITextView
         public let LookinLayoutConstraintAxisHorizontal = NSLayoutConstraint.Axis.horizontal
         public let LookinLayoutConstraintAxisVertical = NSLayoutConstraint.Axis.vertical
         public let LookinCollectionElementKindSectionHeader = UICollectionView.elementKindSectionHeader
@@ -47,22 +47,22 @@
     #elseif os(macOS)
         import AppKit
 
-        public typealias LookinColor = NSColor
-        public typealias LookinInsets = NSEdgeInsets
-        public typealias LookinImage = NSImage
-        public typealias LookinWindow = NSWindow
-        public typealias LookinApplication = NSApplication
-        public typealias LookinImageView = NSImageView
-        public typealias LookinView = NSView
-        public typealias LookinViewController = NSViewController
-        public typealias LookinFont = NSFont
-        public typealias LookinResponder = NSResponder
-        public typealias LookinLayoutGuide = NSLayoutGuide
-        public typealias LookinGestureRecognizer = NSGestureRecognizer
-        public typealias LookinControl = NSControl
-        public typealias LookinCollectionView = NSCollectionView
-        public typealias LookinTextField = NSTextField
-        public typealias LookinTextView = NSTextView
+        public typealias PlatformColor = NSColor
+        public typealias PlatformEdgeInsets = NSEdgeInsets
+        public typealias PlatformImage = NSImage
+        public typealias PlatformWindow = NSWindow
+        public typealias PlatformApplication = NSApplication
+        public typealias PlatformImageView = NSImageView
+        public typealias PlatformView = NSView
+        public typealias PlatformViewController = NSViewController
+        public typealias PlatformFont = NSFont
+        public typealias PlatformResponder = NSResponder
+        public typealias PlatformLayoutGuide = NSLayoutGuide
+        public typealias PlatformGestureRecognizer = NSGestureRecognizer
+        public typealias PlatformControl = NSControl
+        public typealias PlatformCollectionView = NSCollectionView
+        public typealias PlatformTextField = NSTextField
+        public typealias PlatformTextView = NSTextView
         public let LookinLayoutConstraintAxisHorizontal = NSLayoutConstraint.Orientation.horizontal
         public let LookinLayoutConstraintAxisVertical = NSLayoutConstraint.Orientation.vertical
         public let LookinCollectionElementKindSectionHeader = NSCollectionView.elementKindSectionHeader
@@ -111,13 +111,13 @@
     // MARK: - Colors
 
     /// `LookinColorRGBAMake(r, g, b, a)`: components in 0...255, alpha in 0...1.
-    public func LookinColorRGBAMake(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat) -> LookinColor {
-        LookinColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: a)
+    public func LookinColorRGBAMake(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat, _ a: CGFloat) -> PlatformColor {
+        PlatformColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: a)
     }
 
     /// `LookinColorMake(r, g, b)`.
-    public func LookinColorMake(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> LookinColor {
-        LookinColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
+    public func LookinColorMake(_ r: CGFloat, _ g: CGFloat, _ b: CGFloat) -> PlatformColor {
+        PlatformColor(red: r / 255.0, green: g / 255.0, blue: b / 255.0, alpha: 1)
     }
 
 #endif

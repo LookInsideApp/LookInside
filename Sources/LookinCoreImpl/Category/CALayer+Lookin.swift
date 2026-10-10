@@ -15,28 +15,33 @@
 
     public extension CALayer {
         @objc(lookin_removeImplicitAnimations)
-        func lookin_removeImplicitAnimations() {
+        func removeImplicitAnimations() {
             // The keys are the property names the Objective-C original spelled
             // as NSStringFromSelector(@selector(...)).
             var actions: [String: any CAAction] = [:]
-            for key in lookinLayerActionKeys {
+            for key in layerActionKeys {
                 actions[key] = NSNull()
             }
             if isKind(of: CAShapeLayer.self) {
-                for key in lookinShapeLayerActionKeys {
+                for key in shapeLayerActionKeys {
                     actions[key] = NSNull()
                 }
             }
             if isKind(of: CAGradientLayer.self) {
-                for key in lookinGradientLayerActionKeys {
+                for key in gradientLayerActionKeys {
                     actions[key] = NSNull()
                 }
             }
             self.actions = actions
         }
+
+        @available(*, deprecated, renamed: "removeImplicitAnimations()")
+        func lookin_removeImplicitAnimations() {
+            removeImplicitAnimations()
+        }
     }
 
-    private let lookinLayerActionKeys = [
+    private let layerActionKeys = [
         "bounds",
         "position",
         "zPosition",
@@ -67,7 +72,7 @@
         "shadowPath",
     ]
 
-    private let lookinShapeLayerActionKeys = [
+    private let shapeLayerActionKeys = [
         "path",
         "fillColor",
         "strokeColor",
@@ -78,7 +83,7 @@
         "lineDashPhase",
     ]
 
-    private let lookinGradientLayerActionKeys = [
+    private let gradientLayerActionKeys = [
         "colors",
         "locations",
         "startPoint",

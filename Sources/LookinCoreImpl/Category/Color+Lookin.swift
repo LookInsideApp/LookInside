@@ -16,7 +16,7 @@
 
     public extension NSColor {
         @objc(lookin_colorFromRGBAComponents:)
-        class func lookin_color(fromRGBAComponents components: [NSNumber]?) -> Self! {
+        class func sRGBColor(fromRGBAComponents components: [NSNumber]?) -> Self? {
             guard let components else {
                 return nil
             }
@@ -35,8 +35,13 @@
             return unsafeDowncast(color, to: self)
         }
 
+        @available(*, deprecated, renamed: "sRGBColor(fromRGBAComponents:)")
+        class func lookin_color(fromRGBAComponents components: [NSNumber]?) -> Self? {
+            sRGBColor(fromRGBAComponents: components)
+        }
+
         @objc(lookin_rgbaComponents)
-        func lookin_rgbaComponents() -> [NSNumber]! {
+        func sRGBAComponents() -> [NSNumber] {
             // Messaging a nil sRGB conversion left the components unset; read
             // them as 0 here.
             var r: CGFloat = 0
@@ -50,6 +55,11 @@
                 NSNumber(value: Double(b)),
                 NSNumber(value: Double(a)),
             ]
+        }
+
+        @available(*, deprecated, renamed: "sRGBAComponents()")
+        func lookin_rgbaComponents() -> [NSNumber] {
+            sRGBAComponents()
         }
     }
 

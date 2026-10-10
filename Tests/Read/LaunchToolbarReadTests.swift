@@ -115,14 +115,14 @@ struct LaunchToolbarReadTests {
             (LOOKIN_SUPPORTED_SERVER_MIN - 1, LookinErrCode_ServerVersionTooLow),
             (LOOKIN_SUPPORTED_SERVER_MAX + 1, LookinErrCode_ServerVersionTooHigh),
         ] {
-            let file = LookinHierarchyFile()
+            let file = HierarchyFile()
             file.serverVersion = version
-            file.hierarchyInfo = LookinHierarchyInfo()
+            file.hierarchyInfo = HierarchyInfo()
             expectError(encode(file), code: code, "server version \(version)")
         }
-        let file = LookinHierarchyFile()
+        let file = HierarchyFile()
         file.serverVersion = LOOKIN_SUPPORTED_SERVER_MIN
-        file.hierarchyInfo = LookinHierarchyInfo()
+        file.hierarchyInfo = HierarchyInfo()
         expect(decode(encode(file)).serverVersion == LOOKIN_SUPPORTED_SERVER_MIN, "oldest supported version opens")
     }
 
@@ -130,18 +130,18 @@ struct LaunchToolbarReadTests {
 
     private static func testScreenshotLookupTakesBothFromOneOid() {
         let soloA = Data([1]), groupB = Data([2]), soloB = Data([3])
-        var result = LKReadScreenshotLookup.screenshots(
+        var result = ReadScreenshotLookup.screenshots(
             forOids: [1, 2], solo: [1: soloA, 2: soloB], group: [2: groupB]
         )
         expect(result.solo == soloA && result.group == nil, "first oid with a screenshot wins, alone")
 
-        result = LKReadScreenshotLookup.screenshots(forOids: [3, 2], solo: [1: soloA, 2: soloB], group: [2: groupB])
+        result = ReadScreenshotLookup.screenshots(forOids: [3, 2], solo: [1: soloA, 2: soloB], group: [2: groupB])
         expect(result.solo == soloB && result.group == groupB, "both screenshots of the matching oid")
 
-        result = LKReadScreenshotLookup.screenshots(forOids: [9], solo: [1: soloA], group: nil)
+        result = ReadScreenshotLookup.screenshots(forOids: [9], solo: [1: soloA], group: nil)
         expect(result.solo == nil && result.group == nil, "no screenshot")
 
-        result = LKReadScreenshotLookup.screenshots(forOids: [2], solo: nil, group: [2: groupB])
+        result = ReadScreenshotLookup.screenshots(forOids: [2], solo: nil, group: [2: groupB])
         expect(result.solo == nil && result.group == groupB, "group only")
     }
 
@@ -149,13 +149,13 @@ struct LaunchToolbarReadTests {
 
     private static func testToolbarIdentifiersKeepTheirValues() {
         let identifiers: [(String, String)] = [
-            (LKToolBarIdentifier_Dimension, "0"), (LKToolBarIdentifier_Scale, "1"),
-            (LKToolBarIdentifier_Setting, "2"), (LKToolBarIdentifier_Reload, "3"),
-            (LKToolBarIdentifier_App, "5"), (LKToolBarIdentifier_AppInReadMode, "12"),
-            (LKToolBarIdentifier_Add, "13"), (LKToolBarIdentifier_Remove, "14"),
-            (LKToolBarIdentifier_Console, "15"), (LKToolBarIdentifier_Rotation, "16"),
-            (LKToolBarIdentifier_Measure, "17"), (LKToolBarIdentifier_Message, "18"),
-            (LKToolBarIdentifier_FastMode, "19"), (LKToolBarIdentifier_SwiftUIMode, "20"),
+            (toolbarIdentifierDimension, "0"), (toolbarIdentifierScale, "1"),
+            (toolbarIdentifierSetting, "2"), (toolbarIdentifierReload, "3"),
+            (toolbarIdentifierApp, "5"), (toolbarIdentifierAppInReadMode, "12"),
+            (toolbarIdentifierAdd, "13"), (toolbarIdentifierRemove, "14"),
+            (toolbarIdentifierConsole, "15"), (toolbarIdentifierRotation, "16"),
+            (toolbarIdentifierMeasure, "17"), (toolbarIdentifierMessage, "18"),
+            (toolbarIdentifierFastMode, "19"), (toolbarIdentifierSwiftUIMode, "20"),
         ]
         for (identifier, value) in identifiers {
             expect(identifier == value, "toolbar identifier \(value)")
@@ -163,69 +163,69 @@ struct LaunchToolbarReadTests {
     }
 
     private static func testSteppingClamps() {
-        expect(abs(LKToolbarRules.stepped(0.5, by: LKToolbarRules.step, lower: 0, upper: 1) - 0.6) < 1e-9, "step up")
-        expect(LKToolbarRules.stepped(0.95, by: LKToolbarRules.step, lower: 0, upper: 1) == 1, "clamped high")
-        expect(LKToolbarRules.stepped(0.05, by: -LKToolbarRules.step, lower: 0, upper: 1) == 0, "clamped low")
-        expect(LKToolbarRules.stepped(3, by: 0.1, lower: 0, upper: 1) == 1, "out of range value comes back in range")
+        expect(abs(ToolbarRules.stepped(0.5, by: ToolbarRules.step, lower: 0, upper: 1) - 0.6) < 1e-9, "step up")
+        expect(ToolbarRules.stepped(0.95, by: ToolbarRules.step, lower: 0, upper: 1) == 1, "clamped high")
+        expect(ToolbarRules.stepped(0.05, by: -ToolbarRules.step, lower: 0, upper: 1) == 0, "clamped low")
+        expect(ToolbarRules.stepped(3, by: 0.1, lower: 0, upper: 1) == 1, "out of range value comes back in range")
     }
 
     private static func testAppsPopoverCopy() {
-        var copy = LKToolbarRules.appsPopoverCopy(source: .reloadButton, appCount: 0)
+        var copy = ToolbarRules.appsPopoverCopy(source: .reloadButton, appCount: 0)
         expect(copy.title == "Connection lost" && copy.subtitle == "And no inspectable app was found", "reload, no apps")
-        copy = LKToolbarRules.appsPopoverCopy(source: .noConnectionTips, appCount: 1)
+        copy = ToolbarRules.appsPopoverCopy(source: .noConnectionTips, appCount: 1)
         expect(copy.title == "Connection lost" && copy.subtitle == "Click the screenshot below to Change App", "tips, one app")
-        copy = LKToolbarRules.appsPopoverCopy(source: .reloadButton, appCount: 3)
+        copy = ToolbarRules.appsPopoverCopy(source: .reloadButton, appCount: 3)
         expect(copy.subtitle == "Other 3 apps were found", "reload, several apps")
-        copy = LKToolbarRules.appsPopoverCopy(source: .appButton, appCount: 0)
+        copy = ToolbarRules.appsPopoverCopy(source: .appButton, appCount: 0)
         expect(copy.title == "No inspectable app was found" && copy.subtitle == nil, "app button, no apps")
-        copy = LKToolbarRules.appsPopoverCopy(source: .appButton, appCount: 1)
+        copy = ToolbarRules.appsPopoverCopy(source: .appButton, appCount: 1)
         expect(copy.title == "1 active app was found" && copy.subtitle == "Click the screenshot below to inspect", "app button, one app")
-        copy = LKToolbarRules.appsPopoverCopy(source: .appButton, appCount: 2)
+        copy = ToolbarRules.appsPopoverCopy(source: .appButton, appCount: 2)
         expect(copy.title == "2 active apps were found", "app button, several apps")
     }
 
     // MARK: - Launch
 
     private static func testLaunchAutoEnter() {
-        expect(LKLaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: false, isActivated: true), "auto enter")
-        expect(!LKLaunchRules.canAutoEnter(requested: false, appCount: 1, onlyAppHasServerVersionError: false, isActivated: true), "not requested")
-        expect(!LKLaunchRules.canAutoEnter(requested: true, appCount: 2, onlyAppHasServerVersionError: false, isActivated: true), "two apps")
-        expect(!LKLaunchRules.canAutoEnter(requested: true, appCount: 0, onlyAppHasServerVersionError: false, isActivated: true), "no apps")
-        expect(!LKLaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: true, isActivated: true), "version error")
-        expect(!LKLaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: false, isActivated: false), "not activated")
+        expect(LaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: false, isActivated: true), "auto enter")
+        expect(!LaunchRules.canAutoEnter(requested: false, appCount: 1, onlyAppHasServerVersionError: false, isActivated: true), "not requested")
+        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 2, onlyAppHasServerVersionError: false, isActivated: true), "two apps")
+        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 0, onlyAppHasServerVersionError: false, isActivated: true), "no apps")
+        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: true, isActivated: true), "version error")
+        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: false, isActivated: false), "not activated")
     }
 
     private static func testLaunchServerVersionErrors() {
-        expect(LKLaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_ServerVersionTooLow) == "faq/server-version-too-low/", "too low page")
-        expect(LKLaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_ServerVersionTooHigh) == "faq/server-version-too-high/", "too high page")
-        expect(LKLaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_Inner) == "faq/server-version-too-high/", "other errors use the too high page")
+        expect(LaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_ServerVersionTooLow) == "faq/server-version-too-low/", "too low page")
+        expect(LaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_ServerVersionTooHigh) == "faq/server-version-too-high/", "too high page")
+        expect(LaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_Inner) == "faq/server-version-too-high/", "other errors use the too high page")
         expect(
-            LKLaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooLow, localizedDescription: "x")
+            LaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooLow, localizedDescription: "x")
                 == "The version of LookinServer linked with this iOS App is too low.",
             "too low title"
         )
         expect(
-            LKLaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooHigh, localizedDescription: "x")
+            LaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooHigh, localizedDescription: "x")
                 == "Unable to inspect this iOS App. Current version of LookInside app is too low.",
             "too high title"
         )
-        expect(LKLaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "Custom") == "Custom", "own description")
-        expect(LKLaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "") == "Unable to inspect this app.", "fallback title")
+        expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "Custom") == "Custom", "own description")
+        expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "") == "Unable to inspect this app.", "fallback title")
     }
 
     // MARK: - Helpers
 
-    private static func decode(_ data: Data) -> LookinHierarchyFile {
+    private static func decode(_ data: Data) -> HierarchyFile {
         do {
-            return try LookinArchiveCoding.hierarchyFile(from: data)
+            return try ArchiveCoding.hierarchyFile(from: data)
         } catch {
             fail("decode failed: \(error)")
         }
     }
 
-    private static func encode(_ file: LookinHierarchyFile) -> Data {
+    private static func encode(_ file: HierarchyFile) -> Data {
         do {
-            return try LookinArchiveCoding.data(of: file)
+            return try ArchiveCoding.data(of: file)
         } catch {
             fail("encode failed: \(error)")
         }
@@ -233,7 +233,7 @@ struct LaunchToolbarReadTests {
 
     private static func expectError(_ data: Data, code: Int, _ message: String) {
         do {
-            _ = try LookinArchiveCoding.hierarchyFile(from: data)
+            _ = try ArchiveCoding.hierarchyFile(from: data)
             fail("\(message): decoding should fail")
         } catch {
             let error = error as NSError

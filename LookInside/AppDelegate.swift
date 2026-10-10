@@ -7,7 +7,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 
+@Loggable(subsystem: "com.lookinside.app")
 @main
 @objc(AppDelegate)
 @MainActor
@@ -23,7 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         #if DEBUG
             // Before the delegate is set, so the dump observes the end of
             // launching ahead of it, as its Objective-C +load did.
-            LKDebugE2EDump.installIfRequested()
+            DebugE2EDump.installIfRequested()
         #endif
         let delegate = AppDelegate()
         NSApplication.shared.delegate = delegate
@@ -33,16 +35,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillFinishLaunching(_: Notification) {
-        LKAppMenuManager.shared.setup()
+        AppMenuManager.shared.setup()
 
-        appearanceObservation = LKPreferenceManager.shared.observe(\.appearanceType, options: [.initial, .new]) { manager, _ in
+        appearanceObservation = PreferenceManager.shared.observe(\.appearanceType, options: [.initial, .new]) { manager, _ in
             MainActor.assumeIsolated {
                 Self.applyAppearance(manager.appearanceType)
             }
         }
     }
 
-    private static func applyAppearance(_ type: LookinPreferredAppeanranceType) {
+    private static func applyAppearance(_ type: PreferredAppearanceType) {
         switch type {
         case .dark:
             NSApp.appearance = NSAppearance(named: .darkAqua)
@@ -54,20 +56,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_: Notification) {
-        _ = LKConnectionManager.shared
-        LKMCPBridgeServer.sharedInstance.start()
+        _ = ConnectionManager.shared
+        MCPBridgeServer.sharedInstance.start()
         // Documents opened during launch (Finder double-click, Open With…)
         // are registered with NSDocumentController by now, so "no documents
         // ⇒ show Launch" covers both cold-start cases.
         if NSDocumentController.shared.documents.isEmpty {
             var allowAutoEnter = true
             #if DEBUG
-                // The end-to-end dump (LKDebugE2EDump.swift) opens the app itself; an
+                // The end-to-end dump (DebugE2EDump.swift) opens the app itself; an
                 // activated Host's auto-enter would fetch the same hierarchy
                 // alongside it.
                 allowAutoEnter = (ProcessInfo.processInfo.environment["LOOKINSIDE_DEBUG_E2E_DUMP_DIR"] ?? "").isEmpty
             #endif
-            LKNavigationManager.shared.showLaunch(allowingAutoEnter: allowAutoEnter)
+            NavigationManager.shared.showLaunch(allowingAutoEnter: allowAutoEnter)
         }
 
         installActivationStateObserver()
@@ -88,13 +90,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func handleWindowWillClose(_ notification: Notification) {
         guard let closingWindow = notification.object as? NSWindow,
-              closingWindow.windowController is LKWindowController
+              closingWindow.windowController is WindowController
         else {
             return
         }
         // Closing the Launch window itself shouldn't re-spawn Launch; only
         // document (live / archive) windows trigger the "no docs left" reopen.
-        if closingWindow == LKNavigationManager.shared.launchWindowController?.window {
+        if closingWindow == NavigationManager.shared.launchWindowController?.window {
             return
         }
         // Defer one tick so NSDocumentController has finished removing the doc.
@@ -107,20 +109,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard NSDocumentController.shared.documents.isEmpty else {
             return
         }
-        if LKNavigationManager.shared.launchWindowController?.window?.isVisible == true {
+        if NavigationManager.shared.launchWindowController?.window?.isVisible == true {
             return
         }
-        LKNavigationManager.shared.showLaunch()
+        NavigationManager.shared.showLaunch()
     }
 
     private func installActivationStateObserver() {
-        let gatekeeper = LKSwiftUISupportGatekeeper.sharedInstance()
-        NSLog("[LK-Activation] initial state=%ld (re-evaluated every 60s in process)", gatekeeper.activationState.rawValue)
+        let gatekeeper = SwiftUISupportGatekeeper.sharedInstance()
+        #log(.default, "[LK-Activation] initial state=\(gatekeeper.activationState.rawValue, privacy: .public) (re-evaluated every 60s in process)")
 
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(activationStateDidChange(_:)),
-            name: NSNotification.Name(LKSwiftUISupportGatekeeper.activationStateDidChangeNotificationName as String),
+            name: NSNotification.Name(SwiftUISupportGatekeeper.activationStateDidChangeNotificationName as String),
             object: nil
         )
     }
@@ -128,13 +130,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func activationStateDidChange(_ notification: Notification) {
         let state = notification.userInfo?["activationState"] as? NSNumber
         let label: String
-        switch state.flatMap({ LKSwiftUISupportActivationState(rawValue: $0.intValue) }) {
+        switch state.flatMap({ SwiftUISupportActivationState(rawValue: $0.intValue) }) {
         case .unknown: label = "unknown"
         case .notActivated: label = "notActivated"
         case .activated: label = "activated"
         default: label = "(null)"
         }
-        NSLog("[LK-Activation] state changed -> %@ (raw=%@)", label, state?.description ?? "(null)")
+        #log(.default, "[LK-Activation] state changed -> \(label, privacy: .public) (raw=\(state?.description ?? "(null)", privacy: .public))")
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
@@ -176,11 +178,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
-        LKSwiftUISupportGatekeeper.sharedInstance().shutdownRuntime()
-        LKMCPBridgeServer.sharedInstance.stop()
+        SwiftUISupportGatekeeper.sharedInstance().shutdownRuntime()
+        MCPBridgeServer.sharedInstance.stop()
 
         // 清理打开 UIImageView 的图片时创建的临时文件
-        for path in LKHelper.sharedInstance().tempImageFiles {
+        for path in AppHelper.sharedInstance().tempImageFiles {
             do {
                 try FileManager.default.removeItem(atPath: path)
             } catch {
@@ -194,13 +196,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         /// The dashboard blueprint's group, section and attribute identifiers
         /// must each be unique.
         private static func checkDashboardBlueprintIdentifiers() {
-            let groupIDs = LookinDashboardBlueprint.groupIDs().map { $0 as String }
+            let groupIDs = DashboardBlueprint.groupIDs()
             assert(Set(groupIDs).count == groupIDs.count, "duplicate LookinAttrGroupIdentifier")
 
-            let sectionIDs = groupIDs.flatMap { LookinDashboardBlueprint.sectionIDs(forGroupID: $0).map { $0 as String } }
+            let sectionIDs = groupIDs.flatMap { DashboardBlueprint.sectionIDs(forGroupID: $0) ?? [] }
             assert(Set(sectionIDs).count == sectionIDs.count, "duplicate LookinAttrSectionIdentifier")
 
-            let attrIDs = sectionIDs.flatMap { LookinDashboardBlueprint.attrIDs(forSectionID: $0).map { $0 as String } }
+            let attrIDs = sectionIDs.flatMap { DashboardBlueprint.attrIDs(forSectionID: $0) ?? [] }
             assert(Set(attrIDs).count == attrIDs.count, "duplicate LookinAttrIdentifier")
         }
     #endif
