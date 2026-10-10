@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		15FFB4D96CB7375162952FFE /* LookInsideActivation in Frameworks */ = {isa = PBXBuildFile; productRef = 4CF60A9D44E04A6BE91035EF /* LookInsideActivation */; };
 		50EAE1AA2F71C01A00EBE063 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA1CAA3D22E471EC006D9285 /* Security.framework */; };
 		50EAE1AB2F71C01A00EBE063 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9517A22C3AECA00A5F958 /* Quartz.framework */; };
 		50EAE1AC2F71C01A00EBE063 /* QuickLookThumbnailing.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */; };
+		79CC3F736CA547232F1827F4 /* LookInsideActivationUI in Frameworks */ = {isa = PBXBuildFile; productRef = F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */; };
+		C0DE5A1E2FA0000100A1B2C3 /* LookInsideHostCore in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */; };
 		E37B8D0D2F97B1B100600001 /* Demangling in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0C2F97B1B100600001 /* Demangling */; };
 		E37B8D0F2F97B1B100600001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D0F1F97B1B100600001 /* Sparkle */; };
 		E37B8D222F97B1B100600001 /* LookInsidePrivateDiscriminator in Frameworks */ = {isa = PBXBuildFile; productRef = E37B8D212F97B1B100600001 /* LookInsidePrivateDiscriminator */; };
@@ -20,9 +23,6 @@
 		E9FE990C3026C657008692AF /* UIFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990B3026C657008692AF /* UIFoundation */; };
 		E9FE990E3026C657008692AF /* UIFoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990D3026C657008692AF /* UIFoundationToolbox */; };
 		F0F0A10E2FD0000100A1B2C3 /* FoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */; };
-		15FFB4D96CB7375162952FFE /* LookInsideActivation in Frameworks */ = {isa = PBXBuildFile; productRef = 4CF60A9D44E04A6BE91035EF /* LookInsideActivation */; };
-		79CC3F736CA547232F1827F4 /* LookInsideActivationUI in Frameworks */ = {isa = PBXBuildFile; productRef = F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */; };
-		C0DE5A1E2FA0000100A1B2C3 /* LookInsideHostCore in Frameworks */ = {isa = PBXBuildFile; productRef = C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,13 +33,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C0DE5A312FA0000100A1B2C3 /* Exceptions for "DerivedSource" folder in "LookInside" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				README.md,
-			);
-			target = AA48F29A21CC0CA50032EC2C /* LookInside */;
-		};
 		50EAE1F32F71C01A00EBE063 /* Exceptions for "LookInside" folder in "LookInside" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -47,6 +40,10 @@
 				AppDelegate.swift,
 				AppIcon.icon,
 				Assets.xcassets,
+				Base/AppWindow.swift,
+				Base/BaseControl.swift,
+				Base/BaseView.swift,
+				Base/BaseViewController.swift,
 				"Base/Category/AttributesGroup+LookinClient.swift",
 				"Base/Category/AutoLayoutConstraint+LookinClient.swift",
 				"Base/Category/DisplayItem+LookinClient.swift",
@@ -58,17 +55,15 @@
 				"Base/Category/NSControl+LookinClient.swift",
 				"Base/Category/NSString+LookinClient.swift",
 				"Base/Category/NSView+LookinClient.swift",
-				Base/InputSearch/InputSearchView.swift,
-				"Base/InputSearch/NSView+LKPeripheralLayout.swift",
-				Base/BaseControl.swift,
-				Base/BaseView.swift,
-				Base/BaseViewController.swift,
 				Base/ColorIndicatorLayer.swift,
 				Base/ConnectionTipsBinding.swift,
 				Base/DeviceIconProvider.swift,
 				Base/FrameLayout.swift,
 				Base/ImageTextView.swift,
-				Base/TextLabel.swift,
+				Base/InputSearch/InputSearchView.swift,
+				"Base/InputSearch/NSView+LKPeripheralLayout.swift",
+				Base/Message/MessageAttribute.swift,
+				Base/Message/PeripheralAlerts.swift,
 				Base/NumberInputView.swift,
 				Base/OutlineRowView.swift,
 				Base/PerformanceReporter.swift,
@@ -81,30 +76,28 @@
 				Base/TableViewHorizontalScrollWidthManager.swift,
 				Base/TextControl.swift,
 				Base/TextFieldView.swift,
+				Base/TextLabel.swift,
 				Base/TextsMenuView.swift,
 				Base/TipsView.swift,
 				Base/TwoColors.swift,
 				Base/UserActionManager.swift,
-				Base/AppWindow.swift,
 				Base/WindowController.swift,
-				Base/Message/PeripheralAlerts.swift,
-				Base/Message/MessageAttribute.swift,
 				Common/Installer/InstallerArchiveExtractor.swift,
 				Common/Installer/InstallerCancellation.swift,
 				Common/Installer/InstallerCodeSignature.swift,
 				Common/Installer/InstallerDownloader.swift,
 				Common/Installer/InstallerFilesystem.swift,
 				Common/Installer/InstallerProgressWindowController.swift,
-				"Connection/ConnectionManager+License.swift",
 				Connection/AppsManager.swift,
-				Connection/ServerChannel.swift,
 				Connection/ConnectionErrors.swift,
 				Connection/ConnectionManager.swift,
+				"Connection/ConnectionManager+License.swift",
 				Connection/ConnectionRequest.swift,
 				Connection/InspectableApp.swift,
-				Connection/ServerUpgradeHint.swift,
 				Connection/LiveDocument.swift,
 				Connection/LiveDocumentController.swift,
+				Connection/ServerChannel.swift,
+				Connection/ServerUpgradeHint.swift,
 				Console/ConsoleDataSource.swift,
 				Console/ConsoleRowViews.swift,
 				Console/ConsoleSelectPopoverController.swift,
@@ -112,8 +105,6 @@
 				DanceScript/DanceScriptManager.swift,
 				Dashboard/AttributeView/Constraint/ConstraintPopoverController.swift,
 				Dashboard/AttributeView/Constraint/DashboardAttributeConstraintsView.swift,
-				Dashboard/AttributeView/JSON/JSONAttributeItem.swift,
-				Dashboard/AttributeView/JSON/JSONAttributeViews.swift,
 				Dashboard/AttributeView/DashboardAttributeColorView.swift,
 				Dashboard/AttributeView/DashboardAttributeEnumsView.swift,
 				Dashboard/AttributeView/DashboardAttributeGeometryViews.swift,
@@ -124,6 +115,8 @@
 				Dashboard/AttributeView/DashboardAttributeSwitchView.swift,
 				Dashboard/AttributeView/DashboardAttributeTextView.swift,
 				Dashboard/AttributeView/DashboardAttributeView.swift,
+				Dashboard/AttributeView/JSON/JSONAttributeItem.swift,
+				Dashboard/AttributeView/JSON/JSONAttributeViews.swift,
 				Dashboard/DashboardAccessoryWindowController.swift,
 				Dashboard/DashboardCardView.swift,
 				Dashboard/DashboardLayout.swift,
@@ -140,23 +133,23 @@
 				DebugE2E/SnapshotNormalizer.swift,
 				Export/ExportAccessoryView.swift,
 				Export/ExportManager.swift,
-				Hierarchy/DanceUIAttributeMaker.swift,
-				Hierarchy/HierarchyController.swift,
-				"Hierarchy/HierarchyDataSource+KeyDown.swift",
-				Hierarchy/HierarchyDataSource.swift,
-				Hierarchy/HierarchyFrameLayout.swift,
-				Hierarchy/HierarchyHandlersPopoverController.swift,
-				Hierarchy/HierarchyRowView.swift,
-				Hierarchy/HierarchyView.swift,
-				Hierarchy/SyncSignal.swift,
 				GestureDebug/GestureCaptureModels.swift,
 				GestureDebug/GestureDebugSession.swift,
 				GestureDebug/GestureDebugView.swift,
 				GestureDebug/GestureDebugWindowController.swift,
 				GestureDebug/GestureNodeDetailView.swift,
-				GestureDebug/NativeInteractionDetailView.swift,
 				GestureDebug/HitTargetSuggestions.swift,
 				GestureDebug/HitTargetSuggestionsView.swift,
+				GestureDebug/NativeInteractionDetailView.swift,
+				Hierarchy/DanceUIAttributeMaker.swift,
+				Hierarchy/HierarchyController.swift,
+				Hierarchy/HierarchyDataSource.swift,
+				"Hierarchy/HierarchyDataSource+KeyDown.swift",
+				Hierarchy/HierarchyFrameLayout.swift,
+				Hierarchy/HierarchyHandlersPopoverController.swift,
+				Hierarchy/HierarchyRowView.swift,
+				Hierarchy/HierarchyView.swift,
+				Hierarchy/SyncSignal.swift,
 				InfoPlist.xcstrings,
 				Injection/Device/AttachedDeviceMonitor.swift,
 				Injection/Device/DeviceControlClient.swift,
@@ -173,6 +166,10 @@
 				Launch/LaunchWindowController.swift,
 				Localizable.xcstrings,
 				LookinArchiveIcon.icns,
+				Manager/AppHelper.swift,
+				Manager/AppMenuManager.swift,
+				Manager/NavigationManager.swift,
+				Manager/PreferenceManager.swift,
 				MCPBridge/MCPBridgeAttributeEncoder.swift,
 				MCPBridge/MCPBridgeAttributeValueDecoder.swift,
 				MCPBridge/MCPBridgeConnection.swift,
@@ -193,10 +190,6 @@
 				MCPBridge/MCPBridgeSecureContentDetector.swift,
 				MCPBridge/MCPBridgeSelectorService.swift,
 				MCPBridge/MCPBridgeServer.swift,
-				Manager/AppMenuManager.swift,
-				Manager/AppHelper.swift,
-				Manager/NavigationManager.swift,
-				Manager/PreferenceManager.swift,
 				Measure/MeasureController.swift,
 				Measure/MeasureResultView.swift,
 				Other/VersionComparer.swift,
@@ -204,14 +197,18 @@
 				Preference/PreferenceWindowController.swift,
 				PrivateDiscriminator/PrivateDiscriminatorSettingsWindowController.swift,
 				PrivateDiscriminator/PrivateDiscriminatorStore.swift,
+				Read/ArchiveCoding.swift,
+				Read/ArchiveDocument.swift,
 				Read/ReadHierarchyController.swift,
 				Read/ReadHierarchyDataSource.swift,
 				Read/ReadScreenshotLookup.swift,
 				Read/ReadViewController.swift,
 				Read/ReadWindowController.swift,
-				Read/ArchiveCoding.swift,
-				Read/ArchiveDocument.swift,
 				Static/MessageManager.swift,
+				Static/Preview/DisplayItemNode.swift,
+				Static/Preview/PreviewController.swift,
+				Static/Preview/PreviewStageView.swift,
+				Static/Preview/PreviewView.swift,
 				Static/StaticAsyncUpdateManager.swift,
 				Static/StaticConstants.swift,
 				Static/StaticHierarchyController.swift,
@@ -219,10 +216,6 @@
 				Static/StaticLayout.swift,
 				Static/StaticViewController.swift,
 				Static/StaticWindowController.swift,
-				Static/Preview/DisplayItemNode.swift,
-				Static/Preview/PreviewController.swift,
-				Static/Preview/PreviewStageView.swift,
-				Static/Preview/PreviewView.swift,
 				SwiftUISupport/SwiftUIHierarchyDisplayMode.swift,
 				SwiftUISupport/SwiftUISupportGatekeeper.swift,
 				Toolbar/MenuPopoverAppsListController.swift,
@@ -246,6 +239,13 @@
 			);
 			target = AA48F29A21CC0CA50032EC2C /* LookInside */;
 		};
+		C0DE5A312FA0000100A1B2C3 /* Exceptions for "LookInside/DerivedSource" folder in "LookInside" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				README.md,
+			);
+			target = AA48F29A21CC0CA50032EC2C /* LookInside */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -259,14 +259,6 @@
 /* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C0DE5A302FA0000100A1B2C3 /* DerivedSource */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				C0DE5A312FA0000100A1B2C3 /* Exceptions for "DerivedSource" folder in "LookInside" target */,
-			);
-			path = LookInside/DerivedSource;
-			sourceTree = "<group>";
-		};
 		5011BBAE2F9754F0002DA475 /* Configuration */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Configuration;
@@ -279,6 +271,14 @@
 				50EAE1F42F71C01A00EBE063 /* Exceptions for "LookInside" folder in "Compile Sources" phase from "LookInside" target */,
 			);
 			path = LookInside;
+			sourceTree = "<group>";
+		};
+		C0DE5A302FA0000100A1B2C3 /* LookInside/DerivedSource */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C0DE5A312FA0000100A1B2C3 /* Exceptions for "LookInside/DerivedSource" folder in "LookInside" target */,
+			);
+			path = LookInside/DerivedSource;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -323,7 +323,7 @@
 			children = (
 				5011BBAE2F9754F0002DA475 /* Configuration */,
 				50EADFB32F71BFF200EBE063 /* LookInside */,
-				C0DE5A302FA0000100A1B2C3 /* DerivedSource */,
+				C0DE5A302FA0000100A1B2C3 /* LookInside/DerivedSource */,
 				AA48F29C21CC0CA50032EC2C /* Products */,
 				0A9FB6E904476A1F9D0BB82E /* Frameworks */,
 			);
@@ -353,7 +353,7 @@
 			buildRules = (
 			);
 			fileSystemSynchronizedGroups = (
-				C0DE5A302FA0000100A1B2C3 /* DerivedSource */,
+				C0DE5A302FA0000100A1B2C3 /* LookInside/DerivedSource */,
 			);
 			name = LookInside;
 			packageProductDependencies = (
@@ -695,7 +695,6 @@
 					"$(inherited)",
 					"SHOULD_COMPILE_LOOKIN_SERVER=1",
 				);
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
 				GCC_WARN_SHADOW = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -723,6 +722,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
 				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -765,7 +765,6 @@
 					"$(inherited)",
 					"SHOULD_COMPILE_LOOKIN_SERVER=1",
 				);
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
 				GCC_WARN_SHADOW = NO;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -793,6 +792,7 @@
 				RUNTIME_EXCEPTION_DEBUGGING_TOOL = YES;
 				RUNTIME_EXCEPTION_DISABLE_EXECUTABLE_PAGE_PROTECTION = YES;
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
 				SWIFT_OBJC_BRIDGING_HEADER = "LookInside/Base/LookinClient-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				WARNING_CFLAGS = (
@@ -824,13 +824,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		E81BCA16A46AEA38803B27B7 /* XCLocalSwiftPackageReference "Packages/LookInsideActivation" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/LookInsideActivation;
-		};
 		C0DE5A1D2FA0000100A1B2C3 /* XCLocalSwiftPackageReference "Packages/LookInsideHostCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/LookInsideHostCore;
+		};
+		E81BCA16A46AEA38803B27B7 /* XCLocalSwiftPackageReference "Packages/LookInsideActivation" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/LookInsideActivation;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -840,7 +840,7 @@
 			repositoryURL = "https://github.com/MxIris-Reverse-Engineering/swift-demangling.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.2.0;
+				version = 0.7.1;
 			};
 		};
 		E37B8D0F0F97B1B100600001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
@@ -864,7 +864,7 @@
 			repositoryURL = "https://github.com/Mx-Iris/RunningApplicationKit";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.3.3;
+				minimumVersion = 0.7.0;
 			};
 		};
 		E97210072FC2E3FC003AAEA6 /* XCRemoteSwiftPackageReference "swift-helper-service" */ = {
@@ -872,7 +872,7 @@
 			repositoryURL = "https://github.com/Mx-Iris/swift-helper-service";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
+				minimumVersion = 0.3.3;
 			};
 		};
 		E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */ = {
@@ -880,7 +880,7 @@
 			repositoryURL = "https://github.com/Mx-Iris/UIFoundation";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 0.15.2;
+				minimumVersion = 0.38.0;
 			};
 			traits = (
 				AppleInternal,
@@ -891,12 +891,22 @@
 			repositoryURL = "https://github.com/Mx-Iris/FrameworkToolbox";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.9.0;
+				minimumVersion = 0.15.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		4CF60A9D44E04A6BE91035EF /* LookInsideActivation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E81BCA16A46AEA38803B27B7 /* XCLocalSwiftPackageReference "Packages/LookInsideActivation" */;
+			productName = LookInsideActivation;
+		};
+		C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C0DE5A1D2FA0000100A1B2C3 /* XCLocalSwiftPackageReference "Packages/LookInsideHostCore" */;
+			productName = LookInsideHostCore;
+		};
 		E37B8D0C2F97B1B100600001 /* Demangling */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E37B8D0B2F97B1B100600001 /* XCRemoteSwiftPackageReference "swift-demangling" */;
@@ -942,25 +952,15 @@
 			package = E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */;
 			productName = UIFoundationToolbox;
 		};
-		F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F0F0A10A2FD0000100A1B2C3 /* XCRemoteSwiftPackageReference "FrameworkToolbox" */;
-			productName = FoundationToolbox;
-		};
-		4CF60A9D44E04A6BE91035EF /* LookInsideActivation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E81BCA16A46AEA38803B27B7 /* XCLocalSwiftPackageReference "Packages/LookInsideActivation" */;
-			productName = LookInsideActivation;
-		};
 		F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E81BCA16A46AEA38803B27B7 /* XCLocalSwiftPackageReference "Packages/LookInsideActivation" */;
 			productName = LookInsideActivationUI;
 		};
-		C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */ = {
+		F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C0DE5A1D2FA0000100A1B2C3 /* XCLocalSwiftPackageReference "Packages/LookInsideHostCore" */;
-			productName = LookInsideHostCore;
+			package = F0F0A10A2FD0000100A1B2C3 /* XCRemoteSwiftPackageReference "FrameworkToolbox" */;
+			productName = FoundationToolbox;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
