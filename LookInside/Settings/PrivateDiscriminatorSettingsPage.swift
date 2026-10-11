@@ -56,31 +56,38 @@ private struct PrivateDiscriminatorDefaultLibrarySection: View {
 
     var body: some View {
         Section {
-            LabeledContent {
-                HStack(spacing: 8) {
+            // An HStack rather than LabeledContent, so the button stays
+            // centered on the row once the status adds a second line.
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(PrivateDiscriminatorStore.defaultLibraryModuleNames, format: .list(type: .and))
+
+                    if let message = store.lastDefaultLibraryUpdateMessage {
+                        Text(message)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+
+                Spacer()
+
+                if store.isUpdatingDefaultLibrary {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+
+                Button {
+                    importError = nil
+                    store.updateDefaultLibrary()
+                } label: {
                     if store.isUpdatingDefaultLibrary {
-                        ProgressView()
-                            .controlSize(.small)
+                        Label("Updating…", systemImage: "arrow.down.circle")
+                    } else {
+                        Label("Update Default Library", systemImage: "arrow.down.circle")
                     }
-
-                    Button {
-                        importError = nil
-                        store.updateDefaultLibrary()
-                    } label: {
-                        if store.isUpdatingDefaultLibrary {
-                            Label("Updating…", systemImage: "arrow.down.circle")
-                        } else {
-                            Label("Update Default Library", systemImage: "arrow.down.circle")
-                        }
-                    }
-                    .disabled(store.isUpdatingDefaultLibrary)
                 }
-            } label: {
-                Text(PrivateDiscriminatorStore.defaultLibraryModuleNames, format: .list(type: .and))
-
-                if let message = store.lastDefaultLibraryUpdateMessage {
-                    Text(message)
-                }
+                .disabled(store.isUpdatingDefaultLibrary)
             }
         } header: {
             Text("Default Library")

@@ -167,15 +167,25 @@ private struct GeneralResetSection: View {
 
     var body: some View {
         Section {
-            LabeledContent {
+            // An HStack rather than LabeledContent, which would line the
+            // button up with the title alone instead of centering it on
+            // both lines.
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Reset Settings")
+                        .font(.headline)
+                    Text("Resets the settings on this page to their default values.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
                 Button("Reset", role: .destructive) {
                     model.resetToDefaults()
                 }
                 .keyboardShortcut(.delete, modifiers: [.command, .shift])
-            } label: {
-                Text("Reset Settings")
-                    .font(.headline)
-                Text("Resets the settings on this page to their default values.")
             }
         } header: {
             Text("Reset")
