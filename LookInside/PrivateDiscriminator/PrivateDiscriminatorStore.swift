@@ -1008,6 +1008,11 @@ final class PrivateDiscriminatorStore: NSObject {
         DefaultLibraryModule(name: "SwiftUICore"),
     ]
 
+    /// The modules the default library holds, in the order they download.
+    static var defaultLibraryModuleNames: [String] {
+        defaultLibraryModules.map(\.name)
+    }
+
     private func promptForModuleName(defaultModule: String?, window _: NSWindow?) -> String? {
         let alert = NSAlert()
         alert.messageText = NSLocalizedString("Import Private Discriminator Module", comment: "")

@@ -160,16 +160,25 @@ private struct GeneralTimeoutSection: View {
     }
 #endif
 
+/// Putting every setting on this page back to its default, laid out the
+/// way Xcode's settings offer the same.
 private struct GeneralResetSection: View {
     let model: GeneralSettingsModel
 
     var body: some View {
         Section {
-            Button("Reset", role: .destructive) {
-                model.resetToDefaults()
+            LabeledContent {
+                Button("Reset", role: .destructive) {
+                    model.resetToDefaults()
+                }
+                .keyboardShortcut(.delete, modifiers: [.command, .shift])
+            } label: {
+                Text("Reset Settings")
+                    .font(.headline)
+                Text("Resets the settings on this page to their default values.")
             }
-            .keyboardShortcut(.delete, modifiers: [.command, .shift])
-            .frame(maxWidth: .infinity, alignment: .trailing)
+        } header: {
+            Text("Reset")
         }
     }
 }

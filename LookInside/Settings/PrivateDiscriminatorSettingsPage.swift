@@ -56,32 +56,30 @@ private struct PrivateDiscriminatorDefaultLibrarySection: View {
 
     var body: some View {
         Section {
-            HStack {
-                Button {
-                    importError = nil
-                    store.updateDefaultLibrary()
-                } label: {
-                    if store.isUpdatingDefaultLibrary {
-                        Label("Updating…", systemImage: "arrow.down.circle")
-                    } else {
-                        Label("Update Default Library", systemImage: "arrow.down.circle")
-                    }
-                }
-                .disabled(store.isUpdatingDefaultLibrary)
-
-                Spacer()
-            }
-
-            if let message = store.lastDefaultLibraryUpdateMessage {
+            LabeledContent {
                 HStack(spacing: 8) {
                     if store.isUpdatingDefaultLibrary {
                         ProgressView()
                             .controlSize(.small)
                     }
+
+                    Button {
+                        importError = nil
+                        store.updateDefaultLibrary()
+                    } label: {
+                        if store.isUpdatingDefaultLibrary {
+                            Label("Updating…", systemImage: "arrow.down.circle")
+                        } else {
+                            Label("Update Default Library", systemImage: "arrow.down.circle")
+                        }
+                    }
+                    .disabled(store.isUpdatingDefaultLibrary)
+                }
+            } label: {
+                Text(PrivateDiscriminatorStore.defaultLibraryModuleNames, format: .list(type: .and))
+
+                if let message = store.lastDefaultLibraryUpdateMessage {
                     Text(message)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         } header: {
