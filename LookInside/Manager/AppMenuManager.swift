@@ -43,7 +43,7 @@ final class AppMenuManager: NSObject, NSMenuDelegate {
 
     private enum Tag {
         static let about = 11
-        static let preferences = 12
+        static let settings = 12
         static let checkUpdates = 13
         static let activateSwiftUISupport = 14
         static let swiftUISupportLicense = 15
@@ -51,7 +51,6 @@ final class AppMenuManager: NSObject, NSMenuDelegate {
         static let purchaseSwiftUISupport = 17
         static let swiftUISupportCustomerSupport = 18
         static let swiftUISupportSubmenu = 19
-        static let privateDiscriminatorSettings = 20
 
         static let reload = 21
         static let dimension = 22
@@ -152,8 +151,7 @@ final class AppMenuManager: NSObject, NSMenuDelegate {
         menu.delegate = self
         menu.addItem(item(String(format: NSLocalizedString("About %@", comment: ""), appName), action: #selector(handleAbout), tag: Tag.about))
         menu.addItem(.separator())
-        menu.addItem(item(NSLocalizedString("Preferences…", comment: ""), action: #selector(handlePreferences), key: ",", modifiers: .command, tag: Tag.preferences))
-        menu.addItem(item(NSLocalizedString("Private Discriminator Settings…", comment: ""), action: #selector(handlePrivateDiscriminatorSettings), tag: Tag.privateDiscriminatorSettings))
+        menu.addItem(item(NSLocalizedString("Settings…", comment: ""), action: #selector(handleSettings), key: ",", modifiers: .command, tag: Tag.settings))
         menu.addItem(.separator())
         menu.addItem(item(NSLocalizedString("Check for Updates…", comment: ""), action: #selector(handleCheckUpdates), tag: Tag.checkUpdates))
         menu.addItem(.separator())
@@ -432,12 +430,8 @@ final class AppMenuManager: NSObject, NSMenuDelegate {
         NavigationManager.shared.showAbout()
     }
 
-    @objc private func handlePreferences() {
-        NavigationManager.shared.showPreference()
-    }
-
-    @objc private func handlePrivateDiscriminatorSettings() {
-        PrivateDiscriminatorSettingsWindowController.showSettingsWindow()
+    @objc private func handleSettings() {
+        NavigationManager.shared.showSettings()
     }
 
     @objc private func handleCheckUpdates() {

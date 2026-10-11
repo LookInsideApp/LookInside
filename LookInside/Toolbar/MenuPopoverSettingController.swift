@@ -133,7 +133,7 @@ final class MenuPopoverSettingController: BaseViewController {
     }
 
     @objc private func handlePreferenceButton() {
-        NavigationManager.shared.showPreference()
+        NavigationManager.shared.showSettings()
     }
 
     @objc private func handleZInterspaceDidChange(_ param: MessageActionParameters) {

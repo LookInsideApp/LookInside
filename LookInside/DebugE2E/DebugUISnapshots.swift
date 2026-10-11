@@ -217,10 +217,10 @@
             try await readRoundTrip(exported)
 
             // Windows of their own.
-            NavigationManager.shared.showPreference()
-            try await captureStandaloneWindow("preferences", controllerKey: "preferenceWindowController")
+            NavigationManager.shared.showSettings()
+            try await captureStandaloneWindow("settings") { NavigationManager.shared.settingsWindowController }
             NavigationManager.shared.showAbout()
-            try await captureStandaloneWindow("about", controllerKey: "aboutWindowController")
+            try await captureStandaloneWindow("about") { NavigationManager.shared.aboutWindowController }
             try await captureActivationWindow()
         }
 
@@ -276,10 +276,9 @@
             window.close()
         }
 
-        private func captureStandaloneWindow(_ name: String, controllerKey: String) async throws {
-            let navigation = NavigationManager.shared
+        private func captureStandaloneWindow(_ name: String, controller: () -> NSWindowController?) async throws {
             let window = try await waitFor("the \(name) window") {
-                (navigation.value(forKey: controllerKey) as? NSWindowController)?.window.flatMap { $0.isVisible ? $0 : nil }
+                controller()?.window.flatMap { $0.isVisible ? $0 : nil }
             }
             quietWindows()
             window.center()

@@ -22,6 +22,7 @@
 		E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */ = {isa = PBXBuildFile; productRef = E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */; };
 		E9FE990C3026C657008692AF /* UIFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990B3026C657008692AF /* UIFoundation */; };
 		E9FE990E3026C657008692AF /* UIFoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990D3026C657008692AF /* UIFoundationToolbox */; };
+		E9FE99103026C657008692AF /* UIFoundationSettingsUI in Frameworks */ = {isa = PBXBuildFile; productRef = E9FE990F3026C657008692AF /* UIFoundationSettingsUI */; };
 		F0F0A10E2FD0000100A1B2C3 /* FoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */; };
 /* End PBXBuildFile section */
 
@@ -193,9 +194,6 @@
 				Measure/MeasureController.swift,
 				Measure/MeasureResultView.swift,
 				Other/VersionComparer.swift,
-				Preference/PreferenceView.swift,
-				Preference/PreferenceWindowController.swift,
-				PrivateDiscriminator/PrivateDiscriminatorSettingsWindowController.swift,
 				PrivateDiscriminator/PrivateDiscriminatorStore.swift,
 				Read/ArchiveCoding.swift,
 				Read/ArchiveDocument.swift,
@@ -204,6 +202,9 @@
 				Read/ReadScreenshotLookup.swift,
 				Read/ReadViewController.swift,
 				Read/ReadWindowController.swift,
+				Settings/GeneralSettingsPage.swift,
+				Settings/PrivateDiscriminatorSettingsPage.swift,
+				Settings/SettingsPages.swift,
 				Static/MessageManager.swift,
 				Static/Preview/DisplayItemNode.swift,
 				Static/Preview/PreviewController.swift,
@@ -299,6 +300,7 @@
 				E972100B2FC2E5C0003AAEA6 /* HelperCommunication in Frameworks */,
 				E972100D2FC2E5C0003AAEA6 /* InjectionServiceInterface in Frameworks */,
 				E9FE990E3026C657008692AF /* UIFoundationToolbox in Frameworks */,
+				E9FE99103026C657008692AF /* UIFoundationSettingsUI in Frameworks */,
 				F0F0A10E2FD0000100A1B2C3 /* FoundationToolbox in Frameworks */,
 				15FFB4D96CB7375162952FFE /* LookInsideActivation in Frameworks */,
 				79CC3F736CA547232F1827F4 /* LookInsideActivationUI in Frameworks */,
@@ -366,6 +368,7 @@
 				E972100C2FC2E5C0003AAEA6 /* InjectionServiceInterface */,
 				E9FE990B3026C657008692AF /* UIFoundation */,
 				E9FE990D3026C657008692AF /* UIFoundationToolbox */,
+				E9FE990F3026C657008692AF /* UIFoundationSettingsUI */,
 				F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */,
 				4CF60A9D44E04A6BE91035EF /* LookInsideActivation */,
 				F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */,
@@ -884,6 +887,7 @@
 			};
 			traits = (
 				AppleInternal,
+				Settings,
 			);
 		};
 		F0F0A10A2FD0000100A1B2C3 /* XCRemoteSwiftPackageReference "FrameworkToolbox" */ = {
@@ -951,6 +955,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */;
 			productName = UIFoundationToolbox;
+		};
+		E9FE990F3026C657008692AF /* UIFoundationSettingsUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E9FE990A3026C657008692AF /* XCRemoteSwiftPackageReference "UIFoundation" */;
+			productName = UIFoundationSettingsUI;
 		};
 		F05DCA7C93CF923C02603F72 /* LookInsideActivationUI */ = {
 			isa = XCSwiftPackageProductDependency;

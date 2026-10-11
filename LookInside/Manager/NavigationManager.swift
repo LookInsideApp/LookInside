@@ -5,11 +5,12 @@
 //  Created by Li Kai on 2018/11/3.
 //  https://lookin.work
 //
-//  Opens the app's standalone windows: launch, preferences, about, the JSON
+//  Opens the app's standalone windows: launch, settings, about, the JSON
 //  viewer, and readers for `.lookin` files or in-memory hierarchies.
 //
 
 import AppKit
+import UIFoundationSettingsUI
 
 @MainActor
 final class NavigationManager: NSObject, NSWindowDelegate {
@@ -21,9 +22,22 @@ final class NavigationManager: NSObject, NSWindowDelegate {
 
     @objc private(set) var launchWindowController: LaunchWindowController?
 
-    // Read by name (KVC) by the DEBUG UI snapshots.
-    @objc private(set) var preferenceWindowController: PreferenceWindowController?
-    @objc private(set) var aboutWindowController: AboutWindowController?
+    /// Kept for the app's lifetime rather than dropped on close, so the
+    /// window opens again on the page the user left it on.
+    private(set) lazy var settingsWindowController = SettingsWindowController(
+        configuration: SettingsConfiguration(
+            title: String(localized: "Settings", comment: "Title of the Settings window."),
+            // The sidebar is 20 points wider than UIFoundation's default so
+            // "Private Discriminator" fits; the window grows by as much, so
+            // the pages keep the default width.
+            contentWidth: 735,
+            sidebarWidth: 205,
+            sidebarIconSize: 15
+        ),
+        pages: { SettingsPages.make() }
+    )
+
+    private(set) var aboutWindowController: AboutWindowController?
     private var jsonWindowController: JSONAttributeWindowController?
 
     /// Set by the hierarchy view from its top inset.
@@ -45,14 +59,8 @@ final class NavigationManager: NSObject, NSWindowDelegate {
         launchWindowController = nil
     }
 
-    @objc func showPreference() {
-        let controller = preferenceWindowController ?? {
-            let controller = PreferenceWindowController()
-            controller.window?.delegate = self
-            return controller
-        }()
-        preferenceWindowController = controller
-        controller.showWindow(self)
+    @objc func showSettings() {
+        settingsWindowController.showWindow(self)
     }
 
     @objc func showAbout() {
@@ -116,9 +124,7 @@ final class NavigationManager: NSObject, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) {
         let closingWindow = notification.object as? NSWindow
-        if closingWindow == preferenceWindowController?.window {
-            preferenceWindowController = nil
-        } else if closingWindow == aboutWindowController?.window {
+        if closingWindow == aboutWindowController?.window {
             aboutWindowController = nil
         }
         // Live and archive document windows belong to NSDocumentController,
