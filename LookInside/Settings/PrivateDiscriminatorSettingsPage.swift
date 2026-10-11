@@ -20,9 +20,11 @@ struct PrivateDiscriminatorSettingsPage: View {
 
     var body: some View {
         SettingsForm {
-            PrivateDiscriminatorFeatureSection(store: store, importError: $importError)
+            PrivateDiscriminatorFeatureSection(store: store)
+            PrivateDiscriminatorDefaultLibrarySection(store: store, importError: $importError)
 
             if store.featureEnabled {
+                PrivateDiscriminatorAutosaveSection(store: store)
                 PrivateDiscriminatorModulesSection(store: store, importError: $importError)
                 PrivateDiscriminatorProblemsSection(store: store, importError: importError)
             }
@@ -33,19 +35,28 @@ struct PrivateDiscriminatorSettingsPage: View {
     }
 }
 
-/// The feature switch and the default library download.
+/// The feature switch.
 private struct PrivateDiscriminatorFeatureSection: View {
     @Bindable var store: PrivateDiscriminatorStore
+
+    var body: some View {
+        Section {
+            Toggle("Enable", isOn: $store.isFeatureEnabledSetting)
+        } footer: {
+            Text("Resolve Swift private-discriminator hashes from imported module CSVs. Disabled by default.")
+        }
+    }
+}
+
+/// Downloading the SwiftUI and SwiftUICore indexes, and how the last
+/// download went.
+private struct PrivateDiscriminatorDefaultLibrarySection: View {
+    let store: PrivateDiscriminatorStore
     @Binding var importError: String?
 
     var body: some View {
         Section {
-            DescribedSettingRow("Enable", description: "Resolve Swift private-discriminator hashes from imported module CSVs. Disabled by default.") {
-                Toggle("Enable", isOn: $store.isFeatureEnabledSetting)
-                    .toggleStyle(.switch)
-            }
-
-            DescribedSettingRow("Default Library", description: "Download SwiftUI and SwiftUICore indexes from GitHub into local imported CSVs.") {
+            HStack {
                 Button {
                     importError = nil
                     store.updateDefaultLibrary()
@@ -57,6 +68,8 @@ private struct PrivateDiscriminatorFeatureSection: View {
                     }
                 }
                 .disabled(store.isUpdatingDefaultLibrary)
+
+                Spacer()
             }
 
             if let message = store.lastDefaultLibraryUpdateMessage {
@@ -71,22 +84,33 @@ private struct PrivateDiscriminatorFeatureSection: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
+        } header: {
+            Text("Default Library")
+        } footer: {
+            Text("Download SwiftUI and SwiftUICore indexes from GitHub into local imported CSVs.")
         }
     }
 }
 
-/// Autosave, importing a module, and the modules imported so far.
-private struct PrivateDiscriminatorModulesSection: View {
+private struct PrivateDiscriminatorAutosaveSection: View {
     @Bindable var store: PrivateDiscriminatorStore
+
+    var body: some View {
+        Section {
+            Toggle("Autosave", isOn: $store.isAutosaveEnabledSetting)
+        } footer: {
+            Text("Allow future guessed rows to use autosaved module CSVs.")
+        }
+    }
+}
+
+/// Importing a module, and the modules imported so far.
+private struct PrivateDiscriminatorModulesSection: View {
+    let store: PrivateDiscriminatorStore
     @Binding var importError: String?
 
     var body: some View {
         Section {
-            DescribedSettingRow("Autosave", description: "Allow future guessed rows to use autosaved module CSVs.") {
-                Toggle("Autosave", isOn: $store.isAutosaveEnabledSetting)
-                    .toggleStyle(.switch)
-            }
-
             HStack(spacing: 8) {
                 Button {
                     beginImport()
@@ -99,6 +123,8 @@ private struct PrivateDiscriminatorModulesSection: View {
                 } label: {
                     Label("Reveal Storage", systemImage: "folder")
                 }
+
+                Spacer()
             }
 
             if store.moduleStatuses.isEmpty {
@@ -111,6 +137,8 @@ private struct PrivateDiscriminatorModulesSection: View {
                     }
                 }
             }
+        } header: {
+            Text("Modules")
         }
     }
 
@@ -162,32 +190,32 @@ private struct PrivateDiscriminatorModulesSection: View {
     }
 }
 
-/// CSV files that failed to load, and the last error.
+/// CSV files that failed to load, and the last error. Each shows only
+/// while there is something to report.
 private struct PrivateDiscriminatorProblemsSection: View {
     let store: PrivateDiscriminatorStore
     let importError: String?
 
     var body: some View {
-        if !store.invalidDiagnostics.isEmpty || errorMessage != nil {
+        if !store.invalidDiagnostics.isEmpty {
             Section {
-                if !store.invalidDiagnostics.isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Invalid CSV Diagnostics")
-                        ForEach(store.invalidDiagnostics) { diagnostic in
-                            Text("\(diagnostic.module) \(diagnostic.source): \(diagnostic.message)")
-                                .font(.subheadline)
-                                .foregroundStyle(.red)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-
-                if let errorMessage {
-                    Text(errorMessage)
+                ForEach(store.invalidDiagnostics) { diagnostic in
+                    Text("\(diagnostic.module) \(diagnostic.source): \(diagnostic.message)")
                         .font(.subheadline)
                         .foregroundStyle(.red)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+            } header: {
+                Text("Invalid CSV Diagnostics")
+            }
+        }
+
+        if let errorMessage {
+            Section {
+                Text(errorMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

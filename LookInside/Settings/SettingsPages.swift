@@ -8,6 +8,10 @@
 //  ones in the standard user defaults, PrivateDiscriminatorStore keeps its
 //  own in config.json.
 //
+//  The pages are laid out the way RuntimeViewer lays out its settings with
+//  the same window: plain glyphs in the sidebar, a header over each group,
+//  and what a setting does in the footer under its group.
+//
 
 import SwiftUI
 import UIFoundationSettingsUI
@@ -29,8 +33,7 @@ enum SettingsPages {
         SettingsPage(
             String(localized: "General", comment: "Title of the Settings window's General page."),
             id: generalIdentifier,
-            symbol: "gearshape",
-            tint: .gray
+            plainSymbol: "gearshape"
         ) {
             GeneralSettingsPage(model: generalModel)
         }
@@ -38,38 +41,9 @@ enum SettingsPages {
         SettingsPage(
             String(localized: "Private Discriminator", comment: "Title of the Settings window's Private Discriminator page."),
             id: privateDiscriminatorIdentifier,
-            symbol: "number",
-            tint: .purple
+            plainSymbol: "number"
         ) {
             PrivateDiscriminatorSettingsPage()
-        }
-    }
-}
-
-/// A form row whose label is a title above a secondary description, the way
-/// System Settings lays out a setting that needs explaining.
-struct DescribedSettingRow<Control: View>: View {
-    private let title: LocalizedStringResource
-    private let description: LocalizedStringResource
-    private let control: Control
-
-    init(
-        _ title: LocalizedStringResource,
-        description: LocalizedStringResource,
-        @ViewBuilder control: () -> Control
-    ) {
-        self.title = title
-        self.description = description
-        self.control = control()
-    }
-
-    var body: some View {
-        LabeledContent {
-            control
-                .labelsHidden()
-        } label: {
-            Text(title)
-            Text(description)
         }
     }
 }

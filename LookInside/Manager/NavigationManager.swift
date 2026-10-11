@@ -27,8 +27,12 @@ final class NavigationManager: NSObject, NSWindowDelegate {
     private(set) lazy var settingsWindowController = SettingsWindowController(
         configuration: SettingsConfiguration(
             title: String(localized: "Settings", comment: "Title of the Settings window."),
-            // Two pages leave nothing to go back and forth between.
-            showsNavigationControls: false
+            // The sidebar is 20 points wider than UIFoundation's default so
+            // "Private Discriminator" fits; the window grows by as much, so
+            // the pages keep the default width.
+            contentWidth: 735,
+            sidebarWidth: 205,
+            sidebarIconSize: 15
         ),
         pages: { SettingsPages.make() }
     )
