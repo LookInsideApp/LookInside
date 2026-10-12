@@ -59,7 +59,7 @@ final class StaticAsyncUpdateManager: NSObject {
         }
     }
 
-    @objc override convenience init() {
+    override convenience init() {
         self.init(hierarchyDataSource: nil, inspectableApp: nil)
     }
 

@@ -71,7 +71,7 @@ class TableView: NSScrollView {
     /// -1 when no row is selected.
     private var selectedRow: Int = -1
 
-    @objc override init(frame frameRect: NSRect) {
+    override init(frame frameRect: NSRect) {
         let tableView = KeyForwardingTableView()
         self.tableView = tableView
         super.init(frame: frameRect)
