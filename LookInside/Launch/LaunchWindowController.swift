@@ -32,10 +32,6 @@ final class LaunchWindowController: WindowController {
         contentViewController = launchViewController
     }
 
-    convenience init() {
-        self.init(autoEnterOnInitialReload: false)
-    }
-
     @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) is not supported")

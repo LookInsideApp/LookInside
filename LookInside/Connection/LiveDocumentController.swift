@@ -38,21 +38,6 @@ final class LiveDocumentController: NSObject {
         return (document, false)
     }
 
-    /// Objective-C form of `openLiveDocument(for:)`. `completion` runs on
-    /// the main thread before this returns; with a nil app it gets
-    /// `LookinErr_Inner` and no document.
-    func openLiveDocument(
-        for app: InspectableApp?,
-        completion: ((LiveDocument?, Bool, NSError?) -> Void)?
-    ) {
-        guard let app else {
-            completion?(nil, false, ConnectionError.inner)
-            return
-        }
-        let (document, alreadyOpen) = openLiveDocument(for: app)
-        completion?(document, alreadyOpen, nil)
-    }
-
     /// The live document whose app uses `channel`, or nil.
     func liveDocument(for channel: ServerChannel?) -> LiveDocument? {
         guard let channel else { return nil }

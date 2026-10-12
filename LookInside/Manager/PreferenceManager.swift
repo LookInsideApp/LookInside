@@ -43,15 +43,6 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     case focus
 }
 
-enum PreferredCallStackType: Int {
-    /// Formatted and shortened.
-    case `default`
-    /// Formatted, complete.
-    case formattedCompletely
-    /// The raw call stack.
-    case raw
-}
-
 enum MeasureState: Int {
     /// Not measuring.
     case no
@@ -233,20 +224,6 @@ final class PreferenceManager: NSObject {
     private var storedSectionShowConfig: [String: Bool]
 
     // MARK: - Not stored
-
-    private var storedCallStackType: PreferredCallStackType = .default
-
-    var callStackType: PreferredCallStackType {
-        get { storedCallStackType }
-        set {
-            if newValue.rawValue < 0 || newValue.rawValue > 2 {
-                assertionFailure("callStackType out of range: \(newValue.rawValue)")
-                storedCallStackType = .default
-            } else {
-                storedCallStackType = newValue
-            }
-        }
-    }
 
     /// 参数是 PreviewDimension
     let previewDimension: IntegerMessageAttribute

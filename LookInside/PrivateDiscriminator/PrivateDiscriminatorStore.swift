@@ -74,10 +74,6 @@ final class PrivateDiscriminatorStore: NSObject {
     private(set) var isUpdatingDefaultLibrary = false
     private(set) var lastDefaultLibraryUpdateMessage: String?
 
-    var isFeatureEnabled: Bool {
-        featureEnabled
-    }
-
     let storageDirectoryURL: URL
     let importedDirectoryURL: URL
     let autosavedDirectoryURL: URL
@@ -736,7 +732,6 @@ final class PrivateDiscriminatorStore: NSObject {
             isMatched: false,
             isVerified: false,
             warning: nil,
-            className: parsed.className,
             guessState: dashboardGuessState(for: parsed.id, isMatched: false)
         )
     }
@@ -756,7 +751,6 @@ final class PrivateDiscriminatorStore: NSObject {
             isMatched: true,
             isVerified: verification.isMatch,
             warning: verification.isMatch ? nil : Self.message(for: verification),
-            className: parsed.className,
             guessState: dashboardGuessState(for: parsed.id, isMatched: true)
         )
     }
@@ -1337,7 +1331,6 @@ private struct DashboardDescriptor {
     let isMatched: Bool
     let isVerified: Bool
     let warning: String?
-    let className: String?
     let guessState: GuessState?
 }
 
@@ -1386,7 +1379,6 @@ final class PrivateDiscriminatorDashboardPayload: NSObject {
     let module: String
     let filename: String
     let source: String
-    let displayClassName: String
     let isMatched: Bool
     let isVerified: Bool
     let warningText: String?
@@ -1399,7 +1391,6 @@ final class PrivateDiscriminatorDashboardPayload: NSObject {
         module = descriptor.module
         filename = descriptor.filename
         source = descriptor.source?.localizedDisplayName ?? ""
-        displayClassName = descriptor.className ?? ""
         isMatched = descriptor.isMatched
         isVerified = descriptor.isVerified
         warningText = descriptor.warning

@@ -38,10 +38,6 @@ final class LaunchViewController: BaseViewController {
     /// images again.
     private var appInfos: [InspectedAppInfo]?
 
-    convenience init(window: NSWindow?) {
-        self.init(window: window, autoEnterOnInitialReload: false)
-    }
-
     init(window: NSWindow?, autoEnterOnInitialReload: Bool) {
         self.window = window
         self.autoEnterOnInitialReload = autoEnterOnInitialReload
