@@ -30,6 +30,9 @@ jobs:
       - name: Validate Release Workflow
         run: bash Scripts/test-release-workflow.sh
 
+      - name: Test Release Cleanliness Check
+        run: bash Scripts/test-check-host-release-clean.sh
+
       - name: Sync Derived Source
         run: bash Scripts/sync-derived-source.sh
 
