@@ -11,7 +11,6 @@ import FoundationToolbox
 
 @Loggable(subsystem: "com.lookinside.app")
 @main
-@objc(AppDelegate)
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var appearanceObservation: NSKeyValueObservation?

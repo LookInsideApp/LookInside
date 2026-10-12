@@ -12,7 +12,6 @@ import LookInsideHostCore
 extension HierarchyDataSource {
     /// Arrow keys move the selection and expand or collapse rows. Returns
     /// whether the key was handled.
-    @objc(keyDown:)
     func keyDown(_ event: NSEvent) -> Bool {
         let rows = displayingFlatItems ?? []
         let selectedRow = selectedItem.flatMap { selected in rows.firstIndex { $0 === selected } }

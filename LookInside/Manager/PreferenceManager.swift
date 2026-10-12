@@ -43,7 +43,7 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     case focus
 }
 
-@objc enum PreferredCallStackType: Int {
+enum PreferredCallStackType: Int {
     /// Formatted and shortened.
     case `default`
     /// Formatted, complete.
@@ -52,7 +52,7 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     case raw
 }
 
-@objc enum MeasureState: Int {
+enum MeasureState: Int {
     /// Not measuring.
     case no
     /// Measuring until the key is released.
@@ -99,7 +99,7 @@ final class PreferenceManager: NSObject {
     }
 
     /// 默认为 NO
-    @objc var shouldStoreToLocal = false
+    var shouldStoreToLocal = false
 
     @objc dynamic var appearanceType: PreferredAppearanceType {
         didSet {
@@ -115,7 +115,7 @@ final class PreferenceManager: NSObject {
     }
 
     /// 有效值为 0 ～ 4
-    @objc dynamic var expansionIndex: Int {
+    var expansionIndex: Int {
         didSet {
             guard oldValue != expansionIndex else { return }
             store(expansionIndex, forKey: Key.expansionIndex)
@@ -124,21 +124,21 @@ final class PreferenceManager: NSObject {
 
     /// Not stored: the subscription in the Objective-C version targeted
     /// `showHiddenItems` before it existed, so changes were never written.
-    @objc let showOutline: BoolMessageAttribute
+    let showOutline: BoolMessageAttribute
 
-    @objc let showHiddenItems: BoolMessageAttribute
+    let showHiddenItems: BoolMessageAttribute
 
     /// 是否在层级树里显示系统自动创建的 LayoutGuide（safe area、layout margins 等）。
     /// 默认显示；关闭只是宿主端过滤，数据仍在。用户自建 guide 不受此开关影响。
-    @objc let showSystemLayoutGuides: BoolMessageAttribute
+    let showSystemLayoutGuides: BoolMessageAttribute
 
     /// 是否显示 view 的 backing layer 子树（backing-layer-toggle 提案）。
     /// 默认关闭。开启后像 Xcode 的 Show Layers：每个 view 节点下展开完整 layer 子树，
     /// 内容显示在真正渲染它的 layer 上，view 节点变为线框。切换时重新拉取层级。
-    @objc let showBackingLayers: BoolMessageAttribute
+    let showBackingLayers: BoolMessageAttribute
 
     /// 范围是 0 ～ 1
-    @objc let zInterspace: DoubleMessageAttribute
+    let zInterspace: DoubleMessageAttribute
 
     @objc dynamic var rgbaFormat: Bool {
         didSet {
@@ -173,7 +173,7 @@ final class PreferenceManager: NSObject {
     }
 
     /// 被折叠的 AttrGroup
-    @objc dynamic var collapsedAttrGroups: [String] {
+    var collapsedAttrGroups: [String] {
         didSet {
             store(collapsedAttrGroups, forKey: Key.collapsedGroups)
         }
@@ -212,19 +212,19 @@ final class PreferenceManager: NSObject {
         }
     }
 
-    @objc let freeRotation: BoolMessageAttribute
+    let freeRotation: BoolMessageAttribute
 
-    @objc let fastMode: BoolMessageAttribute
+    let fastMode: BoolMessageAttribute
 
     /// 上次接收到 iOS app 里传过来的 color config 和 collapsedClasses 信息的时间，用来统计
     /// Always stored, even when `shouldStoreToLocal` is off.
-    @objc dynamic var receivingConfigTime_Color: TimeInterval {
+    var receivingConfigTime_Color: TimeInterval {
         didSet {
             defaults.set(receivingConfigTime_Color, forKey: Key.receivingConfigTimeColor)
         }
     }
 
-    @objc dynamic var receivingConfigTime_Class: TimeInterval {
+    var receivingConfigTime_Class: TimeInterval {
         didSet {
             defaults.set(receivingConfigTime_Class, forKey: Key.receivingConfigTimeClass)
         }
@@ -236,7 +236,7 @@ final class PreferenceManager: NSObject {
 
     private var storedCallStackType: PreferredCallStackType = .default
 
-    @objc dynamic var callStackType: PreferredCallStackType {
+    var callStackType: PreferredCallStackType {
         get { storedCallStackType }
         set {
             if newValue.rawValue < 0 || newValue.rawValue > 2 {
@@ -249,15 +249,15 @@ final class PreferenceManager: NSObject {
     }
 
     /// 参数是 PreviewDimension
-    @objc let previewDimension: IntegerMessageAttribute
+    let previewDimension: IntegerMessageAttribute
 
-    @objc let previewScale: DoubleMessageAttribute
+    let previewScale: DoubleMessageAttribute
 
     /// 参数是 MeasureState
-    @objc let measureState: IntegerMessageAttribute
+    let measureState: IntegerMessageAttribute
 
     /// 是否用户正在按住 cmd 键而处于快速选择模式
-    @objc let isQuickSelecting: BoolMessageAttribute
+    let isQuickSelecting: BoolMessageAttribute
 
     // MARK: - Init
 
@@ -376,7 +376,6 @@ final class PreferenceManager: NSObject {
     /// 读取某 bundle id 下记录的展开/折叠状态。key 为结构路径，value 为 @(YES) 表示展开、@(NO) 表示折叠。
     /// 未命中返回空字典。为兼容早期仅记录 expanded paths 的存档（NSArray<NSString *>），
     /// 读到旧格式时会自动转换为 dict 形式（全部视为 @(YES)）。
-    @objc(expansionStateForBundleIdentifier:)
     func expansionState(forBundleIdentifier bundleIdentifier: String?) -> [String: NSNumber] {
         guard let bundleIdentifier, !bundleIdentifier.isEmpty else {
             return [:]
@@ -388,7 +387,6 @@ final class PreferenceManager: NSObject {
     /// 写入某 bundle id 下记录的展开/折叠状态，并将该 bundle id 提升到 LRU 队首。
     /// 当 LRU 超过容量上限时，最旧的 bundle id 会被静默移除（其对应的展开状态键也会被清理）。
     /// 若 rememberExpansionState 为 NO 或 bundleIdentifier 为空，则不做任何操作。
-    @objc(setExpansionState:forBundleIdentifier:)
     func setExpansionState(_ expansionState: [String: NSNumber]?, forBundleIdentifier bundleIdentifier: String?) {
         guard let bundleIdentifier, !bundleIdentifier.isEmpty, rememberExpansionState, shouldStoreToLocal else {
             return
@@ -404,7 +402,6 @@ final class PreferenceManager: NSObject {
 
     /// 将一个已记录的 bundle id 提升到 LRU 队首。若该 bundle id 未被记录则不做任何操作。
     /// 当 rememberExpansionState 为 NO 或 bundleIdentifier 为空时同样不做任何操作。
-    @objc(bumpExpansionStateBundleIdentifierToMostRecent:)
     func bumpExpansionStateBundleIdentifierToMostRecent(_ bundleIdentifier: String?) {
         guard let bundleIdentifier, !bundleIdentifier.isEmpty, rememberExpansionState, shouldStoreToLocal else {
             return
@@ -446,7 +443,7 @@ final class PreferenceManager: NSObject {
     // MARK: - Dashboard sections
 
     /// 返回某个 section 是否应该被显示在主界面上
-    @objc func isSectionShowing(_ secID: String) -> Bool {
+    func isSectionShowing(_ secID: String) -> Bool {
         if let stored = storedSectionShowConfig[secID] {
             return stored
         }
@@ -454,12 +451,12 @@ final class PreferenceManager: NSObject {
     }
 
     /// 把某个 section 显示在主界面上
-    @objc func showSection(_ secID: String) {
+    func showSection(_ secID: String) {
         setSection(secID, showing: true)
     }
 
     /// 把某个 section 从主界面上移除
-    @objc func hideSection(_ secID: String) {
+    func hideSection(_ secID: String) {
         setSection(secID, showing: false)
     }
 
@@ -474,7 +471,7 @@ final class PreferenceManager: NSObject {
         defaults.set(storedSectionShowConfig, forKey: Key.sectionsShow)
     }
 
-    @objc func reset() {}
+    func reset() {}
 
     /// 返回默认情况下，哪些 section 应该被显示在主界面上
     private static let sectionsShowingByDefault: Set<String> = Set(([

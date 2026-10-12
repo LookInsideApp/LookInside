@@ -11,7 +11,7 @@ extension NumberInputView {
     static let verticalHeight: CGFloat = 38
 }
 
-@objc enum NumberInputViewStyle: UInt {
+enum NumberInputViewStyle: UInt {
     /// The title sits inside the field, on its right.
     case horizontal
     /// The title sits under the field.
@@ -20,14 +20,14 @@ extension NumberInputView {
 
 /// A Dashboard number field with a short title.
 class NumberInputView: BaseView {
-    @objc let textFieldView = TextFieldView()
+    let textFieldView = TextFieldView()
     private let titleLabel = TextLabel()
 
-    @objc var viewStyle: NumberInputViewStyle = .horizontal {
+    var viewStyle: NumberInputViewStyle = .horizontal {
         didSet { applyViewStyle() }
     }
 
-    @objc var title: String? {
+    var title: String? {
         didSet {
             titleLabel.stringValue = title ?? ""
             // The title can be truncated or abbreviated to a single letter,
@@ -116,7 +116,6 @@ class NumberInputView: BaseView {
 
     /// The value `string` parses to for `attrType` (an integer or a floating
     /// point type), or nil when it does not parse.
-    @objc(parsedValueWithString:attrType:)
     static func parsedValue(with string: String, attrType: LookinAttrType) -> Any? {
         switch attrType {
         case .int, .long, .longLong:

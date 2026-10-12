@@ -16,7 +16,7 @@ final class ExportAccessoryView: BaseView {
     private static let sizeLabelTop: CGFloat = 5
 
     /// The exported size in bytes, shown in megabytes.
-    @objc var dataSize: UInt = 0 {
+    var dataSize: UInt = 0 {
         didSet {
             sizeLabel.stringValue = String(format: NSLocalizedString("File Size: %.2f M", comment: ""),
                                            ExportNaming.megabytes(dataSize))

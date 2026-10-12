@@ -15,9 +15,9 @@ import Foundation
 /// One case of an enum: its name, raw value, and the first OS major
 /// version that has it (0 for every version).
 final class EnumListRegistryKeyValueItem: NSObject {
-    @objc let desc: String
-    @objc let value: Int
-    @objc let availableOSVersion: Int
+    let desc: String
+    let value: Int
+    let availableOSVersion: Int
 
     init(desc: String, value: Int, availableOSVersion: Int) {
         self.desc = desc
@@ -27,7 +27,6 @@ final class EnumListRegistryKeyValueItem: NSObject {
 }
 
 final class EnumListRegistry: NSObject {
-    @objc(sharedInstance)
     static let shared = EnumListRegistry()
 
     private let data: [String: [EnumListRegistryKeyValueItem]]
@@ -38,14 +37,12 @@ final class EnumListRegistry: NSObject {
     }
 
     /// The cases of `enumName` in menu order, or nil for an unknown list.
-    @objc(itemsForEnumName:)
     func items(forEnumName enumName: String?) -> [EnumListRegistryKeyValueItem]? {
         guard let enumName else { return nil }
         return data[enumName]
     }
 
     /// The name of the first case of `enumName` whose value is `value`.
-    @objc(descForEnumName:value:)
     func desc(forEnumName enumName: String?, value: Int) -> String? {
         guard let items = items(forEnumName: enumName) else {
             assertionFailure("unknown enum list \(enumName ?? "nil")")

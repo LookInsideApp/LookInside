@@ -54,7 +54,6 @@ final class LiveDocument: NSDocument {
     }
 
     /// The live document whose window is `window`, or nil.
-    @objc(documentInWindow:)
     static func document(in window: NSWindow?) -> LiveDocument? {
         guard let window else { return nil }
         return NSDocumentController.shared.document(for: window) as? LiveDocument
@@ -66,12 +65,12 @@ final class LiveDocument: NSDocument {
     }
 
     /// Nil before `makeWindowControllers()` ran.
-    @objc var hierarchyDataSource: StaticHierarchyDataSource? {
+    var hierarchyDataSource: StaticHierarchyDataSource? {
         staticWindowController?.hierarchyDataSource
     }
 
     /// Nil before `makeWindowControllers()` ran.
-    @objc var asyncUpdateManager: StaticAsyncUpdateManager? {
+    var asyncUpdateManager: StaticAsyncUpdateManager? {
         staticWindowController?.asyncUpdateManager
     }
 

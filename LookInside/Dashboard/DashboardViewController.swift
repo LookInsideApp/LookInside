@@ -39,20 +39,19 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
 
     /// Whether this dashboard shows a live document (rather than one read
     /// from a file).
-    @objc let isStaticMode: Bool
+    let isStaticMode: Bool
 
     /// The update manager of the owning inspector, which patches the
     /// preview after modifications that need it.
-    @objc weak var asyncUpdateManager: StaticAsyncUpdateManager?
+    weak var asyncUpdateManager: StaticAsyncUpdateManager?
 
     /// The live document that owns this dashboard; its inspectable app
     /// receives attribute modifications and method invocations. Nil on a
     /// document read from a file.
-    @objc weak var liveDocument: LiveDocument? {
+    weak var liveDocument: LiveDocument? {
         didSet { methodsDataSource?.liveDocument = liveDocument }
     }
 
-    @objc(initWithStaticDataSource:)
     init(staticDataSource dataSource: StaticHierarchyDataSource) {
         staticDataSource = dataSource
         readDataSource = nil
@@ -61,7 +60,6 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         didInitialize()
     }
 
-    @objc(initWithReadDataSource:)
     init(readDataSource dataSource: ReadHierarchyDataSource) {
         staticDataSource = nil
         readDataSource = dataSource
@@ -229,11 +227,11 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         view.needsLayout = true
     }
 
-    @objc func reloadCurrentDisplayItem() {
+    func reloadCurrentDisplayItem() {
         reload(groupList: groupList(for: currentDataSource()?.selectedItem))
     }
 
-    @objc func currentDataSource() -> HierarchyDataSource? {
+    func currentDataSource() -> HierarchyDataSource? {
         if let staticDataSource {
             return staticDataSource
         }

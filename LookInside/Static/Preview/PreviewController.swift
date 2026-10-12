@@ -11,10 +11,10 @@ import AppKit
 /// Hosts the 3D preview and turns mouse, trackpad and keyboard input into
 /// rotation, translation, zoom, selection and the context menu.
 final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, NSMenuDelegate, PreviewStageViewDelegate {
-    @objc weak var staticViewController: StaticViewController?
+    weak var staticViewController: StaticViewController?
 
     /// Set by the owner in a live window; nil when reading a `.lookin` file.
-    @objc weak var asyncUpdateManager: StaticAsyncUpdateManager?
+    weak var asyncUpdateManager: StaticAsyncUpdateManager?
 
     private let dataSource: HierarchyDataSource?
     private let previewView: PreviewView
@@ -73,7 +73,6 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
         }
     }
 
-    @objc(initWithDataSource:)
     init(dataSource: HierarchyDataSource?) {
         self.dataSource = dataSource
         previewView = PreviewView(dataSource: dataSource)

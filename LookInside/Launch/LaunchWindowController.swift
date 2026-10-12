@@ -10,11 +10,10 @@ import AppKit
 
 /// The small launch window that lists the inspectable apps.
 final class LaunchWindowController: WindowController {
-    @objc let launchViewController: LaunchViewController
+    let launchViewController: LaunchViewController
 
     /// - Parameter autoEnterOnInitialReload: whether the first scan opens
     ///   the only app it finds by itself.
-    @objc(initWithAutoEnterOnInitialReload:)
     init(autoEnterOnInitialReload: Bool) {
         let window = AppWindow(
             contentRect: NSRect(x: 0, y: 0, width: 252, height: 400),
@@ -33,7 +32,7 @@ final class LaunchWindowController: WindowController {
         contentViewController = launchViewController
     }
 
-    @objc convenience init() {
+    convenience init() {
         self.init(autoEnterOnInitialReload: false)
     }
 

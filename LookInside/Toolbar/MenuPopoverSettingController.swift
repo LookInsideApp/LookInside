@@ -24,7 +24,6 @@ final class MenuPopoverSettingController: BaseViewController {
 
     /// `isMacTarget` describes the app being inspected, not the host. It decides whether the
     /// copy talks about `NSView` or `UIView`.
-    @objc(initWithPreferenceManager:isMacTarget:)
     init(preferenceManager manager: PreferenceManager, isMacTarget: Bool) {
         self.manager = manager
         super.init(containerView: nil)

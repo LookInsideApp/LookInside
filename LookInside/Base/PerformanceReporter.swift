@@ -10,20 +10,20 @@ import QuartzCore
 final class PerformanceReporter: NSObject {
     private static let shared = PerformanceReporter()
 
-    @objc static func sharedInstance() -> PerformanceReporter {
+    static func sharedInstance() -> PerformanceReporter {
         shared
     }
 
     private var reloadStartTime: CFTimeInterval = 0
     private var hierarchyFetchedTime: CFTimeInterval = 0
 
-    @objc func willStartReload() {
+    func willStartReload() {
         reloadStartTime = CACurrentMediaTime()
     }
 
-    @objc func didFetchHierarchy() {
+    func didFetchHierarchy() {
         hierarchyFetchedTime = CACurrentMediaTime()
     }
 
-    @objc func didComplete() {}
+    func didComplete() {}
 }

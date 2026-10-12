@@ -77,7 +77,6 @@ class MessageAttribute: NSObject {
         currentValue = value
     }
 
-    @objc(attributeWithValue:)
     class func attribute(withValue value: Any?) -> MessageAttribute {
         MessageAttribute(value: value)
     }
@@ -137,7 +136,6 @@ final class DoubleMessageAttribute: MessageAttribute {
         self.init(value: NSNumber(value: value))
     }
 
-    @objc(attributeWithDouble:)
     class func attribute(withDouble value: Double) -> DoubleMessageAttribute {
         DoubleMessageAttribute(double: value)
     }
@@ -156,7 +154,6 @@ final class IntegerMessageAttribute: MessageAttribute {
         self.init(value: NSNumber(value: value))
     }
 
-    @objc(attributeWithInteger:)
     class func attribute(withInteger value: Int) -> IntegerMessageAttribute {
         IntegerMessageAttribute(integer: value)
     }
@@ -175,7 +172,6 @@ final class BoolMessageAttribute: MessageAttribute {
         self.init(value: NSNumber(value: value))
     }
 
-    @objc(attributeWithBOOL:)
     class func attribute(withBOOL value: Bool) -> BoolMessageAttribute {
         BoolMessageAttribute(bool: value)
     }

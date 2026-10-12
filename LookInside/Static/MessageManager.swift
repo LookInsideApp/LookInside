@@ -17,7 +17,7 @@ final class MessageManager: NSObject {
 
     private static let shared = MessageManager()
 
-    @objc class func sharedInstance() -> MessageManager {
+    class func sharedInstance() -> MessageManager {
         shared
     }
 
@@ -27,12 +27,10 @@ final class MessageManager: NSObject {
         super.init()
     }
 
-    @objc(addMessage:)
     func addMessage(_ message: String) {
         messages.insert(message)
     }
 
-    @objc(removeMessage:)
     func removeMessage(_ message: String) {
         messages.remove(message)
         if message == jobsMessageIdentifier {
@@ -41,14 +39,14 @@ final class MessageManager: NSObject {
     }
 
     /// The current messages, shortest first.
-    @objc func queryMessages() -> [String] {
+    func queryMessages() -> [String] {
         // A stable sort over an unordered set: ties keep whatever order the
         // set yields, as NSSet's -allObjects did.
         Array(messages).sorted { $0.utf16.count < $1.utf16.count }
     }
 
     #if DEBUG
-        @objc func reset() {
+        func reset() {
             UserDefaults.standard.removeObject(forKey: Self.hasReadJobsDefaultsKey)
         }
     #endif

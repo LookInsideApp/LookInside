@@ -10,7 +10,7 @@ import AppKit
 
 private let effectiveAppearanceContext = UnsafeMutableRawPointer.allocate(byteCount: 1, alignment: 1)
 
-@objc enum ViewBorderPosition: Int {
+enum ViewBorderPosition: Int {
     case none
     case top
     case left

@@ -7,8 +7,8 @@ import AppKit
 
 /// An image followed by a one-line label, centred vertically.
 class ImageTextView: BaseView {
-    @objc let imageView = NSImageView()
-    @objc let label = TextLabel()
+    let imageView = NSImageView()
+    let label = TextLabel()
 
     var imageMargins = HorizontalMargins(left: 0, right: 0)
 

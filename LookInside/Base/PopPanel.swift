@@ -7,7 +7,6 @@ import AppKit
 
 /// A borderless rounded panel for small editors that pop up over a window.
 class PopPanel: NSPanel {
-    @objc(initWithSize:)
     init(size: NSSize) {
         // Without NSWindowStyleMaskNonactivatingPanel, clicking another app
         // while the panel is shown hides every LookInside window.

@@ -14,7 +14,7 @@ import LookInsideHostCore
 
 extension DisplayItem {
     /// The row text in the hierarchy, usually the class name without module.
-    @objc func title() -> String {
+    func title() -> String {
         let baseTitle: String?
         if let customInfo {
             baseTitle = customInfo.title
@@ -28,7 +28,7 @@ extension DisplayItem {
 
     /// The owning window or view controller, a special trace, or the ivar
     /// names that point at the object; nil when there is none.
-    @objc func subtitle() -> String? {
+    func subtitle() -> String? {
         if let customInfo {
             return customInfo.subtitle
         }
@@ -61,7 +61,6 @@ extension DisplayItem {
         return groupScreenshot
     }
 
-    @objc(bestObjectOidPreferView:)
     func bestObjectOidPreferView(_: Bool) -> UInt {
         switch resolvedNodeKind() {
         case .window, .windowScene:
@@ -99,7 +98,7 @@ extension DisplayItem {
     /// layer oid (backing-layer toggle ON); requests for this node must then
     /// route by the view oid. Read off the tree rather than the preference,
     /// so it stays false against servers that ignored the toggle.
-    @objc func ownsSeparateBackingLayerNode() -> Bool {
+    func ownsSeparateBackingLayerNode() -> Bool {
         guard let layerOid = layerObject?.oid, layerOid != 0,
               let viewOid = viewObject?.oid, viewOid != 0
         else { return false }
@@ -119,7 +118,6 @@ extension DisplayItem {
     }
 
     /// The preferred oid first, then every other oid this node carries.
-    @objc(availableObjectOidsPreferView:)
     func availableObjectOidsPreferView(_ preferView: Bool) -> [NSNumber] {
         var oids: [UInt] = []
         func add(_ oid: UInt?) {
@@ -135,24 +133,24 @@ extension DisplayItem {
     }
 
     /// Whether the title starts like a system class ("UI", "CA", "NS", "_").
-    @objc var representedForSystemClass: Bool {
+    var representedForSystemClass: Bool {
         let title = title()
         return title.hasPrefix("UI") || title.hasPrefix("CA") || title.hasPrefix("_") || title.hasPrefix("NS")
     }
 
-    @objc func isUserCustom() -> Bool {
+    func isUserCustom() -> Bool {
         customInfo != nil
     }
 
     /// Whether the preview can draw a box for this node.
-    @objc func hasPreviewBoxAbility() -> Bool {
+    func hasPreviewBoxAbility() -> Bool {
         guard let customInfo else { return true }
         return customInfo.hasValidFrame()
     }
 
     /// Whether an expanded node shows its group screenshot in the preview
     /// because its solo screenshot is (nearly) empty.
-    @objc func usesGroupScreenshotFallbackInPreview() -> Bool {
+    func usesGroupScreenshotFallbackInPreview() -> Bool {
         guard isExpandable, isExpanded else { return false }
         // A window root's solo screenshot is always nearly transparent (just
         // the frame) — its children draw the content. Falling back here
@@ -170,7 +168,7 @@ extension DisplayItem {
         )
     }
 
-    @objc func hasAncestorUsingGroupScreenshotFallbackInPreview() -> Bool {
+    func hasAncestorUsingGroupScreenshotFallbackInPreview() -> Bool {
         var found = false
         enumerateAncestors { item, stop in
             if item.usesGroupScreenshotFallbackInPreview() {
@@ -183,7 +181,6 @@ extension DisplayItem {
 
     /// Whether the node matches a non-empty hierarchy filter: its title,
     /// subtitle or one of its objects' addresses contains the text.
-    @objc(isMatchedWithSearchString:)
     func isMatched(withSearch string: String) -> Bool {
         if string.isEmpty {
             assertionFailure("an empty search string matches nothing")
@@ -207,7 +204,6 @@ extension DisplayItem {
     }
 
     /// Visits this item, then each ancestor up to the root, until stopped.
-    @objc(enumerateSelfAndAncestors:)
     func enumerateSelfAndAncestors(_ block: (DisplayItem, UnsafeMutablePointer<ObjCBool>) -> Void) {
         var item: DisplayItem? = self
         while let current = item {
@@ -220,13 +216,11 @@ extension DisplayItem {
         }
     }
 
-    @objc(enumerateAncestors:)
     func enumerateAncestors(_ block: (DisplayItem, UnsafeMutablePointer<ObjCBool>) -> Void) {
         self.`super`?.enumerateSelfAndAncestors(block)
     }
 
     /// Visits this item and then its whole subtree, depth first.
-    @objc(enumerateSelfAndChildren:)
     func enumerateSelfAndChildren(_ block: (DisplayItem) -> Void) {
         block(self)
         for subitem in subitems ?? [] {
@@ -234,14 +228,12 @@ extension DisplayItem {
         }
     }
 
-    @objc(itemIsKindOfClassWithName:)
     func itemIsKindOfClass(withName className: String) -> Bool {
         itemIsKindOfClasses(withNames: [className])
     }
 
     /// Whether any class in the displayed object's class chain, without its
     /// module prefix, is one of `classNames`.
-    @objc(itemIsKindOfClassesWithNames:)
     func itemIsKindOfClasses(withNames classNames: Set<String>) -> Bool {
         guard !classNames.isEmpty, let object = displayingObject() else { return false }
         let chain = object.classChainList ?? []
@@ -252,7 +244,7 @@ extension DisplayItem {
 
     // MARK: - SwiftUI
 
-    @objc func isSwiftUISupportRelated() -> Bool {
+    func isSwiftUISupportRelated() -> Bool {
         func looksLikeSwiftUISupport(_ object: InspectedObject?) -> Bool {
             guard let object else { return false }
             if ClientDisplayText.looksLikeSwiftUISupport(object.rawClassName()) {
@@ -270,7 +262,7 @@ extension DisplayItem {
 
     /// Addresses of the layers named by "… Backed By" rows in the
     /// "SwiftUI Layers" group.
-    @objc func swiftUIBackingLayerMemoryAddresses() -> [String] {
+    func swiftUIBackingLayerMemoryAddresses() -> [String] {
         var addresses: [String] = []
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI Layers" {
             for attribute in group.allAttributes {
@@ -287,7 +279,7 @@ extension DisplayItem {
 
     /// Display-list IDs from "… Display List ID" rows of "SwiftUI Layers"
     /// and "Identity IDs" rows of "SwiftUI Display List".
-    @objc func swiftUIBackingDisplayListIDs() -> [NSNumber] {
+    func swiftUIBackingDisplayListIDs() -> [NSNumber] {
         var displayListIDs: [UInt64] = []
         for group in allAttributeGroups {
             let isLayersGroup = group.userCustomTitle == "SwiftUI Layers"
@@ -308,7 +300,7 @@ extension DisplayItem {
     }
 
     /// The first "Display List ID" of the "SwiftUI" group, for layer nodes.
-    @objc func swiftUILayerDisplayListID() -> NSNumber? {
+    func swiftUILayerDisplayListID() -> NSNumber? {
         guard layerObject != nil else { return nil }
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI" {
             for attribute in group.allAttributes {
@@ -322,7 +314,7 @@ extension DisplayItem {
     }
 
     /// "Source" and "Full Source" values of the "SwiftUI" group.
-    @objc func swiftUILayerSourceTypeNames() -> [String] {
+    func swiftUILayerSourceTypeNames() -> [String] {
         var sourceNames: [String] = []
         for group in allAttributeGroups where group.userCustomTitle == "SwiftUI" {
             for attribute in group.allAttributes {
@@ -337,7 +329,7 @@ extension DisplayItem {
 
     /// The custom node's title, then "Type" and "Full Type" values of the
     /// "SwiftUI Type" group.
-    @objc func swiftUITypeNames() -> [String] {
+    func swiftUITypeNames() -> [String] {
         var typeNames: [String] = []
         if let customTitle = customInfo?.title {
             typeNames.append(customTitle)
@@ -353,12 +345,10 @@ extension DisplayItem {
         return typeNames
     }
 
-    @objc(lk_validSwiftUIDisplayListIDsInString:)
     static func validSwiftUIDisplayListIDs(in string: String) -> [NSNumber] {
         ClientDisplayText.swiftUIDisplayListIDs(in: string).map { NSNumber(value: $0) }
     }
 
-    @objc(lk_memoryAddressInObjectDescription:)
     static func memoryAddress(inObjectDescription description: String) -> String? {
         ClientDisplayText.memoryAddress(inObjectDescription: description)
     }

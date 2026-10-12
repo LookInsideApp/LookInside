@@ -16,14 +16,14 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     private static let ignoreFastModeTipsDefaultsKey = "IgnoreFastModeTips"
 
     /// The per-document data source, owned by StaticWindowController.
-    @objc private(set) weak var hierarchyDataSource: StaticHierarchyDataSource?
+    private(set) weak var hierarchyDataSource: StaticHierarchyDataSource?
 
     /// The per-document update manager, owned by StaticWindowController.
-    @objc private(set) weak var asyncUpdateManager: StaticAsyncUpdateManager?
+    private(set) weak var asyncUpdateManager: StaticAsyncUpdateManager?
 
-    @objc let viewsPreviewController: PreviewController
+    let viewsPreviewController: PreviewController
 
-    @objc let progressView = ProgressIndicatorView()
+    let progressView = ProgressIndicatorView()
 
     /// Shows or hides the console under the preview. Observable with KVO.
     @objc dynamic var showConsole = false {
@@ -58,7 +58,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     /// children that read the data source and the update manager, so they
     /// are stored first, and the child controllers are created here, in the
     /// order buildContent() used to create them.
-    @objc(initWithHierarchyDataSource:asyncUpdateManager:)
     init(hierarchyDataSource: StaticHierarchyDataSource, asyncUpdateManager: StaticAsyncUpdateManager) {
         self.hierarchyDataSource = hierarchyDataSource
         self.asyncUpdateManager = asyncUpdateManager
@@ -409,7 +408,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     /// The hierarchy view of the tree on the left.
-    @objc func currentHierarchyView() -> HierarchyView? {
+    func currentHierarchyView() -> HierarchyView? {
         hierarchyController.hierarchyView
     }
 

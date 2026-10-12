@@ -17,7 +17,6 @@ final class ConnectionTipsBinding: NSObject {
     /// Starts observing right away and applies the current state. Holds the
     /// tips view and view controller weakly; observation stops when the
     /// binding is released.
-    @objc(initWithDocument:tipsView:viewController:)
     init(document: LiveDocument, tipsView: RedTipsView, viewController: NSViewController) {
         super.init()
         observations = [

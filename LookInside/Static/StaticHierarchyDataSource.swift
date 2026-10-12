@@ -11,12 +11,12 @@ import AppKit
 /// The data source of a live document: applies the details the update
 /// tasks deliver and starts those tasks.
 class StaticHierarchyDataSource: HierarchyDataSource {
-    @objc var appInfo: InspectedAppInfo? {
+    var appInfo: InspectedAppInfo? {
         storedAppInfo
     }
 
     /// The update manager of the owning window controller.
-    @objc weak var asyncUpdateManager: StaticAsyncUpdateManager?
+    weak var asyncUpdateManager: StaticAsyncUpdateManager?
 
     /// Sends each item whose frame changed. Also reaches `events()` as
     /// `.itemDidChangeFrame`.
@@ -40,7 +40,6 @@ class StaticHierarchyDataSource: HierarchyDataSource {
 
     // MARK: - Reload
 
-    @objc(reloadWithHierarchyInfo:keepState:)
     override func reload(with info: HierarchyInfo?, keepState: Bool) {
         super.reload(with: info, keepState: keepState)
 
@@ -75,7 +74,6 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         }
     }
 
-    @objc(modifyWithDisplayItemDetail:)
     func modify(with detail: DisplayItemDetail?) {
         guard let detail else {
             return

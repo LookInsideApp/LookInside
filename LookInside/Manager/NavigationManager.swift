@@ -20,7 +20,7 @@ final class NavigationManager: NSObject, NSWindowDelegate {
         super.init()
     }
 
-    @objc private(set) var launchWindowController: LaunchWindowController?
+    private(set) var launchWindowController: LaunchWindowController?
 
     /// Kept for the app's lifetime rather than dropped on close, so the
     /// window opens again on the page the user left it on.
@@ -41,29 +41,28 @@ final class NavigationManager: NSObject, NSWindowDelegate {
     private var jsonWindowController: JSONAttributeWindowController?
 
     /// Set by the hierarchy view from its top inset.
-    @objc var windowTitleBarHeight: CGFloat = 0
+    var windowTitleBarHeight: CGFloat = 0
 
-    @objc func showLaunch() {
+    func showLaunch() {
         showLaunch(allowingAutoEnter: false)
     }
 
-    @objc(showLaunchAllowingAutoEnter:)
     func showLaunch(allowingAutoEnter allowAutoEnter: Bool) {
         let controller = LaunchWindowController(autoEnterOnInitialReload: allowAutoEnter)
         launchWindowController = controller
         controller.showWindow(self)
     }
 
-    @objc func closeLaunch() {
+    func closeLaunch() {
         launchWindowController?.close()
         launchWindowController = nil
     }
 
-    @objc func showSettings() {
+    func showSettings() {
         settingsWindowController.showWindow(self)
     }
 
-    @objc func showAbout() {
+    func showAbout() {
         let controller = aboutWindowController ?? {
             let controller = AboutWindowController()
             controller.window?.delegate = self
@@ -73,7 +72,6 @@ final class NavigationManager: NSObject, NSWindowDelegate {
         controller.showWindow(self)
     }
 
-    @objc(showJsonWindow:)
     func showJSONWindow(_ json: String?) {
         let controller = jsonWindowController ?? {
             let controller = JSONAttributeWindowController()
@@ -86,7 +84,7 @@ final class NavigationManager: NSObject, NSWindowDelegate {
     }
 
     /// The window controller of the key window, when it is one of ours.
-    @objc func currentKeyWindowController() -> WindowController? {
+    func currentKeyWindowController() -> WindowController? {
         NSApplication.shared.keyWindow?.windowController as? WindowController
     }
 
@@ -94,7 +92,6 @@ final class NavigationManager: NSObject, NSWindowDelegate {
     /// get Recent Documents, Open Recent, proxy icon dragging and the reuse
     /// of an already open file. Opening is asynchronous; an error is
     /// presented with `NSApp.presentError`, so this never throws.
-    @objc(showReaderWithFilePath:error:)
     func showReader(withFilePath filePath: String) throws {
         let fileURL = URL(fileURLWithPath: filePath)
         NSDocumentController.shared.openDocument(withContentsOf: fileURL, display: true) { document, _, openError in
@@ -107,7 +104,6 @@ final class NavigationManager: NSObject, NSWindowDelegate {
     /// Wraps an in-memory hierarchy in an untitled `ArchiveDocument`,
     /// so it gets the same document life cycle (Save As, Versions, Recent on
     /// save) as a file-backed archive, and shows its window.
-    @objc(showReaderWithHierarchyFile:title:)
     func showReader(with file: HierarchyFile?, title: String?) {
         let document = ArchiveDocument()
         document.hierarchyFile = file

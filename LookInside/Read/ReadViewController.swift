@@ -12,7 +12,7 @@ import AppKit
 /// preview, the dashboard or the measure panel on the right; and a tip
 /// while the tree is in focus mode.
 final class ReadViewController: BaseViewController, NSSplitViewDelegate {
-    @objc let hierarchyDataSource: ReadHierarchyDataSource
+    let hierarchyDataSource: ReadHierarchyDataSource
 
     private let splitView = SplitView()
     private let hierarchyController: ReadHierarchyController
@@ -23,7 +23,6 @@ final class ReadViewController: BaseViewController, NSSplitViewDelegate {
     private let focusTipView = YellowTipsView()
     private var stateObservation: NSKeyValueObservation?
 
-    @objc(initWithFile:preferenceManager:)
     init(file: HierarchyFile, preferenceManager manager: PreferenceManager) {
         let dataSource = ReadHierarchyDataSource(file: file, preferenceManager: manager)
         hierarchyDataSource = dataSource
@@ -96,7 +95,7 @@ final class ReadViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     /// The reader's hierarchy list.
-    @objc func currentHierarchyView() -> HierarchyView? {
+    func currentHierarchyView() -> HierarchyView? {
         hierarchyController.hierarchyView
     }
 

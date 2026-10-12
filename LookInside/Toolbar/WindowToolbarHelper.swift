@@ -15,7 +15,6 @@ import AppKit
 /// others itself: Reload, App, Setting, Console, Add, Remove and Message.
 @MainActor
 final class WindowToolbarHelper: NSObject {
-    @objc(sharedInstance)
     static let shared = WindowToolbarHelper()
 
     override private init() {
@@ -24,7 +23,6 @@ final class WindowToolbarHelper: NSObject {
 
     /// The item for `identifier`. Use `makeAppInReadModeItem(with:)` for the
     /// reader's app item.
-    @objc(makeToolBarItemWithIdentifier:preferenceManager:)
     func makeToolBarItem(identifier: String, preferenceManager manager: PreferenceManager) -> NSToolbarItem? {
         assert(identifier != toolbarIdentifierAppInReadMode, "Use makeAppInReadModeItemWithAppInfo:")
 
@@ -138,7 +136,6 @@ final class WindowToolbarHelper: NSObject {
     }
 
     /// The reader's app item, showing `appInfo`.
-    @objc(makeAppInReadModeItemWithAppInfo:)
     func makeAppInReadModeItem(with appInfo: InspectedAppInfo?) -> NSToolbarItem {
         let button = WindowToolbarAppButton()
         button.bezelStyle = .texturedRounded

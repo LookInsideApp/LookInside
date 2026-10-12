@@ -16,7 +16,6 @@ import FoundationToolbox
 @Loggable(subsystem: "com.lookinside.app")
 @MainActor
 final class AppsManager: NSObject {
-    @objc(sharedInstance)
     static let shared = AppsManager()
 
     override private init() {

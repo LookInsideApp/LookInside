@@ -55,7 +55,7 @@ final class WindowToolbarAppButton: NSButton {
         TwoColors(colorInLightMode: NSColor(red: 65 / 255.0, green: 65 / 255.0, blue: 65 / 255.0, alpha: 1), colorInDarkMode: .labelColor)
     }
 
-    @objc var appInfo: InspectedAppInfo? {
+    var appInfo: InspectedAppInfo? {
         didSet { appInfoDidChange() }
     }
 

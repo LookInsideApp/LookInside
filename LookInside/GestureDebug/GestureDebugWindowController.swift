@@ -8,7 +8,6 @@ final class GestureDebugWindowController: NSWindowController, NSWindowDelegate {
     private var appObservation: NSKeyValueObservation?
     private weak var inspectionOwner: StaticWindowController?
 
-    @objc(initWithOwner:)
     init(owner: StaticWindowController) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1180, height: 740),

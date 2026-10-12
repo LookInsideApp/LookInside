@@ -15,12 +15,12 @@ import Foundation
 ///    `LaunchViewController` 1.5s refresh tick then discovers the newly
 ///    inspectable app automatically.
 final class InjectionFlow: NSObject {
-    @objc(sharedInstance) static let shared = InjectionFlow()
+    static let shared = InjectionFlow()
 
     private var picker: InjectionTargetPicker?
     private var startGate = InjectionStartGate()
 
-    @objc func startFromWindow(_ window: NSWindow?) {
+    func startFromWindow(_ window: NSWindow?) {
         let decision = startGate.begin {
             SwiftUISupportGatekeeper.sharedInstance().canUseProtectedFeatureWithoutPrompt()
         }

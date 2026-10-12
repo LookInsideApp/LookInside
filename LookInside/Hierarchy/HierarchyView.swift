@@ -143,7 +143,6 @@ class HierarchyView: BaseView {
             : NSColor(red: 0, green: 0, blue: 0, alpha: 0.3).cgColor
     }
 
-    @objc(scrollToMakeItemVisible:)
     func scroll(toMakeItemVisible item: DisplayItem?) {
         guard let item, let row = displayItems.firstIndex(where: { $0 === item }) else {
             return

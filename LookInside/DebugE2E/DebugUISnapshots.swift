@@ -72,7 +72,7 @@
             self.directory = directory
         }
 
-        @objc static var isEnabled: Bool {
+        static var isEnabled: Bool {
             !(ProcessInfo.processInfo.environment[directoryVariable] ?? "").isEmpty
         }
 
@@ -92,7 +92,7 @@
 
         /// Step 1: captures the launch window before any app is inspectable,
         /// then writes the marker. Called once the app finished launching.
-        @objc static func captureLaunchScene() {
+        static func captureLaunchScene() {
             guard let snapshots = instance() else { return }
             Task { @MainActor in
                 do {
@@ -109,7 +109,6 @@
 
         /// Steps 2 and 3: runs every scene against the loaded live document,
         /// then calls `completion` with the exit status.
-        @objc(runScenesForDocument:completion:)
         static func runScenes(for document: LiveDocument, completion: @escaping (Int32) -> Void) {
             guard let snapshots = instance() else {
                 completion(0)

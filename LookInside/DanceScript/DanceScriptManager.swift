@@ -13,11 +13,10 @@ import AppKit
 import FoundationToolbox
 
 @Loggable(subsystem: "com.lookinside.app")
-@objc(DanceScriptManager)
 final class DanceScriptManager: NSObject {
     private static let sharedManager = DanceScriptManager()
 
-    @objc class func shared() -> DanceScriptManager {
+    class func shared() -> DanceScriptManager {
         sharedManager
     }
 
@@ -49,7 +48,6 @@ final class DanceScriptManager: NSObject {
     }
 
     @MainActor
-    @objc(handleText:)
     func handleText(_ json: String?) {
         guard let json else {
             PeripheralAlerts.show(ConnectionError.inner, in: PeripheralAlerts.keyWindow)

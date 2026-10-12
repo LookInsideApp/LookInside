@@ -9,7 +9,6 @@ extension AttributesGroup {
     /// The group's card title. `isMacTarget` describes the inspected app,
     /// not the Host; it only changes the ViewLayer group, whose title names
     /// the view class (`NSView` vs `UIView`), and the layout guide group.
-    @objc(queryDisplayTitleForMacTarget:)
     func queryDisplayTitle(forMacTarget isMacTarget: Bool) -> String {
         if let userCustomTitle, !userCustomTitle.isEmpty {
             return userCustomTitle

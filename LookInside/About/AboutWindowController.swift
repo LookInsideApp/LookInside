@@ -9,7 +9,7 @@
 import AppKit
 
 final class AboutWindowController: WindowController {
-    @objc init() {
+    init() {
         let window = AppWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 460),
                               styleMask: [.titled, .closable, .fullSizeContentView],
                               backing: .buffered, defer: true)

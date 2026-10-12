@@ -8,29 +8,29 @@ import AppKit
 /// A text field with insets, an optional leading image and an optional
 /// trailing button that clears a search.
 class TextFieldView: BaseView {
-    @objc let textField = NSTextField()
+    let textField = NSTextField()
 
-    @objc var insets = NSEdgeInsetsZero {
+    var insets = NSEdgeInsetsZero {
         didSet { needsLayout = true }
     }
 
-    @objc var textColors: TwoColors? {
+    var textColors: TwoColors? {
         didSet { updateColors() }
     }
 
-    @objc var image: NSImage? {
+    var image: NSImage? {
         didSet { updateImageView() }
     }
 
     /// Set by `initCloseButton()`.
-    @objc private(set) var closeButton: NSButton?
+    private(set) var closeButton: NSButton?
 
     private var imageView: NSImageView?
     private var textDidChangeObserver: NSObjectProtocol?
     private var stringValueObservation: NSKeyValueObservation?
 
     /// A read-only, borderless label.
-    @objc(labelView) static func label() -> TextFieldView {
+    static func label() -> TextFieldView {
         let view = TextFieldView()
         view.textField.wantsLayer = true
         view.textField.backgroundColor = .clear
@@ -117,7 +117,7 @@ class TextFieldView: BaseView {
 
     /// Adds the trailing "cancel search" button, shown while the field has
     /// text.
-    @objc func initCloseButton() {
+    func initCloseButton() {
         guard closeButton == nil else { return }
         let closeButton = NSButton()
         closeButton.title = NSLocalizedString("CancelSearch", comment: "")

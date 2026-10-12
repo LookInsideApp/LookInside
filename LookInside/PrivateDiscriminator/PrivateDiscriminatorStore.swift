@@ -64,7 +64,7 @@ struct PrivateDiscriminatorInvalidDiagnostic: Identifiable, Hashable {
 /// observes the state below through Observation.
 @Observable
 final class PrivateDiscriminatorStore: NSObject {
-    @objc(shared) static let shared = PrivateDiscriminatorStore()
+    static let shared = PrivateDiscriminatorStore()
 
     private(set) var featureEnabled = false
     private(set) var autosaveEnabled = false
@@ -74,7 +74,7 @@ final class PrivateDiscriminatorStore: NSObject {
     private(set) var isUpdatingDefaultLibrary = false
     private(set) var lastDefaultLibraryUpdateMessage: String?
 
-    @objc var isFeatureEnabled: Bool {
+    var isFeatureEnabled: Bool {
         featureEnabled
     }
 
@@ -247,7 +247,6 @@ final class PrivateDiscriminatorStore: NSObject {
         }
     }
 
-    @objc(displayTitleForDisplayItem:fallback:)
     func displayTitle(for _: DisplayItem, fallback: String?) -> String? {
         guard featureEnabled, let fallback, !fallback.isEmpty else {
             return fallback
@@ -256,7 +255,6 @@ final class PrivateDiscriminatorStore: NSObject {
         return cleaned.isEmpty ? fallback : cleaned
     }
 
-    @objc(isPrivateDisplayItem:)
     func isPrivateDisplayItem(_ item: DisplayItem) -> Bool {
         guard featureEnabled else {
             return false
@@ -264,7 +262,6 @@ final class PrivateDiscriminatorStore: NSObject {
         return parsedPrivateDiscriminator(for: item) != nil
     }
 
-    @objc(appendingPrivateDiscriminatorGroupToGroups:forDisplayItem:)
     func appendingPrivateDiscriminatorGroup(to groups: [AttributesGroup], for item: DisplayItem) -> [AttributesGroup] {
         guard featureEnabled, let descriptor = dashboardDescriptor(for: item) else {
             return groups
@@ -280,7 +277,6 @@ final class PrivateDiscriminatorStore: NSObject {
         return result
     }
 
-    @objc(submitPrivateDiscriminatorForDisplayItem:module:filename:error:)
     func submitPrivateDiscriminator(for item: DisplayItem, module: String, filename: String, error: NSErrorPointer) -> Bool {
         do {
             guard let parsed = parsedPrivateDiscriminator(for: item) else {
@@ -306,7 +302,6 @@ final class PrivateDiscriminatorStore: NSObject {
         }
     }
 
-    @objc(importPrivateDiscriminatorFromCodebaseForDisplayItem:window:error:)
     func importPrivateDiscriminatorFromCodebase(for item: DisplayItem, window: NSWindow?, error: NSErrorPointer) -> Bool {
         do {
             guard let parsed = parsedPrivateDiscriminator(for: item) else {
@@ -340,7 +335,6 @@ final class PrivateDiscriminatorStore: NSObject {
         }
     }
 
-    @objc(beginSwiftPDGuessForDisplayItem:window:)
     func beginSwiftPDGuess(for item: DisplayItem, window: NSWindow?) {
         guard let parsed = parsedPrivateDiscriminator(for: item) else {
             return
@@ -407,7 +401,6 @@ final class PrivateDiscriminatorStore: NSObject {
         }
     }
 
-    @objc(cancelSwiftPDGuessForDisplayItem:)
     func cancelSwiftPDGuess(for item: DisplayItem) {
         guard let parsed = parsedPrivateDiscriminator(for: item),
               let task = activeGuessTasksByID[parsed.id]
@@ -1389,17 +1382,17 @@ private enum GuessState {
 }
 
 final class PrivateDiscriminatorDashboardPayload: NSObject {
-    @objc let discriminatorID: String
-    @objc let module: String
-    @objc let filename: String
-    @objc let source: String
-    @objc let displayClassName: String
-    @objc let isMatched: Bool
-    @objc let isVerified: Bool
-    @objc let warningText: String?
-    @objc let guessStatusText: String?
-    @objc let isGuessRunning: Bool
-    @objc let isGuessFailed: Bool
+    let discriminatorID: String
+    let module: String
+    let filename: String
+    let source: String
+    let displayClassName: String
+    let isMatched: Bool
+    let isVerified: Bool
+    let warningText: String?
+    let guessStatusText: String?
+    let isGuessRunning: Bool
+    let isGuessFailed: Bool
 
     fileprivate init(descriptor: DashboardDescriptor) {
         discriminatorID = descriptor.id

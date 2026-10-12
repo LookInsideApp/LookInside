@@ -9,11 +9,10 @@
 import Foundation
 
 class TableViewHorizontalScrollWidthManager: NSObject {
-    @objc var maxRowWidth: CGFloat = 0
+    var maxRowWidth: CGFloat = 0
 
-    @objc var didReachNewMaxWidth: (() -> Void)?
+    var didReachNewMaxWidth: (() -> Void)?
 
-    @objc(rowDidLayoutWithWidth:)
     func rowDidLayout(withWidth width: CGFloat) {
         guard width > maxRowWidth else {
             return

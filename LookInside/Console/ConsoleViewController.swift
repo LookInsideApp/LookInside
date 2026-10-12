@@ -20,18 +20,17 @@ final class ConsoleViewController: BaseViewController, TableViewDelegate, TableV
     private lazy var measuringReturnRowView = ConsoleReturnRowView()
     private var previousWidth: CGFloat = 0
 
-    @objc weak var liveDocument: LiveDocument? {
+    weak var liveDocument: LiveDocument? {
         didSet { dataSource.liveDocument = liveDocument }
     }
 
     /// Whether the Console is on screen; while it is, the highlighted
     /// hierarchy item can become the call target.
-    @objc var isControllerShowing: Bool {
+    var isControllerShowing: Bool {
         get { dataSource.isShowingConsole }
         set { dataSource.isShowingConsole = newValue }
     }
 
-    @objc(initWithHierarchyDataSource:)
     init(hierarchyDataSource: HierarchyDataSource) {
         dataSource = ConsoleDataSource(hierarchyDataSource: hierarchyDataSource)
         inputRowView = ConsoleInputRowView(dataSource: dataSource)
@@ -120,7 +119,6 @@ final class ConsoleViewController: BaseViewController, TableViewDelegate, TableV
     }
 
     /// Calls `text` on `obj` and adds the call to the transcript; errors are only logged.
-    @objc(submitWithObj:text:)
     func submit(with obj: InspectedObject?, text: String) {
         Task {
             do {

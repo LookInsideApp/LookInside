@@ -9,11 +9,11 @@
 import AppKit
 
 class BaseControl: NSControl {
-    @objc var clickAction: Selector?
+    var clickAction: Selector?
 
-    @objc var adjustAlphaWhenClick = false
+    var adjustAlphaWhenClick = false
 
-    @objc var didChangeAppearance: ((BaseControl?, Bool) -> Void)? {
+    var didChangeAppearance: ((BaseControl?, Bool) -> Void)? {
         didSet {
             triggerDidChangeAppearanceBlock()
         }
@@ -47,13 +47,12 @@ class BaseControl: NSControl {
         }
     }
 
-    @objc(addTarget:clickAction:)
     func addTarget(_ target: AnyObject?, clickAction action: Selector?) {
         self.target = target
         clickAction = action
     }
 
-    @objc func triggerClickAction() {
+    func triggerClickAction() {
         if let clickAction, target != nil {
             sendAction(clickAction, to: target)
         }
@@ -74,7 +73,7 @@ class BaseControl: NSControl {
     }
 
     /// 如果子类返回 true，则 mouseEntered: 和 mouseExited: 会被调用。默认为 false
-    @objc func shouldTrackMouseEnteredAndExited() -> Bool {
+    func shouldTrackMouseEnteredAndExited() -> Bool {
         false
     }
 

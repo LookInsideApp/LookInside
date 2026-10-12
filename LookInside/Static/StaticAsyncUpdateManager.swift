@@ -32,11 +32,11 @@ enum ModifyingUpdateEvent {
 final class StaticAsyncUpdateManager: NSObject {
     /// Set by the owner (window controller / live document), which holds it
     /// strongly.
-    @objc weak var hierarchyDataSource: StaticHierarchyDataSource?
+    weak var hierarchyDataSource: StaticHierarchyDataSource?
 
     /// The app every request goes to. The owner refreshes it when a new
     /// hierarchy arrives or the document reconnects.
-    @objc weak var inspectableApp: InspectableApp?
+    weak var inspectableApp: InspectableApp?
 
     weak var delegate: StaticAsyncUpdateManagerDelegate?
 
@@ -50,7 +50,6 @@ final class StaticAsyncUpdateManager: NSObject {
 
     private let dataSourceSignals = SyncSubscriptionBag()
 
-    @objc(initWithHierarchyDataSource:inspectableApp:)
     init(hierarchyDataSource: StaticHierarchyDataSource?, inspectableApp: InspectableApp?) {
         self.hierarchyDataSource = hierarchyDataSource
         self.inspectableApp = inspectableApp
@@ -71,7 +70,7 @@ final class StaticAsyncUpdateManager: NSObject {
     // MARK: - Public
 
     /// With fast mode off: after a reload, fetches the details of every item.
-    @objc func updateAll() {
+    func updateAll() {
         assert(!PreferenceManager.shared.fastMode.currentBOOLValue)
         guard inspectableApp != nil, let dataSource, !(dataSource.flatItems ?? []).isEmpty else {
             return
@@ -84,7 +83,7 @@ final class StaticAsyncUpdateManager: NSObject {
 
     /// With fast mode on: fetches the details of the visible items that do
     /// not have them yet. Call it whenever the displayed items change.
-    @objc func updateForDisplayingItems() {
+    func updateForDisplayingItems() {
         assert(PreferenceManager.shared.fastMode.currentBOOLValue)
         guard inspectableApp != nil else { return }
         let items = dataSource?.displayingFlatItems ?? []
@@ -95,7 +94,7 @@ final class StaticAsyncUpdateManager: NSObject {
     }
 
     /// Stops the running fetch.
-    @objc func endUpdating() {
+    func endUpdating() {
         guard ongoingRequest != nil else { return }
         #log(.default, "AsyncUpdate - endUpdating")
         // Completes the running details request synchronously, which runs
@@ -104,7 +103,7 @@ final class StaticAsyncUpdateManager: NSObject {
     }
 
     /// A method rather than a property: Swift callers use `isUpdating()`.
-    @objc func isUpdating() -> Bool {
+    func isUpdating() -> Bool {
         ongoingRequest != nil
     }
 
@@ -159,7 +158,6 @@ final class StaticAsyncUpdateManager: NSObject {
     }
 
     /// Fetches one item's screenshots and attributes again, not its sub items.
-    @objc(reloadSingleDisplayItem:)
     func reloadSingleDisplayItem(_ item: DisplayItem?) {
         let tasks = makeReloadSingleItemTasks(item)
         guard !tasks.isEmpty else { return }
@@ -167,7 +165,6 @@ final class StaticAsyncUpdateManager: NSObject {
     }
 
     /// Fetches an item and its sub items again, then their details.
-    @objc(reloadDisplayItemAndChildren:)
     func reloadDisplayItemAndChildren(_ rootItem: DisplayItem?) {
         // First the root item's basis, attributes and sub items.
         let tasks = makeReloadItemAndChildrenTasks(rootItem)

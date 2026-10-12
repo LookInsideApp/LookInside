@@ -7,10 +7,9 @@ import AppKit
 
 /// A colour pair resolved against the app's current appearance.
 final class TwoColors: NSObject {
-    @objc var colorInLightMode: NSColor?
-    @objc var colorInDarkMode: NSColor?
+    var colorInLightMode: NSColor?
+    var colorInDarkMode: NSColor?
 
-    @objc(colorsWithColorInLightMode:colorInDarkMode:)
     static func colors(inLightMode colorInLightMode: NSColor?, inDarkMode colorInDarkMode: NSColor?) -> TwoColors {
         let colors = TwoColors()
         colors.colorInLightMode = colorInLightMode
@@ -28,7 +27,7 @@ final class TwoColors: NSObject {
 
     /// The dark colour while the app's effective appearance is dark, the
     /// light one otherwise.
-    @objc var color: NSColor? {
+    var color: NSColor? {
         let isDarkMode = NSApp?.effectiveAppearance.isDarkMode ?? false
         return isDarkMode ? colorInDarkMode : colorInLightMode
     }

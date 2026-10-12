@@ -13,7 +13,6 @@ import AppKit
 
 @MainActor
 final class LiveDocumentController: NSObject {
-    @objc(sharedInstance)
     static let shared = LiveDocumentController()
 
     override private init() {
@@ -42,7 +41,6 @@ final class LiveDocumentController: NSObject {
     /// Objective-C form of `openLiveDocument(for:)`. `completion` runs on
     /// the main thread before this returns; with a nil app it gets
     /// `LookinErr_Inner` and no document.
-    @objc(openLiveDocumentForInspectableApp:completion:)
     func openLiveDocument(
         for app: InspectableApp?,
         completion: ((LiveDocument?, Bool, NSError?) -> Void)?
@@ -56,7 +54,6 @@ final class LiveDocumentController: NSObject {
     }
 
     /// The live document whose app uses `channel`, or nil.
-    @objc(liveDocumentForChannel:)
     func liveDocument(for channel: ServerChannel?) -> LiveDocument? {
         guard let channel else { return nil }
         return NSDocumentController.shared.documents

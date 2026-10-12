@@ -15,13 +15,13 @@ extension NSColor {
     }
 
     /// "(15, 17, 19)" when opaque, "(15, 17, 19, 0.50)" otherwise.
-    @objc func rgbaString() -> String {
+    func rgbaString() -> String {
         let rgba = sRGBComponentValues
         return ClientDisplayText.rgbaString(red: rgba.red, green: rgba.green, blue: rgba.blue, alpha: rgba.alpha)
     }
 
     /// "#0f1113" when opaque, "#0f111380" otherwise.
-    @objc func hexString() -> String {
+    func hexString() -> String {
         let rgba = sRGBComponentValues
         return ClientDisplayText.hexString(red: rgba.red, green: rgba.green, blue: rgba.blue, alpha: rgba.alpha)
     }
