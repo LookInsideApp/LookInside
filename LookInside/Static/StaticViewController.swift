@@ -43,8 +43,8 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     private let fastModeTipView = TipsView()
     private let serverUpgradeTipView = TipsView()
 
-    /// Read with KVC by the DEBUG UI snapshots.
-    @objc let dashboardController: DashboardViewController
+    /// Read by the DEBUG UI snapshots.
+    let dashboardController: DashboardViewController
     private let hierarchyController: StaticHierarchyController
     private var consoleController: ConsoleViewController?
     private let measureController: MeasureController
@@ -559,7 +559,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         let item = dataSource?.selectedItem
 
         let showsTooLargeTip = item != nil
-            && item?.optionalAppropriateScreenshot == nil
+            && item?.appropriateScreenshot() == nil
             && item?.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge
         if tooLargeToSyncScreenshotTipsView.isHidden != !showsTooLargeTip {
             tooLargeToSyncScreenshotTipsView.isHidden = !showsTooLargeTip

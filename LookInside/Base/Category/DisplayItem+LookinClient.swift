@@ -51,7 +51,7 @@ extension DisplayItem {
 
     /// The solo screenshot once children that draw something are shown on
     /// their own; the group screenshot otherwise.
-    @objc func appropriateScreenshot() -> NSImage? {
+    func appropriateScreenshot() -> NSImage? {
         // A node whose children are all pixelless (layout guides, cells, a
         // view's outer layer) has nothing to exclude, and a leaf view has no
         // solo screenshot at all — asking for one there blanks it out.

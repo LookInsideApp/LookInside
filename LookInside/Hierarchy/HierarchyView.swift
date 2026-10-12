@@ -64,9 +64,8 @@ protocol HierarchyViewDelegate: AnyObject {
 
 class HierarchyView: BaseView {
     let tableView: TableView
-    /// The filter field under the rows. The DEBUG UI snapshots type into it
-    /// and read it by key.
-    @objc let searchTextFieldView: TextFieldView
+    /// The filter field under the rows. The DEBUG UI snapshots type into it.
+    let searchTextFieldView: TextFieldView
     var dataSource: HierarchyDataSource
     /// Phase A 引入:由 owner(StaticHierarchyController / StaticViewController 链路)注入的 per-instance update manager(weak)。
     /// 若 nil 则 fallback 到 +sharedInstance,以保留 read-only / archive workspace 的 legacy 行为。

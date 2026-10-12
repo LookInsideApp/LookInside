@@ -313,18 +313,15 @@
         /// Types into the hierarchy's filter field as the user would; nil
         /// ends the filter through its close button path.
         private func filterHierarchy(_ viewController: StaticViewController, text: String?) async throws {
-            guard let hierarchyView = viewController.currentHierarchyView(),
-                  let field = hierarchyView.value(forKey: "searchTextFieldView") as? TextFieldView
-            else { throw SnapshotError("the hierarchy view has no filter field") }
-            field.textField.stringValue = text ?? ""
+            guard let hierarchyView = viewController.currentHierarchyView()
+            else { throw SnapshotError("the inspector has no hierarchy view") }
+            hierarchyView.searchTextFieldView.textField.stringValue = text ?? ""
             hierarchyView.delegate?.hierarchyView(hierarchyView, didInputSearch: text)
         }
 
         private func dashboardContentView(of viewController: StaticViewController) throws -> NSView {
-            guard let dashboard = viewController.value(forKey: "dashboardController") as? NSViewController,
-                  let scrollView = dashboard.value(forKey: "scrollView") as? NSScrollView,
-                  let content = scrollView.documentView
-            else { throw SnapshotError("the dashboard has no scroll view") }
+            guard let content = viewController.dashboardController.scrollView.documentView
+            else { throw SnapshotError("the dashboard's scroll view has no document view") }
             return content
         }
 

@@ -110,7 +110,6 @@ final class StaticAsyncUpdateManager: NSObject {
     /// Fetches the screenshots of `displayItem` (solo and group) and the
     /// group screenshots of its ancestors after an attribute was modified.
     /// Progress goes to `modifyingUpdates`.
-    @objc(updateAfterModifyingDisplayItem:)
     func updateAfterModifyingDisplayItem(_ displayItem: DisplayItem?) {
         guard let app = inspectableApp else { return }
         guard let displayItem else {
@@ -195,7 +194,7 @@ final class StaticAsyncUpdateManager: NSObject {
                 return nil
             }
             if item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
-                // Mirrors -appropriateScreenshot: a node showing its group
+                // Mirrors appropriateScreenshot(): a node showing its group
                 // screenshot must not have the solo one fetched first, or the
                 // preview waits on an image it will never display.
                 if item.isExpandable, item.isExpanded, item.hasPixelBearingSubitems() {
@@ -229,7 +228,7 @@ final class StaticAsyncUpdateManager: NSObject {
             if item.isUserCustom() {
                 return nil
             }
-            if item.optionalAppropriateScreenshot != nil {
+            if item.appropriateScreenshot() != nil {
                 // Has its image, and so its attributes too.
                 return nil
             }

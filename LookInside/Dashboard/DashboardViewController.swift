@@ -15,8 +15,8 @@ import FoundationToolbox
 /// document read from a file is read-only.
 @Loggable(subsystem: "com.lookinside.app")
 final class DashboardViewController: BaseViewController, DashboardCardViewDelegate, DashboardHeaderViewDelegate, DashboardSearchPropertyViewDelegate, DashboardSearchMethodsViewDelegate {
-    /// Read by key by the DEBUG UI snapshots.
-    @objc let scrollView = NSScrollView()
+    /// Read by the DEBUG UI snapshots.
+    let scrollView = NSScrollView()
     private let documentView = BaseView()
     private let cardContainerView = BaseView()
     private let searchContainerView = BaseView()
@@ -315,7 +315,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         DashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent = false
 
         if DashboardBlueprint.needPatchAfterModification(withAttrID: attribute.identifier), let modifyingItem {
-            _ = asyncUpdateManager?.perform(Selector(("updateAfterModifyingDisplayItem:")), with: modifyingItem)
+            asyncUpdateManager?.updateAfterModifyingDisplayItem(modifyingItem)
         }
     }
 
