@@ -42,3 +42,7 @@ Use [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release) wi
 ## License
 
 GPL-3.0. See [`LICENSE`](LICENSE).
+
+## Sponsor
+
+This project is sponsored by [AirBuild](https://air.build/).
