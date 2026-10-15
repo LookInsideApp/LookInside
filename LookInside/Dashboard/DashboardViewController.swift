@@ -190,6 +190,9 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
     private func groupList(for item: DisplayItem?) -> [AttributesGroup] {
         guard let item else { return [] }
         let groups = PrivateDiscriminatorStore.shared.appendingPrivateDiscriminatorGroup(to: item.queryAllAttrGroupList(), for: item)
+        // Older servers send some object attributes untyped; the cards, the
+        // search and the edits all read the repaired type.
+        DashboardModification.typeUntypedAttributes(in: groups)
         // Cards are keyed by uniqueKey, so a duplicated key would lay the
         // shared card out twice and leave a blank gap. Servers 0.2.8 and
         // 0.2.9 sent a duplicate Layout group for UIWindowScene nodes.

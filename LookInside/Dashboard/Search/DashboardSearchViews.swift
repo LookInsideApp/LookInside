@@ -116,7 +116,12 @@ final class DashboardSearchPropertyView: DashboardSearchCardView {
     /// The attribute's value as one line of text.
     static func stringValue(of attribute: InspectedAttribute) -> String {
         switch attribute.attrType {
-        case .none, .void, .customObj:
+        case .none:
+            // Still untyped after DashboardModification.typeUntypedAttributes:
+            // the server's data, with nothing to show.
+            return ""
+
+        case .void, .customObj:
             assertionFailure()
             return ""
 

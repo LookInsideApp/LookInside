@@ -209,9 +209,13 @@ final class DashboardSectionView: BaseView {
         for attr in attrSection.attributes ?? [] {
             guard let viewClass = Self.attrViewClass(for: attr.attrType, identifier: attr.identifier) else {
                 // Debug builds stop here so a missing case surfaces at once;
-                // release builds skip the attribute and log it.
+                // release builds skip the attribute and log it. An attribute
+                // still untyped after DashboardModification.typeUntypedAttributes
+                // is the server's data, not a case missing here.
                 #log(.default, "LookInside dashboard: skipping attribute with unsupported attrType=\(attr.attrType.rawValue, privacy: .public) identifier=\(attr.identifier ?? "nil", privacy: .public)")
-                assertionFailure("LookInside dashboard: no attrView class for attrType=\(attr.attrType.rawValue) identifier=\(attr.identifier ?? "nil")")
+                if attr.attrType != .none {
+                    assertionFailure("LookInside dashboard: no attrView class for attrType=\(attr.attrType.rawValue) identifier=\(attr.identifier ?? "nil")")
+                }
                 continue
             }
             let view: DashboardAttributeView

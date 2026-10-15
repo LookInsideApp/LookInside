@@ -18,6 +18,7 @@ struct DashboardTests {
         testInbuiltPayloadWithoutSetter()
         testCustomPayload()
         testCustomPayloadWithoutSetter()
+        testUntypedAttributesTakeTheBlueprintType()
         testEditedGeometryValues()
         testNumberValueClampsOpacity()
         testRectEditRevertDetection()
@@ -160,6 +161,32 @@ struct DashboardTests {
         attribute.customSetterID = ""
         expect(DashboardModification.custom(attribute: attribute, newValue: "x") == nil,
                "an empty setter id must not be sent")
+    }
+
+    // MARK: - Received attributes
+
+    private static func testUntypedAttributesTakeTheBlueprintType() {
+        // What a server built before the blueprint fix sends for -autosaveName.
+        let autosaveName = InspectedAttribute()
+        autosaveName.identifier = LookinAttr_NSTableView_AutosaveName_AutosaveName
+        autosaveName.value = "Sidebar"
+        let unknown = InspectedAttribute()
+        unknown.identifier = "app.untyped"
+        let typed = InspectedAttribute()
+        typed.identifier = LookinAttr_NSTableView_AllowsTypeSelect_AllowsTypeSelect
+        typed.attrType = .BOOL
+        let section = AttributesSection()
+        section.attributes = [autosaveName, unknown, typed]
+        let group = AttributesGroup()
+        group.attrSections = [section]
+
+        DashboardModification.typeUntypedAttributes(in: [group])
+
+        expect(autosaveName.attrType == .nsString, "an untyped attribute takes the blueprint's object type")
+        expect(unknown.attrType == .none, "an identifier the blueprint does not know stays untyped")
+        expect(typed.attrType == .BOOL, "a type the server sent is kept")
+        let payload = DashboardModification.inbuilt(attribute: autosaveName, newValue: "Main", clientReadableVersion: clientVersion)
+        expect(payload?.attrType == .nsString, "an edit is sent with the repaired type")
     }
 
     // MARK: - Edited values

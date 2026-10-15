@@ -54,6 +54,23 @@ enum DashboardModification {
         return modification
     }
 
+    // MARK: - Received attributes
+
+    /// Gives untyped attributes the object type this host's blueprint
+    /// declares for their identifier. Servers built before the blueprint gave
+    /// NSTableView's AutosaveName a typeIfObj send it untyped, which no
+    /// attribute view can show; the attribute itself takes the type because
+    /// the edits above are typed from it.
+    static func typeUntypedAttributes(in groups: [AttributesGroup]) {
+        for group in groups {
+            for section in group.attrSections ?? [] {
+                for attribute in section.attributes ?? [] where attribute.attrType == .none {
+                    attribute.attrType = DashboardBlueprint.objectAttrType(withAttrID: attribute.identifier)
+                }
+            }
+        }
+    }
+
     // MARK: - Edited values
 
     /// The attributes whose number is an opacity, kept within 0...1.
