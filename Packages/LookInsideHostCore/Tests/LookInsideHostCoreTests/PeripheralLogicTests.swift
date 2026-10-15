@@ -91,6 +91,27 @@ struct MeasureGuidesTests {
         #expect(frames.refer == CGRect(x: 20, y: 0, width: 20, height: 20))
     }
 
+    @Test func bottomUpRootSpaceIsMirroredIntoThePanel() {
+        // An AppKit window, whose frameToRoot grows upward: a segmented
+        // control sits 10 points above a search field.
+        let segmentedControl = CGRect(x: 10, y: 400, width: 300, height: 20)
+        let searchField = CGRect(x: 10, y: 362, width: 272, height: 28)
+        let main = MeasureGuides.topDownFrame(segmentedControl, rootSpaceIsBottomUp: true)
+        let refer = MeasureGuides.topDownFrame(searchField, rootSpaceIsBottomUp: true)
+        // The panel lays out top-down, so the segmented control stays on top.
+        let frames = MeasureGuides.scaledFrames(main: main, refer: refer, factor: 1)
+        #expect(frames.main == CGRect(x: 0, y: 0, width: 300, height: 20))
+        #expect(frames.refer == CGRect(x: 0, y: 30, width: 272, height: 28))
+        // The gap still reads 10.
+        #expect(MeasureGuides.verticalLines(a: frames.main, b: frames.refer, originalA: main, originalB: refer)
+            == [.init(startY: 20, endY: 30, x: 150, value: 10)])
+    }
+
+    @Test func topDownRootSpaceIsLeftAsItIs() {
+        let frame = CGRect(x: 10, y: 400, width: 300, height: 20)
+        #expect(MeasureGuides.topDownFrame(frame, rootSpaceIsBottomUp: false) == frame)
+    }
+
     @Test func overlapDimsTheOuterFrame() {
         let outer = CGRect(x: 0, y: 0, width: 100, height: 100)
         let inner = CGRect(x: 10, y: 10, width: 10, height: 10)

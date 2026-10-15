@@ -155,8 +155,13 @@ final class MeasureController: BaseViewController {
             return
         }
 
-        let selectedFrame = selectedItem.calculateFrameToRoot()
-        let hoveredFrame = hoveredItem.calculateFrameToRoot()
+        // AppKit targets' frameToRoot grows upward and the panel lays out
+        // top-down; DisplayItemNode makes the same split for the 3D preview.
+        let rootSpaceIsBottomUp = AppHelper.appInfoLooksLikeMacTarget(dataSource.rawHierarchyInfo?.appInfo)
+        let selectedFrame = MeasureGuides.topDownFrame(selectedItem.calculateFrameToRoot(),
+                                                       rootSpaceIsBottomUp: rootSpaceIsBottomUp)
+        let hoveredFrame = MeasureGuides.topDownFrame(hoveredItem.calculateFrameToRoot(),
+                                                      rootSpaceIsBottomUp: rootSpaceIsBottomUp)
         let invalid: (item: DisplayItem, property: String)? =
             if selectedFrame.width <= 0 {
                 (selectedItem, NSLocalizedString("width", comment: ""))

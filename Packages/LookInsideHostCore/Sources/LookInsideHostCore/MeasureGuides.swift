@@ -3,6 +3,7 @@
 //
 // "Main" is the selected item, "refer" the hovered one. Lines are computed on
 // the scaled frames; the numbers they show come from the original frames.
+// Every frame is top-down: AppKit frames go through `topDownFrame` first.
 
 import CoreGraphics
 
@@ -64,6 +65,15 @@ public enum MeasureGuides {
             case .disjoint: (1, 1)
             }
         }
+    }
+
+    /// `frame` in the panel's top-down space. AppKit targets' frameToRoot
+    /// grows upward (`rootSpaceIsBottomUp`), so it is mirrored around y = 0;
+    /// only the frames' positions relative to each other matter, and
+    /// `scaledFrames` moves them back to the origin.
+    public static func topDownFrame(_ frame: CGRect, rootSpaceIsBottomUp: Bool) -> CGRect {
+        guard rootSpaceIsBottomUp else { return frame }
+        return CGRect(x: frame.minX, y: -frame.maxY, width: frame.width, height: frame.height)
     }
 
     /// The width and height of the union of the two frames' extents.
