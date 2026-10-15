@@ -12,7 +12,7 @@ class ColorIndicatorLayer: CALayer {
     private var imageLayer: CALayer?
 
     /// Defaults to black.
-    @objc var color: NSColor? = .rgb255(0, 0, 0) {
+    var color: NSColor? = .rgb255(0, 0, 0) {
         didSet { updateForColor() }
     }
 
@@ -82,7 +82,6 @@ class ColorIndicatorLayer: CALayer {
     private static let renderingLayer = ColorIndicatorLayer()
 
     /// The swatch drawn into an image of `shapeSize` plus `insets`.
-    @objc(imageWithColor:shapeSize:insets:)
     static func image(with color: NSColor?, shapeSize: NSSize, insets: NSEdgeInsets) -> NSImage {
         let layer = renderingLayer
         let image = NSImage(size: NSSize(width: shapeSize.width + insets.left + insets.right, height: shapeSize.height + insets.top + insets.bottom))

@@ -54,11 +54,11 @@ final class LaunchAppView: BaseControl {
     }
 
     /// The smaller metrics the apps popover uses. Defaults to false.
-    @objc var compactLayout = false {
+    var compactLayout = false {
         didSet { applyLayoutMetrics() }
     }
 
-    @objc var app: InspectableApp? {
+    var app: InspectableApp? {
         didSet { appDidChange() }
     }
 

@@ -14,14 +14,13 @@ import UniformTypeIdentifiers
 final class ExportManager: NSObject {
     private static let shared = ExportManager()
 
-    @objc class func sharedInstance() -> ExportManager {
+    class func sharedInstance() -> ExportManager {
         shared
     }
 
     /// The archive data of `info`, with every screenshot scaled by
     /// `compression` (clamped to 0.01...1). When `fileName` is given it
     /// receives the suggested file name.
-    @objc(dataFromHierarchyInfo:imageCompression:fileName:)
     func data(from info: HierarchyInfo,
               imageCompression compression: CGFloat,
               fileName: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Data?
@@ -86,7 +85,6 @@ final class ExportManager: NSObject {
 
     /// Asks where to save `displayItem`'s group screenshot and writes it as TIFF.
     @MainActor
-    @objc(exportScreenshotWithDisplayItem:)
     class func exportScreenshot(with displayItem: DisplayItem) {
         guard let image = displayItem.groupScreenshot,
               let imageData = image.tiffRepresentation(using: .lzw, factor: 1)

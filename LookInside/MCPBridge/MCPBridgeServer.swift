@@ -25,7 +25,7 @@ import FoundationToolbox
 final class MCPBridgeServer: NSObject {
     // MARK: - Singleton
 
-    @objc static let sharedInstance = MCPBridgeServer()
+    static let sharedInstance = MCPBridgeServer()
 
     // MARK: - Configuration
 
@@ -108,7 +108,7 @@ final class MCPBridgeServer: NSObject {
 
     // MARK: - Lifecycle
 
-    @objc func start() {
+    func start() {
         stateQueue.async { [weak self] in
             guard let self else { return }
             guard self.isRunning == false else { return }
@@ -124,7 +124,7 @@ final class MCPBridgeServer: NSObject {
         }
     }
 
-    @objc func stop() {
+    func stop() {
         stateQueue.async { [weak self] in
             guard let self else { return }
             guard self.isRunning else { return }

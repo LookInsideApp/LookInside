@@ -14,7 +14,6 @@ import AppKit
 final class ReadHierarchyDataSource: HierarchyDataSource {
     private let readPreferenceManager: PreferenceManager
 
-    @objc(initWithFile:preferenceManager:)
     init(file: HierarchyFile, preferenceManager manager: PreferenceManager) {
         readPreferenceManager = manager
         super.init()

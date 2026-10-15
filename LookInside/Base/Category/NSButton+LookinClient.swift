@@ -7,7 +7,6 @@ import AppKit
 
 extension NSButton {
     /// A rounded push button, already sized 84×40.
-    @objc(lk_normalButtonWithTitle:target:action:)
     static func normalButton(withTitle title: String, target: AnyObject?, action: Selector?) -> NSButton {
         let button = NSButton()
         button.bezelStyle = .rounded
@@ -20,7 +19,6 @@ extension NSButton {
     }
 
     /// A borderless image-only button; size it yourself.
-    @objc(lk_buttonWithImage:target:action:)
     static func borderlessImageButton(with image: NSImage?, target: AnyObject?, action: Selector?) -> NSButton {
         let button = NSButton()
         button.image = image

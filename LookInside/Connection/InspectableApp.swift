@@ -22,11 +22,11 @@ enum AppResponseEvent {
 final class InspectableApp: NSObject {
     /// Set when the app's Server is too old or too new for this Host, or
     /// answered the app info request with another error.
-    @objc dynamic var serverVersionError: NSError?
+    var serverVersionError: NSError?
 
-    @objc dynamic var appInfo: InspectedAppInfo?
+    var appInfo: InspectedAppInfo?
 
-    @objc dynamic weak var channel: ServerChannel?
+    weak var channel: ServerChannel?
 
     // MARK: - Requests
 
@@ -215,7 +215,6 @@ extension InspectableApp {
 
     /// Stops the running hierarchy details request: it completes, and the
     /// Server is told to stop sending.
-    @objc
     @MainActor
     func cancelHierarchyDetailFetching() {
         cancelRequest(type: UInt32(LookinRequestTypeHierarchyDetails))

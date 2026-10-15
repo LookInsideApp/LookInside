@@ -15,11 +15,11 @@ import FoundationToolbox
 @Loggable(subsystem: "com.lookinside.app")
 class DashboardAttributeView: BaseView {
     /// Setting the attribute renders it.
-    @objc var attribute: InspectedAttribute? {
+    var attribute: InspectedAttribute? {
         didSet { renderWithAttribute() }
     }
 
-    @objc weak var dashboardViewController: DashboardViewController? {
+    weak var dashboardViewController: DashboardViewController? {
         didSet { dashboardViewControllerDidChange() }
     }
 
@@ -35,7 +35,7 @@ class DashboardAttributeView: BaseView {
     /// Whether the user can change the value: a user-custom attribute with
     /// a setter, or a known attribute with a setter on a live (not read
     /// from file) dashboard.
-    @objc func canEdit() -> Bool {
+    func canEdit() -> Bool {
         guard let attribute else { return false }
         if attribute.isUserCustom() {
             return !(attribute.customSetterID ?? "").isEmpty
@@ -45,11 +45,11 @@ class DashboardAttributeView: BaseView {
     }
 
     /// Reads `attribute` and renders it.
-    @objc func renderWithAttribute() {}
+    func renderWithAttribute() {}
 
     /// How many of this view fit in a row: 1 takes the whole row, 0 sizes
     /// the view to its content.
-    @objc func numberOfColumnsOccupied() -> Int {
+    func numberOfColumnsOccupied() -> Int {
         1
     }
 
@@ -92,10 +92,9 @@ class DashboardAttributeView: BaseView {
 /// fields ignore that second end-of-editing so the value is not submitted
 /// twice.
 final class DashboardTextControlEditingFlag: NSObject {
-    @objc(sharedInstance)
     static let shared = DashboardTextControlEditingFlag()
 
-    @objc var shouldIgnoreTextEditingChangeEvent = false
+    var shouldIgnoreTextEditingChangeEvent = false
 
     override private init() {
         super.init()

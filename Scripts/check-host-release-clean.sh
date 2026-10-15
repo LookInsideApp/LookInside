@@ -11,17 +11,17 @@
 # which reads LOOKINSIDE_ACTIVATION_API_BASE_URL (a different activation
 # service) and LOOKINSIDE_ACTIVATION_TEST_ROOT_ID /
 # LOOKINSIDE_ACTIVATION_TEST_ROOT_PUBLIC_KEY_PEM (an extra trusted root) from
-# the environment, and the end-to-end dump (DebugE2E/: LKDebugE2EDump,
-# LookinSnapshotNormalizer) reads LOOKINSIDE_DEBUG_E2E_*, and the UI
-# snapshots (DebugE2E/: LKDebugUISnapshots, LKDebugWindowImage) read
+# the environment, and the end-to-end dump (DebugE2E/: DebugE2EDump,
+# SnapshotNormalizer) reads LOOKINSIDE_DEBUG_E2E_*, and the UI
+# snapshots (DebugE2E/: DebugUISnapshots, DebugWindowImage) read
 # LOOKINSIDE_DEBUG_UI_SNAPSHOT_*. A Release build
 # compiles them out; this check proves it on the shipped bundle.
 #
 # A path fails when any of the following holds:
 #   - a file in it contains ActivationDebugOverrides, any
 #     LOOKINSIDE_ACTIVATION_*, LOOKINSIDE_DEBUG_E2E_* or
-#     LOOKINSIDE_DEBUG_UI_SNAPSHOT_* string, the LKDebugE2EDump,
-#     LKDebugUISnapshots, LKDebugWindowImage or LookinSnapshotNormalizer
+#     LOOKINSIDE_DEBUG_UI_SNAPSHOT_* string, the DebugE2EDump,
+#     DebugUISnapshots, DebugWindowImage or SnapshotNormalizer Swift type
 #     name, or a LookinServer
 #     license test-hook
 #     marker (test_setOverrideRootCertificateDER, sLKSTestOverrideRoot,
@@ -34,7 +34,7 @@
 #   - release mode only: it holds no app bundle, or an outermost app bundle's
 #     Contents/Info.plist has an empty or missing SUPublicEDKey or SUFeedURL.
 #     Only the release workflows inject SPARKLE_PUBLIC_ED_KEY; a build without
-#     it silently skips the updater (LKAppMenuManager), so a release must
+#     it silently skips the updater (AppMenuManager), so a release must
 #     never ship one.
 # Release mode (--release-strict) is the default. --local-build skips only
 # the Sparkle check, for local Release builds that have no updater key.
@@ -84,8 +84,11 @@ mkdir -p "$SCRATCH_PARENT" || exit 2
 WORK_DIR="$(mktemp -d "$SCRATCH_PARENT/check-host-release-clean.XXXXXX")" || exit 2
 trap 'rm -rf "$WORK_DIR"' EXIT
 
-MARKERS_RE='ActivationDebugOverrides|LOOKINSIDE_ACTIVATION_[A-Z0-9_]+|LOOKINSIDE_DEBUG_E2E_[A-Z0-9_]+|LOOKINSIDE_DEBUG_UI_SNAPSHOT_[A-Z0-9_]+|LKDebugE2EDump|LKDebugUISnapshots|LKDebugWindowImage|LookinSnapshotNormalizer|test_setOverrideRootCertificateDER|sLKSTestOverrideRoot|LOOKINSIDE_ENABLE_LICENSE_TEST_HOOKS'
-SYMBOL_RE='ActivationDebugOverrides|LKDebugE2EDump|LKDebugUISnapshots|LKDebugWindowImage|LookinSnapshotNormalizer'
+# The DebugE2E types have no Objective-C names, so they are matched by their
+# Swift type names. Scripts/test-check-host-release-clean.sh fails when a type
+# there is renamed and these lists are not.
+MARKERS_RE='ActivationDebugOverrides|LOOKINSIDE_ACTIVATION_[A-Z0-9_]+|LOOKINSIDE_DEBUG_E2E_[A-Z0-9_]+|LOOKINSIDE_DEBUG_UI_SNAPSHOT_[A-Z0-9_]+|DebugE2EDump|DebugUISnapshots|DebugWindowImage|SnapshotNormalizer|test_setOverrideRootCertificateDER|sLKSTestOverrideRoot|LOOKINSIDE_ENABLE_LICENSE_TEST_HOOKS'
+SYMBOL_RE='ActivationDebugOverrides|DebugE2EDump|DebugUISnapshots|DebugWindowImage|SnapshotNormalizer'
 
 findings=0
 usage_errors=0

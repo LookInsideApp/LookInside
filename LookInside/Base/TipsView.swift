@@ -8,34 +8,34 @@ import AppKit
 /// A pill-shaped notice: optional image, a title, and an optional button
 /// after a separator.
 class TipsView: BaseView {
-    @objc weak var bindingObject: AnyObject?
+    weak var bindingObject: AnyObject?
 
-    @objc var title: String? {
+    var title: String? {
         didSet { titleLabel.stringValue = title ?? "" }
     }
 
     /// Set `buttonText` or `buttonImage` rather than editing the button.
-    @objc let button = NSButton()
+    let button = NSButton()
 
     /// Only one of `buttonText` and `buttonImage` takes effect; set one.
-    @objc var buttonText: String? {
+    var buttonText: String? {
         didSet { updateButton() }
     }
 
-    @objc var buttonImage: NSImage? {
+    var buttonImage: NSImage? {
         didSet { updateButton() }
     }
 
-    @objc var image: NSImage? {
+    var image: NSImage? {
         didSet {
             imageView.image = image
             imageView.isHidden = image == nil
         }
     }
 
-    @objc weak var target: AnyObject?
-    @objc var clickAction: Selector?
-    @objc var didClick: ((TipsView) -> Void)?
+    weak var target: AnyObject?
+    var clickAction: Selector?
+    var didClick: ((TipsView) -> Void)?
 
     let titleLabel = TextLabel()
     private let imageView = NSImageView()
@@ -134,7 +134,6 @@ class TipsView: BaseView {
         updateButton()
     }
 
-    @objc(setImageByDeviceType:)
     func setImage(byDeviceType type: LookinAppInfoDevice) {
         switch type {
         case .mac, .macCatalyst:
@@ -154,7 +153,6 @@ class TipsView: BaseView {
 
     /// Prefers the icon of the hardware model the app runs on, falling back
     /// to the device family's icon when the Server reports no model.
-    @objc(setImageByAppInfo:)
     func setImage(byAppInfo appInfo: InspectedAppInfo?) {
         if let deviceIcon = DeviceIconProvider.deviceIcon(forAppInfo: appInfo, pointSize: DeviceIconProvider.tipsPointSize) {
             image = deviceIcon
@@ -167,7 +165,6 @@ class TipsView: BaseView {
         setImage(byDeviceType: appInfo?.deviceType ?? .simulator)
     }
 
-    @objc(setInternalInsetsRight:)
     func setInternalInsetsRight(_ value: CGFloat) {
         insetRightWithButton = value
         insetRightWithoutButton = value
@@ -211,7 +208,7 @@ class TipsView: BaseView {
 class YellowTipsView: TipsView {
     private var isAnimating = false
 
-    @objc func startAnimation() {
+    func startAnimation() {
         guard !isAnimating else { return }
         let animation = CABasicAnimation(keyPath: "backgroundColor")
         if effectiveAppearance.isDarkMode {
@@ -229,7 +226,7 @@ class YellowTipsView: TipsView {
         isAnimating = true
     }
 
-    @objc func endAnimation() {
+    func endAnimation() {
         layer?.removeAllAnimations()
         isAnimating = false
     }
@@ -248,7 +245,7 @@ class YellowTipsView: TipsView {
 
 /// A red notice that pulses, used for connection loss.
 class RedTipsView: TipsView {
-    @objc func startAnimation() {
+    func startAnimation() {
         let animation = CABasicAnimation(keyPath: "backgroundColor")
         animation.fromValue = NSColor.rgb255(208, 2, 27, 0.9).cgColor
         animation.toValue = NSColor.rgb255(208, 2, 27, 0.7).cgColor
@@ -259,7 +256,7 @@ class RedTipsView: TipsView {
         layer?.add(animation, forKey: nil)
     }
 
-    @objc func endAnimation() {
+    func endAnimation() {
         layer?.removeAllAnimations()
     }
 

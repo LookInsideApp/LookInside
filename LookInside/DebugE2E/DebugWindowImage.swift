@@ -13,7 +13,6 @@
     /// toolbar).
     final class DebugWindowImage: NSObject {
         /// PNG of `window`'s frame view: title bar and toolbar included.
-        @objc(pngDataOfWindow:)
         static func pngData(of window: NSWindow?) -> Data? {
             guard let window, let frameView = window.contentView?.superview ?? window.contentView else {
                 return nil

@@ -51,17 +51,15 @@ class ProgressIndicatorView: BaseView {
         return super.animation(forKey: key)
     }
 
-    @objc func resetToZero() {
+    func resetToZero() {
         progress = 0
     }
 
     /// Animates over 0.5 seconds.
-    @objc(animateToProgress:)
     func animate(toProgress progress: CGFloat) {
         animate(toProgress: progress, duration: 0.5)
     }
 
-    @objc(animateToProgress:duration:)
     func animate(toProgress progress: CGFloat, duration: TimeInterval) {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = duration
@@ -71,7 +69,6 @@ class ProgressIndicatorView: BaseView {
 
     /// Fills the bar, calls `completion`, then empties the bar 0.2 seconds
     /// later.
-    @objc(finishWithCompletion:)
     func finish(completion: (() -> Void)?) {
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.1

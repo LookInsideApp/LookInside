@@ -11,7 +11,6 @@ import AppKit
 import LookInsideHostCore
 
 extension AutoLayoutConstraint {
-    @objc(descriptionWithItemObject:type:detailed:)
     static func description(withItemObject object: InspectedObject?, type: LookinConstraintItemType, detailed: Bool) -> String {
         switch type {
         case .`nil`:
@@ -32,7 +31,6 @@ extension AutoLayoutConstraint {
         }
     }
 
-    @objc(descriptionWithAttributeInt:)
     static func description(withAttributeInt attribute: Int) -> String {
         if let name = ClientDisplayText.layoutAttributeName(attribute) {
             return name
@@ -41,7 +39,6 @@ extension AutoLayoutConstraint {
         return "unknownAttr(\(attribute))"
     }
 
-    @objc(symbolWithRelation:)
     static func symbol(with relation: NSLayoutConstraint.Relation) -> String {
         if let symbol = ClientDisplayText.layoutRelationSymbol(relation.rawValue) {
             return symbol
@@ -50,7 +47,6 @@ extension AutoLayoutConstraint {
         return "?"
     }
 
-    @objc(descriptionWithRelation:)
     static func description(with relation: NSLayoutConstraint.Relation) -> String {
         if let name = ClientDisplayText.layoutRelationName(relation.rawValue) {
             return name

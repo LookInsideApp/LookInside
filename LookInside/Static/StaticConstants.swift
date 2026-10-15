@@ -23,7 +23,7 @@ let previewMaxScale: CGFloat = 1
 let previewMinZInterspace: CGFloat = 0
 let previewMaxZInterspace: CGFloat = 1
 
-@objc enum PreviewDimension: UInt {
+enum PreviewDimension: UInt {
     case dimension2D
     case dimension3D
 }

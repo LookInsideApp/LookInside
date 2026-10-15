@@ -27,7 +27,7 @@ let toolbarIdentifierSwiftUIMode = "20"
 let toolbarIdentifierGestureDebug = "21"
 
 /// What opened the apps popover.
-@objc enum MenuPopoverAppsListControllerEventSource: Int {
+enum MenuPopoverAppsListControllerEventSource: Int {
     case reloadButton
     case noConnectionTips
     case appButton

@@ -4,7 +4,7 @@ import LookInsideActivation
 import LookInsideActivationUI
 import FoundationToolbox
 
-@objc public enum SwiftUISupportActivationState: Int, CustomDebugStringConvertible {
+public enum SwiftUISupportActivationState: Int, CustomDebugStringConvertible {
     case unknown
     case notActivated
     case activated
@@ -179,7 +179,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         }
     }
 
-    @objc public class func sharedInstance() -> SwiftUISupportGatekeeper {
+    public class func sharedInstance() -> SwiftUISupportGatekeeper {
         shared
     }
 
@@ -207,7 +207,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
 
     /// Stops the periodic re-evaluation when LookInside quits. The activation
     /// state on disk is left as it is.
-    @objc(shutdownRuntime)
     public func shutdownRuntime() {
         runtime.stopMonitoring()
     }
@@ -242,7 +241,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
 
     /// Callers include reloads and connection flows, so the alert for a
     /// warning or a block is a sheet on `window` and never a modal loop.
-    @objc(allowProtectedFeatureAccessForWindow:)
     public func allowProtectedFeatureAccess(for window: NSWindow?) -> Bool {
         let decision = accessDecisionForSynchronousCaller()
         switch decision.decision {
@@ -262,7 +260,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
         }
     }
 
-    @objc(canUseProtectedFeatureWithoutPrompt)
     public func canUseProtectedFeatureWithoutPrompt() -> Bool {
         accessDecisionForSynchronousCaller().grantsAccess
     }
@@ -314,20 +311,17 @@ public final class SwiftUISupportGatekeeper: NSObject {
     /// wait ends. Every handshake attempt, including a retry with a fresh
     /// challenge, asks first. A request on a channel without a handshake
     /// still runs; the Server then withholds the Pro features.
-    @objc(shouldStartLicenseHandshakeOnChannel:)
     public func shouldStartLicenseHandshake(onChannel channelID: String) -> Bool {
         runtime.allowsLicenseHandshake(onChannel: channelID)
     }
 
     /// Records that the Server on `channelID` rejected the 221 or sent a
     /// malformed 220, so the handshake is not repeated on that channel.
-    @objc(noteLicenseHandshakeFailedOnChannel:)
     public func noteLicenseHandshakeFailed(onChannel channelID: String) {
         runtime.noteLicenseHandshakeFailed(onChannel: channelID)
     }
 
     /// Forgets `channelID` after it disconnected.
-    @objc(licenseHandshakeChannelDidEnd:)
     public func licenseHandshakeChannelDidEnd(_ channelID: String) {
         runtime.noteLicenseHandshakeChannelEnded(channelID)
     }
@@ -341,7 +335,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
     /// the key back or signing fails.
     ///
     /// Blocks until the signature is ready; call it off the main thread.
-    @objc(signChallengeWithNonce:serverInstanceID:signature:intermediateCertDER:udid:error:)
     public func signChallenge(
         nonce: Data,
         serverInstanceID: String,
@@ -365,7 +358,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
     /// on that channel. `keyUseDuration`, when given, receives how long the
     /// key took in its turn (the keychain's time, including a prompt),
     /// without the time this call waited behind other uses of the key.
-    @objc(signChallengeWithNonce:serverInstanceID:channelID:signature:intermediateCertDER:udid:keyUseDuration:error:)
     public func signChallenge(
         nonce: Data,
         serverInstanceID: String,
@@ -397,14 +389,12 @@ public final class SwiftUISupportGatekeeper: NSObject {
 
     // MARK: - Windows
 
-    @objc(showActivationWindow)
     public func showActivationWindow() {
         onMain { coordinator in
             Task { await coordinator.showActivationWindow() }
         }
     }
 
-    @objc(showLicenseWindow)
     public func showLicenseWindow() {
         onMain { coordinator in
             Task { await coordinator.showLicenseWindow() }
@@ -413,7 +403,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
 
     /// Fetches the license status from the activation service, shows it in
     /// the license window and reports the result in an alert.
-    @objc(refreshLicenseStatus)
     public func refreshLicenseStatus() {
         let shouldStart: Bool = stateLock.withLock {
             guard !licenseStatusRefreshInFlight else { return false }
@@ -458,13 +447,11 @@ public final class SwiftUISupportGatekeeper: NSObject {
 
     // MARK: - SwiftUI detection prompt
 
-    @objc(promptForDetectedSwiftUISupportIfNeededForWindow:)
     public func promptForDetectedSwiftUISupportIfNeeded(window: NSWindow?) {
         noteDetectedSwiftUISupport()
         promptForPendingDetectedSwiftUISupportIfNeeded(window: window)
     }
 
-    @objc(noteDetectedSwiftUISupport)
     public func noteDetectedSwiftUISupport() {
         guard activationState != .activated else { return }
 
@@ -474,7 +461,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
         }
     }
 
-    @objc(promptForPendingDetectedSwiftUISupportIfNeededForWindow:)
     public func promptForPendingDetectedSwiftUISupportIfNeeded(window: NSWindow?) {
         guard activationState != .activated else { return }
 
@@ -613,7 +599,6 @@ private final class SwiftUISupportDecisionBox: @unchecked Sendable {
         /// DEBUG end-to-end hook (DebugE2EDump.swift): creates the license key
         /// in the test file keychain and returns a certificate request for
         /// it. See `ActivationRuntime.debugMakeTestKeyCertificateSigningRequestPEM`.
-        @objc(debugMakeTestKeyCertificateSigningRequestPEMWithCommonName:error:)
         func debugMakeTestKeyCertificateSigningRequestPEM(commonName: String) throws -> String {
             try runtime.debugMakeTestKeyCertificateSigningRequestPEM(commonName: commonName)
         }
@@ -622,7 +607,6 @@ private final class SwiftUISupportDecisionBox: @unchecked Sendable {
         /// other apps there, so its window never becomes key. The dump calls
         /// this once a Host window is visible, the condition this gatekeeper
         /// itself accepts when it is created after the first window.
-        @objc(debugNoteFirstWindowShown)
         func debugNoteFirstWindowShown() {
             runtime.noteFirstWindowShown()
         }

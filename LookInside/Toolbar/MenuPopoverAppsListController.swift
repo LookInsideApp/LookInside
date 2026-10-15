@@ -20,9 +20,8 @@ final class MenuPopoverAppsListController: BaseViewController {
     private var titleLabel: TextLabel?
     private var subtitleLabel: TextLabel?
 
-    @objc var didSelectApp: ((InspectableApp) -> Void)?
+    var didSelectApp: ((InspectableApp) -> Void)?
 
-    @objc(initWithApps:source:)
     init(apps: [InspectableApp]?, source: MenuPopoverAppsListControllerEventSource) {
         // The apps scan sends nil when no port is connected.
         let apps = apps ?? []
@@ -93,7 +92,7 @@ final class MenuPopoverAppsListController: BaseViewController {
         didSelectApp?(app)
     }
 
-    @objc func bestSize() -> NSSize {
+    func bestSize() -> NSSize {
         guard !appViews.isEmpty else {
             return NSSize(width: 245, height: 80)
         }

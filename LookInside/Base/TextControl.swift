@@ -9,15 +9,15 @@
 import AppKit
 
 class TextControl: BaseControl {
-    @objc let label = TextLabel()
+    let label = TextLabel()
 
-    @objc var insets = NSEdgeInsets() {
+    var insets = NSEdgeInsets() {
         didSet {
             needsLayout = true
         }
     }
 
-    @objc var rightImage: NSImage? {
+    var rightImage: NSImage? {
         didSet {
             if let rightImage {
                 if rightImageView == nil {
@@ -33,13 +33,13 @@ class TextControl: BaseControl {
         }
     }
 
-    @objc var spaceBetweenLabelAndImage: CGFloat = 0 {
+    var spaceBetweenLabelAndImage: CGFloat = 0 {
         didSet {
             needsLayout = true
         }
     }
 
-    @objc var rightImageOffsetY: CGFloat = 0 {
+    var rightImageOffsetY: CGFloat = 0 {
         didSet {
             needsLayout = true
         }

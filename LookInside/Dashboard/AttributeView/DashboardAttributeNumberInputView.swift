@@ -12,7 +12,7 @@ import FoundationToolbox
 /// A single number: opacity, corner radius, font size and the like.
 @Loggable(subsystem: "com.lookinside.app")
 final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFieldDelegate {
-    @objc let inputView = NumberInputView()
+    let inputView = NumberInputView()
 
     /// Laid out horizontally (title inside the field) with three decimals;
     /// everything else is vertical (title below) with two.

@@ -15,7 +15,7 @@ extension NSView {
 
     /// An asset catalog colour name painted onto the layer's background; nil
     /// clears it.
-    @objc var backgroundColorName: String? {
+    var backgroundColorName: String? {
         get {
             objc_getAssociatedObject(self, &backgroundColorNameKey) as? String
         }
@@ -30,7 +30,6 @@ extension NSView {
     }
 
     /// Adds `view` below every existing subview.
-    @objc(lk_insertSubviewAtBottom:)
     func insertSubviewAtBottom(_ view: NSView) {
         if let first = subviews.first {
             addSubview(view, positioned: .below, relativeTo: first)
@@ -39,7 +38,7 @@ extension NSView {
         }
     }
 
-    @objc func showDebugBorder() {
+    func showDebugBorder() {
         layer?.borderWidth = 1
         layer?.borderColor = NSColor.white.cgColor
     }

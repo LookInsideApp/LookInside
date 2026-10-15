@@ -11,7 +11,7 @@ import AppKit
 private let indentUnitWidth: CGFloat = 14
 private let disclosureWidth: CGFloat = 16
 
-@objc enum OutlineRowViewStatus: UInt {
+enum OutlineRowViewStatus: UInt {
     case notExpandable
     case expanded
     case collapsed

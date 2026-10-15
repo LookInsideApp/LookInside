@@ -20,7 +20,7 @@ import RunningApplicationKit
 /// are still bugs and still need fixing; this just stops them being hit every
 /// single time.
 final class DeviceInjectionFlow: NSObject {
-    @objc(sharedInstance) static let shared = DeviceInjectionFlow()
+    static let shared = DeviceInjectionFlow()
 
     private var picker: InjectionTargetPicker?
     private var startGate = InjectionStartGate()
@@ -38,7 +38,7 @@ final class DeviceInjectionFlow: NSObject {
         }
     }
 
-    @objc func startFromWindow(_ window: NSWindow?) {
+    func startFromWindow(_ window: NSWindow?) {
         let decision = startGate.begin {
             SwiftUISupportGatekeeper.sharedInstance().canUseProtectedFeatureWithoutPrompt()
         }

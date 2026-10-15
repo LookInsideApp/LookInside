@@ -118,7 +118,7 @@ class HierarchyDataSource: NSObject {
     final let didReloadFlatItemsWithSearchOrFocus = SyncSignal<Void>()
 
     /// Every display item of the tree, visible or not.
-    @objc var rawFlatItems: [DisplayItem]? {
+    var rawFlatItems: [DisplayItem]? {
         get { storedRawFlatItems }
         set {
             storedRawFlatItems = newValue
@@ -128,7 +128,7 @@ class HierarchyDataSource: NSObject {
 
     /// All items in normal state; the shown subset while searching or
     /// focusing.
-    @objc dynamic var flatItems: [DisplayItem]?
+    var flatItems: [DisplayItem]?
 
     /// The rows: the items of `flatItems` that no collapsed ancestor hides.
     /// KVO-observable.
@@ -148,17 +148,17 @@ class HierarchyDataSource: NSObject {
         }
     }
 
-    @objc var selectColorMenu: NSMenu? {
+    var selectColorMenu: NSMenu? {
         storedSelectColorMenu
     }
 
     /// The tag of the color menu's "Other…" item.
-    @objc var customColorMenuItemTag: Int {
+    var customColorMenuItemTag: Int {
         10
     }
 
     /// The tag of the color menu's "switch color format" item.
-    @objc var toggleColorFormatMenuItemTag: Int {
+    var toggleColorFormatMenuItemTag: Int {
         11
     }
 
@@ -169,9 +169,9 @@ class HierarchyDataSource: NSObject {
 
     /// While the dashboard is being searched, the preview must not change the
     /// selection when a layer is clicked.
-    @objc var shouldAvoidChangingPreviewSelectionDueToDashboardSearch: Bool = false
+    var shouldAvoidChangingPreviewSelectionDueToDashboardSearch: Bool = false
 
-    @objc var serverSideIsSwiftProject: Bool {
+    var serverSideIsSwiftProject: Bool {
         storedServerSideIsSwiftProject
     }
 
@@ -222,7 +222,6 @@ class HierarchyDataSource: NSObject {
 
     // MARK: - Reload
 
-    @objc(reloadWithHierarchyInfo:keepState:)
     func reload(with info: HierarchyInfo?, keepState: Bool) {
         // Path identifiers of the old items resolve their root index against
         // the old root items, so take them before replacing the info.
@@ -338,11 +337,10 @@ class HierarchyDataSource: NSObject {
 
     // MARK: - Rows
 
-    @objc func numberOfRows() -> Int {
+    func numberOfRows() -> Int {
         displayingFlatItems?.count ?? 0
     }
 
-    @objc(itemAtRow:)
     func item(atRow index: Int) -> DisplayItem? {
         guard let rows = displayingFlatItems, rows.indices.contains(index) else {
             return nil
@@ -350,17 +348,15 @@ class HierarchyDataSource: NSObject {
         return rows[index]
     }
 
-    @objc(rowForItem:)
     func row(for item: DisplayItem?) -> Int {
         displayingFlatItems?.firstIndex { $0 === item } ?? NSNotFound
     }
 
-    @objc(displayItemWithOid:)
     func displayItem(withOid oid: UInt) -> DisplayItem? {
         oidToDisplayItem[oid]
     }
 
-    @objc func buildDisplayingFlatItems() {
+    func buildDisplayingFlatItems() {
         let showSystemLayoutGuides = PreferenceManager.shared.showSystemLayoutGuides.currentBOOLValue
         let rows = (flatItems ?? []).filter { item in
             guard item.displayingInHierarchy else {
@@ -420,7 +416,6 @@ class HierarchyDataSource: NSObject {
         item?.notifyHoverChangeToDelegates()
     }
 
-    @objc(selectAndRevealItem:)
     func selectAndRevealItem(_ item: DisplayItem?) {
         guard let item else {
             return
@@ -456,7 +451,6 @@ class HierarchyDataSource: NSObject {
     ///   - referenceDict: expansion by path identifier; an item with an
     ///     entry keeps it instead of the preset.
     ///   - selectedItem: receives the item the preset suggests selecting.
-    @objc(adjustExpansionByIndex:referenceDict:selectedItem:)
     func adjustExpansion(
         by index: Int,
         referenceDict: [String: NSNumber]?,
@@ -662,7 +656,6 @@ class HierarchyDataSource: NSObject {
         }
     }
 
-    @objc(collapseItem:)
     func collapse(_ item: DisplayItem?) {
         guard let item, item.isExpandable, item.isExpanded else {
             return
@@ -672,7 +665,6 @@ class HierarchyDataSource: NSObject {
         persistExpansionStateToPreferences()
     }
 
-    @objc(expandItem:)
     func expand(_ item: DisplayItem?) {
         guard let item, item.isExpandable, !item.isExpanded else {
             return
@@ -682,7 +674,6 @@ class HierarchyDataSource: NSObject {
         persistExpansionStateToPreferences()
     }
 
-    @objc(expandToShowItem:)
     func expand(toShow item: DisplayItem?) {
         var didChange = false
         item?.enumerateAncestors { ancestor, _ in
@@ -698,7 +689,6 @@ class HierarchyDataSource: NSObject {
         }
     }
 
-    @objc(expandItemsRootedByItem:)
     func expandItemsRooted(by item: DisplayItem?) {
         let includePreferredCollapsed = item?.preferToBeCollapsed ?? false
         item?.enumerateSelfAndChildren { node in
@@ -713,7 +703,6 @@ class HierarchyDataSource: NSObject {
         persistExpansionStateToPreferences()
     }
 
-    @objc(collapseAllChildrenOfItem:)
     func collapseAllChildren(of item: DisplayItem?) {
         item?.enumerateSelfAndChildren { node in
             guard node !== item, node.isExpandable, node.isExpanded else {
@@ -730,7 +719,6 @@ class HierarchyDataSource: NSObject {
     /// "<rootIndex>/<class>:<siblingIndex>/..." from the root to `item`; nil
     /// when a node of the chain has no class (UserCustom-only nodes), when
     /// a sibling index cannot be resolved, or when `rootItems` is empty.
-    @objc(pathIdentifierForItem:inRootItems:)
     class func pathIdentifier(for item: DisplayItem?, inRootItems rootItems: [DisplayItem]?) -> String? {
         guard let item else {
             return nil
@@ -749,7 +737,7 @@ class HierarchyDataSource: NSObject {
     /// the target app's bundle identifier, so a cold reload restores the
     /// user's collapses too. Does nothing when remembering is off or there is
     /// no bundle identifier.
-    @objc func persistExpansionStateToPreferences() {
+    func persistExpansionStateToPreferences() {
         let preferences = preferenceManager()
         guard preferences.rememberExpansionState else {
             return
@@ -778,7 +766,6 @@ class HierarchyDataSource: NSObject {
 
     /// Call while the user types a non-empty search string; replaces
     /// `flatItems` and `displayingFlatItems`.
-    @objc(searchWithString:)
     func search(with string: String?) {
         guard let string, !string.isEmpty else {
             assertionFailure("searching for an empty string")
@@ -815,7 +802,7 @@ class HierarchyDataSource: NSObject {
 
     /// Call when the search field is closed; restores the expansion from
     /// before the search and keeps the selection visible.
-    @objc func endSearch() {
+    func endSearch() {
         guard state != .normal else {
             return
         }
@@ -838,7 +825,6 @@ class HierarchyDataSource: NSObject {
     }
 
     /// Entered from the normal or the search state.
-    @objc(focusDisplayItem:)
     func focus(_ item: DisplayItem?) {
         guard let item else {
             assertionFailure("focusing nil")
@@ -862,7 +848,7 @@ class HierarchyDataSource: NSObject {
         buildDisplayingFlatItems()
     }
 
-    @objc func endFocus() {
+    func endFocus() {
         guard state != .normal else {
             return
         }
@@ -886,7 +872,6 @@ class HierarchyDataSource: NSObject {
     // MARK: - SwiftUI jumps
 
     /// SwiftUI node -> its matched CALayer nodes; empty when there is none.
-    @objc(swiftUIBackingLayerItemsForItem:)
     func swiftUIBackingLayerItems(for item: DisplayItem?) -> [DisplayItem]? {
         guard let item else {
             return []
@@ -907,7 +892,6 @@ class HierarchyDataSource: NSObject {
     }
 
     /// CALayer node -> its SwiftUI node, or nil.
-    @objc(swiftUISourceItemForLayerItem:)
     func swiftUISourceItem(forLayerItem item: DisplayItem?) -> DisplayItem? {
         guard let item, let displayListID = item.swiftUILayerDisplayListID() else {
             return nil
@@ -917,7 +901,6 @@ class HierarchyDataSource: NSObject {
 
     /// Dashboard row -> its SwiftUI / CALayer jump target, or nil when the
     /// row has none.
-    @objc(swiftUIJumpTargetForAttribute:)
     func swiftUIJumpTarget(for attribute: InspectedAttribute?) -> DisplayItem? {
         guard let attribute, let sourceItem = attribute.targetDisplayItem, let value = attribute.value as? String else {
             return nil
@@ -1011,7 +994,6 @@ class HierarchyDataSource: NSObject {
     // MARK: - Colors
 
     /// The hierarchy's alias names of `color`, or nil.
-    @objc(aliasForColor:)
     func alias(for color: NSColor?) -> [String]? {
         guard let color else {
             return nil
@@ -1125,13 +1107,13 @@ class HierarchyDataSource: NSObject {
     // MARK: - Others
 
     /// Subclasses return their preference manager.
-    @objc func preferenceManager() -> PreferenceManager {
+    func preferenceManager() -> PreferenceManager {
         assertionFailure("should implement by subclass")
         return PreferenceManager.shared
     }
 
     /// YES in read-only mode, such as an opened file.
-    @objc func isReadOnly() -> Bool {
+    func isReadOnly() -> Bool {
         true
     }
 

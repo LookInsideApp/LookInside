@@ -16,14 +16,14 @@ import UIFoundationToolbox
 final class DeviceIconProvider: NSObject {
     /// Height of the device icon in the window toolbar, matching the legacy
     /// `icon_*_small` assets (32 pixels at 2x).
-    @objc static let toolbarPointSize: CGFloat = 16
+    static let toolbarPointSize: CGFloat = 16
 
     /// Height of the device icon in a tips view, whose image view has a fixed 18×18 frame.
-    @objc static let tipsPointSize: CGFloat = 18
+    static let tipsPointSize: CGFloat = 18
 
     /// Height of the device icon on a launch app card, matching the legacy `icon_*_big`
     /// assets (72 pixels at 2x).
-    @objc static let launchPointSize: CGFloat = 36
+    static let launchPointSize: CGFloat = 36
 
     /// The fraction of its square canvas that CoreTypes device artwork actually fills;
     /// the rest is transparent padding. Measured from the shipped icns at several sizes.
@@ -35,7 +35,6 @@ final class DeviceIconProvider: NSObject {
     /// - Parameters:
     ///   - appInfo: The inspected app's info, as reported by LookinServer.
     ///   - pointSize: The height the icon is laid out at, in points.
-    @objc(deviceIconForAppInfo:pointSize:)
     static func deviceIcon(forAppInfo appInfo: InspectedAppInfo?, pointSize: CGFloat) -> NSImage? {
         guard let appInfo,
               let modelIdentifier = appInfo.deviceModelIdentifier,

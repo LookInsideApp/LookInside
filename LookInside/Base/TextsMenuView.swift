@@ -5,7 +5,7 @@
 
 import AppKit
 
-@objc enum TextsMenuViewType: Int {
+enum TextsMenuViewType: Int {
     /// Left column left-aligned, right column right-aligned.
     case justified
     /// Both columns meet in the middle.
@@ -16,22 +16,22 @@ import AppKit
 /// value.
 class TextsMenuView: BaseView {
     /// Defaults to {0, 3, 0, 5}.
-    @objc var insets = NSEdgeInsets(top: 0, left: 3, bottom: 0, right: 5)
+    var insets = NSEdgeInsets(top: 0, left: 3, bottom: 0, right: 5)
 
-    @objc var type: TextsMenuViewType = .justified {
+    var type: TextsMenuViewType = .justified {
         didSet { updateAlignments() }
     }
 
-    @objc var texts: [StringTwoTuple] = [] {
+    var texts: [StringTwoTuple] = [] {
         didSet { reloadLabels() }
     }
 
-    @objc var font: NSFont?
+    var font: NSFont?
 
     /// Defaults to 2.
-    @objc var verSpace: CGFloat = 2
+    var verSpace: CGFloat = 2
     /// Defaults to 10.
-    @objc var horSpace: CGFloat = 10
+    var horSpace: CGFloat = 10
 
     private var leftLabels: [TextLabel] = []
     private var rightLabels: [TextLabel] = []
@@ -163,7 +163,6 @@ class TextsMenuView: BaseView {
 
     /// Puts `button` after the value on row `idx`; the caller handles its
     /// action.
-    @objc(addButton:atIndex:)
     func add(_ button: NSButton, at idx: UInt) {
         let idx = Int(idx)
         guard buttons[idx] == nil else {

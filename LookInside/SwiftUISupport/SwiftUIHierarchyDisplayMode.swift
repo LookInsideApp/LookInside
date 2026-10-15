@@ -5,7 +5,7 @@
 
 import AppKit
 
-@objc enum SwiftUIHierarchyDisplayMode: Int {
+enum SwiftUIHierarchyDisplayMode: Int {
     case verbose = 0
     case compact = 1
 }

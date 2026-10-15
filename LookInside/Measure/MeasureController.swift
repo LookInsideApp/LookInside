@@ -23,7 +23,6 @@ final class MeasureController: BaseViewController {
     private var lockSwitchButton: NSButton?
     private var itemObservations: [NSKeyValueObservation] = []
 
-    @objc(initWithDataSource:)
     init(dataSource: HierarchyDataSource) {
         self.dataSource = dataSource
         super.init(containerView: nil)

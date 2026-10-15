@@ -70,7 +70,6 @@ private final class ConnectionPort {
 @Loggable(.internal, subsystem: "com.lookinside.app")
 @MainActor
 final class ConnectionManager: NSObject {
-    @objc(sharedInstance)
     static let shared = ConnectionManager()
 
     private let simulatorPorts: [ConnectionPort]

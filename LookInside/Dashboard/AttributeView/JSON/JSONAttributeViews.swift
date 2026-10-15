@@ -226,7 +226,6 @@ final class JSONAttributeViewController: BaseViewController, TableViewDelegate, 
         tableView.dashboardLayout.fullFrame().toY(28)
     }
 
-    @objc(renderWithJSON:)
     func render(json: String?) {
         tree.render(json: json)
         tableView.reloadData()
@@ -273,7 +272,7 @@ final class JSONAttributeViewController: BaseViewController, TableViewDelegate, 
 
 /// The window of `JSONAttributeViewController`.
 final class JSONAttributeWindowController: WindowController {
-    @objc convenience init() {
+    convenience init() {
         let window = AppWindow(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 320),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],

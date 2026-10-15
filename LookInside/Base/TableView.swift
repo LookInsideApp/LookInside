@@ -36,10 +36,10 @@ protocol TableViewDelegate: NSTableViewDelegate {
 protocol TableViewDataSource: NSTableViewDataSource {}
 
 class TableView: NSScrollView {
-    @objc let tableView: NSTableView
+    let tableView: NSTableView
 
     /// Defaults to true.
-    @objc var canScrollHorizontally: Bool = true {
+    var canScrollHorizontally: Bool = true {
         didSet {
             hasHorizontalScroller = canScrollHorizontally
             if !canScrollHorizontally {
@@ -48,13 +48,13 @@ class TableView: NSScrollView {
         }
     }
 
-    @objc weak var delegate: TableViewDelegate?
-    @objc weak var dataSource: TableViewDataSource?
+    weak var delegate: TableViewDelegate?
+    weak var dataSource: TableViewDataSource?
 
     /// Defaults to true.
-    @objc var adjustsSelectionAutomatically: Bool = true
+    var adjustsSelectionAutomatically: Bool = true
     /// Defaults to true.
-    @objc var adjustsHoverAutomatically: Bool = true
+    var adjustsHoverAutomatically: Bool = true
 
     private var horizontalScrollWidthManager: TableViewHorizontalScrollWidthManager?
 
@@ -71,7 +71,7 @@ class TableView: NSScrollView {
     /// -1 when no row is selected.
     private var selectedRow: Int = -1
 
-    @objc override init(frame frameRect: NSRect) {
+    override init(frame frameRect: NSRect) {
         let tableView = KeyForwardingTableView()
         self.tableView = tableView
         super.init(frame: frameRect)
@@ -121,7 +121,7 @@ class TableView: NSScrollView {
         }
     }
 
-    @objc func reloadData() {
+    func reloadData() {
         setSelectedRow(-1)
 
         horizontalScrollWidthManager = nil
@@ -137,7 +137,7 @@ class TableView: NSScrollView {
     }
 
     /// Reloads but keeps the scroll position; `reloadData()` resets it.
-    @objc func reloadDataWithOffset() {
+    func reloadDataWithOffset() {
         let offset = documentVisibleRect.origin
         reloadData()
         needsLayout = true
@@ -145,7 +145,6 @@ class TableView: NSScrollView {
         documentView?.scroll(offset)
     }
 
-    @objc(scrollRowToVisible:)
     func scrollRowToVisible(_ row: Int) {
         tableView.scrollRowToVisible(row)
     }

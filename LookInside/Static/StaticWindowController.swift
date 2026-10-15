@@ -64,13 +64,13 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         case noResponse
     }
 
-    @objc let viewController: StaticViewController
+    let viewController: StaticViewController
 
     /// Per-window hierarchy data source.
-    @objc let hierarchyDataSource: StaticHierarchyDataSource
+    let hierarchyDataSource: StaticHierarchyDataSource
 
     /// Per-window async update manager.
-    @objc let asyncUpdateManager: StaticAsyncUpdateManager
+    let asyncUpdateManager: StaticAsyncUpdateManager
 
     /// Injected by the owning LiveDocument, which also swaps it when
     /// the app reconnects; every request uses it.
@@ -109,7 +109,6 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     /// Used by LiveDocument: the window, data source and update
     /// manager, all bound to `app`.
-    @objc(initWithInspectableApp:)
     init(inspectableApp app: InspectableApp?) {
         let screenSize = NSScreen.main?.frame.size ?? .zero
         let window = AppWindow(
@@ -265,7 +264,6 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         }
     }
 
-    @objc(popupAllInspectableAppsWithSource:)
     func popupAllInspectableApps(with source: MenuPopoverAppsListControllerEventSource) {
         let appItemView = toolbarItemsMap[NSToolbarItem.Identifier(toolbarIdentifierApp)]?.view
 

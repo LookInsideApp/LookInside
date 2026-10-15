@@ -14,7 +14,6 @@
     /// node's `host` record names their pixel sizes; the pixels themselves are
     /// covered by lookin-probe.
     final class DebugE2EDumpWriter: NSObject {
-        @objc(writeSnapshotForDataSource:app:platform:toDirectory:error:)
         static func writeSnapshot(
             for dataSource: StaticHierarchyDataSource,
             app: InspectableApp,
@@ -130,7 +129,6 @@
         /// `AppsManager.scanApps(needImages: true, localInfos: nil)`:
         /// nil when no channel is connected. `completion` runs on the main
         /// thread, after this method returns.
-        @objc(fetchAppsWithCompletion:)
         @MainActor
         static func fetchApps(completion: @escaping ([InspectableApp]?) -> Void) {
             Task { @MainActor in
@@ -141,7 +139,6 @@
 
         /// `app`'s hierarchy, or the error the request failed with.
         /// `completion` runs on the main thread, after this method returns.
-        @objc(fetchHierarchyForApp:completion:)
         @MainActor
         static func fetchHierarchy(for app: InspectableApp, completion: @escaping (HierarchyInfo?, Error?) -> Void) {
             Task { @MainActor in
@@ -155,7 +152,6 @@
 
         /// Whether the 220/221 license handshake succeeded on `app`'s channel,
         /// as the Host's connection layer records it.
-        @objc(isChannelLicensedForApp:)
         static func isChannelLicensed(for app: InspectableApp) -> Bool {
             MainActor.assumeIsolated {
                 app.channel?.connectionState.licenseHandshake.isVerified ?? false

@@ -90,20 +90,17 @@ final class FrameLayout: NSObject {
     }
 
     /// ObjC entry point: `[LKFrameLayout of:view]`.
-    @objc(of:)
     static func of(_ object: AnyObject?) -> FrameLayout {
         FrameLayout([object])
     }
 
     /// ObjC entry point for several views or layers at once.
-    @objc(ofAll:)
     static func ofAll(_ objects: [AnyObject]) -> FrameLayout {
         FrameLayout(objects)
     }
 
     /// Rounds up to the main screen's pixel grid. `CGFLOAT_MIN` and
     /// `CGFLOAT_MAX` pass through because callers use them as markers.
-    @objc
     static func snapToPixel(_ value: CGFloat) -> CGFloat {
         if value == .leastNormalMagnitude || value == .greatestFiniteMagnitude {
             return value
@@ -128,7 +125,7 @@ final class FrameLayout: NSObject {
 
     /// Sizes an BaseView or NSControl to `sizeThatFits:` of an unlimited
     /// size; other views and layers are left alone.
-    @objc @discardableResult
+    @discardableResult
     func sizeToFit() -> FrameLayout {
         each { target in
             guard case let .view(view) = target else { return }
@@ -155,7 +152,7 @@ final class FrameLayout: NSObject {
 
     /// Sets an BaseView's or NSControl's height to what it needs at its
     /// current width.
-    @objc @discardableResult
+    @discardableResult
     func heightToFit() -> FrameLayout {
         each { target in
             guard case let .view(view) = target else { return }
@@ -174,27 +171,27 @@ final class FrameLayout: NSObject {
         return self
     }
 
-    @objc(width:) @discardableResult
+    @discardableResult
     func width(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { $0.frame.size.width = Self.snapToPixel(value) }
         return self
     }
 
-    @objc(height:) @discardableResult
+    @discardableResult
     func height(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { $0.frame.size.height = Self.snapToPixel(value) }
         return self
     }
 
-    @objc(size:) @discardableResult
+    @discardableResult
     func size(_ value: NSSize) -> FrameLayout {
         width(value.width).height(value.height)
     }
 
     /// Grows the width to `value` when it is narrower; never snaps.
-    @objc(minWidth:) @discardableResult
+    @discardableResult
     func minWidth(_ value: CGFloat) -> FrameLayout {
         if value.isNaN {
             assertionFailure("NaN passed to minWidth")
@@ -210,26 +207,26 @@ final class FrameLayout: NSObject {
 
     // MARK: - Position
 
-    @objc(x:) @discardableResult
+    @discardableResult
     func x(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { $0.frame.origin.x = Self.snapToPixel(value) }
         return self
     }
 
-    @objc(y:) @discardableResult
+    @discardableResult
     func y(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { $0.frame.origin.y = Self.snapToPixel(value) }
         return self
     }
 
-    @objc(offsetX:) @discardableResult
+    @discardableResult
     func offsetX(_ value: CGFloat) -> FrameLayout {
         offset(x: value, y: 0)
     }
 
-    @objc(offsetY:) @discardableResult
+    @discardableResult
     func offsetY(_ value: CGFloat) -> FrameLayout {
         offset(x: 0, y: value)
     }
@@ -246,28 +243,28 @@ final class FrameLayout: NSObject {
         return self
     }
 
-    @objc(midX:) @discardableResult
+    @discardableResult
     func midX(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { FrameLayout(targets: [$0]).x(value - $0.bounds.width / 2) }
         return self
     }
 
-    @objc(maxX:) @discardableResult
+    @discardableResult
     func maxX(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { FrameLayout(targets: [$0]).x(value - $0.bounds.width) }
         return self
     }
 
-    @objc(midY:) @discardableResult
+    @discardableResult
     func midY(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { FrameLayout(targets: [$0]).y(value - $0.bounds.height / 2) }
         return self
     }
 
-    @objc(maxY:) @discardableResult
+    @discardableResult
     func maxY(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { FrameLayout(targets: [$0]).y(value - $0.bounds.height) }
@@ -275,7 +272,7 @@ final class FrameLayout: NSObject {
     }
 
     /// Puts the right edge `value` points from the parent's right edge.
-    @objc(right:) @discardableResult
+    @discardableResult
     func right(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -290,7 +287,7 @@ final class FrameLayout: NSObject {
 
     /// Puts the bottom edge `value` points from the parent's bottom edge,
     /// in the parent's own (possibly unflipped) coordinates.
-    @objc(bottom:) @discardableResult
+    @discardableResult
     func bottom(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -307,7 +304,7 @@ final class FrameLayout: NSObject {
         return self
     }
 
-    @objc @discardableResult
+    @discardableResult
     func horAlign() -> FrameLayout {
         each { target in
             guard let parentBounds = target.parentBounds else {
@@ -319,7 +316,7 @@ final class FrameLayout: NSObject {
         return self
     }
 
-    @objc @discardableResult
+    @discardableResult
     func verAlign() -> FrameLayout {
         each { target in
             guard let parentBounds = target.parentBounds else {
@@ -333,12 +330,12 @@ final class FrameLayout: NSObject {
 
     // MARK: - Filling the parent
 
-    @objc @discardableResult
+    @discardableResult
     func fullWidth() -> FrameLayout {
         x(0).toRight(0)
     }
 
-    @objc @discardableResult
+    @discardableResult
     func fullHeight() -> FrameLayout {
         each { target in
             guard let parentBounds = target.parentBounds else {
@@ -350,14 +347,14 @@ final class FrameLayout: NSObject {
         return self
     }
 
-    @objc @discardableResult
+    @discardableResult
     func fullFrame() -> FrameLayout {
         fullWidth().fullHeight()
     }
 
     /// Stretches the width so the right edge sits `value` points from the
     /// parent's right edge; never negative.
-    @objc(toRight:) @discardableResult
+    @discardableResult
     func toRight(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -371,7 +368,7 @@ final class FrameLayout: NSObject {
 
     /// Stretches the width so the right edge sits at `value`, never past the
     /// left edge.
-    @objc(toMaxX:) @discardableResult
+    @discardableResult
     func toMaxX(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -385,7 +382,7 @@ final class FrameLayout: NSObject {
 
     /// Stretches the height so the bottom edge sits at `value`, never above
     /// the top edge.
-    @objc(toMaxY:) @discardableResult
+    @discardableResult
     func toMaxY(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -398,7 +395,7 @@ final class FrameLayout: NSObject {
     }
 
     /// Moves the top edge to `value` keeping the bottom edge in place.
-    @objc(toY:) @discardableResult
+    @discardableResult
     func toY(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -413,7 +410,7 @@ final class FrameLayout: NSObject {
 
     /// Stretches the height so the bottom edge sits `value` points from the
     /// parent's bottom edge.
-    @objc(toBottom:) @discardableResult
+    @discardableResult
     func toBottom(_ value: CGFloat) -> FrameLayout {
         let value = Self.checked(value)
         each { target in
@@ -434,7 +431,7 @@ final class FrameLayout: NSObject {
 
     /// Keeps only the visible views and layers: not hidden, attached, and at
     /// least 1% opaque.
-    @objc @discardableResult
+    @discardableResult
     func visibles() -> FrameLayout {
         targets = targets.filter(\.isVisible)
         return self
@@ -443,7 +440,7 @@ final class FrameLayout: NSObject {
     /// Centres the group's union horizontally in the shared parent, moving
     /// every member by the same amount. Does nothing when the members do
     /// not share a parent.
-    @objc @discardableResult
+    @discardableResult
     func groupHorAlign() -> FrameLayout {
         guard let first = targets.first, let parent = first.parent else {
             if !targets.isEmpty {

@@ -18,7 +18,7 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
     /// This window's own preference set: the reader's view settings, including
     /// the show-backing-layers toggle, are per document window. A document that
     /// can rebuild its tree reads the toggle from here.
-    @objc let preferenceManager = PreferenceManager()
+    let preferenceManager = PreferenceManager()
 
     private var viewController: ReadViewController?
     private var toolbarItemsMap: [String: NSToolbarItem] = [:]
@@ -26,7 +26,6 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
     private var selectedItemObservation: NSKeyValueObservation?
     private weak var shownFile: HierarchyFile?
 
-    @objc(initWithDocument:)
     init(document: ArchiveDocument) {
         let screenSize = NSScreen.main?.frame.size ?? .zero
         let window = AppWindow(

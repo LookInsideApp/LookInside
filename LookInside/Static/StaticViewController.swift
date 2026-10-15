@@ -16,14 +16,14 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     private static let ignoreFastModeTipsDefaultsKey = "IgnoreFastModeTips"
 
     /// The per-document data source, owned by StaticWindowController.
-    @objc private(set) weak var hierarchyDataSource: StaticHierarchyDataSource?
+    private(set) weak var hierarchyDataSource: StaticHierarchyDataSource?
 
     /// The per-document update manager, owned by StaticWindowController.
-    @objc private(set) weak var asyncUpdateManager: StaticAsyncUpdateManager?
+    private(set) weak var asyncUpdateManager: StaticAsyncUpdateManager?
 
-    @objc let viewsPreviewController: PreviewController
+    let viewsPreviewController: PreviewController
 
-    @objc let progressView = ProgressIndicatorView()
+    let progressView = ProgressIndicatorView()
 
     /// Shows or hides the console under the preview. Observable with KVO.
     @objc dynamic var showConsole = false {
@@ -43,8 +43,8 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     private let fastModeTipView = TipsView()
     private let serverUpgradeTipView = TipsView()
 
-    /// Read with KVC by the DEBUG UI snapshots.
-    @objc let dashboardController: DashboardViewController
+    /// Read by the DEBUG UI snapshots.
+    let dashboardController: DashboardViewController
     private let hierarchyController: StaticHierarchyController
     private var consoleController: ConsoleViewController?
     private let measureController: MeasureController
@@ -58,7 +58,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     /// children that read the data source and the update manager, so they
     /// are stored first, and the child controllers are created here, in the
     /// order buildContent() used to create them.
-    @objc(initWithHierarchyDataSource:asyncUpdateManager:)
     init(hierarchyDataSource: StaticHierarchyDataSource, asyncUpdateManager: StaticAsyncUpdateManager) {
         self.hierarchyDataSource = hierarchyDataSource
         self.asyncUpdateManager = asyncUpdateManager
@@ -409,7 +408,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     }
 
     /// The hierarchy view of the tree on the left.
-    @objc func currentHierarchyView() -> HierarchyView? {
+    func currentHierarchyView() -> HierarchyView? {
         hierarchyController.hierarchyView
     }
 
@@ -560,7 +559,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         let item = dataSource?.selectedItem
 
         let showsTooLargeTip = item != nil
-            && item?.optionalAppropriateScreenshot == nil
+            && item?.appropriateScreenshot() == nil
             && item?.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge
         if tooLargeToSyncScreenshotTipsView.isHidden != !showsTooLargeTip {
             tooLargeToSyncScreenshotTipsView.isHidden = !showsTooLargeTip

@@ -42,14 +42,13 @@ class ArchiveDocument: NSDocument {
     /// show-backing-layers setting. A `.lookin` archive cannot: its tree is what
     /// the server sent. An imported Xcode capture can, from the decoded capture
     /// it keeps after import.
-    @objc func canRebuildHierarchyFile() -> Bool {
+    func canRebuildHierarchyFile() -> Bool {
         false
     }
 
     /// Rebuilds `hierarchyFile` for the setting and assigns the new file when it
     /// is ready; the window observes the property and rebuilds its reader. A
     /// no-op unless canRebuildHierarchyFile.
-    @objc(rebuildHierarchyFileShowingBackingLayers:)
     func rebuildHierarchyFile(showingBackingLayers _: Bool) {
         // An archive holds the tree the server sent; there is nothing to rebuild from.
     }

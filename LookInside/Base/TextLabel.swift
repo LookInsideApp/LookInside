@@ -10,14 +10,14 @@ import AppKit
 
 class TextLabel: NSTextField {
     /// 默认为 nil
-    @objc var textColors: TwoColors? {
+    var textColors: TwoColors? {
         didSet {
             updateColors()
         }
     }
 
     /// 默认为 nil
-    @objc var backgroundColors: TwoColors? {
+    var backgroundColors: TwoColors? {
         didSet {
             updateColors()
         }
