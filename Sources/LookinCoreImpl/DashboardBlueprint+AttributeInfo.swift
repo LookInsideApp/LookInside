@@ -254,7 +254,7 @@
             // NSTableView spells this usesAutomaticRowHeights, so both the
             // derived getter and the derived setter miss.
             table[LookinAttr_NSTableView_AutomaticRowHeights_AutomaticRowHeights] = AttrInfo(className: "NSTableView", fullTitle: "AutomaticRowHeights", getterString: "usesAutomaticRowHeights", setterString: "setUsesAutomaticRowHeights:", patch: true)
-            table[LookinAttr_NSTableView_AutosaveName_AutosaveName] = AttrInfo(className: "NSTableView", fullTitle: "AutosaveName", patch: true)
+            table[LookinAttr_NSTableView_AutosaveName_AutosaveName] = AttrInfo(className: "NSTableView", fullTitle: "AutosaveName", typeIfObj: .nsString, patch: true)
             table[LookinAttr_NSTableView_AutosaveTableColumns_AutosaveTableColumns] = AttrInfo(className: "NSTableView", fullTitle: "AutosaveTableColumns", patch: true)
             table[LookinAttr_NSTableView_FloatsGroupRows_FloatsGroupRows] = AttrInfo(className: "NSTableView", fullTitle: "FloatsGroupRows", patch: true)
             table[LookinAttr_NSTableView_RowActionsVisible_RowActionsVisible] = AttrInfo(className: "NSTableView", fullTitle: "RowActionsVisible", patch: true)
