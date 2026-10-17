@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import FoundationToolbox
 import LookInsideHostCore
 
 /// What a request reports, in order: zero or more responses, then either a
@@ -57,6 +58,9 @@ final class ConnectionRequest: NSObject {
     let tag: UInt32
     let sink: ResponseSink
     var frameProgress = ResponseFrameProgress()
+    /// The signpost interval of a hierarchy or detail request, from the
+    /// send until the request leaves its channel; nil for other requests.
+    var signpostInterval: SignpostInterval?
 
     /// Must be positive.
     private let timeoutInterval: TimeInterval
@@ -84,6 +88,13 @@ final class ConnectionRequest: NSObject {
             return
         }
         perform(#selector(handleTimeout), with: nil, afterDelay: timeoutInterval)
+    }
+
+    /// Closes `signpostInterval`, once.
+    func endSignpostInterval() {
+        guard let signpostInterval else { return }
+        self.signpostInterval = nil
+        #signpost(.end, signpostInterval)
     }
 
     /// Stops the countdown. Called before the request is dropped.

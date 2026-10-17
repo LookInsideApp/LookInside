@@ -28,6 +28,7 @@ enum ModifyingUpdateEvent {
 /// Fetches the details (screenshots, attributes, sub items) of the items in
 /// one inspector window's hierarchy from the inspected app.
 @Loggable(subsystem: "com.lookinside.app")
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 @MainActor
 final class StaticAsyncUpdateManager: NSObject {
     /// Set by the owner (window controller / live document), which holds it
@@ -76,7 +77,9 @@ final class StaticAsyncUpdateManager: NSObject {
             return
         }
         endUpdating()
-        let newTasks = makeMaximumTasks()
+        let newTasks = #signpostInterval("Make detail tasks") {
+            makeMaximumTasks()
+        }
         guard !newTasks.isEmpty else { return }
         send(newTasks)
     }
@@ -387,7 +390,9 @@ final class StaticAsyncUpdateManager: NSObject {
             guard let self else { return }
             switch event {
             case let .value(value):
-                receive(details: value as? [DisplayItemDetail] ?? [])
+                #signpostInterval("Apply details") {
+                    self.receive(details: value as? [DisplayItemDetail] ?? [])
+                }
             case .failure:
                 fail()
             case .completion:

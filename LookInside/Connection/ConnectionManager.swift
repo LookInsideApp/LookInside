@@ -50,6 +50,8 @@ final class ServerChannelConnectionState {
     }
 
     func remove(_ request: ConnectionRequest) {
+        // Every way a request ends goes through here.
+        request.endSignpostInterval()
         activeRequests.removeAll { $0 === request }
     }
 }
@@ -68,6 +70,7 @@ private final class ConnectionPort {
 }
 
 @Loggable(.internal, subsystem: "com.lookinside.app")
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 @MainActor
 final class ConnectionManager: NSObject {
     static let shared = ConnectionManager()
@@ -431,6 +434,14 @@ final class ConnectionManager: NSObject {
         let attachment = ConnectionAttachment()
         attachment.data = data
         let payload = archivedPayload(rootObject: attachment)
+        switch Int(type) {
+        case LookinRequestTypeHierarchy:
+            request.signpostInterval = #signpost(.begin, "Hierarchy request")
+        case LookinRequestTypeHierarchyDetails:
+            request.signpostInterval = #signpost(.begin, "Detail request")
+        default:
+            break
+        }
         // Track the request before the write: the write completion and the
         // reply reach the main queue independently, and on loopback the
         // reply can come first. A request registered only on completion
@@ -486,7 +497,10 @@ final class ConnectionManager: NSObject {
         // graph of Lookin models and Foundation collections. Secure coding
         // with NSObject as the allowed class warns on every frame, so the
         // receive path stays non-secure on purpose.
-        let attachment = Self.unarchiveResponse(data)
+        #signpost(.event, "Response frame", "type=\(type, privacy: .public) bytes=\(data.count, privacy: .public)")
+        let attachment = #signpostInterval("Unarchive response") {
+            Self.unarchiveResponse(data)
+        }
 
         if attachment?.appIsInBackground == true {
             request.endTimeoutCount()

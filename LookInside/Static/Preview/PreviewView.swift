@@ -18,6 +18,7 @@ import FoundationToolbox
 /// The 3D (or flat) preview of the hierarchy: one DisplayItemNode per
 /// item, stacked along the z axis.
 @Loggable(subsystem: "com.lookinside.app")
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 final class PreviewView: SCNView {
     private let dataSource: HierarchyDataSource?
 
@@ -186,6 +187,12 @@ final class PreviewView: SCNView {
     /// use are dropped; otherwise they are only removed from the scene and
     /// kept for later renders.
     func render(displayItems items: [DisplayItem], discardCache: Bool) {
+        #signpostInterval("Render preview") {
+            performRender(displayItems: items, discardCache: discardCache)
+        }
+    }
+
+    private func performRender(displayItems items: [DisplayItem], discardCache: Bool) {
         #log(.default, "LKPreviewView - render \(NSNumber(value: items.count), privacy: .public) items")
 
         flatDisplayItems = items
@@ -230,10 +237,12 @@ final class PreviewView: SCNView {
     /// Recomputes every item's z index and moves its plane along the z axis
     /// to match; folding and other states show or hide the planes.
     func updateZPosition() {
-        for item in flatDisplayItems {
-            updateZIndex(for: item)
+        #signpostInterval("Update z positions") {
+            for item in flatDisplayItems {
+                updateZIndex(for: item)
+            }
+            updateZPositionByZIndex()
         }
-        updateZPositionByZIndex()
     }
 
     private func updateZPositionByZIndex() {

@@ -32,6 +32,12 @@
     ///       windows is visible the dump satisfies the activation runtime's
     ///       first-window gate itself (debugNoteFirstWindowShown()).
     ///
+    /// Every dump also writes timings.json: how long the hierarchy request,
+    /// the data source reload and the detail fetch took, and how many items
+    /// the hierarchy had. The detail time ends at the first idle tick of the
+    /// update manager, so it is accurate to tickInterval. Refresh benchmark
+    /// drivers read it.
+    ///
     /// UI snapshots (Scripts/reborn-e2e/ui-snapshots.sh) add:
     ///
     ///   LOOKINSIDE_DEBUG_E2E_START_FILE=<path>
@@ -101,6 +107,11 @@
         private var document: LiveDocument?
         private var sawUpdating = false
         private var idleSince: Date?
+        /// Phase boundaries for timings.json.
+        private var hierarchyRequestInstant: ContinuousClock.Instant?
+        private var hierarchyResponseInstant: ContinuousClock.Instant?
+        private var reloadEndInstant: ContinuousClock.Instant?
+        private var detailsIdleInstant: ContinuousClock.Instant?
         private var settleUntil = Date()
 
         private init(directory: String, environment: [String: String]) {
@@ -304,7 +315,9 @@
             log("opening \(app.appInfo?.appBundleIdentifier ?? "(null)") (channel licensed: \(licensed))")
             self.app = app
             enterPhase(.opening)
+            hierarchyRequestInstant = .now
             DebugE2EDumpWriter.fetchHierarchy(for: app) { [self] info, error in
+                hierarchyResponseInstant = .now
                 if let error {
                     fail(.openFailed, "the hierarchy request failed: \(error as NSError)")
                     return
@@ -319,6 +332,7 @@
                 if !alreadyOpen {
                     document.hierarchyDataSource?.reload(with: info, keepState: false)
                 }
+                reloadEndInstant = .now
                 NavigationManager.shared.closeLaunch()
                 log("hierarchy loaded, \(document.hierarchyDataSource?.flatItems?.count ?? 0) items; waiting for details")
             }
@@ -338,6 +352,7 @@
             }
             guard let idleSince else {
                 idleSince = Date()
+                detailsIdleInstant = .now
                 return
             }
             if !sawUpdating || -idleSince.timeIntervalSinceNow < Self.idleInterval {
@@ -372,6 +387,12 @@
                 fail(.writeFailed, "writing snapshot.json failed: \(error as NSError)")
                 return
             }
+            do {
+                try writeTimings(itemCount: dataSource.flatItems?.count ?? 0, to: directoryURL.appendingPathComponent("timings.json"))
+            } catch {
+                fail(.writeFailed, "writing timings.json failed: \(error as NSError)")
+                return
+            }
             let window = document.windowControllers.first?.window
             let pngURL = directoryURL.appendingPathComponent("host-window.png")
             guard let png = DebugWindowImage.pngData(of: window), !png.isEmpty, (try? png.write(to: pngURL, options: .atomic)) != nil else {
@@ -387,6 +408,22 @@
                 return
             }
             exit(ExitStatus.success.rawValue)
+        }
+
+        private func writeTimings(itemCount: Int, to url: URL) throws {
+            func milliseconds(from start: ContinuousClock.Instant?, to end: ContinuousClock.Instant?) -> Double? {
+                guard let start, let end else { return nil }
+                let components = (end - start).components
+                return Double(components.seconds) * 1000 + Double(components.attoseconds) / 1_000_000_000_000_000
+            }
+            var timings: [String: Any] = ["itemCount": itemCount]
+            timings["hierarchyRequestMilliseconds"] = milliseconds(from: hierarchyRequestInstant, to: hierarchyResponseInstant)
+            timings["reloadMilliseconds"] = milliseconds(from: hierarchyResponseInstant, to: reloadEndInstant)
+            timings["detailsMilliseconds"] = milliseconds(from: reloadEndInstant, to: detailsIdleInstant)
+            timings["totalMilliseconds"] = milliseconds(from: hierarchyRequestInstant, to: detailsIdleInstant)
+            let data = try JSONSerialization.data(withJSONObject: timings, options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: url, options: .atomic)
+            log("timings: \(String(data: data, encoding: .utf8) ?? "")")
         }
 
         // MARK: - Output

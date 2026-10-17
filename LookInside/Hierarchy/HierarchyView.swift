@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import FoundationToolbox
 
 private let rowHeight: CGFloat = 28
 
@@ -62,6 +63,7 @@ protocol HierarchyViewDelegate: AnyObject {
     func hierarchyView(_ view: HierarchyView, needToShowPreviewOf item: DisplayItem)
 }
 
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 class HierarchyView: BaseView {
     let tableView: TableView
     /// The filter field under the rows. The DEBUG UI snapshots type into it.
@@ -262,7 +264,9 @@ class HierarchyView: BaseView {
         displayItems = items
         minIndentLevel = items.map { $0.indentLevel() }.min() ?? 0
 
-        tableView.reloadDataWithOffset()
+        #signpostInterval("Reload outline rows") {
+            tableView.reloadDataWithOffset()
+        }
 
         if items.isEmpty {
             let label: TextLabel
