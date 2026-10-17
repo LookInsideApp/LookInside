@@ -1,6 +1,7 @@
 #if DEBUG
     import AppKit
     import Foundation
+    import FoundationToolbox
 
     /// DEBUG-only end-to-end dump. When LOOKINSIDE_DEBUG_E2E_DUMP_DIR is set,
     /// the Host waits for the first inspectable app after launch (optionally
@@ -36,7 +37,13 @@
     /// the data source reload and the detail fetch took, and how many items
     /// the hierarchy had. The detail time ends at the first idle tick of the
     /// update manager, so it is accurate to tickInterval. Refresh benchmark
-    /// drivers read it.
+    /// drivers read it. The prefetch that follows the displayed items is
+    /// waited for too, so a refresh never overlaps one.
+    ///
+    /// While details load, each tick is a "Driver tick" signpost event inside
+    /// a "Driver loading details" interval (subsystem com.lookinside.app,
+    /// category RefreshPerformance): a long gap between ticks is a time the
+    /// main thread kept its run loop waiting.
     ///
     ///   LOOKINSIDE_DEBUG_E2E_REFRESH_COUNT=<n>
     ///       After the first load, reload the hierarchy n more times the way
@@ -56,6 +63,7 @@
     ///       against the loaded document instead of exiting; the Host exits
     ///       when they are done.
     @MainActor
+    @Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
     final class DebugE2EDump: NSObject {
         private static let directoryKey = "LOOKINSIDE_DEBUG_E2E_DUMP_DIR"
         private static let bundleIDKey = "LOOKINSIDE_DEBUG_E2E_BUNDLE_ID"
@@ -127,6 +135,8 @@
         private var refreshTimings: [[String: Double]] = []
         /// `detailsIdleInstant` of the first load, kept once refreshes start.
         private var firstLoadDetailsIdleInstant: ContinuousClock.Instant?
+        /// Open while the phase is loadingDetails.
+        private var loadingDetailsSignpostInterval: SignpostInterval?
         private var settleUntil = Date()
 
         private init(directory: String, environment: [String: String]) {
@@ -206,6 +216,12 @@
         // MARK: - Steps
 
         private func enterPhase(_ phase: Phase) {
+            if phase != .loadingDetails, let loadingDetailsSignpostInterval {
+                #signpost(.end, loadingDetailsSignpostInterval)
+                self.loadingDetailsSignpostInterval = nil
+            } else if phase == .loadingDetails, loadingDetailsSignpostInterval == nil {
+                loadingDetailsSignpostInterval = #signpost(.begin, "Driver loading details")
+            }
             self.phase = phase
             deadline = Date(timeIntervalSinceNow: timeout)
         }
@@ -213,6 +229,9 @@
         @objc private func tick() {
             if phase == .done {
                 return
+            }
+            if phase == .loadingDetails {
+                #signpost(.event, "Driver tick")
             }
             if deadline.timeIntervalSinceNow < 0 {
                 fail(.timeout, timeoutMessage())
@@ -344,10 +363,12 @@
                 }
                 let (document, alreadyOpen) = LiveDocumentController.shared.openLiveDocument(for: app)
                 self.document = document
-                enterPhase(.loadingDetails)
                 if !alreadyOpen {
                     document.hierarchyDataSource?.reload(with: info, keepState: false)
                 }
+                // After the reload, as for a refresh, so the details phase
+                // (and its signpost interval) holds no reload work.
+                enterPhase(.loadingDetails)
                 reloadEndInstant = .now
                 NavigationManager.shared.closeLaunch()
                 log("hierarchy loaded, \(document.hierarchyDataSource?.flatItems?.count ?? 0) items; waiting for details")
@@ -372,6 +393,10 @@
                 return
             }
             if !sawUpdating || -idleSince.timeIntervalSinceNow < Self.idleInterval {
+                return
+            }
+            // The displayed items are in; the prefetch is waited for too.
+            if manager.isPrefetching() {
                 return
             }
             if let refreshStartInstant {
