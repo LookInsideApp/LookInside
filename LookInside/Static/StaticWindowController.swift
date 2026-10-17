@@ -386,6 +386,9 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         // relabels the reload that refused it.
         lastReloadInitiator = initiator
         isFetchingHierarchy = true
+        // The prefetch of the tree being replaced would only compete with
+        // the hierarchy request, in the inspected app and here.
+        asyncUpdateManager.stopPrefetching()
         viewController.progressView.animate(toProgress: InitialIndicatorProgressWhenFetchHierarchy)
         PerformanceReporter.sharedInstance().willStartReload()
 
@@ -396,6 +399,8 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             } catch {
                 self?.viewController.progressView.resetToZero()
                 self?.isFetchingHierarchy = false
+                // The old tree stays: carry on with its prefetch.
+                self?.asyncUpdateManager.updateForDisplayingItems()
                 completion(.failure(error as NSError))
                 return
             }
@@ -421,6 +426,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
                 // button stays disabled and the caller never hears back.
                 viewController.progressView.resetToZero()
                 isFetchingHierarchy = false
+                asyncUpdateManager.updateForDisplayingItems()
                 completion(.failure(ReloadError.make(
                     ReloadError.noResponse,
                     NSLocalizedString("The app finished the hierarchy request without returning a hierarchy.", comment: "")
