@@ -5,10 +5,13 @@
 //  One connection to an inspected app's Server: a FrameChannel on a
 //  loopback TCP socket (Simulator and Mac apps) or a usbmuxd tunnel (USB
 //  devices), plus the state the connection manager keeps for it. Frames,
-//  send completions and the end arrive on the main queue.
+//  send completions and the end arrive on the main queue; frames and the
+//  end reach the delegate a time slice per main-queue turn, so a long
+//  response does not hold the main thread (see PacedMainQueueDelivery).
 //
 
 import Foundation
+import LookInsideHostCore
 
 /// Where a channel's Server runs.
 enum ServerChannelKind {
@@ -39,6 +42,13 @@ final class ServerChannel: NSObject {
     let connectionState = ServerChannelConnectionState()
 
     private let frameChannel: FrameChannel
+    /// The frames and the end the frame channel reported, in order, on their
+    /// way to the delegate. Released once the end is delivered.
+    private var channelEvents: PacedMainQueueDelivery<ChannelEvent>?
+
+    /// What one main-queue turn spends handing frames to the delegate: about
+    /// half a 60 Hz frame, so the run loop keeps time for events and drawing.
+    private static let eventDeliveryTimeBudget: Duration = .milliseconds(8)
 
     /// True until the channel ends or is closed.
     var isConnected: Bool {
@@ -62,20 +72,34 @@ final class ServerChannel: NSObject {
         super.init()
         // The callbacks hold the channel until it ends, as Peertalk's
         // dispatch I/O handlers did; the frame channel drops them after
-        // onEnd.
+        // onEnd, and the delivery lets go of the channel once the end is
+        // delivered.
+        let channelEvents = PacedMainQueueDelivery<ChannelEvent>(timeBudget: Self.eventDeliveryTimeBudget) { [self, weak delegate] event in
+            switch event {
+            case let .frame(frame):
+                delegate?.channel(self, didReceiveFrameOfType: frame.type, tag: frame.tag, payload: frame.payload)
+            case .end:
+                self.channelEvents = nil
+                delegate?.channelDidEnd(self)
+            }
+        }
+        self.channelEvents = channelEvents
+        // A frame header is decided on as it is read, ahead of the frames
+        // still waiting for the delegate. A frame accepted for a request that
+        // ends before the frame is delivered is dropped there.
         frameChannel.shouldAcceptFrame = { [self, weak delegate] header in
             MainActor.assumeIsolated {
                 delegate?.channel(self, shouldAcceptFrameOfType: header.type, tag: header.tag) ?? false
             }
         }
-        frameChannel.onFrame = { [self, weak delegate] frame in
+        frameChannel.onFrame = { frame in
             MainActor.assumeIsolated {
-                delegate?.channel(self, didReceiveFrameOfType: frame.type, tag: frame.tag, payload: frame.payload)
+                channelEvents.enqueue(.frame(frame))
             }
         }
-        frameChannel.onEnd = { [self, weak delegate] _ in
+        frameChannel.onEnd = { _ in
             MainActor.assumeIsolated {
-                delegate?.channelDidEnd(self)
+                channelEvents.enqueue(.end)
             }
         }
         frameChannel.start()
@@ -93,10 +117,23 @@ final class ServerChannel: NSObject {
         }
     }
 
-    /// Ends the channel now; queued writes are dropped. The delegate hears
-    /// `channelDidEnd` once.
+    /// Ends the channel now; queued writes are dropped, and so are the
+    /// frames read but not delivered yet, as the frame channel stops reading.
+    /// The delegate hears `channelDidEnd` once.
     func close() {
+        channelEvents?.removePending { event in
+            if case .frame = event {
+                return true
+            }
+            return false
+        }
         frameChannel.close()
+    }
+
+    /// What the frame channel reported.
+    private enum ChannelEvent {
+        case frame(TransportFrame)
+        case end
     }
 
     override nonisolated var description: String {
