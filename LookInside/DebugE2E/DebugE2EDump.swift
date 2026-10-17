@@ -38,6 +38,13 @@
     /// update manager, so it is accurate to tickInterval. Refresh benchmark
     /// drivers read it.
     ///
+    ///   LOOKINSIDE_DEBUG_E2E_REFRESH_COUNT=<n>
+    ///       After the first load, reload the hierarchy n more times the way
+    ///       the toolbar button does, each once the previous one's details
+    ///       are in, and add a `refreshes` entry per reload to timings.json.
+    ///       The first load builds every preview node; a refresh in an open
+    ///       window reuses them, so the two cost differently.
+    ///
     /// UI snapshots (Scripts/reborn-e2e/ui-snapshots.sh) add:
     ///
     ///   LOOKINSIDE_DEBUG_E2E_START_FILE=<path>
@@ -56,6 +63,7 @@
         private static let prepareLicenseCSRKey = "LOOKINSIDE_DEBUG_E2E_PREPARE_LICENSE_CSR"
         private static let expectLicensedKey = "LOOKINSIDE_DEBUG_E2E_EXPECT_LICENSED"
         private static let startFileKey = "LOOKINSIDE_DEBUG_E2E_START_FILE"
+        private static let refreshCountKey = "LOOKINSIDE_DEBUG_E2E_REFRESH_COUNT"
 
         /// Exit statuses, so the driver script can tell the failing step.
         private enum ExitStatus: Int32 {
@@ -92,6 +100,7 @@
         private let startFile: String?
         private let timeout: TimeInterval
         private let expectsLicensed: Bool
+        private let refreshCount: Int
         private var loggedStartWait = false
         private var loggedLicenseWait = false
         private var notedFirstWindow = false
@@ -112,6 +121,12 @@
         private var hierarchyResponseInstant: ContinuousClock.Instant?
         private var reloadEndInstant: ContinuousClock.Instant?
         private var detailsIdleInstant: ContinuousClock.Instant?
+        /// The reload in progress after the first load, and those done.
+        private var refreshStartInstant: ContinuousClock.Instant?
+        private var refreshReloadedInstant: ContinuousClock.Instant?
+        private var refreshTimings: [[String: Double]] = []
+        /// `detailsIdleInstant` of the first load, kept once refreshes start.
+        private var firstLoadDetailsIdleInstant: ContinuousClock.Instant?
         private var settleUntil = Date()
 
         private init(directory: String, environment: [String: String]) {
@@ -121,6 +136,7 @@
             let timeout = (environment[Self.timeoutKey] as NSString?)?.doubleValue ?? 0
             self.timeout = timeout > 0 ? timeout : 240
             expectsLicensed = environment[Self.expectLicensedKey] == "1"
+            refreshCount = max(Int(environment[Self.refreshCountKey] ?? "") ?? 0, 0)
             super.init()
         }
 
@@ -358,9 +374,61 @@
             if !sawUpdating || -idleSince.timeIntervalSinceNow < Self.idleInterval {
                 return
             }
+            if let refreshStartInstant {
+                recordRefresh(startedAt: refreshStartInstant)
+                self.refreshStartInstant = nil
+            }
+            if refreshTimings.count < refreshCount {
+                if firstLoadDetailsIdleInstant == nil {
+                    firstLoadDetailsIdleInstant = detailsIdleInstant
+                }
+                startRefresh()
+                return
+            }
             log("details loaded")
             settleUntil = Date(timeIntervalSinceNow: Self.settleInterval)
             enterPhase(.settling)
+        }
+
+        /// Reloads the hierarchy through the window controller, the path the
+        /// toolbar button takes, then waits for the details as after the first
+        /// load.
+        private func startRefresh() {
+            guard let windowController = document?.staticWindowController else {
+                fail(.openFailed, "refresh \(refreshTimings.count + 1): the document has no inspector window")
+                return
+            }
+            log("refresh \(refreshTimings.count + 1) of \(refreshCount)")
+            enterPhase(.opening)
+            sawUpdating = false
+            idleSince = nil
+            refreshReloadedInstant = nil
+            refreshStartInstant = .now
+            Task { @MainActor [self] in
+                do {
+                    _ = try await windowController.reloadHierarchy(initiator: .host)
+                } catch {
+                    fail(.openFailed, "refresh \(refreshTimings.count + 1) failed: \(error as NSError)")
+                    return
+                }
+                refreshReloadedInstant = .now
+                enterPhase(.loadingDetails)
+            }
+        }
+
+        private func recordRefresh(startedAt startInstant: ContinuousClock.Instant) {
+            var timing: [String: Double] = [:]
+            timing["reloadMilliseconds"] = Self.milliseconds(from: startInstant, to: refreshReloadedInstant)
+            timing["detailsMilliseconds"] = Self.milliseconds(from: refreshReloadedInstant, to: detailsIdleInstant)
+            timing["totalMilliseconds"] = Self.milliseconds(from: startInstant, to: detailsIdleInstant)
+            refreshTimings.append(timing)
+            log("refresh \(refreshTimings.count) done in \(String(format: "%.0f", timing["totalMilliseconds"] ?? 0)) ms")
+        }
+
+        private static func milliseconds(from start: ContinuousClock.Instant?, to end: ContinuousClock.Instant?) -> Double? {
+            guard let start, let end else { return nil }
+            let components = (end - start).components
+            return Double(components.seconds) * 1000 + Double(components.attoseconds) / 1_000_000_000_000_000
         }
 
         private func writeAndExit() {
@@ -411,16 +479,14 @@
         }
 
         private func writeTimings(itemCount: Int, to url: URL) throws {
-            func milliseconds(from start: ContinuousClock.Instant?, to end: ContinuousClock.Instant?) -> Double? {
-                guard let start, let end else { return nil }
-                let components = (end - start).components
-                return Double(components.seconds) * 1000 + Double(components.attoseconds) / 1_000_000_000_000_000
-            }
             var timings: [String: Any] = ["itemCount": itemCount]
-            timings["hierarchyRequestMilliseconds"] = milliseconds(from: hierarchyRequestInstant, to: hierarchyResponseInstant)
-            timings["reloadMilliseconds"] = milliseconds(from: hierarchyResponseInstant, to: reloadEndInstant)
-            timings["detailsMilliseconds"] = milliseconds(from: reloadEndInstant, to: detailsIdleInstant)
-            timings["totalMilliseconds"] = milliseconds(from: hierarchyRequestInstant, to: detailsIdleInstant)
+            timings["hierarchyRequestMilliseconds"] = Self.milliseconds(from: hierarchyRequestInstant, to: hierarchyResponseInstant)
+            timings["reloadMilliseconds"] = Self.milliseconds(from: hierarchyResponseInstant, to: reloadEndInstant)
+            timings["detailsMilliseconds"] = Self.milliseconds(from: reloadEndInstant, to: firstLoadDetailsIdleInstant ?? detailsIdleInstant)
+            timings["totalMilliseconds"] = Self.milliseconds(from: hierarchyRequestInstant, to: firstLoadDetailsIdleInstant ?? detailsIdleInstant)
+            if !refreshTimings.isEmpty {
+                timings["refreshes"] = refreshTimings
+            }
             let data = try JSONSerialization.data(withJSONObject: timings, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: url, options: .atomic)
             log("timings: \(String(data: data, encoding: .utf8) ?? "")")
