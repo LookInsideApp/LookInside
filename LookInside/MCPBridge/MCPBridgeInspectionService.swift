@@ -294,8 +294,8 @@ final class MCPBridgeInspectionService {
             let payload = try encodeAsJSONValue(encodedGroups)
             // Annotate whether the host has actually fetched per-item
             // details for this view. v2 reads the cache as-is; agents that
-            // see an empty `groups` array should know to ask the user to
-            // open this view in the host inspector first. `secureContent`
+            // see an empty `groups` array fetch the details with
+            // `read_view_details` (the `details.read` route). `secureContent`
             // tells the agent why textual values may be `null` here.
             let hasCachedDetails = displayItem.attributesGroupList?.isEmpty == false
             return .success(

@@ -21,8 +21,9 @@
 // Scope: v0.5 only fetches attribute groups (no screenshots, no
 // frame/bounds/hidden/alpha, no subitems). Screenshots get their
 // own dedicated route; visual info is already in `get_hierarchy`;
-// subtree changes are out of scope (agents follow up with
-// `get_hierarchy` when they need to.)
+// subtree changes are out of scope (agents call `refresh_hierarchy`
+// when they need them -- `get_hierarchy` only reads the tree the host
+// already has.)
 
 import AppKit
 import CoreGraphics
@@ -155,7 +156,7 @@ final class MCPBridgeDetailsService {
                 identifier: identifier,
                 error: MCPBridgeErrorPayload(
                     code: "details.objectNotFound",
-                    message: "None of the requested object identifiers are present in this target's hierarchy. Refresh the hierarchy via get_hierarchy and retry."
+                    message: "None of the requested object identifiers are present in this target's hierarchy. \(MCPBridgeRecoveryHint.identifierIsUnknown)"
                 )
             )
         }
@@ -321,7 +322,7 @@ final class MCPBridgeDetailsService {
         case LookinErrCode_ObjectNotFound:
             return MCPBridgeErrorPayload(
                 code: "details.objectNotFound",
-                message: "The target app could not find one or more of the requested objects. They may have been deallocated; refresh via get_hierarchy and retry."
+                message: "The target app could not find one or more of the requested objects. They may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
         case LookinErrCode_Inner:
             return MCPBridgeErrorPayload(

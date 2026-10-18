@@ -184,6 +184,7 @@
 				MCPBridge/MCPBridgeLiveDocumentLookup.swift,
 				MCPBridge/MCPBridgeModificationService.swift,
 				MCPBridge/MCPBridgeObjectIdentifierList.swift,
+				MCPBridge/MCPBridgeRecoveryHint.swift,
 				MCPBridge/MCPBridgeRefreshService.swift,
 				MCPBridge/MCPBridgeScreenshotService.swift,
 				MCPBridge/MCPBridgeSearchQuery.swift,

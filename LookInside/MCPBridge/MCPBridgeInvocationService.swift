@@ -204,7 +204,7 @@ final class MCPBridgeInvocationService {
         case LookinErrCode_ObjectNotFound:
             return MCPBridgeErrorPayload(
                 code: "invoke.objectNotFound",
-                message: "The target app could not find an object for this identifier or it does not respond to the selector. The object may have been deallocated; try reloading the inspector."
+                message: "The target app could not find an object for this identifier or it does not respond to the selector. The object may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
         case LookinErrCode_Inner:
             return MCPBridgeErrorPayload(
