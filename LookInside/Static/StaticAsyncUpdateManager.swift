@@ -32,13 +32,18 @@ enum ModifyingUpdateEvent {
 /// The displayed items come first: what each one misses of the screenshot
 /// the preview shows for it and of its attributes, in a request whose
 /// progress the window shows. Then, unless fast mode is on, a prefetch asks
-/// for what expanding the folded items would show, breadth first, without
-/// attributes; it steps aside — cancelled, resumed later from what is still
-/// missing — whenever the displayed items need something, a reload starts or
-/// another request is needed. `DetailFetchPlanning` decides what each
-/// request holds.
+/// for what expanding the folded items, and collapsing the expanded ones,
+/// would show, breadth first, without attributes; it steps aside —
+/// cancelled, resumed later from what is still missing — whenever the
+/// displayed items need something, a reload starts or another request is
+/// needed. Before a file of the hierarchy is written, `fetchWholeTree(then:)`
+/// asks for everything still missing. `DetailFetchPlanning` decides what
+/// each request holds.
+///
 /// Only one detail request can be in flight on a channel: a newer one makes
-/// the connection discard the older.
+/// the connection discard the older. This manager's requests yield to
+/// another client's (the MCP bridge's) instead, and resume once it is done;
+/// a reload ends whatever this manager has running.
 @Loggable(subsystem: "com.lookinside.app")
 @Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 @MainActor
@@ -56,20 +61,29 @@ final class StaticAsyncUpdateManager: NSObject {
     /// Events of `updateAfterModifyingDisplayItem(_:)`.
     let modifyingUpdates = AsyncBroadcaster<ModifyingUpdateEvent>()
 
-    /// Tasks of requests that received every reply since the last reload, so
-    /// a task answered without an image (a leaf has no solo screenshot) is
-    /// not asked again each time the displayed items change.
-    private var answeredTaskKeys = Set<DetailTaskKey>()
+    /// Tasks that requests answered in full since the last reload, so a task
+    /// answered without an image (a leaf has no solo screenshot) is not asked
+    /// for again each time the displayed items change.
+    private var answeredTasks = AnsweredTaskRecord<DetailTaskKey>()
     /// The request sent and not yet ended.
     private var ongoingRequest: DetailUpdateRequest?
     /// An `updateForDisplayingItems()` is waiting for the next main-queue turn.
     private var hasScheduledDisplayingUpdate = false
+    /// Whoever waits for `fetchWholeTree(then:)`.
+    private var wholeTreeWaiters: [@MainActor () -> Void] = []
+    /// A look at whether another client's detail request still holds the
+    /// channel is scheduled.
+    private var isWaitingForChannel = false
 
     /// A prefetch package is answered in one main-queue turn of the
     /// inspected app, and a cancellation only takes effect between packages,
     /// so prefetch packages are small.
     private static let prefetchPackageMaximumArea: Double = 500_000
     private static let prefetchPackageMaximumTaskCount = 20
+    /// How often to look whether another client's detail request still holds
+    /// the channel: the connection tells only a request's sender that it
+    /// ended.
+    private static let channelCheckInterval: TimeInterval = 0.25
 
     private let dataSourceSignals = SyncSubscriptionBag()
 
@@ -79,9 +93,19 @@ final class StaticAsyncUpdateManager: NSObject {
         super.init()
         dataSourceSignals.observe(hierarchyDataSource?.willReloadHierarchyInfo) { [weak self] in
             guard let self else { return }
-            // A prefetch of the tree being replaced has nothing left to do.
-            stopPrefetching()
-            answeredTaskKeys.removeAll()
+            // Whatever runs was planned for the tree being replaced, a fetch
+            // of the displayed items too: the replies it got so far went to
+            // the old tree, so its tasks are still missing in the new one.
+            // A file waiting for the whole tree gets the new tree instead,
+            // so its waiters outlive the request ended here.
+            let waiters = wholeTreeWaiters
+            wholeTreeWaiters.removeAll()
+            endUpdating()
+            answeredTasks.startNewTree()
+            if !waiters.isEmpty {
+                wholeTreeWaiters = waiters
+                updateForDisplayingItems()
+            }
         }
         PreferenceManager.shared.fastMode.subscribe(self, action: #selector(handleFastModeChange(_:)), relatedObject: nil)
     }
@@ -110,13 +134,18 @@ final class StaticAsyncUpdateManager: NSObject {
         }
     }
 
-    /// Stops the running fetch, prefetch included.
+    /// Stops this manager's running fetch, prefetch included; another
+    /// client's detail request goes on.
     func endUpdating() {
-        guard ongoingRequest != nil else { return }
+        guard let request = ongoingRequest, let sink = request.sink else { return }
         #log(.default, "AsyncUpdate - endUpdating")
-        // Completes the running details request synchronously, which runs
-        // its completion below and notifies the delegate.
-        inspectableApp?.cancelHierarchyDetailFetching()
+        // Completes the request synchronously, also while its ping runs,
+        // which runs its completion below and notifies the delegate.
+        if let inspectableApp {
+            inspectableApp.cancelHierarchyDetailRequest(receivingEventsWith: sink)
+        } else {
+            sink.cancel()
+        }
     }
 
     /// Stops a running prefetch; a fetch the user waits for goes on. What
@@ -127,16 +156,37 @@ final class StaticAsyncUpdateManager: NSObject {
         endUpdating()
     }
 
-    /// Whether a fetch the user waits for is running; a prefetch does not
-    /// count. A method rather than a property: Swift callers use
-    /// `isUpdating()`.
+    /// Whether a fetch the user waits for is running, the displayed items'
+    /// or the whole tree's; a prefetch does not count. A method rather than
+    /// a property: Swift callers use `isUpdating()`.
     func isUpdating() -> Bool {
-        ongoingRequest?.kind == .foreground
+        ongoingRequest?.kind.isWaitedFor == true
     }
 
     /// Whether a prefetch is running.
     func isPrefetching() -> Bool {
         ongoingRequest?.kind == .prefetch
+    }
+
+    /// Fetches what the tree misses of every node's screenshots and
+    /// attributes, then runs `completion`, which writes a file of the tree:
+    /// an export, a Save As or a reader window cannot ask the app later.
+    /// The window shows the progress, and its reload button stops the fetch;
+    /// a hierarchy reload meanwhile carries it over to the new tree.
+    /// `completion` runs on a later main-queue turn: once the fetch ends,
+    /// whether it finished, was stopped or failed (the file then has what
+    /// arrived), or right away when no app is connected.
+    func fetchWholeTree(then completion: @escaping @MainActor () -> Void) {
+        guard inspectableApp?.channel?.isConnected == true, dataSource != nil else {
+            DispatchQueue.main.async {
+                completion()
+            }
+            return
+        }
+        wholeTreeWaiters.append(completion)
+        // A whole tree fetch that runs already serves this caller too.
+        guard ongoingRequest?.kind != .wholeTree else { return }
+        sendWholeTreeRequest()
     }
 
     /// Fetches the screenshots of `displayItem` (solo and group) and the
@@ -188,16 +238,19 @@ final class StaticAsyncUpdateManager: NSObject {
         }
     }
 
-    /// Fetches one item's screenshots and attributes again, not its sub items.
+    /// Fetches one item's screenshots and attributes again, not its sub
+    /// items. The user asked for it: it does not yield to another client's
+    /// detail request.
     func reloadSingleDisplayItem(_ item: DisplayItem?) {
         let tasks = makeReloadSingleItemTasks(item)
         guard !tasks.isEmpty else { return }
-        send(tasks) { [weak self] in
+        send(tasks, yieldsToOtherRequests: false) { [weak self] in
             self?.startPrefetchIfNeeded()
         }
     }
 
-    /// Fetches an item and its sub items again, then their details.
+    /// Fetches an item and its sub items again, then their details. The user
+    /// asked for it: it does not yield to another client's detail request.
     func reloadDisplayItemAndChildren(_ rootItem: DisplayItem?) {
         // First the root item's basis, attributes and sub items.
         let tasks = makeReloadItemAndChildrenTasks(rootItem)
@@ -209,9 +262,9 @@ final class StaticAsyncUpdateManager: NSObject {
             item.soloScreenshot = nil
             item.groupScreenshot = nil
             let itemOids = Set(item.availableObjectOidsPreferView(false).map(\.uintValue))
-            self.answeredTaskKeys = self.answeredTaskKeys.filter { !itemOids.contains($0.oid) }
+            self.answeredTasks.forget { itemOids.contains($0.oid) }
         }
-        send(tasks) { [weak self] in
+        send(tasks, yieldsToOtherRequests: false) { [weak self] in
             // The new children: the displayed ones now, the others prefetched.
             self?.updateForDisplayingItems()
         }
@@ -221,8 +274,16 @@ final class StaticAsyncUpdateManager: NSObject {
 
     private func fetchForDisplayingItems() {
         guard inspectableApp != nil, dataSource != nil else { return }
+        // A whole tree fetch brings what the displayed items miss too.
+        guard ongoingRequest?.kind != .wholeTree else { return }
+        if !wholeTreeWaiters.isEmpty {
+            // Another client's detail request held the channel when the
+            // whole tree was asked for.
+            sendWholeTreeRequest()
+            return
+        }
         let newTasks = #signpostInterval("Make detail tasks") {
-            makeTasks(prefetching: false)
+            makeTasks(for: .foreground)
         }
         guard !newTasks.isEmpty else {
             // Everything on screen is there: carry on with the prefetch.
@@ -239,10 +300,53 @@ final class StaticAsyncUpdateManager: NSObject {
     private func startPrefetchIfNeeded() {
         guard !PreferenceManager.shared.fastMode.currentBOOLValue, ongoingRequest == nil, inspectableApp != nil else { return }
         let newTasks = #signpostInterval("Make prefetch tasks") {
-            makeTasks(prefetching: true)
+            makeTasks(for: .prefetch)
         }
         guard !newTasks.isEmpty else { return }
         send(newTasks, kind: .prefetch)
+    }
+
+    private func sendWholeTreeRequest() {
+        let newTasks = #signpostInterval("Make whole tree tasks") {
+            makeTasks(for: .wholeTree)
+        }
+        guard !newTasks.isEmpty else {
+            finishWholeTree()
+            return
+        }
+        send(newTasks, kind: .wholeTree)
+    }
+
+    /// Hands the tree to whoever waits for `fetchWholeTree(then:)`, on a
+    /// later main-queue turn: the request may have ended in the middle of a
+    /// reload.
+    private func finishWholeTree() {
+        let waiters = wholeTreeWaiters
+        wholeTreeWaiters.removeAll()
+        guard !waiters.isEmpty else { return }
+        DispatchQueue.main.async {
+            for waiter in waiters {
+                waiter()
+            }
+        }
+    }
+
+    /// Looks again shortly whether another client's detail request still
+    /// holds the channel, and once it is done asks for what is still missing.
+    private func resumeWhenChannelIsFree() {
+        guard !isWaitingForChannel else { return }
+        isWaitingForChannel = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.channelCheckInterval) { [weak self] in
+            guard let self else { return }
+            isWaitingForChannel = false
+            // A reload or an expand started a request meanwhile.
+            guard ongoingRequest == nil else { return }
+            if inspectableApp?.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchyDetails)) == true {
+                resumeWhenChannelIsFree()
+            } else {
+                fetchForDisplayingItems()
+            }
+        }
     }
 
     @objc private func handleFastModeChange(_ parameters: MessageActionParameters) {
@@ -255,10 +359,10 @@ final class StaticAsyncUpdateManager: NSObject {
 
     // MARK: - Tasks
 
-    /// The displayed items' tasks, or the prefetch's, as
-    /// `DetailFetchPlanning` lists them, without the tasks a request already
-    /// answered since the last reload.
-    private func makeTasks(prefetching: Bool) -> [StaticAsyncUpdateTask] {
+    /// The tasks of a request of `kind` (the displayed items', the
+    /// prefetch's or the whole tree's) as `DetailFetchPlanning` lists them,
+    /// without the tasks a request already answered since the last reload.
+    private func makeTasks(for kind: DetailRequestKind) -> [StaticAsyncUpdateTask] {
         guard let dataSource else { return [] }
         let items = dataSource.flatItems ?? []
         var indexByItem: [ObjectIdentifier: Int] = [:]
@@ -283,9 +387,16 @@ final class StaticAsyncUpdateManager: NSObject {
         }
         let displayedIndexes = (dataSource.displayingFlatItems ?? []).compactMap { indexByItem[ObjectIdentifier($0)] }
         let requests = #signpostInterval("Plan detail requests") {
-            prefetching
-                ? DetailFetchPlanning.prefetchRequests(for: nodes, displayedIndexes: displayedIndexes)
-                : DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+            // An explicit return: the macro's expansion does not take a lone
+            // switch for the closure's value.
+            return switch kind {
+            case .foreground:
+                DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+            case .prefetch:
+                DetailFetchPlanning.prefetchRequests(for: nodes, displayedIndexes: displayedIndexes)
+            case .wholeTree:
+                DetailFetchPlanning.wholeTreeRequests(for: nodes, displayedIndexes: displayedIndexes)
+            }
         }
 
         let context = TaskContext(appInfo: dataSource.rawHierarchyInfo?.appInfo)
@@ -304,7 +415,7 @@ final class StaticAsyncUpdateManager: NSObject {
                 guard let task = Self.task(from: items[request.nodeIndex], type: taskType, context: context) else { continue }
                 task.attrRequest = request.wantsAttributes ? .need : .notNeed
                 let key = DetailTaskKey(task)
-                guard !self.answeredTaskKeys.contains(key), taskKeys.insert(key).inserted else { continue }
+                guard !self.answeredTasks.contains(key), taskKeys.insert(key).inserted else { continue }
                 tasks.append(task)
             }
             return tasks
@@ -405,7 +516,7 @@ final class StaticAsyncUpdateManager: NSObject {
     private static func packages(from tasks: [StaticAsyncUpdateTask], kind: DetailRequestKind) -> [StaticAsyncUpdateTasksPackage] {
         let areas = tasks.map { Double($0.frameSize.width * $0.frameSize.height) }
         let ranges = switch kind {
-        case .foreground:
+        case .foreground, .wholeTree:
             DetailTaskPackaging.packageRanges(areas: areas)
         case .prefetch:
             DetailTaskPackaging.packageRanges(areas: areas, maxArea: prefetchPackageMaximumArea, maxCount: prefetchPackageMaximumTaskCount)
@@ -421,18 +532,28 @@ final class StaticAsyncUpdateManager: NSObject {
 
     /// Sends a request whose events arrive synchronously on the main
     /// thread. `endUpdating()` relies on that: cancelling the details
-    /// request completes it before the next request starts.
+    /// request completes it before the next request starts. Returns the
+    /// sink that names the request to the connection, nil when there is no
+    /// channel (the failure arrived already).
+    @discardableResult
     private func startRequest(
         app: InspectableApp,
         type: Int,
         tasks: NSArray,
+        yieldsToRequestInFlight: Bool = false,
         onEvent: @escaping (AppResponseEvent) -> Void
-    ) {
+    ) -> ResponseSink? {
         guard let channel = app.channel else {
             onEvent(.failure(ConnectionError.noConnect))
-            return
+            return nil
         }
-        _ = InspectableApp.startRequest(on: channel, type: UInt32(type), data: tasks, onEvent: onEvent)
+        return InspectableApp.startRequest(
+            on: channel,
+            type: UInt32(type),
+            data: tasks,
+            yieldsToRequestInFlight: yieldsToRequestInFlight,
+            onEvent: onEvent
+        )
     }
 
     private func startRequest(
@@ -444,25 +565,50 @@ final class StaticAsyncUpdateManager: NSObject {
         startRequest(app: app, type: type, tasks: tasks as NSArray, onEvent: onEvent)
     }
 
-    /// Sends `newTasks`, replacing the running request. `completion` runs
-    /// once every task is answered, not when the request is cancelled or
-    /// fails.
-    private func send(_ newTasks: [StaticAsyncUpdateTask], kind: DetailRequestKind = .foreground, completion: (() -> Void)? = nil) {
+    /// Sends `newTasks`, replacing the running request of this manager.
+    /// `completion` runs once every task is answered, not when the request
+    /// is cancelled or fails. With `yieldsToOtherRequests`, another client's
+    /// detail request on the channel goes first: nothing is sent while it
+    /// runs, and what is still missing is asked for once it is done.
+    private func send(
+        _ newTasks: [StaticAsyncUpdateTask],
+        kind: DetailRequestKind = .foreground,
+        yieldsToOtherRequests: Bool = true,
+        completion: (() -> Void)? = nil
+    ) {
         guard let app = inspectableApp, !newTasks.isEmpty else { return }
         // The same request cannot run twice at once: cancel the previous one.
         endUpdating()
+        if yieldsToOtherRequests, app.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchyDetails)) {
+            // This manager's ended above: the one in flight is another
+            // client's.
+            resumeWhenChannelIsFree()
+            return
+        }
 
-        let request = DetailUpdateRequest(kind: kind, packages: Self.packages(from: newTasks, kind: kind))
+        let request = DetailUpdateRequest(
+            kind: kind,
+            packages: Self.packages(from: newTasks, kind: kind),
+            treeVersion: answeredTasks.treeVersion
+        )
         request.signpostInterval = switch kind {
         case .foreground: #signpost(.begin, "Fetch displayed items")
         case .prefetch: #signpost(.begin, "Prefetch")
+        case .wholeTree: #signpost(.begin, "Fetch whole tree")
         }
         ongoingRequest = request
         notifyTasksCountToDelegate()
 
-        #log(.default, "AsyncUpdate - Will send \(NSNumber(value: newTasks.count), privacy: .public) tasks (\(kind == .prefetch ? "prefetch" : "foreground", privacy: .public)).")
+        #log(.default, "AsyncUpdate - Will send \(NSNumber(value: newTasks.count), privacy: .public) tasks (\(kind.name, privacy: .public)).")
 
-        startRequest(app: app, type: LookinRequestTypeHierarchyDetails, tasks: request.packages as NSArray) { [weak self] event in
+        // The connection checks again as the request goes out, after its
+        // ping: another client's request may have started meanwhile.
+        request.sink = startRequest(
+            app: app,
+            type: LookinRequestTypeHierarchyDetails,
+            tasks: request.packages as NSArray,
+            yieldsToRequestInFlight: yieldsToOtherRequests
+        ) { [weak self] event in
             guard let self else { return }
             switch event {
             case let .value(value):
@@ -521,17 +667,20 @@ final class StaticAsyncUpdateManager: NSObject {
         notifyTasksCountToDelegate()
 
         if error.code == LookinErrCode_Discard {
-            // Another detail request took the channel (the MCP bridge asks
-            // for screenshots this way). Nothing went wrong: what is still
-            // missing is asked for again once it is done.
-            #log(.default, "AsyncUpdate - \(request.kind == .prefetch ? "prefetch" : "request", privacy: .public) discarded by a newer detail request")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self, ongoingRequest == nil else { return }
-                updateForDisplayingItems()
-            }
+            // Another client's detail request took the channel, or held it
+            // as this one was about to go (the MCP bridge asks for
+            // screenshots and details this way). Nothing went wrong: what is
+            // still missing, a whole tree a file waits for included, is asked
+            // for again once that request is done.
+            #log(.default, "AsyncUpdate - \(request.kind.name, privacy: .public) request gave way to another client's detail request")
+            resumeWhenChannelIsFree()
             return
         }
-        guard request.kind == .foreground else {
+        if request.kind == .wholeTree {
+            // The file gets what arrived.
+            finishWholeTree()
+        }
+        guard request.kind.isWaitedFor else {
             // A prefetch the user never waited for fails quietly; the items
             // it did not reach are asked for when they are displayed.
             #log(.default, "AsyncUpdate - prefetch failed: \(error.localizedDescription, privacy: .public)")
@@ -565,9 +714,9 @@ final class StaticAsyncUpdateManager: NSObject {
         guard request === ongoingRequest else { return false }
         let answeredEveryTask = request.finishedTasksCount >= request.tasksTotalCount
         if answeredEveryTask {
-            answeredTaskKeys.formUnion(request.taskKeys)
+            answeredTasks.record(request.taskKeys, sentForTreeVersion: request.treeVersion)
         }
-        if request.kind == .foreground, request.failedTasksCount > 0 {
+        if request.kind.isWaitedFor, request.failedTasksCount > 0 {
             let error = StaticErrors.make(
                 title: NSLocalizedString("Some layer data failed to transmit.", comment: ""),
                 detail: NSLocalizedString(
@@ -580,12 +729,16 @@ final class StaticAsyncUpdateManager: NSObject {
         ongoingRequest = nil
         notifyTasksCountToDelegate()
         PerformanceReporter.sharedInstance().didComplete()
+        if request.kind == .wholeTree {
+            // Answered, or stopped: the file gets what arrived.
+            finishWholeTree()
+        }
         return answeredEveryTask
     }
 
     /// Reports the request the user waits for; a prefetch reports nothing.
     private func notifyTasksCountToDelegate() {
-        let request = ongoingRequest?.kind == .foreground ? ongoingRequest : nil
+        let request = ongoingRequest?.kind.isWaitedFor == true ? ongoingRequest : nil
         let totalCount = request?.tasksTotalCount ?? 0
         let finishedCount = request?.finishedTasksCount ?? 0
         #log(.default, "AsyncUpdate - notify delagate: \(NSNumber(value: finishedCount), privacy: .public)/\(NSNumber(value: totalCount), privacy: .public)")
@@ -675,15 +828,32 @@ extension StaticAsyncUpdateManager {
 
 // MARK: - DetailUpdateRequest
 
-/// Whether the user waits for a request.
+/// What a request fetches, and whether the user waits for it.
 private enum DetailRequestKind {
     /// The displayed items, or an item reloaded on request: the window shows
     /// the progress, and its reload button stops it.
     case foreground
-    /// What expanding the folded items would show: never shown, never in
-    /// the way of a reload, cancelled whenever anything else needs the
-    /// channel.
+    /// What expanding the folded items, and collapsing the expanded ones,
+    /// would show: never shown, never in the way of a reload, cancelled
+    /// whenever anything else needs the channel.
     case prefetch
+    /// Everything the tree misses, before a file of it is written; shown and
+    /// stopped like `foreground`.
+    case wholeTree
+
+    /// Whether the window shows the request's progress.
+    var isWaitedFor: Bool {
+        self != .prefetch
+    }
+
+    /// For the log.
+    var name: String {
+        switch self {
+        case .foreground: "foreground"
+        case .prefetch: "prefetch"
+        case .wholeTree: "whole tree"
+        }
+    }
 }
 
 /// A task as the answered-task record knows it.
@@ -703,6 +873,11 @@ private struct DetailTaskKey: Hashable {
 private final class DetailUpdateRequest {
     let kind: DetailRequestKind
     let packages: [StaticAsyncUpdateTasksPackage]
+    /// `AnsweredTaskRecord.treeVersion` when the request was sent.
+    let treeVersion: Int
+    /// Where the request's events go; it names the request when it is
+    /// cancelled.
+    var sink: ResponseSink?
     /// Tasks that received a reply, failed ones included. Which ones is not
     /// known, only how many.
     var finishedTasksCount = 0
@@ -710,9 +885,10 @@ private final class DetailUpdateRequest {
     /// From the send to the completion or failure.
     var signpostInterval: SignpostInterval?
 
-    init(kind: DetailRequestKind, packages: [StaticAsyncUpdateTasksPackage]) {
+    init(kind: DetailRequestKind, packages: [StaticAsyncUpdateTasksPackage], treeVersion: Int) {
         self.kind = kind
         self.packages = packages
+        self.treeVersion = treeVersion
     }
 
     /// Closes `signpostInterval`, once.

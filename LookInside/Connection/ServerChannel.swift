@@ -117,6 +117,16 @@ final class ServerChannel: NSObject {
         }
     }
 
+    /// Whether a frame of `type` with `tag` was read and still waits for its
+    /// turn to reach the delegate. A request whose response waits here has
+    /// been answered in time: its timeout starts over instead of expiring.
+    func hasUndeliveredFrame(type: UInt32, tag: UInt32) -> Bool {
+        channelEvents?.containsPending { event in
+            guard case let .frame(frame) = event else { return false }
+            return frame.type == type && frame.tag == tag
+        } ?? false
+    }
+
     /// Ends the channel now; queued writes are dropped, and so are the
     /// frames read but not delivered yet, as the frame channel stops reading.
     /// The delegate hears `channelDidEnd` once.

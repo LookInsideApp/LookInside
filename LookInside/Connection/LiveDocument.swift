@@ -121,6 +121,18 @@ final class LiveDocument: NSDocument {
         saveOperation == .saveAsOperation ? ["com.lookin.lookin"] : []
     }
 
+    /// The file cannot ask the app later: first fetch what the tree misses,
+    /// then show the save panel.
+    override func saveAs(_ sender: Any?) {
+        guard let asyncUpdateManager else {
+            super.saveAs(sender)
+            return
+        }
+        asyncUpdateManager.fetchWholeTree {
+            super.saveAs(sender)
+        }
+    }
+
     override func data(ofType typeName: String) throws -> Data {
         guard typeName == "com.lookin.lookin",
               let info = hierarchyDataSource?.rawHierarchyInfo,

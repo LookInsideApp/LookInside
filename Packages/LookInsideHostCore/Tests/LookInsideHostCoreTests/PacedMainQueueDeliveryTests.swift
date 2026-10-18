@@ -145,6 +145,19 @@ struct PacedMainQueueDeliveryTests {
         #expect(recorder.entries == ["item 1", "item 2", "item 3", "item 5"])
     }
 
+    @Test func aPendingItemCanBeFoundUntilItIsHandedOver() async throws {
+        let recorder = Recorder()
+        let delivery = PacedMainQueueDelivery<Int>(timeBudget: .seconds(3600)) { item in
+            recorder.entries.append("item \(item)")
+        }
+        delivery.enqueue(1)
+        delivery.enqueue(2)
+        #expect(delivery.containsPending { $0 == 2 })
+
+        try await waitUntil { recorder.entries.count == 2 }
+        #expect(delivery.containsPending { $0 == 2 } == false)
+    }
+
     @Test func pendingItemsKeepTheDeliveryAlive() async throws {
         let recorder = Recorder()
         weak var releasedDelivery: PacedMainQueueDelivery<Int>?

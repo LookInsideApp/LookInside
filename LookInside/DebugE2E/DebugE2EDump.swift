@@ -51,6 +51,12 @@
     ///       are in, and add a `refreshes` entry per reload to timings.json.
     ///       The first load builds every preview node; a refresh in an open
     ///       window reuses them, so the two cost differently.
+    ///   LOOKINSIDE_DEBUG_E2E_WHOLE_TREE=1
+    ///       After the last load's details, fetch what the whole tree misses
+    ///       the way an export does first (`fetchWholeTree(then:)`), then
+    ///       write: snapshot.json shows whether every node got its
+    ///       attributes and screenshots, and timings.json gets
+    ///       `wholeTreeMilliseconds`.
     ///
     /// UI snapshots (Scripts/reborn-e2e/ui-snapshots.sh) add:
     ///
@@ -72,6 +78,7 @@
         private static let expectLicensedKey = "LOOKINSIDE_DEBUG_E2E_EXPECT_LICENSED"
         private static let startFileKey = "LOOKINSIDE_DEBUG_E2E_START_FILE"
         private static let refreshCountKey = "LOOKINSIDE_DEBUG_E2E_REFRESH_COUNT"
+        private static let wholeTreeKey = "LOOKINSIDE_DEBUG_E2E_WHOLE_TREE"
 
         /// Exit statuses, so the driver script can tell the failing step.
         private enum ExitStatus: Int32 {
@@ -86,6 +93,7 @@
             case waitingForApp
             case opening
             case loadingDetails
+            case fetchingWholeTree
             case settling
             case done
         }
@@ -109,6 +117,7 @@
         private let timeout: TimeInterval
         private let expectsLicensed: Bool
         private let refreshCount: Int
+        private let fetchesWholeTree: Bool
         private var loggedStartWait = false
         private var loggedLicenseWait = false
         private var notedFirstWindow = false
@@ -135,6 +144,9 @@
         private var refreshTimings: [[String: Double]] = []
         /// `detailsIdleInstant` of the first load, kept once refreshes start.
         private var firstLoadDetailsIdleInstant: ContinuousClock.Instant?
+        /// The whole tree fetch of LOOKINSIDE_DEBUG_E2E_WHOLE_TREE.
+        private var wholeTreeStartInstant: ContinuousClock.Instant?
+        private var wholeTreeEndInstant: ContinuousClock.Instant?
         /// Open while the phase is loadingDetails.
         private var loadingDetailsSignpostInterval: SignpostInterval?
         private var settleUntil = Date()
@@ -147,6 +159,7 @@
             self.timeout = timeout > 0 ? timeout : 240
             expectsLicensed = environment[Self.expectLicensedKey] == "1"
             refreshCount = max(Int(environment[Self.refreshCountKey] ?? "") ?? 0, 0)
+            fetchesWholeTree = environment[Self.wholeTreeKey] == "1"
             super.init()
         }
 
@@ -254,6 +267,8 @@
                 break
             case .loadingDetails:
                 checkDetails()
+            case .fetchingWholeTree:
+                break
             case .settling:
                 if settleUntil.timeIntervalSinceNow <= 0 {
                     writeAndExit()
@@ -276,6 +291,8 @@
             case .loadingDetails:
                 let updating = document?.asyncUpdateManager?.isUpdating() == true
                 return "timed out waiting for the display-item details (update manager \(updating ? "still updating" : "never started"))"
+            case .fetchingWholeTree:
+                return "timed out fetching what the whole tree misses"
             default:
                 return "timed out"
             }
@@ -411,8 +428,26 @@
                 return
             }
             log("details loaded")
+            if fetchesWholeTree, wholeTreeStartInstant == nil {
+                startWholeTreeFetch(with: manager)
+                return
+            }
             settleUntil = Date(timeIntervalSinceNow: Self.settleInterval)
             enterPhase(.settling)
+        }
+
+        /// What an export does before it writes the file.
+        private func startWholeTreeFetch(with manager: StaticAsyncUpdateManager) {
+            log("fetching what the whole tree misses")
+            enterPhase(.fetchingWholeTree)
+            wholeTreeStartInstant = .now
+            manager.fetchWholeTree { [self] in
+                wholeTreeEndInstant = .now
+                let milliseconds = Self.milliseconds(from: wholeTreeStartInstant, to: wholeTreeEndInstant) ?? 0
+                log("whole tree fetched in \(String(format: "%.0f", milliseconds)) ms")
+                settleUntil = Date(timeIntervalSinceNow: Self.settleInterval)
+                enterPhase(.settling)
+            }
         }
 
         /// Reloads the hierarchy through the window controller, the path the
@@ -512,6 +547,7 @@
             if !refreshTimings.isEmpty {
                 timings["refreshes"] = refreshTimings
             }
+            timings["wholeTreeMilliseconds"] = Self.milliseconds(from: wholeTreeStartInstant, to: wholeTreeEndInstant)
             let data = try JSONSerialization.data(withJSONObject: timings, options: [.prettyPrinted, .sortedKeys])
             try data.write(to: url, options: .atomic)
             log("timings: \(String(data: data, encoding: .utf8) ?? "")")

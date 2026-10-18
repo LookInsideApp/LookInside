@@ -33,13 +33,17 @@ final class InspectableApp: NSObject {
     /// Sends a request on `channel`. Each response's error becomes a
     /// failure, localized for the object-not-found and inner-error codes;
     /// otherwise its `data`, passed through `transform`, becomes a value.
-    /// The returned sink stops the delivery when detached.
+    /// The returned sink stops the delivery when detached, and names the
+    /// request to `cancelHierarchyDetailRequest(receivingEventsWith:)`.
+    /// With `yieldsToRequestInFlight`, a request of its type in flight
+    /// keeps the channel, and this one fails as discarded, unsent.
     @MainActor
     static func startRequest(
         on channel: ServerChannel,
         type: UInt32,
         data: NSObject?,
         transform: ((Any?) -> Any?)? = nil,
+        yieldsToRequestInFlight: Bool = false,
         onEvent: @escaping (AppResponseEvent) -> Void
     ) -> ResponseSink {
         var hasEnded = false
@@ -62,7 +66,7 @@ final class InspectableApp: NSObject {
                 onEvent(.completion)
             }
         }
-        ConnectionManager.shared.request(type: type, data: data, channel: channel, sink: sink)
+        ConnectionManager.shared.request(type: type, data: data, channel: channel, yieldsToRequestInFlight: yieldsToRequestInFlight, sink: sink)
         return sink
     }
 
@@ -134,11 +138,10 @@ final class InspectableApp: NSObject {
         ConnectionManager.shared.push(type: type, data: data, channel: channel)
     }
 
-    /// Ends the waiting request of `type` and reports it as completed.
+    /// Whether a request of `type` is in flight on the channel.
     @MainActor
-    func cancelRequest(type: UInt32) {
-        guard let channel else { return }
-        ConnectionManager.shared.cancelRequest(type: type, channel: channel)
+    func isRequestInFlight(type: UInt32) -> Bool {
+        ConnectionManager.shared.isRequestInFlight(type: type, channel: channel)
     }
 
     // MARK: - Request payloads
@@ -213,11 +216,15 @@ extension InspectableApp {
         typedResponses(type: UInt32(LookinRequestTypeHierarchyDetails), data: packages as NSArray, as: [DisplayItemDetail].self)
     }
 
-    /// Stops the running hierarchy details request: it completes, and the
-    /// Server is told to stop sending.
+    /// Stops the hierarchy details request whose events go to `sink`: it
+    /// completes, and when it was in flight the Server is told to stop
+    /// sending. The cancel push stops every detail request the Server works
+    /// on; while this one is in flight on the Host, any other is one the Host
+    /// already ended (one request of a type is in flight at a time), so
+    /// another client's request still waiting is never stopped.
     @MainActor
-    func cancelHierarchyDetailFetching() {
-        cancelRequest(type: UInt32(LookinRequestTypeHierarchyDetails))
+    func cancelHierarchyDetailRequest(receivingEventsWith sink: ResponseSink) {
+        guard ConnectionManager.shared.cancelRequest(receivingEventsWith: sink, channel: channel) else { return }
         push(type: UInt32(LookinPush_CanceHierarchyDetails), data: nil)
     }
 

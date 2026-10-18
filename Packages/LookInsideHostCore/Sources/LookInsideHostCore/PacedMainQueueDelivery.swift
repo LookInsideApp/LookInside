@@ -48,6 +48,13 @@ public final class PacedMainQueueDelivery<Item> {
         scheduleTurnIfNeeded()
     }
 
+    /// Whether a pending item matches `predicate`.
+    public func containsPending(where predicate: (Item) -> Bool) -> Bool {
+        pendingItems[headIndex...].contains { item in
+            item.map(predicate) ?? false
+        }
+    }
+
     /// Drops the pending items `shouldRemove` matches. The handler may call
     /// it for the items after its own.
     public func removePending(where shouldRemove: (Item) -> Bool) {

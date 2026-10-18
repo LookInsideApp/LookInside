@@ -707,6 +707,16 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     }
 
     @objc func appMenuManagerDidSelectExport() {
+        guard hierarchyDataSource.rawHierarchyInfo != nil else {
+            return
+        }
+        // The file cannot ask the app later: first fetch what the tree misses.
+        asyncUpdateManager.fetchWholeTree { [weak self] in
+            self?.showExportPanel()
+        }
+    }
+
+    private func showExportPanel() {
         guard let hierarchyInfo = hierarchyDataSource.rawHierarchyInfo else {
             return
         }
@@ -755,11 +765,16 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     }
 
     @objc func appMenuManagerDidSelectOpenInNewWindow() {
-        let newHierarchyInfo = hierarchyDataSource.rawHierarchyInfo?.copy() as? HierarchyInfo
-        let file = HierarchyFile()
-        file.serverVersion = newHierarchyInfo?.serverVersion ?? 0
-        file.hierarchyInfo = newHierarchyInfo
-        NavigationManager.shared.showReader(with: file, title: nil)
+        // The reader cannot ask the app later: first fetch what the tree
+        // misses.
+        asyncUpdateManager.fetchWholeTree { [weak self] in
+            guard let self else { return }
+            let newHierarchyInfo = hierarchyDataSource.rawHierarchyInfo?.copy() as? HierarchyInfo
+            let file = HierarchyFile()
+            file.serverVersion = newHierarchyInfo?.serverVersion ?? 0
+            file.hierarchyInfo = newHierarchyInfo
+            NavigationManager.shared.showReader(with: file, title: nil)
+        }
     }
 
     @objc func appMenuManagerDidSelectFilter() {
@@ -821,7 +836,8 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         let priorSwiftUIID = hierarchyDataSource.selectedItem?.customInfo?.swiftUIDisplayItemID
         let priorWasSwiftUI = SwiftUISelectionMigration.isSwiftUIID(priorSwiftUIID)
 
-        app.cancelHierarchyDetailFetching()
+        // This window's detail fetch only; the MCP bridge's request goes on.
+        asyncUpdateManager.endUpdating()
         viewController.progressView.animate(toProgress: InitialIndicatorProgressWhenFetchHierarchy)
         Task { [weak self] in
             do {

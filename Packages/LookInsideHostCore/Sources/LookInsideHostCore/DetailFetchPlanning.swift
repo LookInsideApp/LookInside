@@ -15,8 +15,11 @@ import Foundation
 ///   none yet. The window shows the progress.
 /// - **Prefetch**: what expanding a folded node would show — its solo
 ///   screenshot and its children's group screenshots — breadth first from
-///   the rows on screen, so the next expand finds them ready. Never
+///   the rows on screen, so the next expand finds them ready; then what
+///   collapsing a displayed node would show, its group screenshot. Never
 ///   attributes: a node gets those when it is displayed.
+/// - **Whole tree**: before a file of the hierarchy is written, everything
+///   any node misses, attributes included. The window shows the progress.
 public enum DetailFetchPlanning {
     public enum Screenshot: Equatable, Sendable {
         case solo
@@ -114,8 +117,9 @@ public enum DetailFetchPlanning {
     /// What expanding the folded nodes would show, breadth first from the
     /// displayed ones: for each folded node, its solo screenshot (when it has
     /// children that draw something) and its children's group screenshots;
-    /// then the same one level further down. Only screenshots the nodes do
-    /// not have yet; never attributes.
+    /// then the same one level further down. Last, what collapsing would
+    /// show: the group screenshot of each displayed node that shows its solo
+    /// one now. Only screenshots the nodes do not have yet; never attributes.
     public static func prefetchRequests(for nodes: [Node], displayedIndexes: [Int]) -> [Request] {
         var requests: [Request] = []
         var foldedIndexes = displayedIndexes.filter { nodes[$0].isExpandable && !nodes[$0].isExpanded }
@@ -138,6 +142,46 @@ public enum DetailFetchPlanning {
                 }
             }
             foldedIndexes = nextFoldedIndexes
+        }
+        for index in displayedIndexes {
+            let node = nodes[index]
+            if !node.isUserCustom, node.mayFetchScreenshot, node.shownScreenshot == .solo, !node.hasGroupScreenshot {
+                requests.append(Request(nodeIndex: index, screenshot: .group, wantsAttributes: false))
+            }
+        }
+        return requests
+    }
+
+    /// What the nodes miss for a file of the whole tree (an export, a Save
+    /// As, a reader window), which cannot ask the inspected app later: every
+    /// node's group screenshot, its solo screenshot when it has children that
+    /// draw something, and its attributes. The displayed nodes' requests come
+    /// first, as on screen; then the rest in list order, a node's attributes
+    /// with its first request.
+    public static func wholeTreeRequests(for nodes: [Node], displayedIndexes: [Int]) -> [Request] {
+        var requests = onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+        // A displayed node's attributes and shown screenshot are asked for
+        // above already, when it misses them.
+        let displayedIndexSet = Set(displayedIndexes)
+        for (index, node) in nodes.enumerated() where !node.isUserCustom {
+            let isDisplayed = displayedIndexSet.contains(index)
+            var wantsAttributes = !node.hasAttributes && !isDisplayed
+            if node.mayFetchScreenshot {
+                var missingScreenshots: [Screenshot] = []
+                if !node.hasGroupScreenshot {
+                    missingScreenshots.append(.group)
+                }
+                if node.isExpandable, node.hasPixelBearingSubitems, !node.hasSoloScreenshot {
+                    missingScreenshots.append(.solo)
+                }
+                for screenshot in missingScreenshots where !(isDisplayed && screenshot == node.shownScreenshot) {
+                    requests.append(Request(nodeIndex: index, screenshot: screenshot, wantsAttributes: wantsAttributes))
+                    wantsAttributes = false
+                }
+            }
+            if wantsAttributes {
+                requests.append(Request(nodeIndex: index, screenshot: nil, wantsAttributes: true))
+            }
         }
         return requests
     }
