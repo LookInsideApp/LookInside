@@ -165,6 +165,7 @@
 				Launch/LaunchRules.swift,
 				Launch/LaunchViewController.swift,
 				Launch/LaunchWindowController.swift,
+				Launch/ServerVersionAlert.swift,
 				Localizable.xcstrings,
 				LookinArchiveIcon.icns,
 				Manager/AppHelper.swift,

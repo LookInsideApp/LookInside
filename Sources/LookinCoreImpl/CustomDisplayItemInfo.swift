@@ -32,6 +32,18 @@
         public var isSwiftUI: Bool = false
         @objc(swiftUIDisplayItemID)
         public var swiftUIDisplayItemID: String?
+        /// The oid a detail request (203) uses for this node's screenshots and
+        /// attribute groups, when the Server left them out of the hierarchy
+        /// (`LookinParam_AsyncAcquisition`). Zero when the details came inline
+        /// or the node has none. Archived only when non-zero.
+        @objc(detailObjectOid)
+        public var detailObjectOid: UInt = 0
+        /// Whether the node has a layer of its own to screenshot, so a
+        /// screenshot is worth asking for; false for layout-only nodes. The
+        /// layer may still render nothing. Meaningful only with a
+        /// `detailObjectOid`.
+        @objc(detailHasScreenshots)
+        public var detailHasScreenshots: Bool = false
 
         override public init() {
             super.init()
@@ -54,6 +66,8 @@
             newInstance.danceuiSource = danceuiSource
             newInstance.isSwiftUI = isSwiftUI
             newInstance.swiftUIDisplayItemID = swiftUIDisplayItemID
+            newInstance.detailObjectOid = detailObjectOid
+            newInstance.detailHasScreenshots = detailHasScreenshots
             return newInstance
         }
 
@@ -67,6 +81,10 @@
             aCoder.encode(danceuiSource, forKey: "danceuiSource")
             aCoder.encode(isSwiftUI, forKey: "isSwiftUI")
             aCoder.encode(swiftUIDisplayItemID, forKey: "swiftUIDisplayItemID")
+            if detailObjectOid != 0 {
+                aCoder.encode(Int(bitPattern: detailObjectOid), forKey: "detailObjectOid")
+                aCoder.encode(detailHasScreenshots, forKey: "detailHasScreenshots")
+            }
         }
 
         public required init?(coder aDecoder: NSCoder) {
@@ -77,6 +95,8 @@
             danceuiSource = aDecoder.decodeObject(of: NSString.self, forKey: "danceuiSource") as String?
             isSwiftUI = aDecoder.decodeBool(forKey: "isSwiftUI")
             swiftUIDisplayItemID = aDecoder.decodeObject(of: NSString.self, forKey: "swiftUIDisplayItemID") as String?
+            detailObjectOid = UInt(bitPattern: aDecoder.decodeInteger(forKey: "detailObjectOid"))
+            detailHasScreenshots = aDecoder.decodeBool(forKey: "detailHasScreenshots")
         }
 
         @objc(supportsSecureCoding)

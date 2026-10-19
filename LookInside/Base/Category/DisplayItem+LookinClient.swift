@@ -142,6 +142,31 @@ extension DisplayItem {
         customInfo != nil
     }
 
+    /// The oid a detail request (203) asks for this custom node's screenshots
+    /// and attribute groups by; 0 when its details came with the hierarchy
+    /// or it has none to fetch. A SwiftUI node from a Server that defers its
+    /// details has one.
+    var customDetailOid: UInt {
+        customInfo?.detailObjectOid ?? 0
+    }
+
+    /// Whether a detail request can fetch anything for this node: every
+    /// node with an object in the app, and the custom nodes with a
+    /// `customDetailOid`.
+    var canFetchDetails: Bool {
+        !isUserCustom() || customDetailOid != 0
+    }
+
+    /// The oid a detail request for this node goes to: the displayed
+    /// object's, or for a custom node its `customDetailOid`. 0 when there
+    /// is nothing to ask.
+    var detailRequestOid: UInt {
+        if isUserCustom() {
+            return customDetailOid
+        }
+        return displayingObject()?.oid ?? 0
+    }
+
     /// Whether the preview can draw a box for this node.
     func hasPreviewBoxAbility() -> Bool {
         guard let customInfo else { return true }

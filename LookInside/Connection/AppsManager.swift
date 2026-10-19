@@ -142,6 +142,14 @@ final class AppsManager: NSObject {
             let app = InspectableApp()
             app.appInfo = receivedInfo
             app.channel = channel
+            if let receivedInfo,
+               HierarchyAcquisitionSupport.serverIsTooOld(reportedProtocolVersion: receivedInfo.hierarchyAcquisitionProtocolVersion)
+            {
+                // The app is listed, by name, as one whose developer has to
+                // update its Server; it cannot be opened.
+                app.serverVersionError = ConnectionError.serverVersionTooLow
+                app.channel = nil
+            }
             return app
         }
     }

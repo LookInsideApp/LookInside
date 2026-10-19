@@ -377,11 +377,15 @@ final class StaticAsyncUpdateManager: NSObject {
                     isExpandable: item.isExpandable,
                     isExpanded: item.isExpanded,
                     hasPixelBearingSubitems: item.hasPixelBearingSubitems(),
-                    mayFetchScreenshot: item.doNotFetchScreenshotReason == .fetchScreenshotPermitted,
-                    isUserCustom: item.isUserCustom(),
+                    mayFetchScreenshot: item.doNotFetchScreenshotReason == .fetchScreenshotPermitted
+                        && (!item.isUserCustom() || item.customInfo?.detailHasScreenshots == true),
+                    isUserCustom: !item.canFetchDetails,
                     hasSoloScreenshot: item.soloScreenshot != nil,
                     hasGroupScreenshot: item.groupScreenshot != nil,
-                    hasAttributes: !(item.attributesGroupList ?? []).isEmpty
+                    // A custom node's attributes are its custom groups.
+                    hasAttributes: item.isUserCustom()
+                        ? !(item.customAttrGroupList ?? []).isEmpty
+                        : !(item.attributesGroupList ?? []).isEmpty
                 )
             }
         }
@@ -451,7 +455,9 @@ final class StaticAsyncUpdateManager: NSObject {
         case .layoutGuide, .cell:
             oid = item.kindObject?.oid ?? 0
         case .custom:
-            break
+            // Only a SwiftUI node whose details the Server deferred has one;
+            // other custom nodes have no object to ask.
+            oid = item.customDetailOid
         default:
             // View, layer, a view's outer layer and a backing layer node all
             // ride layerObject / viewObject.
@@ -477,7 +483,9 @@ final class StaticAsyncUpdateManager: NSObject {
 
         let task = StaticAsyncUpdateTask()
         task.oid = oid
-        task.frameSize = item.frame.size
+        // The packaging counts screenshot area by this size; a custom node's
+        // geometry is its frame in the window.
+        task.frameSize = item.isUserCustom() ? (item.customInfo?.frameInWindow?.rectValue.size ?? .zero) : item.frame.size
         task.taskType = type
         task.needBasisVisualInfo = true
         task.clientReadableVersion = context.clientReadableVersion

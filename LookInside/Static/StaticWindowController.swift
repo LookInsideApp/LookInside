@@ -204,13 +204,14 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     // MARK: - Fetching
 
-    /// Sends a hierarchy request to `app` and returns what it sent first.
+    /// Sends a hierarchy request to `app` and returns the hierarchy it sent
+    /// after its progress frames.
     private static func fetchHierarchy(from app: InspectableApp) async throws -> HierarchyFetchResult {
         let responses = app.responses(
             type: UInt32(LookinRequestTypeHierarchy),
             data: InspectableApp.hierarchyRequestParameters()
         )
-        for try await value in responses {
+        for try await value in responses where !InspectableApp.isHierarchyProgress(value) {
             return .info(value as? HierarchyInfo)
         }
         return .noResponse
@@ -288,11 +289,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     private func didSelectAppInPicker(_ app: InspectableApp) {
         if let versionError = app.serverVersionError {
-            if versionError.code == LookinErrCode_ServerVersionTooLow {
-                AppHelper.openLookinWebsite(withPath: "faq/server-version-too-low/")
-            } else {
-                AppHelper.openLookinWebsite(withPath: "faq/server-version-too-high/")
-            }
+            ServerVersionAlert.present(for: app, error: versionError, in: window)
             return
         }
 
