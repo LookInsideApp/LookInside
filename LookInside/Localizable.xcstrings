@@ -44833,6 +44833,836 @@
           }
         }
       }
+    },
+    "Update LookInside Server to inspect this app." : {
+      "comment" : "App card: the app's embedded Server is too old",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدّث LookInside Server لفحص هذا التطبيق."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiere LookInside Server, um diese App zu untersuchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update LookInside Server to inspect this app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiza LookInside Server para inspeccionar esta app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettez à jour LookInside Server pour inspecter cette app."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiorna LookInside Server per ispezionare questa app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアプリを調べるには LookInside Server をアップデートしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱을 검사하려면 LookInside Server를 업데이트하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualize o LookInside Server para inspecionar este app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновите LookInside Server, чтобы проверить это приложение."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy cập nhật LookInside Server để kiểm tra ứng dụng này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 LookInside Server 后即可检查此 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 LookInside Server 後即可檢查此 App。"
+          }
+        }
+      }
+    },
+    "Update LookInside to inspect this app." : {
+      "comment" : "App card: the app's embedded Server is newer than this LookInside",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حدّث LookInside لفحص هذا التطبيق."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisiere LookInside, um diese App zu untersuchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update LookInside to inspect this app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiza LookInside para inspeccionar esta app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettez à jour LookInside pour inspecter cette app."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiorna LookInside per ispezionare questa app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアプリを調べるには LookInside をアップデートしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱을 검사하려면 LookInside를 업데이트하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualize o LookInside para inspecionar este app."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновите LookInside, чтобы проверить это приложение."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hãy cập nhật LookInside để kiểm tra ứng dụng này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 LookInside 后即可检查此 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 LookInside 後即可檢查此 App。"
+          }
+        }
+      }
+    },
+    "This app uses a newer LookInside Server." : {
+      "comment" : "Server version alert title, app name unknown",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم هذا التطبيق إصدارًا أحدث من LookInside Server."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese App verwendet einen neueren LookInside Server."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This app uses a newer LookInside Server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta app usa un LookInside Server más reciente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette app utilise un LookInside Server plus récent."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa app usa un LookInside Server più recente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアプリは新しい LookInside Server を使用しています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱은 더 최신 LookInside Server를 사용합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este app usa um LookInside Server mais recente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это приложение использует более новый LookInside Server."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng này dùng LookInside Server mới hơn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 使用的 LookInside Server 较新。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 使用的 LookInside Server 較新。"
+          }
+        }
+      }
+    },
+    "This app uses an older LookInside Server." : {
+      "comment" : "Server version alert title, app name unknown",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم هذا التطبيق إصدارًا أقدم من LookInside Server."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese App verwendet einen älteren LookInside Server."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This app uses an older LookInside Server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta app usa un LookInside Server anterior."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette app utilise un LookInside Server plus ancien."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa app usa un LookInside Server meno recente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアプリは古い LookInside Server を使用しています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱은 이전 LookInside Server를 사용합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este app usa um LookInside Server mais antigo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это приложение использует более старый LookInside Server."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng này dùng LookInside Server cũ hơn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 使用的 LookInside Server 较旧。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 使用的 LookInside Server 較舊。"
+          }
+        }
+      }
+    },
+    "“%@” uses a newer LookInside Server." : {
+      "comment" : "Server version alert title; %@ is the app name",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم ”%@“ إصدارًا أحدث من LookInside Server."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ verwendet einen neueren LookInside Server."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” uses a newer LookInside Server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” usa un LookInside Server más reciente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » utilise un LookInside Server plus récent."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” usa un LookInside Server più recente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”は新しい LookInside Server を使用しています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘%@’은(는) 더 최신 LookInside Server를 사용합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” usa um LookInside Server mais recente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» использует более новый LookInside Server."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” dùng LookInside Server mới hơn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”使用的 LookInside Server 较新。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」使用的 LookInside Server 較新。"
+          }
+        }
+      }
+    },
+    "“%@” uses an older LookInside Server." : {
+      "comment" : "Server version alert title; %@ is the app name",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يستخدم ”%@“ إصدارًا أقدم من LookInside Server."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ verwendet einen älteren LookInside Server."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” uses an older LookInside Server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” usa un LookInside Server anterior."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » utilise un LookInside Server plus ancien."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” usa un LookInside Server meno recente."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”は古い LookInside Server を使用しています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‘%@’은(는) 이전 LookInside Server를 사용합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” usa um LookInside Server mais antigo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» использует более старый LookInside Server."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” dùng LookInside Server cũ hơn."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”使用的 LookInside Server 较旧。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」使用的 LookInside Server 較舊。"
+          }
+        }
+      }
+    },
+    "The app was built with a newer LookInside Server than this version of LookInside supports. Update LookInside to inspect it." : {
+      "comment" : "Server version alert message: update the Host",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم إنشاء التطبيق بإصدار من LookInside Server أحدث مما يدعمه هذا الإصدار من LookInside. حدّث LookInside لفحصه."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die App wurde mit einem neueren LookInside Server erstellt, als diese Version von LookInside unterstützt. Aktualisiere LookInside, um sie zu untersuchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The app was built with a newer LookInside Server than this version of LookInside supports. Update LookInside to inspect it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La app se compiló con un LookInside Server más reciente del que admite esta versión de LookInside. Actualiza LookInside para inspeccionarla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’app a été compilée avec un LookInside Server plus récent que celui pris en charge par cette version de LookInside. Mettez à jour LookInside pour l’inspecter."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’app è stata compilata con un LookInside Server più recente di quello supportato da questa versione di LookInside. Aggiorna LookInside per ispezionarla."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このアプリは、このバージョンの LookInside が対応しているより新しい LookInside Server でビルドされています。調べるには LookInside をアップデートしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 앱은 현재 LookInside 버전이 지원하는 것보다 최신 LookInside Server로 빌드되었습니다. 검사하려면 LookInside를 업데이트하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O app foi compilado com um LookInside Server mais recente do que esta versão do LookInside suporta. Atualize o LookInside para inspecioná-lo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение собрано с более новым LookInside Server, чем поддерживает эта версия LookInside. Обновите LookInside, чтобы проверить его."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng được build với LookInside Server mới hơn mức phiên bản LookInside này hỗ trợ. Hãy cập nhật LookInside để kiểm tra."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 使用的 LookInside Server 比当前版本的 LookInside 所支持的更新。请更新 LookInside 后再检查。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 App 使用的 LookInside Server 比目前版本的 LookInside 所支援的更新。請更新 LookInside 後再檢查。"
+          }
+        }
+      }
+    },
+    "This version of LookInside loads large and SwiftUI-heavy screens without stalling the app, which needs a newer LookInside Server. Ask the app’s developer to update the LookInside Server package, then run the app again." : {
+      "comment" : "Server version alert message: the app's developer updates the Server",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحمّل هذا الإصدار من LookInside الشاشات الكبيرة والمليئة بـ SwiftUI دون أن يتجمّد التطبيق، ويتطلب ذلك إصدارًا أحدث من LookInside Server. اطلب من مطوّر التطبيق تحديث حزمة LookInside Server، ثم شغّل التطبيق مرة أخرى."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Version von LookInside lädt große und SwiftUI-lastige Bildschirme, ohne die App anzuhalten. Dafür ist ein neuerer LookInside Server erforderlich. Bitte die Entwickler der App, das LookInside Server-Paket zu aktualisieren, und starte die App dann erneut."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of LookInside loads large and SwiftUI-heavy screens without stalling the app, which needs a newer LookInside Server. Ask the app’s developer to update the LookInside Server package, then run the app again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta versión de LookInside carga pantallas grandes y con mucho SwiftUI sin bloquear la app, lo que requiere un LookInside Server más reciente. Pide al desarrollador de la app que actualice el paquete LookInside Server y vuelve a ejecutar la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette version de LookInside charge les écrans volumineux et riches en SwiftUI sans bloquer l’app, ce qui nécessite un LookInside Server plus récent. Demandez au développeur de l’app de mettre à jour le paquet LookInside Server, puis relancez l’app."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa versione di LookInside carica schermate grandi e ricche di SwiftUI senza bloccare l’app, e per farlo serve un LookInside Server più recente. Chiedi allo sviluppatore dell’app di aggiornare il pacchetto LookInside Server, poi esegui di nuovo l’app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このバージョンの LookInside は、大きな画面や SwiftUI を多用した画面をアプリを止めずに読み込みます。そのためには新しい LookInside Server が必要です。アプリの開発者に LookInside Server パッケージのアップデートを依頼し、アプリをもう一度実行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 버전의 LookInside는 크고 SwiftUI가 많은 화면을 앱을 멈추지 않고 불러오며, 이를 위해 더 최신 LookInside Server가 필요합니다. 앱 개발자에게 LookInside Server 패키지 업데이트를 요청한 다음 앱을 다시 실행하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta versão do LookInside carrega telas grandes e com muito SwiftUI sem travar o app, o que requer um LookInside Server mais recente. Peça ao desenvolvedor do app para atualizar o pacote LookInside Server e execute o app novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта версия LookInside загружает большие экраны и экраны с большим количеством SwiftUI, не подвешивая приложение, и для этого нужен более новый LookInside Server. Попросите разработчика приложения обновить пакет LookInside Server и снова запустите приложение."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phiên bản LookInside này tải các màn hình lớn và dùng nhiều SwiftUI mà không làm ứng dụng bị đứng, và việc đó cần LookInside Server mới hơn. Hãy nhờ nhà phát triển ứng dụng cập nhật gói LookInside Server, rồi chạy lại ứng dụng."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本的 LookInside 可以在不卡住 App 的情况下载入大型和大量使用 SwiftUI 的界面，这需要较新的 LookInside Server。请让 App 的开发者更新 LookInside Server 软件包，然后重新运行 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此版本的 LookInside 可以在不卡住 App 的情況下載入大型和大量使用 SwiftUI 的畫面，這需要較新的 LookInside Server。請讓 App 的開發者更新 LookInside Server 套件，然後重新執行 App。"
+          }
+        }
+      }
+    },
+    "Show Details" : {
+      "comment" : "App card link that opens the Server version alert",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عرض التفاصيل"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details anzeigen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Details"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar detalles"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les détails"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra dettagli"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細を表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세부사항 보기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar Detalhes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать подробности"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị chi tiết"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示详细信息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示詳細資訊"
+          }
+        }
+      }
+    },
+    "Learn More" : {
+      "comment" : "Opens the page on updating the Server or LookInside",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "معرفة المزيد"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Infos"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn More"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más información"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En savoir plus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ulteriori informazioni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳しい情報"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "더 알아보기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saiba Mais"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подробнее"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tìm hiểu thêm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "进一步了解"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "進一步了解"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

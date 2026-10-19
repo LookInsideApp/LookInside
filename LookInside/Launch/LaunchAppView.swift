@@ -224,7 +224,7 @@ final class LaunchAppView: BaseControl {
         }
         if errorSubtitleLabel == nil {
             let label = TextLabel()
-            label.stringValue = NSLocalizedString("Find solution…", comment: "")
+            label.stringValue = NSLocalizedString("Show Details", comment: "App card link that opens the Server version alert")
             label.textColor = .linkColor
             addSubview(label)
             errorSubtitleLabel = label

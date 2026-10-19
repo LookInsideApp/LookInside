@@ -50,6 +50,21 @@ public enum ServerVersionCompatibility: Equatable, Sendable {
     }
 }
 
+/// Whether a Server can give this Host the hierarchy the way it takes it:
+/// built over several main-queue turns with progress frames, and SwiftUI
+/// nodes' details fetched later by oid. A Server reports the protocol it
+/// answers as `hierarchyAcquisitionProtocolVersion` in its app info; older
+/// Servers report nothing, which reads as 0. This Host takes no hierarchy
+/// the old way, so a Server below the required version is treated as too old
+/// and the app's developer is asked to update it.
+public enum HierarchyAcquisitionSupport {
+    public static let requiredProtocolVersion: UInt = 1
+
+    public static func serverIsTooOld(reportedProtocolVersion: UInt) -> Bool {
+        reportedProtocolVersion < requiredProtocolVersion
+    }
+}
+
 /// App infos the Host already holds are reused for this long; the Server
 /// then answers with `shouldUseCache` instead of resending icons and
 /// screenshots.

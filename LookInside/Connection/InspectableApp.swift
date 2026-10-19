@@ -147,12 +147,15 @@ final class InspectableApp: NSObject {
     // MARK: - Request payloads
 
     /// The hierarchy request's parameters: the Host version (since Lookin
-    /// 1.0.4), the SwiftUI display mode, and whether to include backing
-    /// layers (old Servers ignore the keys they do not know).
+    /// 1.0.4), the SwiftUI display mode, whether to include backing layers,
+    /// and that the tree comes in rounds with SwiftUI details fetched later
+    /// (old Servers ignore the keys they do not know; this Host does not
+    /// inspect them, see `HierarchyAcquisitionSupport`).
     static func hierarchyRequestParameters() -> NSDictionary {
         let parameters = NSMutableDictionary(dictionary: ["clientVersion": AppHelper.readableVersion() as NSString])
         parameters[LookinParam_SwiftUIDisplayMode] = NSNumber(value: SwiftUIHierarchyDisplayModeStore.currentMode().rawValue)
         parameters["showBackingLayers"] = NSNumber(value: PreferenceManager.shared.showBackingLayers.currentBOOLValue)
+        parameters[LookinParam_AsyncAcquisition] = NSNumber(value: true)
         return parameters
     }
 
@@ -194,9 +197,26 @@ final class InspectableApp: NSObject {
 // MARK: - Async API
 
 extension InspectableApp {
+    /// The app's hierarchy. The Server sends progress frames while it builds
+    /// the tree (each one restarts the request's timeout) and the
+    /// `HierarchyInfo` last.
     @MainActor
     func hierarchy() async throws -> HierarchyInfo {
-        try await response(type: UInt32(LookinRequestTypeHierarchy), data: Self.hierarchyRequestParameters(), as: HierarchyInfo.self)
+        for try await value in responses(type: UInt32(LookinRequestTypeHierarchy), data: Self.hierarchyRequestParameters()) {
+            if let info = value as? HierarchyInfo {
+                return info
+            }
+            guard Self.isHierarchyProgress(value) else {
+                throw ConnectionError.inner
+            }
+        }
+        throw ConnectionError.inner
+    }
+
+    /// Whether `value` is one of the progress frames a Server sends while it
+    /// builds a hierarchy (`LookinParam_AsyncAcquisition`).
+    static func isHierarchyProgress(_ value: Any?) -> Bool {
+        ((value as? NSDictionary)?["acquiring"] as? NSNumber)?.boolValue == true
     }
 
     /// Returns the updated detail of the modified item.

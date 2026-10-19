@@ -1133,6 +1133,10 @@ class HierarchyDataSource: NSObject {
                     map[UInt(oid)] = item
                 }
             }
+            // The detail replies of a SwiftUI node come back by this oid.
+            if item.customDetailOid != 0 {
+                map[item.customDetailOid] = item
+            }
         }
         oidToDisplayItem = map
     }

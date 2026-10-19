@@ -3,6 +3,18 @@ import Foundation
 import Testing
 
 struct ResponseFrameProgressTests {
+    @Test("an asynchronous hierarchy's progress frames do not complete it; its final frame does")
+    func hierarchyProgressFramesWaitForTheFinalFrame() {
+        var progress = ResponseFrameProgress()
+        // Progress frames count 0 of 1, the final HierarchyInfo 1 of 1.
+        let completedByFirstProgressFrame = progress.record(currentDataCount: 0, dataTotalCount: 1)
+        let completedBySecondProgressFrame = progress.record(currentDataCount: 0, dataTotalCount: 1)
+        let completedByFinalFrame = progress.record(currentDataCount: 1, dataTotalCount: 1)
+        #expect(!completedByFirstProgressFrame)
+        #expect(!completedBySecondProgressFrame)
+        #expect(completedByFinalFrame)
+    }
+
     @Test func unsplitResponseCompletesWithItsOnlyFrame() {
         var progress = ResponseFrameProgress()
         #expect(progress.isAtFirstFrame)
@@ -239,5 +251,18 @@ struct LicenseHandshakeGateTests {
         gate.markStarted()
         gate.finish(verified: true)
         #expect(nestedResult == true)
+    }
+}
+
+@Suite("Hierarchy acquisition support")
+struct HierarchyAcquisitionSupportTests {
+    @Test("a Server that reports no acquisition protocol is too old", arguments: [UInt(0)])
+    func serverWithoutTheProtocolIsTooOld(version: UInt) {
+        #expect(HierarchyAcquisitionSupport.serverIsTooOld(reportedProtocolVersion: version))
+    }
+
+    @Test("a Server at or above the required protocol is supported", arguments: [UInt(1), 2])
+    func serverWithTheProtocolIsSupported(version: UInt) {
+        #expect(!HierarchyAcquisitionSupport.serverIsTooOld(reportedProtocolVersion: version))
     }
 }

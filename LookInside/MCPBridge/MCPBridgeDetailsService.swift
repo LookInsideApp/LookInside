@@ -140,7 +140,7 @@ final class MCPBridgeDetailsService {
                 amongRoots: roots,
                 matchingObjectIdentifier: requested
             ),
-                let nativeOid = displayItem.displayingObject()?.oid,
+                case let nativeOid = displayItem.detailRequestOid,
                 nativeOid != 0
             else {
                 failedIdentifiers.append(requested)

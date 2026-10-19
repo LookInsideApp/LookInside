@@ -244,6 +244,11 @@
         /// Zero for older/unsupported servers; currently 1 for gesture capture.
         @objc(gestureDebugProtocolVersion)
         public var gestureDebugProtocolVersion: UInt = 0
+        /// Zero for older servers; 1 for a server that answers
+        /// `LookinParam_AsyncAcquisition`. Archived only when non-zero, so
+        /// every archive an older server made stays byte for byte the same.
+        @objc(hierarchyAcquisitionProtocolVersion)
+        public var hierarchyAcquisitionProtocolVersion: UInt = 0
 
         override public init() {
             super.init()
@@ -256,6 +261,7 @@
             let newAppInfo = InspectedAppInfo()
             newAppInfo.appIcon = appIcon
             newAppInfo.gestureDebugProtocolVersion = gestureDebugProtocolVersion
+            newAppInfo.hierarchyAcquisitionProtocolVersion = hierarchyAcquisitionProtocolVersion
             newAppInfo.appName = appName
             newAppInfo.deviceDescription = deviceDescription
             newAppInfo.deviceModelIdentifier = deviceModelIdentifier
@@ -278,6 +284,7 @@
             serverReadableVersion = aDecoder.decodeObject(forKey: "serverReadableVersion") as? String
             swiftEnabledInLookinServer = aDecoder.decodeCInt(forKey: "swiftEnabledInLookinServer")
             gestureDebugProtocolVersion = UInt(bitPattern: aDecoder.decodeInteger(forKey: "gestureDebugProtocolVersion"))
+            hierarchyAcquisitionProtocolVersion = UInt(bitPattern: aDecoder.decodeInteger(forKey: "hierarchyAcquisitionProtocolVersion"))
             let screenshotData = aDecoder.decodeObject(forKey: CodingKey_Screenshot) as? Data
             screenshot = screenshotData.flatMap { PlatformImage(data: $0) }
 
@@ -304,6 +311,9 @@
             aCoder.encode(serverReadableVersion, forKey: "serverReadableVersion")
             aCoder.encodeCInt(swiftEnabledInLookinServer, forKey: "swiftEnabledInLookinServer")
             aCoder.encode(Int(bitPattern: gestureDebugProtocolVersion), forKey: "gestureDebugProtocolVersion")
+            if hierarchyAcquisitionProtocolVersion != 0 {
+                aCoder.encode(Int(bitPattern: hierarchyAcquisitionProtocolVersion), forKey: "hierarchyAcquisitionProtocolVersion")
+            }
 
             #if canImport(UIKit)
                 let screenshotData = pngRepresentation(screenshot)
@@ -378,6 +388,7 @@
             }
 
             let info = InspectedAppInfo()
+            info.hierarchyAcquisitionProtocolVersion = 1
             if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
                 info.gestureDebugProtocolVersion = NSClassFromString("LKS_GestureDebugService") != nil ? 1 : 0
             }

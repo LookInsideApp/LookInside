@@ -118,6 +118,18 @@ static NSString * const LookinParam_SelectorClassName = @"scn";
 /// Additive payload: server reads when present, ignores otherwise. No version bump.
 static NSString * const LookinParam_SwiftUIDisplayMode = @"swiftUIDisplayMode";
 
+/// Hierarchy request (202) param: the Host takes the hierarchy the way
+/// `hierarchyAcquisitionProtocolVersion` 1 describes. The Server then builds
+/// the tree over several main-queue turns, sends progress frames before the
+/// final `HierarchyInfo`, and leaves SwiftUI nodes' screenshots and attribute
+/// groups to the detail request (203), reached through
+/// `LookinCustomDisplayItemInfo.detailObjectOid`.
+///
+/// NSNumber boxed BOOL. Missing (older Hosts, upstream Lookin) → the
+/// one-frame build with SwiftUI details inline, as before. Additive payload,
+/// no version bump.
+static NSString * const LookinParam_AsyncAcquisition = @"asyncAcquisition";
+
 static NSString * const LookinStringFlag_VoidReturn = @"LOOKIN_TAG_RETURN_VALUE_VOID";
 
 #pragma mark - Error

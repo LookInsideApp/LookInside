@@ -181,7 +181,7 @@ final class LaunchViewController: BaseViewController {
         }
         guard let app = appView.app else { return }
         if let error = app.serverVersionError {
-            AppHelper.openLookinWebsite(withPath: LaunchRules.serverVersionHelpPath(errorCode: error.code))
+            ServerVersionAlert.present(for: app, error: error, in: view.window)
         } else {
             bottomIndicatorView.animate(toProgress: 0.8, duration: 1)
             enter(app)
