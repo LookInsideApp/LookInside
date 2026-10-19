@@ -149,10 +149,10 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
         }
         if let staticDataSource = dataSource as? StaticHierarchyDataSource {
             dataSourceSignals.observe(staticDataSource.itemDidChangeHiddenAlphaValue) { [weak self] in
-                self?.previewView.updateZPosition()
+                self?.previewView.setNeedsZPositionUpdate()
             }
             dataSourceSignals.observe(staticDataSource.itemsDidChangeFrame) { [weak self] in
-                self?.previewView.updateZPosition()
+                self?.previewView.setNeedsZPositionUpdate()
             }
         }
 

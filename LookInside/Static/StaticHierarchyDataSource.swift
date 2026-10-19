@@ -22,11 +22,11 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     /// `.itemDidChangeFrame`.
     final let itemsDidChangeFrame = SyncSignal<DisplayItem>()
 
-    /// Keeps a detail's subitems rebuild from starting a fast-mode update
+    private var storedAppInfo: InspectedAppInfo?
+    /// Keeps a detail's subitems rebuild from starting a detail update
     /// while the update task that delivered it is still running: update
     /// tasks must not overlap.
-    private var storedAppInfo: InspectedAppInfo?
-    private var shouldIgnoreFastModeAutoUpdate = false
+    private var shouldIgnoreAutomaticDetailUpdate = false
     private var isUsingDanceUI = false
     private var frameSubscription: SyncSubscription?
 
@@ -66,12 +66,8 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         }
 
         updateMessageStatus()
-
-        if !PreferenceManager.shared.fastMode.currentBOOLValue {
-            MainActor.assumeIsolated {
-                asyncUpdateManager?.updateAll()
-            }
-        }
+        // The details follow from buildDisplayingFlatItems(), which the reload
+        // ran: the displayed items first, then the prefetch.
     }
 
     func modify(with detail: DisplayItemDetail?) {
@@ -133,10 +129,10 @@ class StaticHierarchyDataSource: HierarchyDataSource {
 
     private func replaceSubitems(of item: DisplayItem, with subitems: [DisplayItem]) {
         // Without this flag the buildDisplayingFlatItems below would start a
-        // fast-mode update task while the current one is still running (it
+        // detail update task while the current one is still running (it
         // is still in its subscription, not yet completed), and update tasks
         // must not run concurrently.
-        shouldIgnoreFastModeAutoUpdate = true
+        shouldIgnoreAutomaticDetailUpdate = true
 
         // Leave search or focus first; keeping their state across the
         // rebuild is not worth it.
@@ -170,12 +166,12 @@ class StaticHierarchyDataSource: HierarchyDataSource {
             }
         }
         buildDisplayingFlatItems()
-        shouldIgnoreFastModeAutoUpdate = false
+        shouldIgnoreAutomaticDetailUpdate = false
     }
 
     override func buildDisplayingFlatItems() {
         super.buildDisplayingFlatItems()
-        if PreferenceManager.shared.fastMode.currentBOOLValue, !shouldIgnoreFastModeAutoUpdate {
+        if !shouldIgnoreAutomaticDetailUpdate {
             MainActor.assumeIsolated {
                 asyncUpdateManager?.updateForDisplayingItems()
             }

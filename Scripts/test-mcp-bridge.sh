@@ -36,4 +36,10 @@ OBJECT_IDENTIFIER_LIST_TEST="$ROOT/Tests/MCPBridge/MCPBridgeObjectIdentifierList
 swiftc -parse-as-library "$FRAME" "$OBJECT_IDENTIFIER_LIST" "$OBJECT_IDENTIFIER_LIST_TEST" -o "$TMPDIR/object-identifier-list-test"
 "$TMPDIR/object-identifier-list-test"
 
+RECOVERY_HINT="$ROOT/LookInside/MCPBridge/MCPBridgeRecoveryHint.swift"
+RECOVERY_HINT_TEST="$ROOT/Tests/MCPBridge/MCPBridgeRecoveryHintTests.swift"
+
+swiftc -parse-as-library "$RECOVERY_HINT" "$RECOVERY_HINT_TEST" -o "$TMPDIR/recovery-hint-test"
+"$TMPDIR/recovery-hint-test"
+
 echo "MCPBridge tests passed"

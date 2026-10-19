@@ -104,7 +104,10 @@ final class MCPBridgeModificationService {
                 identifier: identifier,
                 error: MCPBridgeErrorPayload(
                     code: "modify.attributeNotFound",
-                    message: "Attribute \(attributeIdentifier) is not present in this view's cached detail. Open the view in the LookInside inspector (or call read_attributes first) to populate its detail, then retry."
+                    message: MCPBridgeRecoveryHint.attributeNotFoundMessage(
+                        attributeIdentifier: attributeIdentifier,
+                        viewDetailsFetched: displayItem.attributesGroupList != nil
+                    )
                 )
             )
         }
@@ -302,7 +305,7 @@ final class MCPBridgeModificationService {
         case LookinErrCode_ObjectNotFound:
             return MCPBridgeErrorPayload(
                 code: "modify.objectNotFound",
-                message: "The target app could not find an object for this identifier. The object may have been deallocated; try reloading the inspector."
+                message: "The target app could not find an object for this identifier. The object may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
         case LookinErrCode_Inner:
             return MCPBridgeErrorPayload(

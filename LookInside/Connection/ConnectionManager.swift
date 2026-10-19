@@ -35,8 +35,9 @@ struct ConnectionPush {
 /// Connection state the manager keeps for one channel.
 @MainActor
 final class ServerChannelConnectionState {
-    /// Requests sent on this channel whose responses have not all arrived.
-    var activeRequests: [ConnectionRequest] = []
+    /// Requests sent on this channel whose responses have not all arrived:
+    /// one of a type at a time, pings excepted.
+    let activeRequests = ActiveRequests<ConnectionRequest>(typesThatMayOverlap: [UInt32(LookinRequestTypePing)])
     let licenseHandshake = LicenseHandshakeGate()
     /// Identifies this channel to the activation runtime's signing policy,
     /// which remembers a failed handshake per channel.
@@ -50,7 +51,9 @@ final class ServerChannelConnectionState {
     }
 
     func remove(_ request: ConnectionRequest) {
-        activeRequests.removeAll { $0 === request }
+        // Every way a request ends goes through here.
+        request.endSignpostInterval()
+        activeRequests.remove(request)
     }
 }
 
@@ -68,6 +71,7 @@ private final class ConnectionPort {
 }
 
 @Loggable(.internal, subsystem: "com.lookinside.app")
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 @MainActor
 final class ConnectionManager: NSObject {
     static let shared = ConnectionManager()
@@ -253,8 +257,11 @@ final class ConnectionManager: NSObject {
     /// each response frame, then a failure or a completion.
     ///
     /// An older request of the same type still waiting on this channel fails
-    /// with `LookinErrCode_Discard` when this one is sent.
-    func request(type: UInt32, data: NSObject?, channel: ServerChannel, sink: ResponseSink) {
+    /// with `LookinErrCode_Discard` when this one is sent. With
+    /// `yieldsToRequestInFlight`, this one fails that way instead, unsent,
+    /// while one of its type is in flight. A request cancelled while its ping
+    /// runs (`cancelRequest(receivingEventsWith:channel:)`) is not sent.
+    func request(type: UInt32, data: NSObject?, channel: ServerChannel, yieldsToRequestInFlight: Bool = false, sink: ResponseSink) {
         // An app in the background keeps its channel but cannot answer; a
         // long ping timeout would hold up the launch window's app list.
         let pingTimeout: TimeInterval = type == UInt32(LookinRequestTypeApp) ? 0.5 : 2
@@ -268,11 +275,13 @@ final class ConnectionManager: NSObject {
                     return
                 }
                 let sendRequest = { [weak self] in
+                    guard !sink.isCancelled else { return }
                     self?.sendFrame(
                         type: type,
                         channel: channel,
                         data: data,
                         timeoutInterval: Self.timeoutInterval(forRequestType: type),
+                        yieldsToRequestInFlight: yieldsToRequestInFlight,
                         sink: sink
                     )
                 }
@@ -292,18 +301,28 @@ final class ConnectionManager: NSObject {
         sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: pingTimeout, sink: pingSink)
     }
 
-    /// Ends the waiting request of `type` on `channel` and reports it as
-    /// completed.
-    func cancelRequest(type: UInt32, channel: ServerChannel?) {
-        guard let state = channel?.connectionState,
-              let request = state.activeRequests.first(where: { $0.type == type })
-        else {
-            return
+    /// Ends the request whose events go to `sink` and reports it as
+    /// completed, at once: also while its ping runs, and then it is never
+    /// sent. Other requests of its type, another client's, go on. Returns
+    /// whether it was in flight on `channel`, that is whether the Server is
+    /// working on it.
+    @discardableResult
+    func cancelRequest(receivingEventsWith sink: ResponseSink, channel: ServerChannel?) -> Bool {
+        let state = channel?.connectionState
+        guard let request = state?.activeRequests.first(where: { $0.sink === sink }) else {
+            sink.cancel()
+            return false
         }
         request.endTimeoutCount()
-        state.remove(request)
-        request.sink.send(.completion)
-        #log(.default, "Lookin - request cancelled by the user, type:\(NSNumber(value: type), privacy: .public)")
+        state?.remove(request)
+        sink.cancel()
+        #log(.default, "Lookin - request cancelled, type:\(NSNumber(value: request.type), privacy: .public)")
+        return true
+    }
+
+    /// Whether a request of `type` is in flight on `channel`.
+    func isRequestInFlight(type: UInt32, channel: ServerChannel?) -> Bool {
+        channel?.connectionState.activeRequests.containsRequest(ofType: type) ?? false
     }
 
     /// Response frames of one request, until it completes. The stream
@@ -404,41 +423,71 @@ final class ConnectionManager: NSObject {
     }
 
     /// Sends one frame and tracks it until its last response, a failure or
-    /// its timeout.
-    func sendFrame(type: UInt32, channel: ServerChannel, data: NSObject?, timeoutInterval: TimeInterval, sink: ResponseSink) {
+    /// its timeout. With `yieldsToRequestInFlight`, a request of its type in
+    /// flight keeps the channel and this one fails as discarded, unsent.
+    func sendFrame(
+        type: UInt32,
+        channel: ServerChannel,
+        data: NSObject?,
+        timeoutInterval: TimeInterval,
+        yieldsToRequestInFlight: Bool = false,
+        sink: ResponseSink
+    ) {
         guard channel.isConnected else {
             sink.send(.failure(ConnectionError.noConnect))
             return
         }
         let state = channel.connectionState
-        if type != UInt32(LookinRequestTypePing) {
+        let tag = UInt32(truncatingIfNeeded: Int64(Date().timeIntervalSince1970))
+        let request = ConnectionRequest(
+            type: type,
+            tag: tag,
+            timeoutInterval: timeoutInterval,
+            sink: sink,
+            isResponseWaiting: { [weak channel] request in
+                // Answered in time, and waiting behind other frames here.
+                channel?.hasUndeliveredFrame(type: request.type, tag: request.tag) ?? false
+            },
+            onTimeout: { [weak channel] request in
+                request.sink.send(.failure(ConnectionError.timeout))
+                channel?.connectionState.remove(request)
+            }
+        )
+
+        // Track the request before the write: the write completion and the
+        // reply reach the main queue independently, and on loopback the
+        // reply can come first. A request registered only on completion
+        // refuses its own reply and then times out.
+        switch state.activeRequests.admit(request, yieldsToRequestInFlight: yieldsToRequestInFlight) {
+        case .refused:
+            #log(.default, "LookinClient - request yields to the one in flight, type:\(NSNumber(value: type), privacy: .public)")
+            sink.send(.failure(ConnectionError.discarded))
+            return
+        case let .admitted(replacedRequests):
             // A newer request replaces an older one of the same type, which
             // fails.
-            for discarded in state.activeRequests where discarded.type == type {
-                discarded.sink.send(.failure(ConnectionError.discarded))
+            for discarded in replacedRequests {
                 discarded.endTimeoutCount()
                 state.remove(discarded)
+                discarded.sink.send(.failure(ConnectionError.discarded))
                 #log(.default, "LookinClient - will discard request, type:\(NSNumber(value: discarded.type), privacy: .public), tag:\(NSNumber(value: discarded.tag), privacy: .public)")
             }
-        }
-
-        let tag = UInt32(truncatingIfNeeded: Int64(Date().timeIntervalSince1970))
-        let request = ConnectionRequest(type: type, tag: tag, timeoutInterval: timeoutInterval, sink: sink) { [weak channel] request in
-            request.sink.send(.failure(ConnectionError.timeout))
-            channel?.connectionState.remove(request)
         }
 
         let attachment = ConnectionAttachment()
         attachment.data = data
         let payload = archivedPayload(rootObject: attachment)
-        // Track the request before the write: the write completion and the
-        // reply reach the main queue independently, and on loopback the
-        // reply can come first. A request registered only on completion
-        // refuses its own reply and then times out.
-        state.activeRequests.append(request)
+        switch Int(type) {
+        case LookinRequestTypeHierarchy:
+            request.signpostInterval = #signpost(.begin, "Hierarchy request")
+        case LookinRequestTypeHierarchyDetails:
+            request.signpostInterval = #signpost(.begin, "Detail request")
+        default:
+            break
+        }
         request.resetTimeoutCount()
         channel.send(type: type, tag: tag, payload: payload) { error in
-            guard error != nil, state.activeRequests.contains(where: { $0 === request }) else { return }
+            guard error != nil, state.activeRequests.contains(request) else { return }
             request.endTimeoutCount()
             state.remove(request)
             sink.send(.failure(ConnectionError.transport))
@@ -486,7 +535,10 @@ final class ConnectionManager: NSObject {
         // graph of Lookin models and Foundation collections. Secure coding
         // with NSObject as the allowed class warns on every frame, so the
         // receive path stays non-secure on purpose.
-        let attachment = Self.unarchiveResponse(data)
+        #signpost(.event, "Response frame", "type=\(type, privacy: .public) bytes=\(data.count, privacy: .public)")
+        let attachment = #signpostInterval("Unarchive response") {
+            Self.unarchiveResponse(data)
+        }
 
         if attachment?.appIsInBackground == true {
             request.endTimeoutCount()

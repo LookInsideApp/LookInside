@@ -63,9 +63,27 @@ class MessageAttribute: NSObject {
         }
     }
 
+    /// Identifies a subscription by object identity, for the duplicate check.
+    /// An identity outlives its object, so a hit only counts when the stored
+    /// subscriber still points at the very same objects.
+    private struct SubscriptionKey: Hashable {
+        let target: ObjectIdentifier
+        let action: Selector
+        let relatedObject: ObjectIdentifier?
+    }
+
     private(set) var currentValue: Any?
 
+    /// In subscription order, which is the order actions are sent in.
     private var subscribers: [Subscriber] = []
+    /// The duplicate check: a linear scan of `subscribers` made subscribing n
+    /// targets O(n²), and the 3D preview subscribes each of its nodes to three
+    /// shared preference attributes, so opening a 6,000-node document spent
+    /// seconds in it.
+    private var subscribersByKey: [SubscriptionKey: Subscriber] = [:]
+    /// Subscriptions added since subscribers whose target went away were last
+    /// dropped.
+    private var subscriptionsSincePruning = 0
 
     override init() {
         super.init()
@@ -91,7 +109,7 @@ class MessageAttribute: NSObject {
         currentValue = value
 
         let ignored = ignoreSubscriber as AnyObject?
-        subscribers.removeAll { $0.target == nil }
+        pruneSubscribersWhoseTargetWentAway()
         for subscriber in subscribers {
             guard let target = subscriber.target, target !== ignored else {
                 continue
@@ -117,10 +135,21 @@ class MessageAttribute: NSObject {
             return
         }
         let related = relatedObject as AnyObject?
-        if subscribers.contains(where: { $0.matches(target: target, action: action, relatedObject: related) }) {
+        let key = SubscriptionKey(target: ObjectIdentifier(target), action: action, relatedObject: related.map { ObjectIdentifier($0) })
+        if let existing = subscribersByKey[key], existing.matches(target: target, action: action, relatedObject: related) {
             return
         }
-        subscribers.append(Subscriber(target: target, action: action, relatedObject: related))
+        let subscriber = Subscriber(target: target, action: action, relatedObject: related)
+        subscribers.append(subscriber)
+        subscribersByKey[key] = subscriber
+
+        // Preview nodes go away with their document while the preference
+        // attributes they subscribed to live on, and only a value change used
+        // to drop them.
+        subscriptionsSincePruning += 1
+        if subscriptionsSincePruning >= max(subscribers.count / 2, 1024) {
+            pruneSubscribersWhoseTargetWentAway()
+        }
 
         if sendAtOnce {
             let params = MessageActionParameters()
@@ -128,6 +157,15 @@ class MessageAttribute: NSObject {
             params.relatedObject = related
             NSApp.sendAction(action, to: target, from: params)
         }
+    }
+
+    private func pruneSubscribersWhoseTargetWentAway() {
+        subscriptionsSincePruning = 0
+        guard subscribers.contains(where: { $0.target == nil }) else {
+            return
+        }
+        subscribers.removeAll { $0.target == nil }
+        subscribersByKey = subscribersByKey.filter { $0.value.target != nil }
     }
 }
 

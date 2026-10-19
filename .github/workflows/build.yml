@@ -44,8 +44,15 @@ jobs:
       - name: Test Gesture Capture Models
         run: bash Scripts/test-gesture-models.sh
 
+      - name: Test MessageAttribute
+        run: bash Scripts/test-message-attribute.sh
+
       - name: Test Activation Package
         working-directory: Packages/LookInsideActivation
+        run: swift test
+
+      - name: Test Host Core Package
+        working-directory: Packages/LookInsideHostCore
         run: swift test
 
       - name: Build LookInside

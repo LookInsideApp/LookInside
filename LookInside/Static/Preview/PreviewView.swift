@@ -18,6 +18,7 @@ import FoundationToolbox
 /// The 3D (or flat) preview of the hierarchy: one DisplayItemNode per
 /// item, stacked along the z axis.
 @Loggable(subsystem: "com.lookinside.app")
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 final class PreviewView: SCNView {
     private let dataSource: HierarchyDataSource?
 
@@ -27,6 +28,8 @@ final class PreviewView: SCNView {
     private let leftLightNode = SCNNode()
 
     private var flatDisplayItems: [DisplayItem] = []
+    /// A `setNeedsZPositionUpdate()` pass is waiting for the next main-queue turn.
+    private var hasScheduledZPositionUpdate = false
     private var displayItemNodes: [DisplayItemNode] = []
 
     /// The frameToRoot point at the 3D origin: the centre of the largest
@@ -186,6 +189,12 @@ final class PreviewView: SCNView {
     /// use are dropped; otherwise they are only removed from the scene and
     /// kept for later renders.
     func render(displayItems items: [DisplayItem], discardCache: Bool) {
+        #signpostInterval("Render preview") {
+            performRender(displayItems: items, discardCache: discardCache)
+        }
+    }
+
+    private func performRender(displayItems items: [DisplayItem], discardCache: Bool) {
         #log(.default, "LKPreviewView - render \(NSNumber(value: items.count), privacy: .public) items")
 
         flatDisplayItems = items
@@ -229,11 +238,62 @@ final class PreviewView: SCNView {
 
     /// Recomputes every item's z index and moves its plane along the z axis
     /// to match; folding and other states show or hide the planes.
+    ///
+    /// The rule is `PreviewZOrdering`'s. A pixelless overlay node (layout
+    /// guide, cell) marks out a region of the node that owns it, so it takes
+    /// its owner's z index rather than a plane of its own: it always overlaps
+    /// its super item, and the overlap rule would push every guide a full
+    /// plane forward and thicken the preview for nothing. The coplanar offset
+    /// in `PreviewGeometry.zPositions` then nudges it a hair in front, which
+    /// is exactly "drawn on its own view".
     func updateZPosition() {
-        for item in flatDisplayItems {
-            updateZIndex(for: item)
+        #signpostInterval("Update z positions") {
+            let items = flatDisplayItems
+            var indexByItem: [ObjectIdentifier: Int] = [:]
+            indexByItem.reserveCapacity(items.count)
+            for (index, item) in items.enumerated() {
+                indexByItem[ObjectIdentifier(item)] = index
+            }
+            let planes = items.map { item -> PreviewZOrdering.Plane in
+                let parent: PreviewZOrdering.Parent
+                if let superItem = item.super {
+                    if let parentIndex = indexByItem[ObjectIdentifier(superItem)] {
+                        parent = .plane(index: parentIndex)
+                    } else {
+                        parent = .outside(zIndex: superItem.previewZIndex)
+                    }
+                } else {
+                    // A top-level item (a folded UIWindowScene, say).
+                    parent = .none
+                }
+                return PreviewZOrdering.Plane(
+                    frameToRoot: item.calculateFrameToRoot(),
+                    parent: parent,
+                    isDisplayed: item.displayingInHierarchy,
+                    isCoplanarOverlay: item.shouldRenderAsCoplanarPreviewOverlay(),
+                    isInHiddenHierarchy: item.inHiddenHierarchy
+                )
+            }
+            let zIndexes = PreviewZOrdering.zIndexes(of: planes, showsHiddenItems: showHiddenItems)
+            for (item, zIndex) in zip(items, zIndexes) {
+                item.previewZIndex = zIndex
+            }
+            updateZPositionByZIndex()
         }
-        updateZPositionByZIndex()
+    }
+
+    /// `updateZPosition()` once on the next main-queue turn, however many
+    /// times this is called before then. A detail reply can change the
+    /// frame, hidden state or alpha of dozens of items, each of which asks
+    /// for a new pass.
+    func setNeedsZPositionUpdate() {
+        guard !hasScheduledZPositionUpdate else { return }
+        hasScheduledZPositionUpdate = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            hasScheduledZPositionUpdate = false
+            updateZPosition()
+        }
     }
 
     private func updateZPositionByZIndex() {
@@ -250,65 +310,6 @@ final class PreviewView: SCNView {
         }
         // One commit outside the loop: many small transactions render slowly.
         SCNTransaction.commit()
-    }
-
-    private func updateZIndex(for item: DisplayItem) {
-        item.previewZIndex = -1
-        // A pixelless overlay node (layout guide, cell) marks out a region of
-        // the node that owns it, so it belongs on that node's plane rather
-        // than on one of its own. It always overlaps its super item, so the
-        // rule below would push every guide a full plane forward and thicken
-        // the preview for nothing. Inheriting the super item's zIndex keeps
-        // them coplanar; the coplanar offset in PreviewGeometry.zPositions
-        // then nudges them a hair in front, which is exactly "drawn on its
-        // own view".
-        //
-        // flatDisplayItems runs parents before children, so the super item's
-        // zIndex read here was already computed in this same pass.
-        if item.shouldRenderAsCoplanarPreviewOverlay(), let superItem = item.super {
-            item.previewZIndex = max(superItem.previewZIndex, 0)
-            return
-        }
-        if item.displayingInHierarchy {
-            if let referenceItem = highestOverlappedItem(below: item) {
-                // Overlapping another item puts this one a level above it.
-                item.previewZIndex = referenceItem.previewZIndex + 1
-            } else {
-                item.previewZIndex = 0
-            }
-        } else if let superItem = item.super {
-            item.previewZIndex = superItem.previewZIndex
-        } else {
-            // A top-level item without a super item (a folded UIWindowScene).
-            item.previewZIndex = 0
-        }
-
-        if item.previewZIndex < 0 {
-            assertionFailure()
-            item.previewZIndex = 0
-        }
-    }
-
-    /// The item, among those visible in the preview and earlier in
-    /// flatDisplayItems (lower in the hierarchy) whose frameToRoot overlaps
-    /// `item`'s, with the highest z index; nil when there is none.
-    private func highestOverlappedItem(below item: DisplayItem) -> DisplayItem? {
-        guard let itemIndex = flatDisplayItems.firstIndex(where: { $0 == item }) else {
-            assertionFailure()
-            return nil
-        }
-        guard itemIndex > 0 else { return nil }
-        let itemFrameToRoot = item.calculateFrameToRoot()
-        var target: DisplayItem?
-        for other in flatDisplayItems[..<itemIndex].reversed() {
-            guard !other.inHiddenHierarchy || showHiddenItems else { continue }
-            guard itemFrameToRoot.intersects(other.calculateFrameToRoot()) else { continue }
-            if let current = target, other.previewZIndex <= current.previewZIndex {
-                continue
-            }
-            target = other
-        }
-        return target
     }
 
     /// Moves the lights level with the selected item's plane.

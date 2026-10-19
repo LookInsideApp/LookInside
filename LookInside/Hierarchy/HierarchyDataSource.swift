@@ -98,6 +98,7 @@ private func selfAndDescendants(of item: DisplayItem) -> [DisplayItem] {
 /// The hierarchy tree of a document: the flat rows, selection, hover,
 /// expansion, search and focus. Subclasses supply the preference manager.
 @Loggable(subsystem: "com.lookinside.app")
+@Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
 class HierarchyDataSource: NSObject {
     /// KVO-observable.
     @objc dynamic var state: HierarchyDataSourceState {
@@ -223,6 +224,12 @@ class HierarchyDataSource: NSObject {
     // MARK: - Reload
 
     func reload(with info: HierarchyInfo?, keepState: Bool) {
+        #signpostInterval("Reload hierarchy") {
+            performReload(with: info, keepState: keepState)
+        }
+    }
+
+    private func performReload(with info: HierarchyInfo?, keepState: Bool) {
         // Path identifiers of the old items resolve their root index against
         // the old root items, so take them before replacing the info.
         let previousRootItems = rawHierarchyInfo?.displayItems ?? []

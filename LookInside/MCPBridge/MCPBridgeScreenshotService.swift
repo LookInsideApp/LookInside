@@ -197,7 +197,7 @@ final class MCPBridgeScreenshotService {
                     identifier: identifier,
                     error: MCPBridgeErrorPayload(
                         code: "screenshot.objectNotFound",
-                        message: "Object identifier \(requestedObjectIdentifier) is not present in this target's hierarchy. Refresh via get_hierarchy and retry."
+                        message: "Object identifier \(requestedObjectIdentifier) is not present in this target's hierarchy. \(MCPBridgeRecoveryHint.identifierIsUnknown)"
                     )
                 )
             }
@@ -245,7 +245,7 @@ final class MCPBridgeScreenshotService {
                 identifier: identifier,
                 error: MCPBridgeErrorPayload(
                     code: "screenshot.objectNotFound",
-                    message: "The resolved display item has no live object behind it; it was probably deallocated. Refresh via get_hierarchy and retry."
+                    message: "The resolved display item has no live object behind it; it was probably deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
                 )
             )
         }
@@ -288,7 +288,7 @@ final class MCPBridgeScreenshotService {
                 identifier: identifier,
                 error: MCPBridgeErrorPayload(
                     code: "screenshot.objectNotFound",
-                    message: "The target app could not find the requested object; it may have been deallocated. Refresh via get_hierarchy and retry."
+                    message: "The target app could not find the requested object; it may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
                 )
             )
         }
@@ -456,7 +456,7 @@ final class MCPBridgeScreenshotService {
         case LookinErrCode_ObjectNotFound:
             return MCPBridgeErrorPayload(
                 code: "screenshot.objectNotFound",
-                message: "The target app could not find the requested object. It may have been deallocated; refresh via get_hierarchy and retry."
+                message: "The target app could not find the requested object. It may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
         case LookinErrCode_Inner:
             return MCPBridgeErrorPayload(
