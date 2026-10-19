@@ -58,6 +58,12 @@
     ///       attributes and screenshots, and timings.json gets
     ///       `wholeTreeMilliseconds`.
     ///
+    ///   LOOKINSIDE_DEBUG_E2E_PROGRESS_SNAPSHOT_DIR=<dir>
+    ///       Also draw the windows in the states a user passes through into
+    ///       numbered PNGs: the document window while its details load, and
+    ///       for an app whose Server is refused, the launch window's card and
+    ///       the sheet a click shows (then exit 0). See `captureProgress`.
+    ///
     /// UI snapshots (Scripts/reborn-e2e/ui-snapshots.sh) add:
     ///
     ///   LOOKINSIDE_DEBUG_E2E_START_FILE=<path>
@@ -79,6 +85,7 @@
         private static let startFileKey = "LOOKINSIDE_DEBUG_E2E_START_FILE"
         private static let refreshCountKey = "LOOKINSIDE_DEBUG_E2E_REFRESH_COUNT"
         private static let wholeTreeKey = "LOOKINSIDE_DEBUG_E2E_WHOLE_TREE"
+        private static let progressSnapshotDirectoryKey = "LOOKINSIDE_DEBUG_E2E_PROGRESS_SNAPSHOT_DIR"
 
         /// Exit statuses, so the driver script can tell the failing step.
         private enum ExitStatus: Int32 {
@@ -150,6 +157,11 @@
         /// Open while the phase is loadingDetails.
         private var loadingDetailsSignpostInterval: SignpostInterval?
         private var settleUntil = Date()
+        /// LOOKINSIDE_DEBUG_E2E_PROGRESS_SNAPSHOT_DIR: see `captureProgress`.
+        private let progressSnapshotDirectory: String?
+        private var progressSnapshotCount = 0
+        private var capturedLoadingDetails = false
+        private var capturingVersionError = false
 
         private init(directory: String, environment: [String: String]) {
             self.directory = directory
@@ -160,6 +172,7 @@
             expectsLicensed = environment[Self.expectLicensedKey] == "1"
             refreshCount = max(Int(environment[Self.refreshCountKey] ?? "") ?? 0, 0)
             fetchesWholeTree = environment[Self.wholeTreeKey] == "1"
+            progressSnapshotDirectory = environment[Self.progressSnapshotDirectoryKey].flatMap { $0.isEmpty ? nil : ($0 as NSString).standardizingPath }
             super.init()
         }
 
@@ -341,6 +354,13 @@
                     }
                 }
                 lastAppListSummary = summary.isEmpty ? "empty" : summary.joined(separator: ", ")
+                if progressSnapshotDirectory != nil, !capturingVersionError,
+                   let refusedApp = (apps ?? []).first(where: { $0.serverVersionError != nil })
+                {
+                    capturingVersionError = true
+                    captureServerVersionError(of: refusedApp)
+                    return
+                }
                 guard let target else {
                     return
                 }
@@ -400,6 +420,10 @@
                 return
             }
             if manager.isUpdating() {
+                if !capturedLoadingDetails {
+                    capturedLoadingDetails = true
+                    captureProgress("document-loading-details", window: document?.windowControllers.first?.window)
+                }
                 sawUpdating = true
                 idleSince = nil
                 return
@@ -522,6 +546,7 @@
                 return
             }
             let window = document.windowControllers.first?.window
+            captureProgress("document-loaded", window: window)
             let pngURL = directoryURL.appendingPathComponent("host-window.png")
             guard let png = DebugWindowImage.pngData(of: window), !png.isEmpty, (try? png.write(to: pngURL, options: .atomic)) != nil else {
                 fail(.writeFailed, "capturing the Host window failed")
@@ -554,6 +579,63 @@
         }
 
         // MARK: - Output
+
+        // MARK: - Progress snapshots
+
+        /// LOOKINSIDE_DEBUG_E2E_PROGRESS_SNAPSHOT_DIR=<dir>: the windows in the
+        /// states a user sees while an app opens, drawn in process into
+        /// numbered PNGs — the document window while its details load (the
+        /// progress bar), and, for an app whose Server is refused, the launch
+        /// window's card and the sheet a click on it shows. In that case the
+        /// dump exits 0 after the sheet instead of waiting for an app.
+        private func captureProgress(_ name: String, window: NSWindow?) {
+            guard let progressSnapshotDirectory else {
+                return
+            }
+            progressSnapshotCount += 1
+            let url = URL(fileURLWithPath: progressSnapshotDirectory, isDirectory: true)
+                .appendingPathComponent(String(format: "%02d-%@.png", progressSnapshotCount, name))
+            try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            // The window as the window server composites it (glass, vibrancy,
+            // an alert's backdrop), which drawing the view tree in process
+            // cannot reproduce; the in-process drawing is the fallback.
+            let png = window.flatMap(Self.windowServerPNGData(of:)) ?? DebugWindowImage.pngData(of: window)
+            guard let png, (try? png.write(to: url, options: .atomic)) != nil else {
+                log("progress snapshot \(name): nothing to capture")
+                return
+            }
+            log("progress snapshot \(name) written to \(url.path)")
+        }
+
+        /// One of this app's own windows from the window server; capturing
+        /// the process's own windows needs no screen recording permission.
+        private static func windowServerPNGData(of window: NSWindow) -> Data? {
+            guard window.windowNumber > 0,
+                  let image = CGWindowListCreateImage(.null, .optionIncludingWindow, CGWindowID(window.windowNumber), [.boundsIgnoreFraming, .bestResolution]),
+                  image.width > 1, image.height > 1
+            else {
+                return nil
+            }
+            return NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
+        }
+
+        private func captureServerVersionError(of app: InspectableApp) {
+            log("\(app.appInfo?.appBundleIdentifier ?? "an app") was refused (server version error \(app.serverVersionError?.code ?? 0)); capturing the launch window and the sheet")
+            Task { @MainActor in
+                // The launch window rescans every 1.5 s; two rounds show the card.
+                try? await Task.sleep(nanoseconds: 3_500_000_000)
+                let launchWindow = NavigationManager.shared.launchWindowController?.window
+                captureProgress("launch-window-server-too-old", window: launchWindow)
+                if let error = app.serverVersionError {
+                    ServerVersionAlert.present(for: app, error: error, in: launchWindow)
+                }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                captureProgress("server-too-old-sheet", window: launchWindow?.attachedSheet)
+                captureProgress("launch-window-with-sheet", window: launchWindow)
+                log("progress snapshots done")
+                exit(ExitStatus.success.rawValue)
+            }
+        }
 
         private func log(_ message: String) {
             fputs("[host-e2e-dump] \(message)\n", stderr)
