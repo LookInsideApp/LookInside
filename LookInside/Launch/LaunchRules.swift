@@ -18,9 +18,12 @@ enum LaunchRules {
         requested && appCount == 1 && !onlyAppHasServerVersionError && isActivated
     }
 
-    /// The website page that explains a Server version error.
-    static func serverVersionHelpPath(errorCode: Int) -> String {
-        errorCode == LookinErrCode_ServerVersionTooLow ? "faq/server-version-too-low/" : "faq/server-version-too-high/"
+    /// The page Learn More opens for a Server version error: how to update
+    /// the Server when it is too old, the download when LookInside is.
+    static func serverVersionHelpURL(errorCode: Int) -> URL {
+        errorCode == LookinErrCode_ServerVersionTooLow
+            ? URL(string: "https://lookinside-app.com/docs/update-server")!
+            : URL(string: "https://lookinside-app.com/#cta")!
     }
 
     /// The text an app card shows for a Server version error: what to do,

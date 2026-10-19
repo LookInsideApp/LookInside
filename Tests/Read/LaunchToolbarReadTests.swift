@@ -196,19 +196,23 @@ struct LaunchToolbarReadTests {
     }
 
     private static func testLaunchServerVersionErrors() {
-        expect(LaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_ServerVersionTooLow) == "faq/server-version-too-low/", "too low page")
-        expect(LaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_ServerVersionTooHigh) == "faq/server-version-too-high/", "too high page")
-        expect(LaunchRules.serverVersionHelpPath(errorCode: LookinErrCode_Inner) == "faq/server-version-too-high/", "other errors use the too high page")
+        // Learn More opens a page that exists: the in-app link helper only
+        // shows a "links are disabled" alert, which 3.1.0 shipped with.
+        expect(LaunchRules.serverVersionHelpURL(errorCode: LookinErrCode_ServerVersionTooLow).absoluteString == "https://lookinside-app.com/docs/update-server", "too low page")
+        expect(LaunchRules.serverVersionHelpURL(errorCode: LookinErrCode_ServerVersionTooHigh).absoluteString == "https://lookinside-app.com/#cta", "too high page")
+        expect(LaunchRules.serverVersionHelpURL(errorCode: LookinErrCode_Inner).absoluteString == "https://lookinside-app.com/#cta", "other errors use the too high page")
         expect(
             LaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooLow, localizedDescription: "x")
-                == "The version of LookinServer linked with this iOS App is too low.",
+                == "Update LookInside Server to inspect this app.",
             "too low title"
         )
         expect(
             LaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooHigh, localizedDescription: "x")
-                == "Unable to inspect this iOS App. Current version of LookInside app is too low.",
+                == "Update LookInside to inspect this app.",
             "too high title"
         )
+        expect(LaunchRules.serverVersionAlertTitle(errorCode: LookinErrCode_ServerVersionTooLow, appName: "Notes") == "“Notes” uses an older LookInside Server.", "too low alert title")
+        expect(LaunchRules.serverVersionAlertTitle(errorCode: LookinErrCode_ServerVersionTooHigh, appName: nil) == "This app uses a newer LookInside Server.", "too high alert title, no name")
         expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "Custom") == "Custom", "own description")
         expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "") == "Unable to inspect this app.", "fallback title")
     }

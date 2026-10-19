@@ -16,9 +16,9 @@ enum ServerVersionAlert {
     /// Shows the sheet for `app`'s version error on `window`, or opens the
     /// help page in the browser when there is no window to attach it to.
     static func present(for app: InspectableApp, error: NSError, in window: NSWindow?) {
-        let helpPath = LaunchRules.serverVersionHelpPath(errorCode: error.code)
+        let helpURL = LaunchRules.serverVersionHelpURL(errorCode: error.code)
         guard let window else {
-            AppHelper.openLookinWebsite(withPath: helpPath)
+            NSWorkspace.shared.open(helpURL)
             return
         }
         let alert = NSAlert()
@@ -29,7 +29,7 @@ enum ServerVersionAlert {
         alert.addButton(withTitle: NSLocalizedString("Learn More", comment: "Opens the page on updating the Server or LookInside"))
         alert.beginSheetModal(for: window) { response in
             if response == .alertSecondButtonReturn {
-                AppHelper.openLookinWebsite(withPath: helpPath)
+                NSWorkspace.shared.open(helpURL)
             }
         }
     }
