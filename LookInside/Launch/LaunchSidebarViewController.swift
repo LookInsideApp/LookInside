@@ -22,11 +22,12 @@ struct LaunchSidebarDevice: Equatable {
     /// The asset shown when no app info names the device.
     let fallbackIconName: String
 
-    static func == (lhs: LaunchSidebarDevice, rhs: LaunchSidebarDevice) -> Bool {
+    static func == (leftDevice: LaunchSidebarDevice, rightDevice: LaunchSidebarDevice) -> Bool {
         // The icon follows the identity; comparing the info objects would
         // see a change with every scan.
-        lhs.identity == rhs.identity && lhs.name == rhs.name && lhs.systemDescription == rhs.systemDescription
-            && lhs.appCount == rhs.appCount && (lhs.iconAppInfo == nil) == (rhs.iconAppInfo == nil)
+        leftDevice.identity == rightDevice.identity && leftDevice.name == rightDevice.name
+            && leftDevice.systemDescription == rightDevice.systemDescription && leftDevice.appCount == rightDevice.appCount
+            && (leftDevice.iconAppInfo == nil) == (rightDevice.iconAppInfo == nil)
     }
 }
 
@@ -141,11 +142,11 @@ final class LaunchSidebarViewController: NSViewController, NSOutlineViewDataSour
         let clickedRow = outlineView.clickedRow
         guard clickedRow >= 0,
               let item = outlineView.item(atRow: clickedRow) as? LaunchSidebarItem,
-              case let .recentDocument(url) = item.content
+              case let .recentDocument(documentURL) = item.content
         else {
             return
         }
-        onOpenRecentDocument?(url)
+        onOpenRecentDocument?(documentURL)
     }
 
     // MARK: - NSOutlineViewDataSource
@@ -200,9 +201,9 @@ final class LaunchSidebarViewController: NSViewController, NSOutlineViewDataSour
             let cellView = outlineView.box.makeView(ofClass: LaunchSidebarDeviceCellView.self)
             cellView.configure(with: device)
             return cellView
-        case let .recentDocument(url):
+        case let .recentDocument(documentURL):
             let cellView = outlineView.box.makeView(ofClass: LaunchSidebarRecentDocumentCellView.self)
-            cellView.configure(with: url)
+            cellView.configure(with: documentURL)
             return cellView
         }
     }
@@ -344,9 +345,9 @@ private final class LaunchSidebarRecentDocumentCellView: NSTableCellView {
         fatalError("init(coder:) is not supported")
     }
 
-    func configure(with url: URL) {
-        nameLabel.stringValue = url.lastPathComponent.isEmpty ? url.path : url.lastPathComponent
-        iconImageView.image = NSWorkspace.shared.icon(forFile: url.path)
-        toolTip = url.path
+    func configure(with documentURL: URL) {
+        nameLabel.stringValue = documentURL.lastPathComponent.isEmpty ? documentURL.path : documentURL.lastPathComponent
+        iconImageView.image = NSWorkspace.shared.icon(forFile: documentURL.path)
+        toolTip = documentURL.path
     }
 }

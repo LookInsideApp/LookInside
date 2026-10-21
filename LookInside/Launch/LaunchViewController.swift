@@ -67,8 +67,8 @@ final class LaunchViewController: NSSplitViewController {
         sidebarViewController.onSelectDevice = { [weak self] device in
             self?.userDidSelect(device)
         }
-        sidebarViewController.onOpenRecentDocument = { [weak self] url in
-            self?.openRecentDocument(url)
+        sidebarViewController.onOpenRecentDocument = { [weak self] documentURL in
+            self?.openRecentDocument(documentURL)
         }
         appGridViewController.onClickApp = { [weak self] app in
             self?.handleClick(on: app)
@@ -298,8 +298,8 @@ final class LaunchViewController: NSSplitViewController {
 
     /// Opens a recent document; the launch window closes once it opened, as
     /// it does when an app is picked.
-    private func openRecentDocument(_ url: URL) {
-        NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { document, _, error in
+    private func openRecentDocument(_ documentURL: URL) {
+        NSDocumentController.shared.openDocument(withContentsOf: documentURL, display: true) { document, _, error in
             if let error {
                 NSApp.presentError(error)
                 return
