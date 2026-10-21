@@ -74,6 +74,17 @@
     ///       After writing the dump, run the UI scenes of DebugUISnapshots
     ///       against the loaded document instead of exiting; the Host exits
     ///       when they are done.
+    ///
+    /// The reconnect check (Scripts/e2e-reconnect.sh) adds:
+    ///
+    ///   LOOKINSIDE_DEBUG_E2E_KEEP_OPEN=1
+    ///       Once the details are loaded, keep the live document open and the
+    ///       Host running instead of writing the dump, so the driver can end,
+    ///       pause and background the app under it.
+    ///   LOOKINSIDE_DEBUG_E2E_SESSION_LOG=<path>
+    ///       Append one JSON line per event a live document handles: the
+    ///       event, the banner after it and the actions it asked for
+    ///       (`recordSessionEvent`).
     @MainActor
     @Signpostable(subsystem: "com.lookinside.app", category: "RefreshPerformance")
     final class DebugE2EDump: NSObject {
@@ -86,6 +97,8 @@
         private static let refreshCountKey = "LOOKINSIDE_DEBUG_E2E_REFRESH_COUNT"
         private static let wholeTreeKey = "LOOKINSIDE_DEBUG_E2E_WHOLE_TREE"
         private static let progressSnapshotDirectoryKey = "LOOKINSIDE_DEBUG_E2E_PROGRESS_SNAPSHOT_DIR"
+        private static let keepOpenKey = "LOOKINSIDE_DEBUG_E2E_KEEP_OPEN"
+        private static let sessionLogKey = "LOOKINSIDE_DEBUG_E2E_SESSION_LOG"
 
         /// Exit statuses, so the driver script can tell the failing step.
         private enum ExitStatus: Int32 {
@@ -125,6 +138,7 @@
         private let expectsLicensed: Bool
         private let refreshCount: Int
         private let fetchesWholeTree: Bool
+        private let keepsOpen: Bool
         private var loggedStartWait = false
         private var loggedLicenseWait = false
         private var notedFirstWindow = false
@@ -172,6 +186,7 @@
             expectsLicensed = environment[Self.expectLicensedKey] == "1"
             refreshCount = max(Int(environment[Self.refreshCountKey] ?? "") ?? 0, 0)
             fetchesWholeTree = environment[Self.wholeTreeKey] == "1"
+            keepsOpen = environment[Self.keepOpenKey] == "1"
             progressSnapshotDirectory = environment[Self.progressSnapshotDirectoryKey].flatMap { $0.isEmpty ? nil : ($0 as NSString).standardizingPath }
             super.init()
         }
@@ -452,6 +467,12 @@
                 return
             }
             log("details loaded")
+            if keepsOpen {
+                log("keeping the document open")
+                phase = .done
+                timer?.invalidate()
+                return
+            }
             if fetchesWholeTree, wholeTreeStartInstant == nil {
                 startWholeTreeFetch(with: manager)
                 return
@@ -646,6 +667,42 @@
             phase = .done
             log("FAIL: \(message)")
             exit(status.rawValue)
+        }
+
+        // MARK: - Session log
+
+        private static let sessionLog: FileHandle? = {
+            guard let path = ProcessInfo.processInfo.environment[sessionLogKey], !path.isEmpty else {
+                return nil
+            }
+            let standardizedPath = (path as NSString).standardizingPath
+            if !FileManager.default.fileExists(atPath: standardizedPath) {
+                FileManager.default.createFile(atPath: standardizedPath, contents: nil)
+            }
+            let handle = FileHandle(forWritingAtPath: standardizedPath)
+            handle?.seekToEndOfFile()
+            return handle
+        }()
+
+        /// LOOKINSIDE_DEBUG_E2E_SESSION_LOG: one line per event
+        /// `LiveDocument.handle(_:)` applied, with the wall-clock time so the
+        /// driver can measure against its own clock.
+        static func recordSessionEvent(_ event: String, banner: String, actions: [String], bundleIdentifier: String?) {
+            guard let sessionLog else {
+                return
+            }
+            let line: [String: Any] = [
+                "time": Date().timeIntervalSince1970,
+                "event": event,
+                "banner": banner,
+                "actions": actions,
+                "bundleIdentifier": bundleIdentifier ?? "",
+            ]
+            guard var data = try? JSONSerialization.data(withJSONObject: line, options: [.sortedKeys]) else {
+                return
+            }
+            data.append(0x0A)
+            sessionLog.write(data)
         }
     }
 #endif
