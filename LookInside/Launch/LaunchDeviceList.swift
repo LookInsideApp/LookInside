@@ -122,7 +122,8 @@ enum LaunchDeviceGrouping {
 ///
 /// Until the user picks one, the first device with an app a click opens is
 /// selected, and that selection stays put while devices come and go around
-/// it. A device the user picked stays selected through every scan that
+/// it, as long as something on it opens: a selected device with nothing a
+/// click opens gives way to the first device that has such an app. A device the user picked stays selected through every scan that
 /// still finds it, and is selected again when it comes back. When the
 /// selected device disappears, the one after it in the previous scan takes
 /// over, or the one before it when it was the last.
@@ -142,20 +143,39 @@ struct LaunchDeviceSelection {
         let currentDevices = groups.map(\.identity)
         defer { previousDeviceOrder = currentDevices }
 
-        if let userChosenDevice, currentDevices.contains(userChosenDevice) {
-            selectedDevice = userChosenDevice
+        selectedDevice = keptOrReplacedSelection(in: groups, currentDevices: currentDevices)
+
+        // Only an automatic pick moves to where a click opens something;
+        // the user's pick stays where the user put it.
+        guard userChosenDevice == nil,
+              let selectedDevice,
+              groups.first(where: { $0.identity == selectedDevice })?.connectableAppCount == 0,
+              let firstConnectableGroup = groups.first(where: { $0.connectableAppCount > 0 })
+        else {
             return
         }
+        self.selectedDevice = firstConnectableGroup.identity
+    }
+
+    /// The user's device when it is there, else the selected one when it
+    /// is still there, else the neighbour of the vanished one, else the
+    /// first device with an app a click opens, else the first device.
+    private func keptOrReplacedSelection<App>(
+        in groups: [LaunchDeviceGroup<App>],
+        currentDevices: [LaunchDeviceIdentity]
+    ) -> LaunchDeviceIdentity? {
+        if let userChosenDevice, currentDevices.contains(userChosenDevice) {
+            return userChosenDevice
+        }
         if let selectedDevice, currentDevices.contains(selectedDevice) {
-            return
+            return selectedDevice
         }
         if let vanishedDevice = selectedDevice,
            let replacement = Self.replacement(for: vanishedDevice, previousOrder: previousDeviceOrder, currentDevices: currentDevices)
         {
-            selectedDevice = replacement
-            return
+            return replacement
         }
-        selectedDevice = groups.first { $0.connectableAppCount > 0 }?.identity ?? currentDevices.first
+        return groups.first { $0.connectableAppCount > 0 }?.identity ?? currentDevices.first
     }
 
     /// The nearest device to `vanishedDevice` in the previous order that is

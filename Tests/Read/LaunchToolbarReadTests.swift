@@ -319,6 +319,28 @@ struct LaunchToolbarReadTests {
         onlyBackground.update(with: groups([entry("(background)", on: iPhone, origin: "simulator", isConnectable: false)]))
         expect(onlyBackground.selectedDevice == iPhone, "with no app a click opens, the first device is selected")
 
+        let backgroundOnUSBOnly = groups([entry("(background)", on: nil, origin: "usb:3", isConnectable: false)])
+        let simulatorAppAppears = groups([
+            entry("(background)", on: nil, origin: "usb:3", isConnectable: false),
+            entry("Notes", on: iPhone, origin: "simulator"),
+        ])
+        var automaticPick = LaunchDeviceSelection()
+        automaticPick.update(with: backgroundOnUSBOnly)
+        expect(automaticPick.selectedDevice == .unidentified(originGroupKey: "usb:3"), "the only device is selected, though nothing on it opens")
+        automaticPick.update(with: simulatorAppAppears)
+        expect(automaticPick.selectedDevice == iPhone, "until the user picks, a device with an app a click opens takes over from one without")
+        automaticPick.update(with: groups([
+            entry("(background)", on: nil, origin: "usb:3", isConnectable: false),
+            entry("(background)", on: iPhone, origin: "simulator", isConnectable: false),
+        ]))
+        expect(automaticPick.selectedDevice == iPhone, "with nothing to open anywhere, the selection stays")
+
+        var userPickedBackground = LaunchDeviceSelection()
+        userPickedBackground.update(with: backgroundOnUSBOnly)
+        userPickedBackground.userDidSelect(.unidentified(originGroupKey: "usb:3"))
+        userPickedBackground.update(with: simulatorAppAppears)
+        expect(userPickedBackground.selectedDevice == .unidentified(originGroupKey: "usb:3"), "a device the user picked stays selected though nothing on it opens")
+
         let threeDevices = groups([
             entry("Notes", on: iPhone, origin: "simulator"),
             entry("Files", on: iPad, origin: "simulator"),
