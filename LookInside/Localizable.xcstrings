@@ -510,6 +510,89 @@
         }
       }
     },
+    "%@ is in the background. LookInside refreshes when it returns." : {
+      "comment" : "Banner over a live inspector window while the inspected app is in the background; %@ is the app's name",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ في الخلفية. سيُحدِّث LookInside البيانات عند عودته."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ist im Hintergrund. LookInside aktualisiert, sobald die App zurückkehrt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is in the background. LookInside refreshes when it returns."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ está en segundo plano. LookInside se actualizará cuando vuelva."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ est en arrière-plan. LookInside actualisera dès son retour."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ è in background. LookInside si aggiornerà al suo ritorno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ はバックグラウンドにあります。戻ると LookInside が更新します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@이(가) 백그라운드에 있습니다. 돌아오면 LookInside가 새로 고칩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ está em segundo plano. O LookInside atualizará quando ele voltar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ в фоновом режиме. LookInside обновит данные, когда приложение вернётся."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ đang chạy nền. LookInside sẽ làm mới khi ứng dụng quay lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 在后台。回到前台后 LookInside 会自动刷新。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 在背景執行。回到前景後 LookInside 會自動重新整理。"
+          }
+        }
+      }
+    },
     "%@ is not a view hierarchy package." : {
       "comment" : "Import error; %@ is the file name",
       "localizations" : {

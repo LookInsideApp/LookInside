@@ -52,6 +52,12 @@
         /// `start()`.
         public var onEnd: ((EndError?) -> Void)?
 
+        /// When bytes last arrived (system uptime; when the channel was made
+        /// until then). Read it on `queue`. Counts the bytes of a payload still
+        /// arriving, so a channel busy with one large frame does not look
+        /// silent.
+        public private(set) var lastReceiveUptime = ProcessInfo.processInfo.systemUptime
+
         private let io: DispatchIO
         private var decoder: FrameDecoder
         private var pendingBytes: Data
@@ -211,6 +217,7 @@
 
         private func didRead(done: Bool, data: DispatchData?, error: Int32) {
             if let data, !data.isEmpty, isConnected {
+                lastReceiveUptime = ProcessInfo.processInfo.systemUptime
                 receive(Data(data))
             }
             guard done else { return }

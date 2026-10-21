@@ -13,7 +13,8 @@
 //  - `cancel()` stops the source; the socket is closed by the source's
 //    cancel handler, so an accept loop already running finishes the
 //    connections the event announced (Peertalk behaved the same way when the
-//    first accepted connection cancelled its listener).
+//    first accepted connection cancelled its listener). Until that handler
+//    has run the port stays taken; `whenClosed(_:)` waits for it.
 //
 //  A failed setup step throws `SocketConnector.Error` with its errno; EADDRINUSE
 //  (48) means another process (or another listener) holds the port.
@@ -31,10 +32,46 @@
         private let source: DispatchSourceRead
         private let stateLock = NSLock()
         private var cancelled = false
+        /// Set once the cancel handler closed the socket; under `stateLock`.
+        private var closed = false
+        /// Waiting for `closed`; under `stateLock`.
+        private var closeObservers: [() -> Void] = []
 
         private init(port: UInt16, source: DispatchSourceRead) {
             self.port = port
             self.source = source
+        }
+
+        /// True once the listening socket is closed and its port free again.
+        /// Any thread.
+        public var isClosed: Bool {
+            stateLock.lock()
+            defer { stateLock.unlock() }
+            return closed
+        }
+
+        /// Runs `body` once the listening socket is closed: on the listener's
+        /// queue, or right away on this thread when it already is.
+        public func whenClosed(_ body: @escaping () -> Void) {
+            stateLock.lock()
+            guard !closed else {
+                stateLock.unlock()
+                body()
+                return
+            }
+            closeObservers.append(body)
+            stateLock.unlock()
+        }
+
+        private func didClose() {
+            stateLock.lock()
+            closed = true
+            let observers = closeObservers
+            closeObservers = []
+            stateLock.unlock()
+            for observer in observers {
+                observer()
+            }
         }
 
         /// True until `cancel()`. Any thread.
@@ -100,11 +137,15 @@
                     }
                 }
             }
-            source.setCancelHandler {
+            let listener = FrameListener(port: boundPort, source: source)
+            // Weak: a listener dropped without `cancel()` still stops in
+            // `deinit`. Whoever waits for the close holds the listener.
+            source.setCancelHandler { [weak listener] in
                 Darwin.close(fd)
+                listener?.didClose()
             }
             source.resume()
-            return FrameListener(port: boundPort, source: source)
+            return listener
         }
 
         /// One accept(); nil when it fails (EAGAIN included) or the socket

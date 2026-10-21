@@ -100,7 +100,19 @@ enum {
 
     /// JSON NSData carrying a versioned, bounded gesture capture batch.
     LookinPush_GestureDebug = 306,
+
+    /// The application resigned active or became active (UIKit only), tag 0.
+    /// Payload: NSDictionary, `LookinParam_ApplicationIsActive` → NSNumber
+    /// BOOL. Lets the Host tell an app in the background from a dead
+    /// channel and refresh once the app is back. Hosts that predate it find
+    /// no request of this type and tag waiting, refuse the frame and skip its
+    /// payload (LookInside 2.3.x, 3.x and upstream Lookin all do).
+    LookinPush_ApplicationStateChanged = 307,
 };
+
+/// `LookinPush_ApplicationStateChanged` payload key: NSNumber boxed BOOL,
+/// YES once the application became active, NO when it resigned active.
+static NSString * const LookinParam_ApplicationIsActive = @"active";
 
 static NSString * const LookinParam_ViewLayerTag = @"tag";
 
