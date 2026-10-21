@@ -113,11 +113,15 @@ final class LaunchAppGridViewController: NSViewController {
         loadViewIfNeeded()
         let isDifferentDevice = device != displayedDevice
         displayedDevice = device
-        cardsByOrigin = Dictionary(cards.map { ($0.origin, $0) }, uniquingKeysWith: { first, _ in first })
+        // A diffable snapshot traps on a duplicate item; keep the first card
+        // of an origin.
+        var seenOrigins = Set<InspectableAppOrigin>()
+        let uniqueCards = cards.filter { seenOrigins.insert($0.origin).inserted }
+        cardsByOrigin = Dictionary(uniqueKeysWithValues: uniqueCards.map { ($0.origin, $0) })
 
         var snapshot = NSDiffableDataSourceSnapshot<Section, InspectableAppOrigin>()
         snapshot.appendSections([.apps])
-        snapshot.appendItems(cards.map(\.origin), toSection: .apps)
+        snapshot.appendItems(uniqueCards.map(\.origin), toSection: .apps)
         dataSource?.apply(snapshot, animatingDifferences: !isDifferentDevice)
 
         // Items whose origin stayed are not recreated; give them this scan's
@@ -140,7 +144,7 @@ final class LaunchAppGridViewController: NSViewController {
         }
         scrollView.isHidden = isSearching
 
-        let everyAppIsInBackground = !cards.isEmpty && cards.allSatisfy(\.app.isInBackground)
+        let everyAppIsInBackground = !uniqueCards.isEmpty && uniqueCards.allSatisfy(\.app.isInBackground)
         hintLabel.stringValue = NSLocalizedString(
             "The apps on this device are in the background. Bring one to the foreground to inspect it.",
             comment: "Launch window hint when every app of the selected device is in the background"
