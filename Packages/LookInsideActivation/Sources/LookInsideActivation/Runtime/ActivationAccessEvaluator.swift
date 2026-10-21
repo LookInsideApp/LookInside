@@ -106,8 +106,7 @@ final class ActivationAccessEvaluator: @unchecked Sendable {
             return .allowedWithWarning(message: connectivityWarning, statusSummary: summary(for: status))
         }
 
-        let warning = status.warningMessage ?? status.license.deviceWarning
-        if let warning, warning.isEmpty == false {
+        if let warning = status.localizedWarning {
             return .allowedWithWarning(message: warning, statusSummary: summary(for: status))
         }
 

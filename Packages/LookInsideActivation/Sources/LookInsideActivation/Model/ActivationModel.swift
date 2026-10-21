@@ -141,7 +141,7 @@ public final class ActivationModel {
             return errorMessage
         }
 
-        return entitlementStatus?.warningMessage ?? entitlementStatus?.license.deviceWarning
+        return entitlementStatus?.localizedWarning
     }
 
     public var isRefreshingLicenseStatus: Bool {

@@ -28,9 +28,7 @@ struct LicenseDetailRows: View {
                 value: accessRowValue
             )
 
-            if let warning = status.warningMessage ?? status.license.deviceWarning,
-               !warning.isEmpty
-            {
+            if let warning = status.localizedWarning {
                 LicenseDetailRow(
                     icon: "exclamationmark.triangle",
                     title: "Notice",

@@ -36,6 +36,16 @@ public struct EntitlementStatus: Codable, Sendable, Equatable {
         self.warningMessage = warningMessage
     }
 
+    /// The warning to show, in the user's language when it is one of the
+    /// sentences the server sends: the server sends them in English, and
+    /// this package's string catalog holds their translations.
+    public var localizedWarning: String? {
+        guard let warning = warningMessage ?? license.deviceWarning, !warning.isEmpty else {
+            return nil
+        }
+        return Bundle.module.localizedString(forKey: warning, value: warning, table: nil)
+    }
+
     public var entitlementEndsAt: Date? {
         license.serviceEndsAt ?? license.expiresAt
     }
