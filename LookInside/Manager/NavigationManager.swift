@@ -47,7 +47,16 @@ final class NavigationManager: NSObject, NSWindowDelegate {
         showLaunch(allowingAutoEnter: false)
     }
 
+    /// Brings the launch window forward, opening one when none is open: a
+    /// second one would only run a second scan of the same apps.
     func showLaunch(allowingAutoEnter allowAutoEnter: Bool) {
+        if let openController = launchWindowController,
+           let openWindow = openController.window,
+           openWindow.isVisible || openWindow.isMiniaturized
+        {
+            openController.showWindow(self)
+            return
+        }
         let controller = LaunchWindowController(autoEnterOnInitialReload: allowAutoEnter)
         launchWindowController = controller
         controller.showWindow(self)

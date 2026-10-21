@@ -811,8 +811,9 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     /// Binds `app` to this window and loads `info`. Every same-window
     /// reload (auto-connect, toolbar same app, SwiftUI mode) goes through
-    /// here.
-    private func applyHierarchyInfo(_ info: HierarchyInfo?, for app: InspectableApp, keepState: Bool) {
+    /// here, and so does a hierarchy the launch window or the app picker
+    /// fetched for this window.
+    func applyHierarchyInfo(_ info: HierarchyInfo?, for app: InspectableApp, keepState: Bool) {
         viewController.progressView.finish(completion: nil)
         inspectableApp = app
         asyncUpdateManager.inspectableApp = app

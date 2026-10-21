@@ -138,7 +138,9 @@
             // Two app-list rounds of the launch window (every 1.5 s), so its
             // "searching" state and progress bar have settled.
             await pause(3.5)
-            let apps = await AppsManager.shared.fetchAppInfos(needImages: false, localInfos: nil)
+            // Unresponsive apps count too: the launch window shows them as
+            // greyed cards, so it is not the no-app state.
+            let apps = await AppsManager.shared.fetchAppInfos(needImages: false, localInfos: nil, includingUnresponsiveApps: true)
             if !apps.isEmpty {
                 let names = apps.map { $0.appInfo?.appBundleIdentifier ?? "?" }.joined(separator: ", ")
                 skip("launch-no-app", reason: "\(apps.count) inspectable app(s) already running: \(names)")

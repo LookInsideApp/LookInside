@@ -8,10 +8,10 @@
 
 import AppKit
 
-/// One inspectable app in the launch window or the apps popover: its
-/// screenshot over the device icon, device name and OS. An app whose Server
-/// version is unsupported shows the error and a link to the explanation
-/// instead.
+/// One inspectable app in the window's apps popover: its screenshot over
+/// the device icon, device name and OS. An app whose Server version is
+/// unsupported shows the error and a link to the explanation instead. The
+/// launch window shows its apps as `LaunchAppCardItem`s.
 final class LaunchAppView: BaseControl {
     private let hoverBgLayer = CALayer()
     private let previewImageView = NSImageView()
@@ -151,33 +151,12 @@ final class LaunchAppView: BaseControl {
 
             let appInfo = app?.appInfo
             previewImageView.image = appInfo?.screenshot
-            iconImageView.image = Self.deviceIcon(for: appInfo)
+            iconImageView.image = DeviceIconProvider.deviceIconWithAssetFallback(forAppInfo: appInfo, pointSize: DeviceIconProvider.launchPointSize)
             titleLabel.stringValue = appInfo?.deviceDescription ?? ""
             subtitleLabel.stringValue = appInfo?.osDescription ?? "(null)"
         }
         updateLayer()
         needsLayout = true
-    }
-
-    /// Prefer the icon of the actual hardware model the app runs on. Falls back to the
-    /// per-family asset when the peer's LookinServer does not report a model identifier.
-    private static func deviceIcon(for appInfo: InspectedAppInfo?) -> NSImage? {
-        if let icon = DeviceIconProvider.deviceIcon(forAppInfo: appInfo, pointSize: DeviceIconProvider.launchPointSize) {
-            return icon
-        }
-        if AppHelper.appInfoLooksLikeMacTarget(appInfo) || appInfo?.deviceType == .macCatalyst {
-            // A Catalyst app runs on Mac hardware, so it gets the Mac icon even though
-            // +appInfoLooksLikeMacTarget: deliberately answers NO for it (its views are UIKit).
-            return NSImage(named: "icon_mac_big")
-        }
-        switch appInfo?.deviceType {
-        case .simulator?:
-            return NSImage(named: "icon_simulator_big")
-        case .iPad?:
-            return NSImage(named: "icon_ipad_big")
-        default:
-            return NSImage(named: "icon_iphone_big")
-        }
     }
 
     override func mouseEntered(with event: NSEvent) {

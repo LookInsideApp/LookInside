@@ -1,0 +1,198 @@
+//
+//  LaunchDeviceList.swift
+//  LookInside
+//
+//  How the launch window groups the apps it found by device, and which
+//  device its sidebar selects. Kept free of AppKit views so it can be tested
+//  on its own.
+//
+
+import Foundation
+
+/// One device in the launch window's sidebar.
+enum LaunchDeviceIdentity: Hashable {
+    /// A device the app info named: its name, its OS and its kind.
+    /// `originGroupKey` is set when the apps' origin is one physical device
+    /// (a USB device), so two devices that report the same name and OS stay
+    /// apart; it is nil on the Simulator ports, which every running
+    /// Simulator shares, and on the Mac ports.
+    case reported(deviceDescription: String, osDescription: String, deviceType: LookinAppInfoDevice, originGroupKey: String? = nil)
+    /// Apps that sent no app info (an app in the background, or a Server
+    /// whose version this Host does not support) and could not be placed on
+    /// a reported device. `originGroupKey` names where their channels come
+    /// from: the Simulator ports, the Mac ports or one USB device.
+    case unidentified(originGroupKey: String)
+}
+
+/// One app of a scan, as the device list sees it.
+struct LaunchDeviceListEntry<App> {
+    let app: App
+    /// The device the app's info names; nil when the app sent no info.
+    let reportedDevice: LaunchDeviceIdentity?
+    /// Where the app's channel comes from: the same key for every app on the
+    /// Simulator ports, on the Mac ports, or on one USB device.
+    let originGroupKey: String
+    /// Whether every app on the origin runs on one physical device (a USB
+    /// device), so the origin tells apart devices that report the same name
+    /// and OS. False for the Simulator ports, which every running Simulator
+    /// shares, and for the Mac ports.
+    let originIdentifiesDevice: Bool
+    /// Whether a click opens the app: it is in the foreground and its Server
+    /// version is supported.
+    let isConnectable: Bool
+}
+
+/// The apps of one device, in scan order.
+struct LaunchDeviceGroup<App> {
+    let identity: LaunchDeviceIdentity
+    var apps: [App]
+    /// How many of `apps` a click opens.
+    var connectableAppCount: Int
+}
+
+enum LaunchDeviceGrouping {
+    /// Groups a scan's apps by device, devices in the order their first app
+    /// was found.
+    ///
+    /// An app without info joins the one reported device that shares its
+    /// origin (a background app on a USB device whose other apps answered),
+    /// and otherwise gets a device of its own per origin: Simulator ports are
+    /// shared by every running Simulator, so with two of them there is no
+    /// telling which one the app runs on.
+    ///
+    /// A device reported on an origin that is one physical device (a USB
+    /// device) is told apart by that origin, so two devices of the same name
+    /// and OS get a row each.
+    static func groups<App>(of entries: [LaunchDeviceListEntry<App>]) -> [LaunchDeviceGroup<App>] {
+        var reportedDevicesByOrigin: [String: [LaunchDeviceIdentity]] = [:]
+        for entry in entries {
+            guard let reportedDevice = reportedDevice(of: entry) else { continue }
+            var devices = reportedDevicesByOrigin[entry.originGroupKey, default: []]
+            if !devices.contains(reportedDevice) {
+                devices.append(reportedDevice)
+            }
+            reportedDevicesByOrigin[entry.originGroupKey] = devices
+        }
+
+        var groups: [LaunchDeviceGroup<App>] = []
+        var groupIndexByIdentity: [LaunchDeviceIdentity: Int] = [:]
+        for entry in entries {
+            let identity: LaunchDeviceIdentity
+            if let reportedDevice = reportedDevice(of: entry) {
+                identity = reportedDevice
+            } else if let devicesOfOrigin = reportedDevicesByOrigin[entry.originGroupKey], devicesOfOrigin.count == 1 {
+                identity = devicesOfOrigin[0]
+            } else {
+                identity = .unidentified(originGroupKey: entry.originGroupKey)
+            }
+            let groupIndex: Int
+            if let existingIndex = groupIndexByIdentity[identity] {
+                groupIndex = existingIndex
+            } else {
+                groupIndex = groups.count
+                groupIndexByIdentity[identity] = groupIndex
+                groups.append(LaunchDeviceGroup(identity: identity, apps: [], connectableAppCount: 0))
+            }
+            groups[groupIndex].apps.append(entry.app)
+            if entry.isConnectable {
+                groups[groupIndex].connectableAppCount += 1
+            }
+        }
+        return groups
+    }
+
+    /// The device the entry's app info names, qualified with the origin when
+    /// the origin is one physical device.
+    private static func reportedDevice<App>(of entry: LaunchDeviceListEntry<App>) -> LaunchDeviceIdentity? {
+        guard entry.originIdentifiesDevice,
+              case let .reported(deviceDescription, osDescription, deviceType, _) = entry.reportedDevice
+        else {
+            return entry.reportedDevice
+        }
+        return .reported(
+            deviceDescription: deviceDescription,
+            osDescription: osDescription,
+            deviceType: deviceType,
+            originGroupKey: entry.originGroupKey
+        )
+    }
+}
+
+/// Which device the sidebar selects across scans.
+///
+/// Until the user picks one, the first device with an app a click opens is
+/// selected, and that selection stays put while devices come and go around
+/// it, as long as something on it opens: a selected device with nothing a
+/// click opens gives way to the first device that has such an app. A device the user picked stays selected through every scan that
+/// still finds it, and is selected again when it comes back. When the
+/// selected device disappears, the one after it in the previous scan takes
+/// over, or the one before it when it was the last.
+struct LaunchDeviceSelection {
+    private(set) var selectedDevice: LaunchDeviceIdentity?
+    private var userChosenDevice: LaunchDeviceIdentity?
+    private var previousDeviceOrder: [LaunchDeviceIdentity] = []
+
+    /// The user picked `device` in the sidebar.
+    mutating func userDidSelect(_ device: LaunchDeviceIdentity) {
+        userChosenDevice = device
+        selectedDevice = device
+    }
+
+    /// Applies a new scan's devices, in sidebar order.
+    mutating func update<App>(with groups: [LaunchDeviceGroup<App>]) {
+        let currentDevices = groups.map(\.identity)
+        defer { previousDeviceOrder = currentDevices }
+
+        selectedDevice = keptOrReplacedSelection(in: groups, currentDevices: currentDevices)
+
+        // Only an automatic pick moves to where a click opens something;
+        // the user's pick stays where the user put it.
+        guard userChosenDevice == nil,
+              let selectedDevice,
+              groups.first(where: { $0.identity == selectedDevice })?.connectableAppCount == 0,
+              let firstConnectableGroup = groups.first(where: { $0.connectableAppCount > 0 })
+        else {
+            return
+        }
+        self.selectedDevice = firstConnectableGroup.identity
+    }
+
+    /// The user's device when it is there, else the selected one when it
+    /// is still there, else the neighbour of the vanished one, else the
+    /// first device with an app a click opens, else the first device.
+    private func keptOrReplacedSelection<App>(
+        in groups: [LaunchDeviceGroup<App>],
+        currentDevices: [LaunchDeviceIdentity]
+    ) -> LaunchDeviceIdentity? {
+        if let userChosenDevice, currentDevices.contains(userChosenDevice) {
+            return userChosenDevice
+        }
+        if let selectedDevice, currentDevices.contains(selectedDevice) {
+            return selectedDevice
+        }
+        if let vanishedDevice = selectedDevice,
+           let replacement = Self.replacement(for: vanishedDevice, previousOrder: previousDeviceOrder, currentDevices: currentDevices)
+        {
+            return replacement
+        }
+        return groups.first { $0.connectableAppCount > 0 }?.identity ?? currentDevices.first
+    }
+
+    /// The nearest device to `vanishedDevice` in the previous order that is
+    /// still there: the following ones first, then the preceding ones.
+    private static func replacement(
+        for vanishedDevice: LaunchDeviceIdentity,
+        previousOrder: [LaunchDeviceIdentity],
+        currentDevices: [LaunchDeviceIdentity]
+    ) -> LaunchDeviceIdentity? {
+        guard let vanishedIndex = previousOrder.firstIndex(of: vanishedDevice) else {
+            return nil
+        }
+        let followingDevices = previousOrder[previousOrder.index(after: vanishedIndex)...]
+        if let following = followingDevices.first(where: currentDevices.contains) {
+            return following
+        }
+        let precedingDevices = previousOrder[..<vanishedIndex].reversed()
+        return precedingDevices.first(where: currentDevices.contains)
+    }
+}

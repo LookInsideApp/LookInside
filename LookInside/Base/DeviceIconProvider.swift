@@ -48,6 +48,28 @@ final class DeviceIconProvider: NSObject {
         return hardwareIcon(forModelIdentifier: modelIdentifier, pointSize: pointSize)
     }
 
+    /// The model icon when there is one, otherwise the per-family asset (`icon_*_big`,
+    /// drawn for `launchPointSize`): for a LookinServer that reports no model identifier,
+    /// or no app info at all.
+    static func deviceIconWithAssetFallback(forAppInfo appInfo: InspectedAppInfo?, pointSize: CGFloat) -> NSImage? {
+        if let icon = deviceIcon(forAppInfo: appInfo, pointSize: pointSize) {
+            return icon
+        }
+        if AppHelper.appInfoLooksLikeMacTarget(appInfo) || appInfo?.deviceType == .macCatalyst {
+            // A Catalyst app runs on Mac hardware, so it gets the Mac icon even though
+            // +appInfoLooksLikeMacTarget: deliberately answers NO for it (its views are UIKit).
+            return NSImage(named: "icon_mac_big")
+        }
+        switch appInfo?.deviceType {
+        case .simulator?:
+            return NSImage(named: "icon_simulator_big")
+        case .iPad?:
+            return NSImage(named: "icon_ipad_big")
+        default:
+            return NSImage(named: "icon_iphone_big")
+        }
+    }
+
     /// The full-colour CoreTypes icon for a physical device.
     private static func hardwareIcon(forModelIdentifier modelIdentifier: String, pointSize: CGFloat) -> NSImage? {
         guard let icon = NSWorkspace.shared.box.declaredDeviceIcon(forModelIdentifier: modelIdentifier),

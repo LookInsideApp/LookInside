@@ -481,10 +481,7 @@ final class AppMenuManager: NSObject, NSMenuDelegate {
     /// privileged injector daemon (InjectionFlow); sheets attach to the
     /// key window.
     @objc private func handleAttachToRunningApp() {
-        guard SwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: NSApp.keyWindow) else {
-            return
-        }
-        InjectionFlow.shared.startFromWindow(NSApp.keyWindow)
+        Self.attachToRunningApp(presentingIn: NSApp.keyWindow)
     }
 
     /// File > Attach to App on Device… asks the LookInside Injector running
@@ -493,9 +490,26 @@ final class AppMenuManager: NSObject, NSMenuDelegate {
     /// on this side, because the device carries its own payload
     /// (DeviceInjectionFlow).
     @objc private func handleAttachToAppOnDevice() {
-        guard SwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: NSApp.keyWindow) else {
+        Self.attachToAppOnDevice(presentingIn: NSApp.keyWindow)
+    }
+
+    // MARK: - Shared actions
+
+    /// Attach to Running App…, behind the Pro gate; the launch window's
+    /// toolbar runs it too. Sheets attach to `window`.
+    static func attachToRunningApp(presentingIn window: NSWindow?) {
+        guard SwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: window) else {
             return
         }
-        DeviceInjectionFlow.shared.startFromWindow(NSApp.keyWindow)
+        InjectionFlow.shared.startFromWindow(window)
+    }
+
+    /// Attach to App on Device…, behind the Pro gate; the launch window's
+    /// toolbar runs it too. Sheets attach to `window`.
+    static func attachToAppOnDevice(presentingIn window: NSWindow?) {
+        guard SwiftUISupportGatekeeper.sharedInstance().allowProtectedFeatureAccess(for: window) else {
+            return
+        }
+        DeviceInjectionFlow.shared.startFromWindow(window)
     }
 }
