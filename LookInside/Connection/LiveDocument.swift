@@ -233,6 +233,14 @@ final class LiveDocument: NSDocument {
     private func handle(_ event: LiveSessionState.Event) {
         let actions = sessionState.handle(event)
         updateBanners()
+        #if DEBUG
+            DebugE2EDump.recordSessionEvent(
+                String(describing: event),
+                banner: String(describing: sessionState.banner),
+                actions: actions.map { String(describing: $0) },
+                bundleIdentifier: (inspectableApp.appInfo ?? lastKnownAppInfo)?.appBundleIdentifier
+            )
+        #endif
         for action in actions {
             switch action {
             case .startReconnecting:
