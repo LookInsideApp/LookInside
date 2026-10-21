@@ -153,14 +153,50 @@ final class InjectionService {
     /// reached. This daemon/XPC boundary is not a hard license-enforcement
     /// layer in v1; adding daemon-side proof validation is a separate protocol
     /// change.
+    /// How long the daemon has to answer an attach. A daemon launchd cannot
+    /// start leaves the request without a reply, and the flow behind it would
+    /// otherwise wait for good and keep Attach from starting again.
+    private static let attachTimeout: Duration = .seconds(20)
+
     func attach(pid: pid_t, dylibURL: URL) async throws {
-        try await ensureConnectedToTool()
-        do {
-            try await helperClient.sendToTool(
-                request: InjectApplicationRequest(pid: pid, dylibURL: dylibURL)
-            )
-        } catch {
-            throw InjectionServiceError.attachFailed(error.localizedDescription)
+        try await Self.withTimeout(Self.attachTimeout) {
+            try await self.ensureConnectedToTool()
+            do {
+                try await self.helperClient.sendToTool(
+                    request: InjectApplicationRequest(pid: pid, dylibURL: dylibURL)
+                )
+            } catch {
+                throw InjectionServiceError.attachFailed(error.localizedDescription)
+            }
+        }
+    }
+
+    /// Runs `operation`, or throws `daemonUnreachable` once `timeout` passes
+    /// first. The operation is left to finish on its own: an XPC call does
+    /// not stop for cancellation, and waiting for it is what the timeout is
+    /// there to avoid.
+    private static func withTimeout(_ timeout: Duration, _ operation: @escaping @Sendable () async throws -> Void) async throws {
+        let outcome = AsyncThrowingStream<Void, Error> { continuation in
+            let work = Task {
+                do {
+                    try await operation()
+                    continuation.yield()
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            let timer = Task {
+                try await Task.sleep(for: timeout)
+                continuation.finish(throwing: InjectionServiceError.daemonUnreachable(URLError(.timedOut).localizedDescription))
+            }
+            continuation.onTermination = { _ in
+                work.cancel()
+                timer.cancel()
+            }
+        }
+        for try await _ in outcome {
+            return
         }
     }
 

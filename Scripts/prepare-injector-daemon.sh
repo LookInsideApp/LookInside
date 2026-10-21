@@ -192,4 +192,23 @@ cp -f "$built_binary" "$DEST_DAEMON_DIR/lookinside-injector"
 chmod +x "$DEST_DAEMON_DIR/lookinside-injector"
 cp -f "$LAUNCHD_PLIST" "$DEST_LAUNCHD_DIR/app.lookinside.LookInsideInjector.plist"
 
+# Sign the daemon as the host is signed, when the host is signed with an
+# identity. launchd only starts the injector registered for this bundle
+# identifier when its signing identifier and team match the registration, so
+# the linker's ad-hoc signature leaves a signed local build with a daemon that
+# exits with EX_CONFIG on every request. Release builds re-sign it anyway.
+#
+# The host passes its EXPANDED_CODE_SIGN_IDENTITY under another name: the
+# nested xcodebuild above reads the environment as build settings, and a
+# signed macro plugin there no longer loads.
+if [ -n "${INJECTOR_SIGN_IDENTITY:-}" ] && [ "$INJECTOR_SIGN_IDENTITY" != "-" ]; then
+    codesign \
+        --force \
+        --sign "$INJECTOR_SIGN_IDENTITY" \
+        --identifier app.lookinside.LookInsideInjector \
+        --options runtime \
+        --timestamp=none \
+        "$DEST_DAEMON_DIR/lookinside-injector"
+fi
+
 echo "Embedded lookinside-injector ($CONFIGURATION) into $APP_CONTENTS_DIR"

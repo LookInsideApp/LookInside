@@ -483,6 +483,7 @@
 				"    CONFIGURATION=\"$CONFIGURATION\" \\",
 				"    BUILT_PRODUCTS_DIR=\"$BUILT_PRODUCTS_DIR\" \\",
 				"    CONTENTS_FOLDER_PATH=\"$CONTENTS_FOLDER_PATH\" \\",
+				"    INJECTOR_SIGN_IDENTITY=\"${EXPANDED_CODE_SIGN_IDENTITY:-}\" \\",
 				"    /bin/zsh -lc \"$PREPARE_SCRIPT\"",
 				"",
 			);
