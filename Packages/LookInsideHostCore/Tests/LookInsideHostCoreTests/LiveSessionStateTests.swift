@@ -2,6 +2,11 @@
 import Testing
 
 struct LiveSessionStateTests {
+    /// The probe for a Server that pushes its application state, and the
+    /// one for a Server that does not.
+    private let slowProbe = LiveSessionState.Action.startBackgroundProbe(interval: .seconds(5))
+    private let fastProbe = LiveSessionState.Action.startBackgroundProbe(interval: .seconds(2))
+
     /// A window open on a live channel.
     private func openWindow() -> LiveSessionState {
         var state = LiveSessionState()
@@ -50,19 +55,54 @@ struct LiveSessionStateTests {
 
     // MARK: - Background, Servers that push their state
 
-    @Test("a Server that reports its app inactive shows the background banner and keeps the tree")
-    func aBackgroundPushShowsTheBanner() {
+    /// The push that would clear the banner never arrives over a usbmuxd
+    /// channel that went silent without ending; only a ping that times out
+    /// lets the liveness check close it.
+    @Test("a Server that reports its app inactive shows the background banner, keeps the tree and pings slowly")
+    func aBackgroundPushShowsTheBannerAndProbes() {
         var state = openWindow()
-        #expect(state.handle(.serverReportedApplicationState(isActive: false)) == [])
+        #expect(state.handle(.serverReportedApplicationState(isActive: false)) == [slowProbe])
         #expect(state.banner == .applicationInBackground)
     }
 
-    @Test("a Server that reports its app active again clears the banner and refreshes")
+    @Test("a Server that reports its app active again clears the banner, stops pinging and refreshes")
     func aForegroundPushRefreshes() {
         var state = openWindow()
         _ = state.handle(.serverReportedApplicationState(isActive: false))
-        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [.reloadHierarchy])
+        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [.stopBackgroundProbe, .reloadHierarchy])
         #expect(state.banner == .none)
+        // The probe answering late refreshes nothing more.
+        #expect(state.handle(.backgroundProbeAnswered) == [])
+    }
+
+    /// The probe and the push both report the return; the hierarchy is
+    /// fetched once.
+    @Test("a ping answered before the foreground push refreshes once")
+    func aProbeAnsweredBeforeTheForegroundPushRefreshesOnce() {
+        var state = openWindow()
+        _ = state.handle(.serverReportedApplicationState(isActive: false))
+        #expect(state.handle(.backgroundProbeAnswered) == [.stopBackgroundProbe, .reloadHierarchy])
+        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [])
+        #expect(state.banner == .none)
+    }
+
+    @Test("a channel that the probe closes after a background push stops pinging and reconnects")
+    func aChannelEndedAfterABackgroundPushReconnects() {
+        var state = openWindow()
+        _ = state.handle(.serverReportedApplicationState(isActive: false))
+        #expect(state.handle(.channelEnded) == [.stopBackgroundProbe, .startReconnecting])
+        #expect(state.banner == .connectionLost)
+    }
+
+    /// Refused before its first push (the Host connected while the app was
+    /// inactive), then the push arrives.
+    @Test("a background push while pinging fast slows the ping down")
+    func aBackgroundPushWhileProbingSlowsTheProbe() {
+        var state = openWindow()
+        #expect(state.handle(.requestRefusedInBackground) == [fastProbe])
+        #expect(state.handle(.serverReportedApplicationState(isActive: false)) == [slowProbe])
+        #expect(state.handle(.serverReportedApplicationState(isActive: false)) == [])
+        #expect(state.banner == .applicationInBackground)
     }
 
     @Test("an active report while the app was not in the background does nothing")
@@ -72,9 +112,8 @@ struct LiveSessionStateTests {
         #expect(state.banner == .none)
     }
 
-    /// The push already says when the app is back.
-    @Test("a refusal from a Server that pushes its state does not start pinging")
-    func aRefusalFromAPushingServerDoesNotProbe() {
+    @Test("a refusal from a Server that pushes its state does not start another probe")
+    func aRefusalFromAPushingServerDoesNotProbeAgain() {
         var state = openWindow()
         _ = state.handle(.serverReportedApplicationState(isActive: false))
         #expect(state.handle(.requestRefusedInBackground) == [])
@@ -86,7 +125,7 @@ struct LiveSessionStateTests {
     @Test("a refusal from a Server that does not push shows the banner and starts pinging")
     func aRefusalFromAnOlderServerProbes() {
         var state = openWindow()
-        #expect(state.handle(.requestRefusedInBackground) == [.startBackgroundProbe])
+        #expect(state.handle(.requestRefusedInBackground) == [fastProbe])
         #expect(state.banner == .applicationInBackground)
         // Further refusals, the probe's own included, change nothing.
         #expect(state.handle(.requestRefusedInBackground) == [])
@@ -139,6 +178,6 @@ struct LiveSessionStateTests {
         _ = state.handle(.serverReportedApplicationState(isActive: false))
         _ = state.handle(.channelEnded)
         _ = state.handle(.watchedChannel(isAlive: true))
-        #expect(state.handle(.requestRefusedInBackground) == [.startBackgroundProbe])
+        #expect(state.handle(.requestRefusedInBackground) == [fastProbe])
     }
 }

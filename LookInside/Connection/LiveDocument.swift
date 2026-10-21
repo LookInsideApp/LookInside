@@ -232,8 +232,8 @@ final class LiveDocument: NSDocument {
                 attemptAutoReconnect()
             case .reloadHierarchy:
                 reloadHierarchyAfterReturn()
-            case .startBackgroundProbe:
-                startBackgroundProbe()
+            case let .startBackgroundProbe(interval):
+                startBackgroundProbe(interval: interval)
             case .stopBackgroundProbe:
                 backgroundProbeTask?.cancel()
                 backgroundProbeTask = nil
@@ -357,16 +357,15 @@ final class LiveDocument: NSDocument {
         }
     }
 
-    /// Pings the app every 2 seconds while it is in the background, for
-    /// Servers that do not report their application state. Ends on its own
-    /// once a ping is answered from the foreground; a ping that times out on
-    /// a silent channel closes it (`ChannelLivenessPolicy`), which ends the
-    /// channel and so this probe.
-    private func startBackgroundProbe() {
+    /// Pings the app every `interval` while it is in the background. Ends
+    /// on its own once a ping is answered from the foreground; a ping that
+    /// times out on a silent channel closes it (`ChannelLivenessPolicy`),
+    /// which ends the channel and so this probe.
+    private func startBackgroundProbe(interval: Duration) {
         backgroundProbeTask?.cancel()
         backgroundProbeTask = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(2))
+                try? await Task.sleep(for: interval)
                 guard !Task.isCancelled, let self else { return }
                 guard let channel = inspectableApp.channel, channel.isConnected else { return }
                 do {

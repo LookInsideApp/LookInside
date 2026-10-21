@@ -43,18 +43,32 @@ public struct LiveSessionState: Equatable, Sendable {
         case startReconnecting
         /// Fetch the hierarchy again, without an error sheet.
         case reloadHierarchy
-        /// Ping the app every few seconds until it answers from the
-        /// foreground, then report `backgroundProbeAnswered`.
-        case startBackgroundProbe
+        /// Ping the app every `interval` until it answers from the
+        /// foreground, then report `backgroundProbeAnswered`. Replaces a probe
+        /// already running.
+        case startBackgroundProbe(interval: Duration)
         case stopBackgroundProbe
     }
 
+    /// How often a window pings its app in the background when the Server
+    /// does not push its application state: the answer is the only sign
+    /// that the app is back.
+    public static let backgroundProbeInterval: Duration = .seconds(2)
+
+    /// How often a window pings its app in the background when the Server
+    /// pushes its application state. The push says when the app is back; the
+    /// ping keeps the channel checked. Over usbmuxd a channel can go silent
+    /// without ending, the push that would clear the banner then never
+    /// arrives, and only a ping that times out lets the liveness check
+    /// (`ChannelLivenessPolicy`) close the channel so the window reconnects.
+    public static let pushingServerBackgroundProbeInterval: Duration = .seconds(5)
+
     public private(set) var banner: Banner = .none
     /// Whether the watched channel's Server pushed its application state;
-    /// learned again for each channel. A Server that pushes says when its app
-    /// is back, so the window does not ping it.
+    /// learned again for each channel. Such a Server is pinged less often.
     private var serverReportsApplicationState = false
-    private var isProbing = false
+    /// The interval of the background probe running, or nil.
+    private var probeInterval: Duration?
 
     public init() {}
 
@@ -85,18 +99,14 @@ public struct LiveSessionState: Equatable, Sendable {
                 return returnToForeground()
             }
             banner = .applicationInBackground
-            return stopProbing()
+            return startProbing()
 
         case .requestRefusedInBackground:
             guard banner == .none else {
                 return []
             }
             banner = .applicationInBackground
-            guard !serverReportsApplicationState else {
-                return []
-            }
-            isProbing = true
-            return [.startBackgroundProbe]
+            return startProbing()
 
         case .backgroundProbeAnswered:
             guard banner != .connectionLost else {
@@ -124,11 +134,22 @@ public struct LiveSessionState: Equatable, Sendable {
         return stop + [.reloadHierarchy]
     }
 
-    private mutating func stopProbing() -> [Action] {
-        guard isProbing else {
+    /// Probes while the background banner shows, at the interval that
+    /// suits the Server; a probe already running at that interval goes on.
+    private mutating func startProbing() -> [Action] {
+        let interval = serverReportsApplicationState ? Self.pushingServerBackgroundProbeInterval : Self.backgroundProbeInterval
+        guard probeInterval != interval else {
             return []
         }
-        isProbing = false
+        probeInterval = interval
+        return [.startBackgroundProbe(interval: interval)]
+    }
+
+    private mutating func stopProbing() -> [Action] {
+        guard probeInterval != nil else {
+            return []
+        }
+        probeInterval = nil
         return [.stopBackgroundProbe]
     }
 }
