@@ -73,7 +73,6 @@ final class PreferenceManager: NSObject {
         static let licenseHandshakeTimeoutInterval = "licenseHandshakeTimeoutInterval"
         static let syncConsoleTarget = "syncConsoleTarget"
         static let freeRotation = "FreeRotation"
-        static let fastMode = "fastMode"
         static let receivingConfigTimeColor = "ConfigTime_Color"
         static let receivingConfigTimeClass = "ConfigTime_Class"
         static let rememberExpansionState = "rememberExpansionState"
@@ -205,8 +204,6 @@ final class PreferenceManager: NSObject {
 
     let freeRotation: BoolMessageAttribute
 
-    let fastMode: BoolMessageAttribute
-
     /// 上次接收到 iOS app 里传过来的 color config 和 collapsedClasses 信息的时间，用来统计
     /// Always stored, even when `shouldStoreToLocal` is off.
     var receivingConfigTime_Color: TimeInterval {
@@ -277,7 +274,6 @@ final class PreferenceManager: NSObject {
         imageContrastLevel = number(Key.contrastLevel, default: 0).intValue
         syncConsoleTarget = number(Key.syncConsoleTarget, default: true).boolValue
         freeRotation = BoolMessageAttribute(bool: number(Key.freeRotation, default: true).boolValue)
-        fastMode = BoolMessageAttribute(bool: number(Key.fastMode, default: false).boolValue)
 
         var sectionShowConfig: [String: Bool] = [:]
         if let stored = defaults.object(forKey: Key.sectionsShow) as? NSDictionary {
@@ -311,7 +307,6 @@ final class PreferenceManager: NSObject {
         showBackingLayers.subscribe(self, action: #selector(handleShowBackingLayersChange(_:)), relatedObject: nil)
         zInterspace.subscribe(self, action: #selector(handleZInterspaceDidChange(_:)), relatedObject: nil)
         freeRotation.subscribe(self, action: #selector(handleFreeRotationDidChange(_:)), relatedObject: nil)
-        fastMode.subscribe(self, action: #selector(handleFastModeDidChange(_:)), relatedObject: nil)
     }
 
     /// A stored value read the way the Objective-C manager read it, with
@@ -407,10 +402,6 @@ final class PreferenceManager: NSObject {
 
     @objc private func handleFreeRotationDidChange(_ param: MessageActionParameters) {
         store(param.boolValue, forKey: Key.freeRotation)
-    }
-
-    @objc private func handleFastModeDidChange(_ param: MessageActionParameters) {
-        store(param.boolValue, forKey: Key.fastMode)
     }
 
     @objc private func handleZInterspaceDidChange(_ param: MessageActionParameters) {

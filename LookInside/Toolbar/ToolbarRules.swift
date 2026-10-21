@@ -22,7 +22,7 @@ let toolbarIdentifierConsole = "15"
 let toolbarIdentifierRotation = "16"
 let toolbarIdentifierMeasure = "17"
 let toolbarIdentifierMessage = "18"
-let toolbarIdentifierFastMode = "19"
+// "19" was Fast Mode, removed in 3.1.1; it is not reused.
 let toolbarIdentifierSwiftUIMode = "20"
 let toolbarIdentifierGestureDebug = "21"
 

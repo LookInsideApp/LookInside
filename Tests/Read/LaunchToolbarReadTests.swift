@@ -156,7 +156,7 @@ struct LaunchToolbarReadTests {
             (toolbarIdentifierAdd, "13"), (toolbarIdentifierRemove, "14"),
             (toolbarIdentifierConsole, "15"), (toolbarIdentifierRotation, "16"),
             (toolbarIdentifierMeasure, "17"), (toolbarIdentifierMessage, "18"),
-            (toolbarIdentifierFastMode, "19"), (toolbarIdentifierSwiftUIMode, "20"),
+            (toolbarIdentifierSwiftUIMode, "20"),
         ]
         for (identifier, value) in identifiers {
             expect(identifier == value, "toolbar identifier \(value)")

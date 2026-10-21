@@ -10,7 +10,7 @@ import AppKit
 
 /// Makes the toolbar items the inspector and reader windows share.
 ///
-/// The items for dimension, rotation, scale, measure and fast mode follow a
+/// The items for dimension, rotation, scale and measure follow a
 /// preference manager both ways. The window sets the click action of the
 /// others itself: Reload, App, Setting, Console, Add, Remove and Message.
 @MainActor
@@ -110,11 +110,6 @@ final class WindowToolbarHelper: NSObject {
             let button = Self.imageButton("icon_console", buttonType: .pushOnPushOff)
             return Self.item(toolbarIdentifierConsole, label: NSLocalizedString("Console", comment: ""), view: button)
 
-        case toolbarIdentifierFastMode:
-            let button = Self.imageButton("icon_turbo", buttonType: .pushOnPushOff)
-            manager.fastMode.subscribe(self, action: #selector(handleOnOffDidChange(_:)), relatedObject: button, sendAtOnce: true)
-            return Self.item(toolbarIdentifierFastMode, label: NSLocalizedString("Fast Mode", comment: ""), view: button)
-
         case toolbarIdentifierAdd:
             let button = NSButton()
             let image = NSImage(named: NSImage.addTemplateName)
@@ -210,7 +205,7 @@ final class WindowToolbarHelper: NSObject {
         (param.relatedObject as? NSSlider)?.doubleValue = param.doubleValue
     }
 
-    /// Fast mode and free rotation: the button is on while the preference is.
+    /// Free rotation: the button is on while the preference is.
     @objc private func handleOnOffDidChange(_ param: MessageActionParameters) {
         (param.relatedObject as? NSButton)?.state = param.boolValue ? .on : .off
     }

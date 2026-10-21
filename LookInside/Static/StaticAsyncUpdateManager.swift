@@ -7,8 +7,8 @@
 //
 
 import AppKit
-import LookInsideHostCore
 import FoundationToolbox
+import LookInsideHostCore
 
 protocol StaticAsyncUpdateManagerDelegate: AnyObject {
     /// Called whenever the number of unfinished tasks the user is waiting
@@ -31,7 +31,7 @@ enum ModifyingUpdateEvent {
 ///
 /// The displayed items come first: what each one misses of the screenshot
 /// the preview shows for it and of its attributes, in a request whose
-/// progress the window shows. Then, unless fast mode is on, a prefetch asks
+/// progress the window shows. Then a prefetch asks
 /// for what expanding the folded items, and collapsing the expanded ones,
 /// would show, breadth first, without attributes; it steps aside —
 /// cancelled, resumed later from what is still missing — whenever the
@@ -107,7 +107,6 @@ final class StaticAsyncUpdateManager: NSObject {
                 updateForDisplayingItems()
             }
         }
-        PreferenceManager.shared.fastMode.subscribe(self, action: #selector(handleFastModeChange(_:)), relatedObject: nil)
     }
 
     override convenience init() {
@@ -120,8 +119,8 @@ final class StaticAsyncUpdateManager: NSObject {
 
     // MARK: - Public
 
-    /// Fetches what the displayed items miss, then prefetches the rest unless
-    /// fast mode is on. Call it whenever the displayed items change; calls
+    /// Fetches what the displayed items miss, then prefetches the rest.
+    /// Call it whenever the displayed items change; calls
     /// made before the next main-queue turn run once, after the reload or
     /// expansion that made them is complete.
     func updateForDisplayingItems() {
@@ -298,7 +297,7 @@ final class StaticAsyncUpdateManager: NSObject {
     }
 
     private func startPrefetchIfNeeded() {
-        guard !PreferenceManager.shared.fastMode.currentBOOLValue, ongoingRequest == nil, inspectableApp != nil else { return }
+        guard ongoingRequest == nil, inspectableApp != nil else { return }
         let newTasks = #signpostInterval("Make prefetch tasks") {
             makeTasks(for: .prefetch)
         }
@@ -346,14 +345,6 @@ final class StaticAsyncUpdateManager: NSObject {
             } else {
                 fetchForDisplayingItems()
             }
-        }
-    }
-
-    @objc private func handleFastModeChange(_ parameters: MessageActionParameters) {
-        if parameters.boolValue {
-            stopPrefetching()
-        } else {
-            startPrefetchIfNeeded()
         }
     }
 

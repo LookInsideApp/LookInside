@@ -12,9 +12,9 @@
 //
 
 import AppKit
+import FoundationToolbox
 import LookInsideHostCore
 import UniformTypeIdentifiers
-import FoundationToolbox
 
 @Loggable(subsystem: "com.lookinside.app")
 @MainActor
@@ -191,7 +191,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     private func updateToolbarForFetchingState() {
         let isFetching = isFetchingHierarchy || isFetchingDetails
-        for identifier in [NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierConsole), NSToolbarItem.Identifier(toolbarIdentifierFastMode)] {
+        for identifier in [NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierConsole)] {
             toolbarItemsMap[identifier]?.isEnabled = !isFetching
         }
         fetchingStateReloadItem?.isEnabled = !isFetchingHierarchy
@@ -450,7 +450,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     func toolbarDefaultItemIdentifiers(_: NSToolbar) -> [NSToolbarItem.Identifier] {
         var identifiers: [NSToolbarItem.Identifier] = [
-            NSToolbarItem.Identifier(toolbarIdentifierReload), NSToolbarItem.Identifier(toolbarIdentifierFastMode), NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierSwiftUIMode),
+            NSToolbarItem.Identifier(toolbarIdentifierReload), NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierSwiftUIMode),
             NSToolbarItem.Identifier(toolbarIdentifierGestureDebug),
             .flexibleSpace,
             NSToolbarItem.Identifier(toolbarIdentifierDimension), NSToolbarItem.Identifier(toolbarIdentifierRotation), NSToolbarItem.Identifier(toolbarIdentifierSetting),
@@ -514,9 +514,6 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             item.label = NSLocalizedString("Notifications", comment: "")
             item.target = self
             item.action = #selector(handleMessage(_:))
-        case NSToolbarItem.Identifier(toolbarIdentifierFastMode):
-            item.target = self
-            item.action = #selector(handleFastMode)
         default:
             break
         }
@@ -588,11 +585,6 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     @objc(_handleConsole)
     private func handleConsole() {
         viewController.showConsole.toggle()
-    }
-
-    @objc func handleFastMode() {
-        let fastMode = PreferenceManager.shared.fastMode
-        fastMode.setBOOLValue(!fastMode.currentBOOLValue, ignoreSubscriber: nil)
     }
 
     @objc(_handleMessage:)

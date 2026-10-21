@@ -414,7 +414,6 @@ final class GeneralSettingsModel {
             licenseHandshakeTimeout = defaultLicenseHandshakeTimeoutInterval
             MessageManager.sharedInstance().reset()
             preferences.reset()
-            UserDefaults.standard.removeObject(forKey: "IgnoreFastModeTips")
         #endif
     }
 }

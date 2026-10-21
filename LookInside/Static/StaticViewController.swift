@@ -12,9 +12,6 @@ import AppKit
 /// on the right the preview with the dashboard (or measure panel) over it,
 /// and the console under them; tips float above the preview.
 final class StaticViewController: BaseViewController, NSSplitViewDelegate {
-    /// Set when the fast mode tip is dismissed for good.
-    private static let ignoreFastModeTipsDefaultsKey = "IgnoreFastModeTips"
-
     /// The per-document data source, owned by StaticWindowController.
     private(set) weak var hierarchyDataSource: StaticHierarchyDataSource?
 
@@ -40,7 +37,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     private let noPreviewTipView = TipsView()
     private let customViewTipView = TipsView()
     private let focusTipView = YellowTipsView()
-    private let fastModeTipView = TipsView()
     private let serverUpgradeTipView = TipsView()
 
     /// Read by the DEBUG UI snapshots.
@@ -171,8 +167,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
             }
         }
 
-        preferenceManager.fastMode.subscribe(self, action: #selector(handleFastModeChange(_:)), relatedObject: nil, sendAtOnce: true)
-
         notificationObservers.append(NotificationCenter.default.addObserver(
             forName: NSNotification.Name(appShowConsoleNotificationName),
             object: nil,
@@ -200,14 +194,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         focusTipView.target = self
         focusTipView.clickAction = #selector(handleExitFocusTipView)
         view.addSubview(focusTipView)
-
-        fastModeTipView.image = NSImage(named: "Icon_Inspiration_small")
-        fastModeTipView.title = NSLocalizedString("Fast refresh mode is enabled, which may result in layer consistency issues.", comment: "")
-        fastModeTipView.isHidden = true
-        fastModeTipView.buttonText = NSLocalizedString("Details", comment: "")
-        fastModeTipView.target = self
-        fastModeTipView.clickAction = #selector(handleFastModeTipViewClick)
-        view.addSubview(fastModeTipView)
 
         noPreviewTipView.image = NSImage(named: "icon_hide")
         noPreviewTipView.title = NSLocalizedString("The screenshot of selected item is not displayed.", comment: "")
@@ -344,7 +330,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
             focusTipView,
             userConfigNoPreviewTipsView,
             customViewTipView,
-            fastModeTipView,
             serverUpgradeTipView,
         ]
         var tipsY = windowTitleHeight + 10
@@ -502,40 +487,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         dataSource?.endFocus()
     }
 
-    @objc private func handleFastModeTipViewClick() {
-        let menu = NSMenu()
-
-        let documentationItem = NSMenuItem()
-        documentationItem.title = NSLocalizedString("View feature description", comment: "")
-        documentationItem.target = self
-        documentationItem.action = #selector(handleFastModeDocumentation)
-        menu.addItem(documentationItem)
-
-        menu.addItem(.separator())
-
-        let ignoreItem = NSMenuItem()
-        ignoreItem.title = NSLocalizedString("Don't remind me again", comment: "")
-        ignoreItem.target = self
-        ignoreItem.action = #selector(handleIgnoreFastModeTip)
-        menu.addItem(ignoreItem)
-
-        if let event = NSApplication.shared.currentEvent {
-            NSMenu.popUpContextMenu(menu, with: event, for: fastModeTipView.button)
-        }
-    }
-
-    @objc private func handleFastModeDocumentation() {
-        AppHelper.showDisabledExternalLinkAlert(withMessage: NSLocalizedString(
-            "Legacy fast mode documentation links are disabled in this community build. See the repository README instead.",
-            comment: ""
-        ))
-    }
-
-    @objc private func handleIgnoreFastModeTip() {
-        UserDefaults.standard.set(true, forKey: Self.ignoreFastModeTipsDefaultsKey)
-        fastModeTipView.isHidden = true
-    }
-
     @objc private func handleUserConfigNoPreviewTipView() {
         AppHelper.openCustomConfigWebsite()
     }
@@ -544,15 +495,6 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
         let isMeasure = param.integerValue != MeasureState.no.rawValue
         dashboardController.view.isHidden = isMeasure
         measureController.view.isHidden = !isMeasure
-    }
-
-    @objc private func handleFastModeChange(_ param: MessageActionParameters) {
-        guard param.boolValue else {
-            fastModeTipView.isHidden = true
-            return
-        }
-        fastModeTipView.isHidden = UserDefaults.standard.bool(forKey: Self.ignoreFastModeTipsDefaultsKey)
-        view.needsLayout = true
     }
 
     private func handleSelectItemDidChange() {
