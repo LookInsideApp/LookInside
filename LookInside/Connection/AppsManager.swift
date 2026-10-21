@@ -30,17 +30,21 @@ final class AppsManager: NSObject {
     ///   - localInfos: app infos fetched before; a fresh one is reused when
     ///     the Server says it did not change, so its images are not sent
     ///     again.
+    ///   - includingBackgroundApps: whether to return the apps that are
+    ///     connected but do not answer, flagged `isInBackground`, so the
+    ///     launch window can show them. Defaults to false: every other
+    ///     caller wants only apps it can connect to.
     ///
     /// An app whose Server is too old or too new is returned with
     /// `serverVersionError` and no channel. Apps in the background, which
-    /// cannot answer, and apps that require a license for app info are left
-    /// out.
-    func fetchAppInfos(needImages: Bool, localInfos: [InspectedAppInfo]?) async -> [InspectableApp] {
-        await scanApps(needImages: needImages, localInfos: localInfos).apps
+    /// cannot answer, are left out unless asked for; apps that require a
+    /// license for app info are always left out.
+    func fetchAppInfos(needImages: Bool, localInfos: [InspectedAppInfo]?, includingBackgroundApps: Bool = false) async -> [InspectableApp] {
+        await scanApps(needImages: needImages, localInfos: localInfos, includingBackgroundApps: includingBackgroundApps).apps
     }
 
     /// `fetchAppInfos` plus how many channels were connected.
-    func scanApps(needImages: Bool, localInfos: [InspectedAppInfo]?) async -> (apps: [InspectableApp], channelCount: Int) {
+    func scanApps(needImages: Bool, localInfos: [InspectedAppInfo]?, includingBackgroundApps: Bool = false) async -> (apps: [InspectableApp], channelCount: Int) {
         let now = Date().timeIntervalSince1970
         let validAppInfos = (localInfos ?? []).filter {
             AppInfoCachePolicy.isFresh(cachedTimestamp: $0.cachedTimestamp, now: now)
@@ -56,15 +60,24 @@ final class AppsManager: NSObject {
             return ([], 0)
         }
         let outcomes = await requestAppInfos(parameters: parameters, channels: channels)
-        let apps = zip(outcomes, channels).compactMap { outcome, channel in
-            makeApp(from: outcome, channel: channel, validAppInfos: validAppInfos)
+        let apps = zip(outcomes, channels).compactMap { outcome, channel -> InspectableApp? in
+            if case .background = outcome, !includingBackgroundApps {
+                return nil
+            }
+            let app = makeApp(from: outcome, channel: channel, validAppInfos: validAppInfos)
+            app?.origin = InspectableAppOrigin(port: channel.port, kind: channel.kind)
+            return app
         }
         return (apps, channels.count)
     }
 
     private enum AppInfoOutcome {
-        /// The app is in the background or did not answer.
+        /// The request ended without an answer or failed.
         case none
+        /// The app reported being in the background, or did not answer the
+        /// ping in time: a suspended iOS app keeps its channel but runs no
+        /// code.
+        case background
         case response(ConnectionResponseAttachment?)
         case versionError(NSError)
     }
@@ -94,8 +107,10 @@ final class AppsManager: NSObject {
                         if error.code == LookinErrCode_ServerVersionTooHigh || error.code == LookinErrCode_ServerVersionTooLow {
                             // The launch window shows these.
                             settle(.versionError(error))
-                        } else {
+                        } else if error.code == LookinErrCode_PingFailForBackgroundState || error.code == LookinErrCode_Timeout {
                             // A connected app in the background ends here.
+                            settle(.background)
+                        } else {
                             settle(.none)
                         }
                     case .completion:
@@ -116,6 +131,11 @@ final class AppsManager: NSObject {
         switch outcome {
         case .none:
             return nil
+        case .background:
+            let app = InspectableApp()
+            app.channel = channel
+            app.isInBackground = true
+            return app
         case let .versionError(error):
             let app = InspectableApp()
             app.serverVersionError = error

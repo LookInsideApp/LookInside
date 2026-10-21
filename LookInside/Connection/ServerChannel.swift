@@ -14,7 +14,7 @@ import Foundation
 import LookInsideHostCore
 
 /// Where a channel's Server runs.
-enum ServerChannelKind {
+enum ServerChannelKind: Hashable {
     case simulator
     case mac
     case usb(deviceID: Int)

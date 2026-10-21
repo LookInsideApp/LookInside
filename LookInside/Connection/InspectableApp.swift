@@ -19,6 +19,13 @@ enum AppResponseEvent {
     case completion
 }
 
+/// The port an app's channel is connected on: stays the same while the app
+/// keeps running, and tells apps on different USB devices apart.
+struct InspectableAppOrigin: Hashable {
+    let port: Int32
+    let kind: ServerChannelKind
+}
+
 final class InspectableApp: NSObject {
     /// Set when the app's Server is too old or too new for this Host, or
     /// answered the app info request with another error.
@@ -27,6 +34,16 @@ final class InspectableApp: NSObject {
     var appInfo: InspectedAppInfo?
 
     weak var channel: ServerChannel?
+
+    /// Where the app was found; set by the apps scan, also for an app with
+    /// a version error, which has no channel.
+    var origin: InspectableAppOrigin?
+
+    /// The app is connected but does not answer: it reported being in the
+    /// background or did not answer the ping in time (a suspended iOS app).
+    /// Only a scan that asks for such apps returns them; they have no app
+    /// info and cannot be opened.
+    var isInBackground = false
 
     // MARK: - Requests
 
