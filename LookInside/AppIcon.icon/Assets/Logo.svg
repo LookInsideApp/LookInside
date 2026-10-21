@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1254" height="1254" viewBox="0 0 1254 1254">
+  <title>LookInside</title>
+  <defs>
+    <clipPath id="clip-head"><path d="M618.8 291.6C584 291.6 545.7 300.9 512.2 310.1C384.4 345.2 300.9 447.1 253.6 567.1C238.9 604.5 228.6 643.4 215.9 681.5C187.1 767.5 147.3 849.5 191 939.9C257.5 1077.2 482.1 1119.4 618.8 1119.4C757.9 1119.4 982.5 1077.2 1049 939.9C1092.7 849.5 1052.9 767.5 1024.1 681.5C1011.4 643.4 1001.1 604.5 986.4 567.1C939.1 447.1 855.6 345.2 727.8 310.1C694.3 300.9 656 291.6 621.2 291.6Z"/></clipPath>
+    <clipPath id="clip-lens"><circle cx="851" cy="642" r="170"/></clipPath>
+    <clipPath id="clip-mouth"><path d="M513 921.5C515.6 930.1 520.1 937 523.5 944.4C542.1 984.8 571.4 1018 619.2 1018C668.6 1018 697.9 984.8 716.5 944.4C719.9 937 724.4 930.1 726.7 922.2C718.4 924.3 708.1 925.6 699.6 925.6C670.4 925.6 631.6 909.4 622.6 880.6C621.7 877.6 620.1 873.8 620.1 870.6C619.9 873.8 618.3 877.6 617.4 880.6C608.4 909.4 569.6 925.6 541.6 925.6C531.9 925.6 521.6 924.3 513.6 921.6Z"/></clipPath>
+
+    <linearGradient id="fur" x1="420" y1="300" x2="760" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC566"/>
+      <stop offset="1" stop-color="#F7A23F"/>
+    </linearGradient>
+    <linearGradient id="cream" x1="0" y1="300" x2="0" y2="1120" gradientUnits="userSpaceOnUse">
+      <stop offset="0.45" stop-color="#FFFCF8"/>
+      <stop offset="1" stop-color="#F5E8DC"/>
+    </linearGradient>
+    <linearGradient id="ear" x1="0" y1="90" x2="0" y2="600" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFC062"/>
+      <stop offset="1" stop-color="#F8A443"/>
+    </linearGradient>
+    <linearGradient id="ear-inner" x1="0" y1="150" x2="0" y2="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD3C4"/>
+      <stop offset="1" stop-color="#F7AC97"/>
+    </linearGradient>
+    <linearGradient id="iris" x1="0" y1="-62" x2="0" y2="59" gradientUnits="userSpaceOnUse">
+      <stop offset="0.3" stop-color="#3B1A08"/>
+      <stop offset="1" stop-color="#A65A22"/>
+    </linearGradient>
+    <linearGradient id="nose-fill" x1="0" y1="730" x2="0" y2="866" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A413B"/>
+      <stop offset="1" stop-color="#1B1613"/>
+    </linearGradient>
+    <linearGradient id="nose-shine" x1="0" y1="747" x2="0" y2="771" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="tongue" x1="0" y1="900" x2="0" y2="1012" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E5574A"/>
+      <stop offset="1" stop-color="#FF907F"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="708" y1="470" x2="998" y2="815" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FDFDFD"/>
+      <stop offset="1" stop-color="#D1D1D5"/>
+    </linearGradient>
+    <linearGradient id="collar" x1="-31" y1="0" x2="31" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B9B9BE"/>
+      <stop offset="0.4" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#A3A3A9"/>
+    </linearGradient>
+    <linearGradient id="handle" x1="-62" y1="0" x2="50" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F0962F"/>
+      <stop offset="0.65" stop-color="#FFC062"/>
+      <stop offset="1" stop-color="#F6A23E"/>
+    </linearGradient>
+    <filter id="magnifier-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+
+    <g id="eye">
+      <circle r="79" fill="#2A1A10"/>
+      <circle r="71" fill="#FFFFFF"/>
+      <circle cx="11" cy="-1.5" r="60" fill="url(#iris)"/>
+      <circle cx="11" cy="-1.5" r="36" fill="#120A06"/>
+      <circle cx="27" cy="-26" r="17" fill="#FFFFFF"/>
+      <circle cx="-22" cy="26" r="6" fill="#FFFFFF" opacity="0.55"/>
+    </g>
+
+    <g id="face">
+      <path d="M618.8 291.6C584 291.6 545.7 300.9 512.2 310.1C384.4 345.2 300.9 447.1 253.6 567.1C238.9 604.5 228.6 643.4 215.9 681.5C187.1 767.5 147.3 849.5 191 939.9C257.5 1077.2 482.1 1119.4 618.8 1119.4C757.9 1119.4 982.5 1077.2 1049 939.9C1092.7 849.5 1052.9 767.5 1024.1 681.5C1011.4 643.4 1001.1 604.5 986.4 567.1C939.1 447.1 855.6 345.2 727.8 310.1C694.3 300.9 656 291.6 621.2 291.6Z" fill="url(#cream)"/>
+      <g clip-path="url(#clip-head)">
+        <path d="M175.3 917.8C177.1 893.1 176.5 867.1 182.2 842.9C196.5 782.1 245.3 713.1 314.3 712.7C353 712.4 379.6 740 414.7 750.6C460.8 764.5 515.6 731.6 544.7 697.1C618.7 609.6 531.8 413.7 569.4 319.8C576.8 301.3 593.5 287.2 606.8 273L606.8 200L60 200L60 917.8Z" fill="url(#fur)"/>
+        <path d="M1064.7 917.8C1062.9 893.1 1063.5 867.1 1057.8 842.9C1043.5 782.1 994.7 713.1 925.7 712.7C887 712.4 860.4 740 825.3 750.6C779.2 764.5 724.4 731.6 695.3 697.1C621.3 609.6 708.2 413.7 670.6 319.8C663.2 301.3 646.5 287.2 633.2 273L633.2 200L1180 200L1180 917.8Z" fill="url(#fur)"/>
+      </g>
+      <use xlink:href="#eye" transform="translate(439.3 655.4)"/>
+      <use xlink:href="#eye" transform="translate(800.7 655.4) scale(-1 1)"/>
+    </g>
+  </defs>
+  <g id="ears">
+    <path d="M480.2 313.8C443.7 245.8 335.5 78.4 246.1 92.5C188.9 101.6 164 162.8 148.3 211.3C109.8 330.2 123 478.2 183.2 587.7C198.6 615.7 221.3 653.4 255.1 660.5C296.4 669.1 338.1 637.2 366.6 611.2C431.6 552 528 403 480.2 313.8Z" fill="url(#ear)"/>
+    <path d="M380.9 369.7C368.3 307.9 344.8 244.4 305.5 194.5C291.1 176.2 269.5 148.8 242.8 154.8C215.4 160.8 203.4 197.3 195.8 220.5C173.8 287.8 170.8 362.1 185 431.3C191.4 462.4 224.4 568 259.6 573.4C281.9 576.9 302.5 551.4 314.7 536.2C346 497.5 391.4 421.1 380.9 369.7Z" fill="none" stroke="#F29A3B" stroke-width="8"/>
+    <path d="M380.9 369.7C368.3 307.9 344.8 244.4 305.5 194.5C291.1 176.2 269.5 148.8 242.8 154.8C215.4 160.8 203.4 197.3 195.8 220.5C173.8 287.8 170.8 362.1 185 431.3C191.4 462.4 224.4 568 259.6 573.4C281.9 576.9 302.5 551.4 314.7 536.2C346 497.5 391.4 421.1 380.9 369.7Z" fill="url(#ear-inner)"/>
+    <path d="M759.8 313.8C712 403 808.4 552 873.4 611.2C901.9 637.2 943.6 669.1 984.9 660.5C1018.7 653.4 1041.4 615.7 1056.8 587.7C1117 478.2 1130.2 330.2 1091.7 211.3C1076 162.8 1051.1 101.6 993.9 92.5C904.5 78.4 796.3 245.8 759.8 313.8Z" fill="url(#ear)"/>
+    <path d="M859.1 369.7C848.6 421.1 894 497.5 925.3 536.2C937.5 551.4 958.1 576.9 980.4 573.4C1015.6 568 1048.6 462.4 1055 431.3C1069.2 362.1 1066.2 287.8 1044.2 220.5C1036.6 197.3 1024.6 160.8 997.2 154.8C970.5 148.8 948.9 176.2 934.5 194.5C895.2 244.4 871.7 307.9 859.1 369.7Z" fill="none" stroke="#F29A3B" stroke-width="8"/>
+    <path d="M859.1 369.7C848.6 421.1 894 497.5 925.3 536.2C937.5 551.4 958.1 576.9 980.4 573.4C1015.6 568 1048.6 462.4 1055 431.3C1069.2 362.1 1066.2 287.8 1044.2 220.5C1036.6 197.3 1024.6 160.8 997.2 154.8C970.5 148.8 948.9 176.2 934.5 194.5C895.2 244.4 871.7 307.9 859.1 369.7Z" fill="url(#ear-inner)"/>
+  </g>
+  <use xlink:href="#face"/>
+  <g id="nose">
+    <path d="M620 729C582 729 535 750 535 787C535 825 577 855 600 862C608 864.5 614 866 620 866C626 866 632 864.5 640 862C663 855 705 825 705 787C705 750 658 729 620 729Z" fill="url(#nose-fill)"/>
+    <ellipse cx="620" cy="759" rx="34" ry="12" fill="url(#nose-shine)"/>
+    <ellipse cx="580.2" cy="811" rx="14" ry="17.5" transform="rotate(-37.6 580.2 811)" fill="#0E0A08"/>
+    <ellipse cx="659.8" cy="811" rx="14" ry="17.5" transform="rotate(37.6 659.8 811)" fill="#0E0A08"/>
+  </g>
+  <g id="mouth">
+    <path d="M513 921.5C515.6 930.1 520.1 937 523.5 944.4C542.1 984.8 571.4 1018 619.2 1018C668.6 1018 697.9 984.8 716.5 944.4C719.9 937 724.4 930.1 726.7 922.2C718.4 924.3 708.1 925.6 699.6 925.6C670.4 925.6 631.6 909.4 622.6 880.6C621.7 877.6 620.1 873.8 620.1 870.6C619.9 873.8 618.3 877.6 617.4 880.6C608.4 909.4 569.6 925.6 541.6 925.6C531.9 925.6 521.6 924.3 513.6 921.6Z" fill="url(#tongue)"/>
+    <path d="M513 921.5C515.6 930.1 520.1 937 523.5 944.4C542.1 984.8 571.4 1018 619.2 1018C668.6 1018 697.9 984.8 716.5 944.4C719.9 937 724.4 930.1 726.7 922.2C718.4 924.3 708.1 925.6 699.6 925.6C670.4 925.6 631.6 909.4 622.6 880.6C621.7 877.6 620.1 873.8 620.1 870.6C619.9 873.8 618.3 877.6 617.4 880.6C608.4 909.4 569.6 925.6 541.6 925.6C531.9 925.6 521.6 924.3 513.6 921.6Z" fill="none" stroke="#3A1810" stroke-width="10" clip-path="url(#clip-mouth)"/>
+    <g fill="none" stroke="#2B1D16" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M454.5 867C467.1 892.1 479.2 906.9 505 917.6C507.5 918.6 509.9 920.4 512.5 921.2C521.6 924.3 531.9 925.6 540.4 925.6C569.6 925.6 608.4 909.4 617.4 880.6C618.3 877.6 619.9 873.8 619.9 870.6"/>
+      <path d="M785.5 867C772.9 892.1 760.8 906.9 735 917.6C732.5 918.6 730.1 920.4 727.5 921.2C718.4 924.3 708.1 925.6 699.6 925.6C670.4 925.6 631.6 909.4 622.6 880.6C621.7 877.6 620.1 873.8 620.1 870.6"/>
+      <path d="M513 921.5C515.6 930.1 520.1 937 523.5 944.4C542.1 984.8 571.4 1018 619.2 1018C668.6 1018 697.9 984.8 716.5 944.4C719.9 937 724.4 930.1 726.7 922.2"/>
+      <path d="M620 838V870"/>
+    </g>
+    <circle cx="454.5" cy="867" r="6.5" fill="#2B1D16"/>
+    <circle cx="785.5" cy="867" r="6.5" fill="#2B1D16"/>
+  </g>
+  <g id="magnifier">
+    <g clip-path="url(#clip-head)" opacity="0.18">
+      <g transform="translate(0 12)" fill="#7A4E2E" filter="url(#magnifier-shadow)">
+        <circle cx="851.5" cy="642.5" r="206"/>
+        <path d="M-32 256H20A30 30 0 0 1 50 286V474A50 50 0 0 1 0 524H-12A50 50 0 0 1 -62 474V286A30 30 0 0 1 -32 256Z" transform="translate(851.5 642.5) rotate(-31.7)"/>
+      </g>
+    </g>
+    <g id="lens" clip-path="url(#clip-lens)">
+      <use xlink:href="#face" transform="matrix(1.1 0 0 1.1 -64.77 -65.94)"/>
+      <path d="M705.99 574.38A160 160 0 0 1 828.73 483.56A600 600 0 0 0 705.99 574.38Z" fill="#FFFFFF" opacity="0.45"/>
+    </g>
+    <g transform="translate(851.5 642.5) rotate(-31.7)">
+      <path d="M-32 256H20A30 30 0 0 1 50 286V474A50 50 0 0 1 0 524H-12A50 50 0 0 1 -62 474V286A30 30 0 0 1 -32 256Z" fill="url(#handle)"/>
+      <rect x="0" y="292" width="14" height="186" rx="7" fill="#FFFFFF" opacity="0.3"/>
+      <rect x="-31" y="196" width="62" height="64" fill="url(#collar)"/>
+    </g>
+    <path d="M645.5 642.5a206 206 0 1 0 412 0a206 206 0 1 0 -412 0ZM681 642a170 170 0 1 1 340 0a170 170 0 1 1 -340 0Z" fill="url(#ring)" fill-rule="evenodd"/>
+    <circle cx="851" cy="642" r="174.0" fill="none" stroke="#C9C6C3" stroke-width="8"/>
+    <circle cx="851" cy="642" r="170" fill="none" stroke="#9C9893" stroke-width="2"/>
+  </g>
+</svg>
