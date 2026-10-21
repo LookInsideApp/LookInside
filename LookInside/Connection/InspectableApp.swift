@@ -19,6 +19,15 @@ enum AppResponseEvent {
     case completion
 }
 
+/// Why a connected app does not answer the app info request.
+enum InspectableAppUnresponsiveness {
+    /// The Server reported that the app is in the background.
+    case inBackground
+    /// The app did not answer in time: a suspended iOS app, or one whose
+    /// main thread is busy or stopped in a debugger.
+    case notResponding
+}
+
 /// The port an app's channel is connected on: stays the same while the app
 /// keeps running, and tells apps on different USB devices apart.
 struct InspectableAppOrigin: Hashable {
@@ -39,11 +48,16 @@ final class InspectableApp: NSObject {
     /// a version error, which has no channel.
     var origin: InspectableAppOrigin?
 
-    /// The app is connected but does not answer: it reported being in the
-    /// background or did not answer the ping in time (a suspended iOS app).
-    /// Only a scan that asks for such apps returns them; they have no app
-    /// info and cannot be opened.
-    var isInBackground = false
+    /// Set when the app is connected but does not answer: it reported being
+    /// in the background, or did not answer in time. Only a scan that asks
+    /// for such apps returns them; they have no app info and cannot be
+    /// opened.
+    var unresponsiveness: InspectableAppUnresponsiveness?
+
+    /// Whether the app is connected but does not answer.
+    var isUnresponsive: Bool {
+        unresponsiveness != nil
+    }
 
     // MARK: - Requests
 

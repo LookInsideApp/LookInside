@@ -27,8 +27,8 @@ final class LaunchViewController: NSSplitViewController {
     private var deviceSelection = LaunchDeviceSelection()
     private var deviceGroups: [LaunchDeviceGroup<InspectableApp>] = []
     /// The info each app sent while it answered, so an app that went to the
-    /// background keeps its name and screenshot. Dropped once the app's
-    /// channel is gone.
+    /// background or stopped answering keeps its name and screenshot.
+    /// Dropped once the app's channel is gone.
     private var lastKnownAppInfoByOrigin: [InspectableAppOrigin: InspectedAppInfo] = [:]
     private var hasFinishedFirstScan = false
 
@@ -120,7 +120,7 @@ final class LaunchViewController: NSSplitViewController {
         }
         isScanInFlight = true
         Task { [weak self, appInfos] in
-            let apps = await AppsManager.shared.fetchAppInfos(needImages: true, localInfos: appInfos, includingBackgroundApps: true)
+            let apps = await AppsManager.shared.fetchAppInfos(needImages: true, localInfos: appInfos, includingUnresponsiveApps: true)
             guard let self else { return }
             isScanInFlight = false
             didScan(apps, autoEnter: autoEnter)
@@ -129,12 +129,12 @@ final class LaunchViewController: NSSplitViewController {
 
     private func didScan(_ apps: [InspectableApp], autoEnter: Bool) {
         guard !isScanningStopped else { return }
-        let answeringApps = apps.filter { !$0.isInBackground }
+        let answeringApps = apps.filter { !$0.isUnresponsive }
         appInfos = answeringApps.compactMap(\.appInfo)
         updateDeviceGroups(with: apps)
         render()
 
-        // Apps in the background are only shown: the rule counts the apps
+        // Unresponsive apps are only shown: the rule counts the apps
         // the scan could have opened, as before they were listed.
         let canAutoEnter = LaunchRules.canAutoEnter(
             requested: autoEnter,
@@ -175,20 +175,19 @@ final class LaunchViewController: NSSplitViewController {
                 app: app,
                 reportedDevice: appInfo.map(Self.deviceIdentity(of:)),
                 originGroupKey: app.origin.map(Self.originGroupKey(of:)) ?? "",
-                isConnectable: !app.isInBackground && app.serverVersionError == nil
+                isConnectable: !app.isUnresponsive && app.serverVersionError == nil
             )
         }
         deviceGroups = LaunchDeviceGrouping.groups(of: entries)
         deviceSelection.update(with: deviceGroups)
     }
 
-    /// The app's info, or for an app in the background the one it sent
-    /// before.
+    /// The app's info, or for an unresponsive app the one it sent before.
     private func displayedAppInfo(of app: InspectableApp) -> InspectedAppInfo? {
         if let appInfo = app.appInfo {
             return appInfo
         }
-        guard app.isInBackground, let origin = app.origin else { return nil }
+        guard app.isUnresponsive, let origin = app.origin else { return nil }
         return lastKnownAppInfoByOrigin[origin]
     }
 
@@ -304,7 +303,7 @@ final class LaunchViewController: NSSplitViewController {
     // MARK: - Entering an app
 
     private func handleClick(on app: InspectableApp) {
-        if isEnteringApp || app.isInBackground {
+        if isEnteringApp || app.isUnresponsive {
             return
         }
         if let error = app.serverVersionError {

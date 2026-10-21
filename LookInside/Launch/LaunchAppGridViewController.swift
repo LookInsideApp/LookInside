@@ -144,7 +144,9 @@ final class LaunchAppGridViewController: NSViewController {
         }
         scrollView.isHidden = isSearching
 
-        let everyAppIsInBackground = !uniqueCards.isEmpty && uniqueCards.allSatisfy(\.app.isInBackground)
+        // Only apps that reported being in the background count: one that
+        // did not answer in time is not helped by bringing it forward.
+        let everyAppIsInBackground = !uniqueCards.isEmpty && uniqueCards.allSatisfy { $0.app.unresponsiveness == .inBackground }
         hintLabel.stringValue = NSLocalizedString(
             "The apps on this device are in the background. Bring one to the foreground to inspect it.",
             comment: "Launch window hint when every app of the selected device is in the background"

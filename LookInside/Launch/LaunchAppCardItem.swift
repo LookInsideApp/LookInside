@@ -5,7 +5,8 @@
 //  One app in the launch window's grid: its screenshot over its icon and
 //  name. An app whose Server version is unsupported shows the error and a
 //  link to the explanation instead of the screenshot; an app in the
-//  background is dimmed, labelled "In Background", and cannot be clicked.
+//  background or not answering in time is dimmed, labelled "In Background"
+//  or "Not Responding", and cannot be clicked.
 //
 
 import AppKit
@@ -14,13 +15,13 @@ import AppKit
 struct LaunchAppCard {
     let origin: InspectableAppOrigin
     let app: InspectableApp
-    /// The app's info, or for an app in the background the info it sent
-    /// before it went there, when the launch window saw it.
+    /// The app's info, or for an unresponsive app the info it sent before
+    /// it stopped answering, when the launch window saw it.
     let displayedAppInfo: InspectedAppInfo?
 
     /// A click opens the app or, for a version error, explains it.
     var isClickable: Bool {
-        !app.isInBackground
+        !app.isUnresponsive
     }
 }
 
@@ -168,10 +169,16 @@ private final class LaunchAppCardView: NSView {
             }
         }
 
-        if card.app.isInBackground {
-            statusLabel.stringValue = NSLocalizedString("In Background", comment: "Launch window app card: the app is connected but in the background")
+        if let unresponsiveness = card.app.unresponsiveness {
+            switch unresponsiveness {
+            case .inBackground:
+                statusLabel.stringValue = NSLocalizedString("In Background", comment: "Launch window app card: the app is connected but in the background")
+                toolTip = NSLocalizedString("Bring this app to the foreground to inspect it.", comment: "Tooltip of a launch window app card for an app in the background")
+            case .notResponding:
+                statusLabel.stringValue = NSLocalizedString("Not Responding", comment: "Launch window app card: the app is connected but did not answer in time")
+                toolTip = NSLocalizedString("This app did not answer in time. It may be busy or paused in a debugger.", comment: "Tooltip of a launch window app card for an app that did not answer in time")
+            }
             statusLabel.isHidden = false
-            toolTip = NSLocalizedString("Bring this app to the foreground to inspect it.", comment: "Tooltip of a launch window app card for an app in the background")
             screenshotImageView.alphaValue = Self.backgroundAlpha
             appIconImageView.alphaValue = Self.backgroundAlpha
             appNameLabel.textColor = .secondaryLabelColor
