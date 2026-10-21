@@ -47,6 +47,21 @@ jobs:
       - name: Test MessageAttribute
         run: bash Scripts/test-message-attribute.sh
 
+      - name: Test Launch, Toolbar and Read
+        run: bash Scripts/test-launch-toolbar-read.sh
+
+      - name: Test Dashboard
+        run: bash Scripts/test-dashboard.sh
+
+      - name: Test MCPBridge
+        run: bash Scripts/test-mcp-bridge.sh
+
+      - name: Test Xcode View Hierarchy
+        run: bash Scripts/test-xcode-viewhierarchy.sh
+
+      - name: Test Security Gates
+        run: bash Scripts/test-security-gates.sh
+
       - name: Test Activation Package
         working-directory: Packages/LookInsideActivation
         run: swift test
@@ -66,6 +81,20 @@ jobs:
             -skipMacroValidation \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      # LookInsideAppTests run inside the Debug app (its test host), against
+      # the real ConnectionManager, LiveDocument and AppDelegate.
+      - name: Test LookInside App
+        run: |
+          xcodebuild \
+            -project LookInside.xcodeproj \
+            -scheme LookInside \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            test
 
   secret_scan:
     name: Secret Scan

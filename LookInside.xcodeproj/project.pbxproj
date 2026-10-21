@@ -26,11 +26,22 @@
 		F0F0A10E2FD0000100A1B2C3 /* FoundationToolbox in Frameworks */ = {isa = PBXBuildFile; productRef = F0F0A10D2FD0000100A1B2C3 /* FoundationToolbox */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		A9750A0730A0000100A1B2C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA48F29321CC0CA50032EC2C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA48F29A21CC0CA50032EC2C;
+			remoteInfo = LookInside;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		AA1CAA3D22E471EC006D9285 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		AA48F29B21CC0CA50032EC2C /* LookInside.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LookInside.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB9517A22C3AECA00A5F958 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
+		A9750A0130A0000100A1B2C3 /* LookInsideAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookInsideAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -271,6 +282,11 @@
 			path = Configuration;
 			sourceTree = "<group>";
 		};
+		A9750A0230A0000100A1B2C3 /* AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AppTests;
+			sourceTree = "<group>";
+		};
 		50EADFB32F71BFF200EBE063 /* LookInside */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -313,6 +329,11 @@
 				C0DE5A1E2FA0000100A1B2C3 /* LookInsideHostCore in Frameworks */,
 			);
 		};
+		A9750A0530A0000100A1B2C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -332,6 +353,7 @@
 				5011BBAE2F9754F0002DA475 /* Configuration */,
 				50EADFB32F71BFF200EBE063 /* LookInside */,
 				C0DE5A302FA0000100A1B2C3 /* LookInside/DerivedSource */,
+				A9750A0230A0000100A1B2C3 /* AppTests */,
 				AA48F29C21CC0CA50032EC2C /* Products */,
 				0A9FB6E904476A1F9D0BB82E /* Frameworks */,
 			);
@@ -341,6 +363,7 @@
 			isa = PBXGroup;
 			children = (
 				AA48F29B21CC0CA50032EC2C /* LookInside.app */,
+				A9750A0130A0000100A1B2C3 /* LookInsideAppTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -384,6 +407,27 @@
 			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A9750A0330A0000100A1B2C3 /* LookInsideAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A9750A0B30A0000100A1B2C3 /* Build configuration list for PBXNativeTarget "LookInsideAppTests" */;
+			buildPhases = (
+				A9750A0430A0000100A1B2C3 /* Sources */,
+				A9750A0530A0000100A1B2C3 /* Frameworks */,
+				A9750A0630A0000100A1B2C3 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A9750A0830A0000100A1B2C3 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				A9750A0230A0000100A1B2C3 /* AppTests */,
+			);
+			name = LookInsideAppTests;
+			productName = LookInsideAppTests;
+			productReference = A9750A0130A0000100A1B2C3 /* LookInsideAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -395,6 +439,10 @@
 				LastUpgradeCheck = 2640;
 				ORGANIZATIONNAME = hughkli;
 				TargetAttributes = {
+					A9750A0330A0000100A1B2C3 = {
+						CreatedOnToolsVersion = 27.1;
+						TestTargetID = AA48F29A21CC0CA50032EC2C;
+					};
 					AA48F29A21CC0CA50032EC2C = {
 						CreatedOnToolsVersion = 10.1;
 						LastSwiftMigration = 1500;
@@ -446,12 +494,18 @@
 			projectRoot = "";
 			targets = (
 				AA48F29A21CC0CA50032EC2C /* LookInside */,
+				A9750A0330A0000100A1B2C3 /* LookInsideAppTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		AA48F29921CC0CA50032EC2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
+		A9750A0630A0000100A1B2C3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
 			);
@@ -524,7 +578,20 @@
 			files = (
 			);
 		};
+		A9750A0430A0000100A1B2C3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A9750A0830A0000100A1B2C3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA48F29A21CC0CA50032EC2C /* LookInside */;
+			targetProxy = A9750A0730A0000100A1B2C3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AA48F2AA21CC0CA60032EC2C /* Debug configuration for PBXProject "LookInside" */ = {
@@ -812,6 +879,71 @@
 			};
 			name = Release;
 		};
+		A9750A0930A0000100A1B2C3 /* Debug configuration for PBXNativeTarget "LookInsideAppTests" */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 5011BBAE2F9754F0002DA475 /* Configuration */;
+			baseConfigurationReferenceRelativePath = Debug.xcconfig;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = "$(inherited)";
+				CURRENT_PROJECT_VERSION = "$(inherited)";
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = D5Q73692VW;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SHOULD_COMPILE_LOOKIN_SERVER=1",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/LookInside",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/include",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.lookinside.apptests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LookInside.app/Contents/MacOS/LookInside";
+			};
+			name = Debug;
+		};
+		A9750A0A30A0000100A1B2C3 /* Release configuration for PBXNativeTarget "LookInsideAppTests" */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 5011BBAE2F9754F0002DA475 /* Configuration */;
+			baseConfigurationReferenceRelativePath = Release.xcconfig;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_IDENTITY = "$(inherited)";
+				CODE_SIGN_STYLE = "$(inherited)";
+				CURRENT_PROJECT_VERSION = "$(inherited)";
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = D5Q73692VW;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SHOULD_COMPILE_LOOKIN_SERVER=1",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/LookInside",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinCore/include",
+					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.lookinside-app.lookinside.apptests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LookInside.app/Contents/MacOS/LookInside";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -828,6 +960,14 @@
 			buildConfigurations = (
 				AA48F2AD21CC0CA60032EC2C /* Debug configuration for PBXNativeTarget "LookInside" */,
 				AA48F2AE21CC0CA60032EC2C /* Release configuration for PBXNativeTarget "LookInside" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		A9750A0B30A0000100A1B2C3 /* Build configuration list for PBXNativeTarget "LookInsideAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A9750A0930A0000100A1B2C3 /* Debug configuration for PBXNativeTarget "LookInsideAppTests" */,
+				A9750A0A30A0000100A1B2C3 /* Release configuration for PBXNativeTarget "LookInsideAppTests" */,
 			);
 			defaultConfigurationName = Release;
 		};

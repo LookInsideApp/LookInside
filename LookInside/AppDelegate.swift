@@ -59,15 +59,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_: Notification) {
         _ = ConnectionManager.shared
-        MCPBridgeServer.sharedInstance.start()
-        // Documents opened during launch (Finder double-click, Open With…)
-        // are registered with NSDocumentController by now, so "no documents
-        // ⇒ show Launch" covers both cold-start cases.
-        if NSDocumentController.shared.documents.isEmpty {
-            NavigationManager.shared.showLaunch()
-        }
+        if !Self.isHostingUnitTests {
+            MCPBridgeServer.sharedInstance.start()
+            // Documents opened during launch (Finder double-click, Open
+            // With…) are registered with NSDocumentController by now, so "no
+            // documents ⇒ show Launch" covers both cold-start cases.
+            if NSDocumentController.shared.documents.isEmpty {
+                NavigationManager.shared.showLaunch()
+            }
 
-        installActivationStateObserver()
+            installActivationStateObserver()
+        }
 
         // When the last window closes, bring Launch back. Closing Launch
         // itself leaves the app in the Dock with no window.
@@ -80,6 +82,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         #if DEBUG
             Self.checkDashboardBlueprintIdentifiers()
+        #endif
+    }
+
+    /// Whether this process hosts the `LookInsideAppTests` bundle: the tests
+    /// start with no window and no MCP socket, and build what they need.
+    /// Always false in Release.
+    private static var isHostingUnitTests: Bool {
+        #if DEBUG
+            ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+        #else
+            false
         #endif
     }
 
