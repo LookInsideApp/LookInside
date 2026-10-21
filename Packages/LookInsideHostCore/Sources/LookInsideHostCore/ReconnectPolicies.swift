@@ -104,33 +104,33 @@ public enum ReconnectTargetSelection {
         return matchingIndices.first
     }
 
-    static func isSameApp(_ lhs: InspectedAppIdentity, _ rhs: InspectedAppIdentity) -> Bool {
-        fieldsOfIsEqualMatch(lhs, rhs)
-            && optionalFieldsMatch(lhs.bundleIdentifier, rhs.bundleIdentifier)
-            && optionalFieldsMatch(lhs.deviceModelIdentifier, rhs.deviceModelIdentifier)
+    static func isSameApp(_ firstIdentity: InspectedAppIdentity, _ secondIdentity: InspectedAppIdentity) -> Bool {
+        fieldsOfIsEqualMatch(firstIdentity, secondIdentity)
+            && optionalFieldsMatch(firstIdentity.bundleIdentifier, secondIdentity.bundleIdentifier)
+            && optionalFieldsMatch(firstIdentity.deviceModelIdentifier, secondIdentity.deviceModelIdentifier)
     }
 
     /// Equal when both are reported; a side that reports nothing (or an
     /// empty string) does not decide.
-    static func optionalFieldsMatch(_ lhs: String?, _ rhs: String?) -> Bool {
-        guard let lhs, !lhs.isEmpty, let rhs, !rhs.isEmpty else {
+    static func optionalFieldsMatch(_ firstValue: String?, _ secondValue: String?) -> Bool {
+        guard let firstValue, !firstValue.isEmpty, let secondValue, !secondValue.isEmpty else {
             return true
         }
-        return lhs == rhs
+        return firstValue == secondValue
     }
 
     /// `InspectedAppInfo.isEqual(to:)`.
-    static func fieldsOfIsEqualMatch(_ lhs: InspectedAppIdentity, _ rhs: InspectedAppIdentity) -> Bool {
-        objectiveCStringsEqual(lhs.appName, rhs.appName)
-            && objectiveCStringsEqual(lhs.deviceDescription, rhs.deviceDescription)
-            && objectiveCStringsEqual(lhs.osDescription, rhs.osDescription)
-            && lhs.deviceType == rhs.deviceType
+    static func fieldsOfIsEqualMatch(_ firstIdentity: InspectedAppIdentity, _ secondIdentity: InspectedAppIdentity) -> Bool {
+        objectiveCStringsEqual(firstIdentity.appName, secondIdentity.appName)
+            && objectiveCStringsEqual(firstIdentity.deviceDescription, secondIdentity.deviceDescription)
+            && objectiveCStringsEqual(firstIdentity.osDescription, secondIdentity.osDescription)
+            && firstIdentity.deviceType == secondIdentity.deviceType
     }
 
-    /// `[lhs isEqualToString:rhs]`: NO when either is nil.
-    static func objectiveCStringsEqual(_ lhs: String?, _ rhs: String?) -> Bool {
-        guard let lhs, let rhs else { return false }
-        return lhs == rhs
+    /// `[receiver isEqualToString:argument]`: NO when either is nil.
+    static func objectiveCStringsEqual(_ receiver: String?, _ argument: String?) -> Bool {
+        guard let receiver, let argument else { return false }
+        return receiver == argument
     }
 }
 

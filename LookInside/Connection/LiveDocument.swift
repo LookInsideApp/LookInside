@@ -254,8 +254,8 @@ final class LiveDocument: NSDocument {
     }
 
     private func updateBanners() {
-        let info = inspectableApp.appInfo ?? lastKnownAppInfo
-        let appName = (info?.appName).flatMap { $0.isEmpty ? nil : $0 }
+        let appInfo = inspectableApp.appInfo ?? lastKnownAppInfo
+        let appName = (appInfo?.appName).flatMap { $0.isEmpty ? nil : $0 }
             ?? NSLocalizedString("Inspected app", comment: "")
         let lossMessage: String?
         let backgroundMessage: String?
@@ -333,14 +333,14 @@ final class LiveDocument: NSDocument {
         return match
     }
 
-    private static func identity(of info: InspectedAppInfo) -> InspectedAppIdentity {
+    private static func identity(of appInfo: InspectedAppInfo) -> InspectedAppIdentity {
         InspectedAppIdentity(
-            appName: info.appName,
-            bundleIdentifier: info.appBundleIdentifier,
-            deviceDescription: info.deviceDescription,
-            deviceModelIdentifier: info.deviceModelIdentifier,
-            osDescription: info.osDescription,
-            deviceType: info.deviceType.rawValue
+            appName: appInfo.appName,
+            bundleIdentifier: appInfo.appBundleIdentifier,
+            deviceDescription: appInfo.deviceDescription,
+            deviceModelIdentifier: appInfo.deviceModelIdentifier,
+            osDescription: appInfo.osDescription,
+            deviceType: appInfo.deviceType.rawValue
         )
     }
 
