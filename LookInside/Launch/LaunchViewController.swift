@@ -19,8 +19,6 @@ final class LaunchViewController: NSSplitViewController {
     private static let initialScanDelay: TimeInterval = 0.2
     private static let rescanInterval: TimeInterval = 1.5
 
-    private var autoEnterOnInitialReload: Bool
-
     private let sidebarViewController = LaunchSidebarViewController()
     private let appGridViewController = LaunchAppGridViewController()
 
@@ -40,8 +38,7 @@ final class LaunchViewController: NSSplitViewController {
     /// images again.
     private var appInfos: [InspectedAppInfo]?
 
-    init(autoEnterOnInitialReload: Bool) {
-        self.autoEnterOnInitialReload = autoEnterOnInitialReload
+    init() {
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -55,7 +52,8 @@ final class LaunchViewController: NSSplitViewController {
         splitView.autosaveName = "LaunchWindowSplitView"
 
         let sidebarItem = NSSplitViewItem(sidebarWithViewController: sidebarViewController)
-        sidebarItem.minimumThickness = 180
+        // Wide enough for the two attach buttons beside the window buttons.
+        sidebarItem.minimumThickness = 212
         sidebarItem.maximumThickness = 320
         sidebarItem.canCollapse = false
         addSplitViewItem(sidebarItem)
@@ -79,12 +77,18 @@ final class LaunchViewController: NSSplitViewController {
 
     // MARK: - Scanning
 
-    /// Starts the scans; the first one may open the only app it finds.
+    /// Starts the scans. An app is only ever opened by the user's click,
+    /// even when it is the only one found.
     func startScanning() {
         isScanningStopped = false
-        let autoEnter = autoEnterOnInitialReload
-        autoEnterOnInitialReload = false
-        scheduleScan(after: Self.initialScanDelay, autoEntering: autoEnter)
+        scheduleScan(after: Self.initialScanDelay)
+    }
+
+    /// Scans again now, fetching every app's screenshot afresh. A scan in
+    /// flight runs the next one as soon as it ends.
+    func reloadNow() {
+        appInfos = nil
+        scheduleScan(after: 0)
     }
 
     /// Stops the scans for good: the window closed.
@@ -96,17 +100,17 @@ final class LaunchViewController: NSSplitViewController {
 
     /// Schedules the next scan, replacing one already scheduled, so there
     /// is only ever one chain of scans.
-    private func scheduleScan(after delay: TimeInterval, autoEntering autoEnter: Bool = false) {
+    private func scheduleScan(after delay: TimeInterval) {
         pendingScan?.cancel()
         guard !isScanningStopped else { return }
         let scan = DispatchWorkItem { [weak self] in
-            self?.scan(autoEntering: autoEnter)
+            self?.scan()
         }
         pendingScan = scan
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: scan)
     }
 
-    private func scan(autoEntering autoEnter: Bool) {
+    private func scan() {
         pendingScan = nil
         guard !isScanningStopped, !isScanInFlight else {
             // A scan in flight schedules the next one when it ends.
@@ -123,37 +127,20 @@ final class LaunchViewController: NSSplitViewController {
             let apps = await AppsManager.shared.fetchAppInfos(needImages: true, localInfos: appInfos, includingUnresponsiveApps: true)
             guard let self else { return }
             isScanInFlight = false
-            didScan(apps, autoEnter: autoEnter)
+            didScan(apps)
         }
     }
 
-    private func didScan(_ apps: [InspectableApp], autoEnter: Bool) {
+    private func didScan(_ apps: [InspectableApp]) {
         guard !isScanningStopped else { return }
         let answeringApps = apps.filter { !$0.isUnresponsive }
         appInfos = answeringApps.compactMap(\.appInfo)
         updateDeviceGroups(with: apps)
         render()
 
-        // Unresponsive apps are only shown: the rule counts the apps
-        // the scan could have opened, as before they were listed.
-        let canAutoEnter = LaunchRules.canAutoEnter(
-            requested: autoEnter,
-            appCount: answeringApps.count,
-            onlyAppHasServerVersionError: answeringApps.first?.serverVersionError != nil,
-            isActivated: SwiftUISupportGatekeeper.sharedInstance().activationState == .activated
-        )
         if !hasFinishedFirstScan {
             hasFinishedFirstScan = true
-            // The bar the window opened with goes on into the hierarchy
-            // fetch when the scan opens the app itself.
-            if !canAutoEnter {
-                appGridViewController.progressIndicatorView.finish(completion: nil)
-            }
-        }
-        if canAutoEnter, let app = answeringApps.first {
-            // The scan that runs as the window opens found exactly one app:
-            // fetch its hierarchy right away.
-            enter(app)
+            appGridViewController.progressIndicatorView.finish(completion: nil)
         }
         scheduleScan(after: Self.rescanInterval)
     }

@@ -18,16 +18,13 @@ final class LaunchWindowController: WindowController, NSWindowDelegate {
     private static let frameAutosaveName = "LaunchWindow"
 
     private enum ToolbarIdentifier {
-        static let attachToRunningApp = NSToolbarItem.Identifier("LaunchWindow.attachToRunningApp")
-        static let attachToAppOnDevice = NSToolbarItem.Identifier("LaunchWindow.attachToAppOnDevice")
-        static let openFile = NSToolbarItem.Identifier("LaunchWindow.openFile")
+        static let newInspection = NSToolbarItem.Identifier("LaunchWindow.newInspection")
+        static let reload = NSToolbarItem.Identifier("LaunchWindow.reload")
     }
 
     let launchViewController: LaunchViewController
 
-    /// - Parameter autoEnterOnInitialReload: whether the first scan opens
-    ///   the only app it finds by itself.
-    init(autoEnterOnInitialReload: Bool) {
+    init() {
         let window = AppWindow(
             contentRect: NSRect(origin: .zero, size: Self.defaultContentSize),
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
@@ -35,12 +32,12 @@ final class LaunchWindowController: WindowController, NSWindowDelegate {
             defer: true
         )
         window.title = NSLocalizedString("New Inspection", comment: "Title of the launch window")
-        window.titleVisibility = .hidden
+        window.titleVisibility = .visible
         window.toolbarStyle = .unified
         window.contentMinSize = Self.minimumContentSize
         window.isReleasedWhenClosed = false
 
-        launchViewController = LaunchViewController(autoEnterOnInitialReload: autoEnterOnInitialReload)
+        launchViewController = LaunchViewController()
         super.init(window: window)
         window.delegate = self
         contentViewController = launchViewController
@@ -67,29 +64,44 @@ final class LaunchWindowController: WindowController, NSWindowDelegate {
         let attachToRunningAppTitle = NSLocalizedString("Attach to Running App…", comment: "")
         let attachToAppOnDeviceTitle = NSLocalizedString("Attach to App on Device…", comment: "")
         let openFileTitle = NSLocalizedString("Open File…", comment: "Launch window toolbar button that opens a .lookin or .viewhierarchy file")
+        let reloadTitle = NSLocalizedString("Reload", comment: "")
+        let newInspectionTitle = NSLocalizedString("New Inspection", comment: "Title of the launch window")
+        let newInspectionMenu = NSMenu()
+        newInspectionMenu.addItem(Self.makeMenuItem(
+            title: attachToRunningAppTitle,
+            symbolName: "laptopcomputer",
+            target: self,
+            action: #selector(handleAttachToRunningApp(_:))
+        ))
+        newInspectionMenu.addItem(Self.makeMenuItem(
+            title: attachToAppOnDeviceTitle,
+            symbolName: "iphone",
+            target: self,
+            action: #selector(handleAttachToAppOnDevice(_:))
+        ))
+        newInspectionMenu.addItem(.separator())
+        newInspectionMenu.addItem(Self.makeMenuItem(
+            title: openFileTitle,
+            symbolName: "folder",
+            target: self,
+            action: #selector(handleOpenFile(_:))
+        ))
+        // Every other way to start an inspection sits behind one + over the
+        // sidebar; reloading the apps goes over the content.
         let toolbar = NSToolbar("LaunchWindowToolbar", allowsUserCustomization: false) {
+            NSToolbar.box.flexibleSpace
+            NSToolbar.Menu(ToolbarIdentifier.newInspection, image: Self.symbolImage("plus", description: newInspectionTitle), menu: newInspectionMenu)
+                .showsIndicator(false)
+                .label(newInspectionTitle)
+                .toolTip(newInspectionTitle)
             NSToolbar.box.sidebarTrackingSeparator
             NSToolbar.box.flexibleSpace
             Self.makeToolbarButton(
-                ToolbarIdentifier.attachToRunningApp,
-                title: attachToRunningAppTitle,
-                symbolName: "macwindow.badge.plus",
+                ToolbarIdentifier.reload,
+                title: reloadTitle,
+                symbolName: "arrow.clockwise",
                 target: self,
-                action: #selector(handleAttachToRunningApp(_:))
-            )
-            Self.makeToolbarButton(
-                ToolbarIdentifier.attachToAppOnDevice,
-                title: attachToAppOnDeviceTitle,
-                symbolName: "iphone.badge.plus",
-                target: self,
-                action: #selector(handleAttachToAppOnDevice(_:))
-            )
-            Self.makeToolbarButton(
-                ToolbarIdentifier.openFile,
-                title: openFileTitle,
-                symbolName: "folder",
-                target: self,
-                action: #selector(handleOpenFile(_:))
+                action: #selector(handleReload(_:))
             )
         }
         toolbar.displayMode = .iconOnly
@@ -103,14 +115,27 @@ final class LaunchWindowController: WindowController, NSWindowDelegate {
         target: AnyObject,
         action: Selector
     ) -> NSToolbar.Button {
-        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) ?? NSImage()
+        // Icon only: the title is the tooltip, the label in Text Only mode
+        // and the overflow menu item.
+        let image = symbolImage(symbolName, description: title)
         let overflowMenuItem = NSMenuItem(title: title, action: action, keyEquivalent: "")
         overflowMenuItem.target = target
-        return NSToolbar.Button(identifier, title: title, image: image)
+        return NSToolbar.Button(identifier, image: image)
             .label(title)
             .toolTip(title)
             .menuFormRepresentation(overflowMenuItem)
             .target(target, action: action)
+    }
+
+    private static func makeMenuItem(title: String, symbolName: String, target: AnyObject, action: Selector) -> NSMenuItem {
+        let menuItem = NSMenuItem(title: title, action: action, keyEquivalent: "")
+        menuItem.target = target
+        menuItem.image = symbolImage(symbolName, description: title)
+        return menuItem
+    }
+
+    private static func symbolImage(_ symbolName: String, description: String) -> NSImage {
+        NSImage(systemSymbolName: symbolName, accessibilityDescription: description) ?? NSImage()
     }
 
     // MARK: - Actions
@@ -121,6 +146,10 @@ final class LaunchWindowController: WindowController, NSWindowDelegate {
 
     @objc private func handleAttachToAppOnDevice(_: Any?) {
         launchViewController.attachToAppOnDevice()
+    }
+
+    @objc private func handleReload(_: Any?) {
+        launchViewController.reloadNow()
     }
 
     @objc private func handleOpenFile(_: Any?) {

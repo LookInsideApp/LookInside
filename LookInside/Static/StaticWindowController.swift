@@ -158,7 +158,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         contentViewController = viewController
 
         let toolbar = NSToolbar()
-        toolbar.displayMode = .iconAndLabel
+        toolbar.displayMode = .iconOnly
         toolbar.sizeMode = .regular
         toolbar.delegate = self
         window.toolbar = toolbar
@@ -519,6 +519,10 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             item.action = #selector(handleFastMode)
         default:
             break
+        }
+        // The toolbar shows icons only, so the label is the tooltip.
+        if item.toolTip == nil, !item.label.isEmpty {
+            item.toolTip = item.label
         }
         return item
     }

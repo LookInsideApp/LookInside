@@ -111,7 +111,7 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         }
 
         let toolbar = NSToolbar()
-        toolbar.displayMode = .iconAndLabel
+        toolbar.displayMode = .iconOnly
         toolbar.sizeMode = .regular
         toolbar.delegate = self
         window.toolbar = toolbar
@@ -163,6 +163,10 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         } else if identifier == toolbarIdentifierRotation {
             item.target = self
             item.action = #selector(handleFreeRotation)
+        }
+        // The toolbar shows icons only, so the label is the tooltip.
+        if item.toolTip == nil, !item.label.isEmpty {
+            item.toolTip = item.label
         }
         return item
     }

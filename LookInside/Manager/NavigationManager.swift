@@ -43,21 +43,18 @@ final class NavigationManager: NSObject, NSWindowDelegate {
     /// Set by the hierarchy view from its top inset.
     var windowTitleBarHeight: CGFloat = 0
 
-    func showLaunch() {
-        showLaunch(allowingAutoEnter: false)
-    }
-
     /// Brings the launch window forward, opening one when none is open: a
     /// second one would only run a second scan of the same apps.
-    func showLaunch(allowingAutoEnter allowAutoEnter: Bool) {
+    func showLaunch() {
         if let openController = launchWindowController,
            let openWindow = openController.window,
            openWindow.isVisible || openWindow.isMiniaturized
         {
+            openWindow.deminiaturize(self)
             openController.showWindow(self)
             return
         }
-        let controller = LaunchWindowController(autoEnterOnInitialReload: allowAutoEnter)
+        let controller = LaunchWindowController()
         launchWindowController = controller
         controller.showWindow(self)
     }

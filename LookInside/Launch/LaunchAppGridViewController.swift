@@ -4,7 +4,8 @@
 //
 //  The launch window's content: the apps of the device selected in the
 //  sidebar as a grid of cards, the "searching" state while no app is found,
-//  and the progress bar of the hierarchy fetch a click starts.
+//  and the progress bar of the hierarchy fetch a click starts, over a dot
+//  grid like Xcode's canvas.
 //
 
 import AppKit
@@ -36,7 +37,7 @@ final class LaunchAppGridViewController: NSViewController {
     private var scrollViewBottomToHint: NSLayoutConstraint?
 
     override func loadView() {
-        let containerView = NSView()
+        let containerView = LaunchGridBackgroundView()
 
         let layout = NSCollectionViewFlowLayout()
         layout.itemSize = LaunchAppCardItem.itemSize
@@ -51,6 +52,10 @@ final class LaunchAppGridViewController: NSViewController {
 
         scrollView.documentView = collectionView
         scrollView.hasVerticalScroller = true
+        scrollView.autohidesScrollers = true
+        // An overlay scroller, even with a mouse plugged in, so the grid
+        // keeps its right inset instead of a scroller gutter.
+        scrollView.scrollerStyle = .overlay
         scrollView.drawsBackground = false
 
         searchingIndicator.style = .spinning
@@ -161,5 +166,50 @@ final class LaunchAppGridViewController: NSViewController {
             scrollViewBottomToHint?.isActive = false
             scrollViewBottomToContainer?.isActive = true
         }
+    }
+}
+
+/// A canvas of faint dots, as behind Xcode's previews.
+private final class LaunchGridBackgroundView: NSView {
+    private static let spacing: CGFloat = 16
+    private static let dotDiameter: CGFloat = 1.5
+
+    private static let backgroundColor = NSColor(name: nil) { appearance in
+        appearance.isDarkMode ? NSColor(white: 0.13, alpha: 1) : NSColor(white: 0.965, alpha: 1)
+    }
+
+    override var isFlipped: Bool {
+        true
+    }
+
+    override var isOpaque: Bool {
+        true
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        Self.backgroundColor.setFill()
+        dirtyRect.fill()
+
+        let dotColor = NSColor.labelColor.withAlphaComponent(effectiveAppearance.isDarkMode ? 0.16 : 0.13)
+        dotColor.setFill()
+        let spacing = Self.spacing
+        let diameter = Self.dotDiameter
+        let firstColumn = Int((dirtyRect.minX / spacing).rounded(.down))
+        let lastColumn = Int((dirtyRect.maxX / spacing).rounded(.up))
+        let firstRow = Int((dirtyRect.minY / spacing).rounded(.down))
+        let lastRow = Int((dirtyRect.maxY / spacing).rounded(.up))
+        let path = NSBezierPath()
+        for row in firstRow ... lastRow {
+            for column in firstColumn ... lastColumn {
+                let center = NSPoint(x: CGFloat(column) * spacing + spacing / 2, y: CGFloat(row) * spacing + spacing / 2)
+                path.appendOval(in: NSRect(x: center.x - diameter / 2, y: center.y - diameter / 2, width: diameter, height: diameter))
+            }
+        }
+        path.fill()
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        needsDisplay = true
     }
 }

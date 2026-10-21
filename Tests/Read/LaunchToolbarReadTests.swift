@@ -32,7 +32,6 @@ struct LaunchToolbarReadTests {
         testToolbarIdentifiersKeepTheirValues()
         testSteppingClamps()
         testAppsPopoverCopy()
-        testLaunchAutoEnter()
         testLaunchServerVersionErrors()
         testLaunchDeviceGrouping()
         testLaunchDeviceSelection()
@@ -187,15 +186,6 @@ struct LaunchToolbarReadTests {
     }
 
     // MARK: - Launch
-
-    private static func testLaunchAutoEnter() {
-        expect(LaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: false, isActivated: true), "auto enter")
-        expect(!LaunchRules.canAutoEnter(requested: false, appCount: 1, onlyAppHasServerVersionError: false, isActivated: true), "not requested")
-        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 2, onlyAppHasServerVersionError: false, isActivated: true), "two apps")
-        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 0, onlyAppHasServerVersionError: false, isActivated: true), "no apps")
-        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: true, isActivated: true), "version error")
-        expect(!LaunchRules.canAutoEnter(requested: true, appCount: 1, onlyAppHasServerVersionError: false, isActivated: false), "not activated")
-    }
 
     private static func testLaunchServerVersionErrors() {
         // Learn More opens a page that exists: the in-app link helper only

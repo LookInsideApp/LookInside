@@ -14,6 +14,9 @@ import FoundationToolbox
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var appearanceObservation: NSKeyValueObservation?
+    /// Set once Quit goes ahead, so the windows closing on the way out do
+    /// not bring the launch window back.
+    private var isTerminating = false
 
     /// The app's entry point. There is no main nib: the delegate is set
     /// here, and kept alive for the run since NSApplication holds it weakly.
@@ -61,20 +64,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // are registered with NSDocumentController by now, so "no documents
         // ⇒ show Launch" covers both cold-start cases.
         if NSDocumentController.shared.documents.isEmpty {
-            var allowAutoEnter = true
-            #if DEBUG
-                // The end-to-end dump (DebugE2EDump.swift) opens the app itself; an
-                // activated Host's auto-enter would fetch the same hierarchy
-                // alongside it.
-                allowAutoEnter = (ProcessInfo.processInfo.environment["LOOKINSIDE_DEBUG_E2E_DUMP_DIR"] ?? "").isEmpty
-            #endif
-            NavigationManager.shared.showLaunch(allowingAutoEnter: allowAutoEnter)
+            NavigationManager.shared.showLaunch()
         }
 
         installActivationStateObserver()
 
-        // When the last document closes, bring Launch back so the app never
-        // sits without any visible UI.
+        // When the last window closes, bring Launch back. Closing Launch
+        // itself leaves the app in the Dock with no window.
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleWindowWillClose(_:)),
@@ -88,30 +84,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func handleWindowWillClose(_ notification: Notification) {
-        guard let closingWindow = notification.object as? NSWindow,
-              closingWindow.windowController is WindowController
+        guard !isTerminating,
+              let closingWindow = notification.object as? NSWindow,
+              Self.isAppWindow(closingWindow),
+              closingWindow != NavigationManager.shared.launchWindowController?.window
         else {
             return
         }
-        // Closing the Launch window itself shouldn't re-spawn Launch; only
-        // document (live / archive) windows trigger the "no docs left" reopen.
-        if closingWindow == NavigationManager.shared.launchWindowController?.window {
-            return
-        }
-        // Defer one tick so NSDocumentController has finished removing the doc.
+        // Defer one tick: the closing window is still on screen while its
+        // close notification is delivered.
         DispatchQueue.main.async {
-            self.showLaunchIfNoDocuments()
+            self.showLaunchIfNoWindows()
         }
     }
 
-    private func showLaunchIfNoDocuments() {
-        guard NSDocumentController.shared.documents.isEmpty else {
-            return
-        }
-        if NavigationManager.shared.launchWindowController?.window?.isVisible == true {
+    private func showLaunchIfNoWindows() {
+        guard !isTerminating, Self.openAppWindows().isEmpty else {
             return
         }
         NavigationManager.shared.showLaunch()
+    }
+
+    /// A window the user sees as one of the app's: a titled window of its
+    /// own, not a panel, popover or sheet.
+    private static func isAppWindow(_ window: NSWindow) -> Bool {
+        !(window is NSPanel) && window.styleMask.contains(.titled) && window.sheetParent == nil
+    }
+
+    /// The app's windows that are on screen or minimized to the Dock.
+    private static func openAppWindows() -> [NSWindow] {
+        NSApp.windows.filter { isAppWindow($0) && ($0.isVisible || $0.isMiniaturized) }
     }
 
     private func installActivationStateObserver() {
@@ -155,12 +157,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         false
     }
 
+    /// A Dock click or a second launch from Finder. With a window on screen
+    /// this only activates the app; otherwise it brings back a minimized
+    /// window, and with none left it shows the launch window.
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        // Dock-icon click after closing all windows: bring Launch back.
-        if !flag {
-            showLaunchIfNoDocuments()
+        if flag {
+            return true
         }
-        return true
+        let openWindows = Self.openAppWindows()
+        if let onScreenWindow = openWindows.first(where: \.isVisible) {
+            onScreenWindow.makeKeyAndOrderFront(nil)
+        } else if let minimizedWindow = openWindows.first(where: \.isMiniaturized) {
+            minimizedWindow.deminiaturize(nil)
+            minimizedWindow.makeKeyAndOrderFront(nil)
+        } else {
+            NavigationManager.shared.showLaunch()
+        }
+        // Handled here, so AppKit does not deminiaturize a second window.
+        return false
     }
 
     func application(_: NSApplication, open urls: [URL]) {
@@ -177,6 +191,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
+        isTerminating = true
         SwiftUISupportGatekeeper.sharedInstance().shutdownRuntime()
         MCPBridgeServer.sharedInstance.stop()
 

@@ -5,6 +5,8 @@
 //  The launch window's sidebar: the devices the scan found, each with its
 //  icon, name, OS and app count, and the recently opened documents.
 //  Selecting a device shows its apps; clicking a recent document opens it.
+//  LookInside's icon, name and version sit at its foot, with a green seal
+//  while LookInside is activated.
 //
 
 import AppKit
@@ -82,7 +84,33 @@ final class LaunchSidebarViewController: NSViewController, NSOutlineViewDataSour
         outlineView.target = self
         outlineView.action = #selector(handleClick(_:))
         scrollView.drawsBackground = false
-        view = scrollView
+        // The rows scroll with a trackpad or a wheel; a scroller beside
+        // them would only take room.
+        scrollView.hasVerticalScroller = false
+        scrollView.hasHorizontalScroller = false
+
+        let footerView = LaunchSidebarFooterView()
+        // Frosted over the desktop, whatever the system makes of the
+        // split view's sidebar.
+        let containerView = NSVisualEffectView()
+        containerView.material = .sidebar
+        containerView.blendingMode = .behindWindow
+        containerView.state = .followsWindowActiveState
+        for subview in [scrollView, footerView] as [NSView] {
+            subview.translatesAutoresizingMaskIntoConstraints = false
+            containerView.addSubview(subview)
+        }
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: containerView.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: footerView.topAnchor),
+
+            footerView.leadingAnchor.constraint(equalTo: containerView.leadingAnchor),
+            footerView.trailingAnchor.constraint(equalTo: containerView.trailingAnchor),
+            footerView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor),
+        ])
+        view = containerView
         reloadOutline()
     }
 
@@ -217,6 +245,94 @@ final class LaunchSidebarViewController: NSViewController, NSOutlineViewDataSour
         }
         selectedDevice = identity
         onSelectDevice?(identity)
+    }
+}
+
+// MARK: - Footer
+
+/// LookInside's icon, name and version at the foot of the sidebar, and a
+/// green seal while LookInside is activated.
+private final class LaunchSidebarFooterView: NSView {
+    private static let iconPointSize: CGFloat = 32
+
+    private let activatedImageView = NSImageView()
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        let iconImageView = NSImageView(image: NSApp.applicationIconImage)
+        iconImageView.imageScaling = .scaleProportionallyUpOrDown
+
+        let nameLabel = NSTextField(labelWithString: "LookInside")
+        nameLabel.font = .systemFont(ofSize: NSFont.systemFontSize, weight: .semibold)
+
+        let versionLabel = NSTextField(labelWithString: Self.versionDescription)
+        versionLabel.font = .monospacedDigitSystemFont(ofSize: NSFont.smallSystemFontSize, weight: .regular)
+        versionLabel.textColor = .secondaryLabelColor
+        versionLabel.lineBreakMode = .byTruncatingTail
+        versionLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+
+        let labelsStackView = NSStackView(views: [nameLabel, versionLabel])
+        labelsStackView.orientation = .vertical
+        labelsStackView.alignment = .leading
+        labelsStackView.spacing = 0
+
+        activatedImageView.image = NSImage(systemSymbolName: "checkmark.seal.fill", accessibilityDescription: nil)?
+            .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 15, weight: .regular))
+        activatedImageView.contentTintColor = .systemGreen
+        activatedImageView.toolTip = NSLocalizedString("LookInside Pro · Activated", comment: "")
+        activatedImageView.setAccessibilityLabel(activatedImageView.toolTip)
+        activatedImageView.setContentHuggingPriority(.required, for: .horizontal)
+        activatedImageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        for subview in [iconImageView, labelsStackView, activatedImageView] as [NSView] {
+            subview.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(subview)
+        }
+        NSLayoutConstraint.activate([
+            iconImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            iconImageView.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            iconImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            iconImageView.widthAnchor.constraint(equalToConstant: Self.iconPointSize),
+            iconImageView.heightAnchor.constraint(equalToConstant: Self.iconPointSize),
+
+            labelsStackView.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 8),
+            labelsStackView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
+
+            activatedImageView.leadingAnchor.constraint(greaterThanOrEqualTo: labelsStackView.trailingAnchor, constant: 6),
+            activatedImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            activatedImageView.centerYAnchor.constraint(equalTo: iconImageView.centerYAnchor),
+        ])
+
+        updateActivatedImageView()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(activationStateDidChange(_:)),
+            name: SwiftUISupportGatekeeper.activationStateDidChangeNotification,
+            object: nil
+        )
+    }
+
+    @objc private func activationStateDidChange(_: Notification) {
+        updateActivatedImageView()
+    }
+
+    private func updateActivatedImageView() {
+        activatedImageView.isHidden = SwiftUISupportGatekeeper.sharedInstance().activationState != .activated
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
+        fatalError("init(coder:) is not supported")
+    }
+
+    /// "Version 3.1.0 (123)", in the About window's words.
+    private static var versionDescription: String {
+        let info = Bundle.main.infoDictionary
+        return String(
+            format: NSLocalizedString("Version %1$@ (%2$@)", comment: "About window version line: marketing version, build number"),
+            info?["CFBundleShortVersionString"] as? String ?? "",
+            info?["CFBundleVersion"] as? String ?? ""
+        )
     }
 }
 

@@ -9,15 +9,6 @@
 import Foundation
 
 enum LaunchRules {
-    /// Whether the launch window opens the only app it found by itself.
-    ///
-    /// Only the first scan after the window opens may do this, only with
-    /// exactly one app, only when that app's Server version is supported and
-    /// only when the activation is in place.
-    static func canAutoEnter(requested: Bool, appCount: Int, onlyAppHasServerVersionError: Bool, isActivated: Bool) -> Bool {
-        requested && appCount == 1 && !onlyAppHasServerVersionError && isActivated
-    }
-
     /// The page Learn More opens for a Server version error: how to update
     /// the Server when it is too old, the download when LookInside is.
     static func serverVersionHelpURL(errorCode: Int) -> URL {
