@@ -15,6 +15,10 @@ class BaseViewController: NSViewController {
 
     private(set) var connectionTipsView: RedTipsView?
 
+    /// Shown in place of `connectionTipsView` while the live app is in the
+    /// background: the connection is fine, the app just cannot answer.
+    private var applicationInBackgroundTipsView: TipsView?
+
     private var connectionTipsBinding: ConnectionTipsBinding?
 
     /// 如果使用该初始化方法，则 controller.view 会被赋值为传入的 view。
@@ -55,13 +59,17 @@ class BaseViewController: NSViewController {
                 tipsView.target = self
                 tipsView.clickAction = #selector(handleClickReconnectTips)
                 connectionTipsView = tipsView
+
+                let backgroundTipsView = TipsView()
+                backgroundTipsView.isHidden = true
+                applicationInBackgroundTipsView = backgroundTipsView
             }
         }
     }
 
     override func viewWillAppear() {
         super.viewWillAppear()
-        guard shouldShowConnectionTips(), let connectionTipsView else {
+        guard shouldShowConnectionTips(), let connectionTipsView, let applicationInBackgroundTipsView else {
             return
         }
         // Phase F: drive the per-window banner from the host Live Doc's
@@ -74,14 +82,19 @@ class BaseViewController: NSViewController {
         }
         // The binding also follows inspectableApp swaps (Phase D auto-reconnect)
         // so the banner image stays in sync with the currently-bound app.
-        connectionTipsBinding = ConnectionTipsBinding(document: document, tipsView: connectionTipsView, viewController: self)
+        connectionTipsBinding = ConnectionTipsBinding(
+            document: document,
+            tipsView: connectionTipsView,
+            backgroundTipsView: applicationInBackgroundTipsView,
+            viewController: self
+        )
     }
 
     override func viewDidLayout() {
         super.viewDidLayout()
-        if let connectionTipsView, connectionTipsView.isVisible {
-            let windowTitleHeight = NavigationManager.shared.windowTitleBarHeight
-            connectionTipsView.frameLayout.sizeToFit().horAlign().y(windowTitleHeight + 10)
+        let windowTitleHeight = NavigationManager.shared.windowTitleBarHeight
+        for tipsView in [connectionTipsView, applicationInBackgroundTipsView].compactMap({ $0 }) where tipsView.isVisible {
+            tipsView.frameLayout.sizeToFit().horAlign().y(windowTitleHeight + 10)
         }
     }
 

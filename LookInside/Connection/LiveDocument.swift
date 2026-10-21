@@ -6,11 +6,17 @@
 //  app over its channel. It is untitled, never autosaves, and Save As exports
 //  the current hierarchy as a `.lookin` file. When the app's channel ends,
 //  the document shows a banner and looks for the same app every 3 seconds;
-//  when it reappears, the document switches to its new channel.
+//  when it reappears, the document switches to its new channel and fetches
+//  the hierarchy again. While the app is in the background the document
+//  shows another banner and refreshes once the app is back.
+//  `LiveSessionState` makes those decisions; this class carries them out.
 //
 
 import AppKit
+import FoundationToolbox
+import LookInsideHostCore
 
+@Loggable(subsystem: "com.lookinside.app")
 @objc(LookinLiveDocument)
 final class LiveDocument: NSDocument {
     /// Posted (object: the document) once `LiveDocumentController`
@@ -32,16 +38,26 @@ final class LiveDocument: NSDocument {
     /// KVO; the window shows it as a banner.
     @objc private(set) dynamic var connectionLossBannerMessage: String?
 
+    /// Set while the app is in the background, which keeps it from
+    /// answering; nil otherwise. Never set together with
+    /// `connectionLossBannerMessage`. Observable with KVO; the window shows it
+    /// as a banner.
+    @objc private(set) dynamic var applicationInBackgroundBannerMessage: String?
+
+    private var sessionState = LiveSessionState()
+
     /// The app info from before the channel ended, matched against the
     /// apps found while reconnecting.
     private var lastKnownAppInfo: InspectedAppInfo?
     private var channelEndTask: Task<Void, Never>?
+    private var applicationStateTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
+    private var backgroundProbeTask: Task<Void, Never>?
 
     init(inspectableApp: InspectableApp) {
         self.inspectableApp = inspectableApp
         super.init()
-        subscribeChannelLifecycle()
+        watchCurrentChannel()
     }
 
     /// A document can be freed without `close()` (for example when its
@@ -50,7 +66,9 @@ final class LiveDocument: NSDocument {
     /// cancelling ends the stream, which unregisters it.
     deinit {
         channelEndTask?.cancel()
+        applicationStateTask?.cancel()
         reconnectTask?.cancel()
+        backgroundProbeTask?.cancel()
     }
 
     /// The live document whose window is `window`, or nil.
@@ -153,43 +171,103 @@ final class LiveDocument: NSDocument {
         NotificationCenter.default.post(name: Self.willCloseNotification, object: self)
         channelEndTask?.cancel()
         channelEndTask = nil
+        applicationStateTask?.cancel()
+        applicationStateTask = nil
         reconnectTask?.cancel()
         reconnectTask = nil
+        backgroundProbeTask?.cancel()
+        backgroundProbeTask = nil
         super.close()
     }
 
     // MARK: - Channel lifecycle
 
-    /// Watches the current app's channel; a reconnect calls this again for
-    /// the new channel.
-    private func subscribeChannelLifecycle() {
-        guard inspectableApp.channel != nil else {
-            // Nothing to watch until a reconnect brings a channel.
+    /// Watches the current app's channel for its end and for its Server's
+    /// background reports; a reconnect calls this again for the new channel.
+    /// The app holds its channel weakly, so the channel may already be gone,
+    /// or ended, when this runs; that counts as an end, and the document
+    /// reconnects.
+    private func watchCurrentChannel() {
+        channelEndTask?.cancel()
+        channelEndTask = nil
+        applicationStateTask?.cancel()
+        applicationStateTask = nil
+        guard let channel = inspectableApp.channel, channel.isConnected else {
+            handle(.watchedChannel(isAlive: false))
             return
         }
-        channelEndTask?.cancel()
         let endedChannels = ConnectionManager.shared.channelWillEndEvents()
-        channelEndTask = Task { [weak self] in
-            for await channel in endedChannels {
+        channelEndTask = Task { [weak self, weak channel] in
+            for await endedChannel in endedChannels where endedChannel === channel {
+                self?.handle(.channelEnded)
+                return
+            }
+        }
+        let stateReports = ConnectionManager.shared.applicationStateEvents()
+        applicationStateTask = Task { [weak self, weak channel] in
+            for await report in stateReports where report.channel === channel {
                 guard let self else { return }
-                if channel === inspectableApp.channel {
-                    handleChannelDidEnd()
-                    return
+                switch report.kind {
+                case let .serverReported(isActive):
+                    handle(.serverReportedApplicationState(isActive: isActive))
+                case .requestRefusedInBackground:
+                    handle(.requestRefusedInBackground)
                 }
+            }
+        }
+        handle(.watchedChannel(isAlive: true))
+    }
+
+    /// Applies `event` to the session, shows its banner and carries out
+    /// what it asks for.
+    private func handle(_ event: LiveSessionState.Event) {
+        let actions = sessionState.handle(event)
+        updateBanners()
+        for action in actions {
+            switch action {
+            case .startReconnecting:
+                if let appInfo = inspectableApp.appInfo {
+                    lastKnownAppInfo = appInfo
+                }
+                attemptAutoReconnect()
+            case .reloadHierarchy:
+                reloadHierarchyAfterReturn()
+            case .startBackgroundProbe:
+                startBackgroundProbe()
+            case .stopBackgroundProbe:
+                backgroundProbeTask?.cancel()
+                backgroundProbeTask = nil
             }
         }
     }
 
-    private func handleChannelDidEnd() {
-        let priorInfo = inspectableApp.appInfo
-        lastKnownAppInfo = priorInfo
-        let appName = (priorInfo?.appName).flatMap { $0.isEmpty ? nil : $0 }
+    private func updateBanners() {
+        let info = inspectableApp.appInfo ?? lastKnownAppInfo
+        let appName = (info?.appName).flatMap { $0.isEmpty ? nil : $0 }
             ?? NSLocalizedString("Inspected app", comment: "")
-        connectionLossBannerMessage = String(
-            format: NSLocalizedString("Connection to %@ lost. Trying to reconnect…", comment: ""),
-            appName
-        )
-        attemptAutoReconnect()
+        let lossMessage: String?
+        let backgroundMessage: String?
+        switch sessionState.banner {
+        case .none:
+            lossMessage = nil
+            backgroundMessage = nil
+        case .connectionLost:
+            lossMessage = String(format: NSLocalizedString("Connection to %@ lost. Trying to reconnect…", comment: ""), appName)
+            backgroundMessage = nil
+        case .applicationInBackground:
+            lossMessage = nil
+            backgroundMessage = String(
+                format: NSLocalizedString("%@ is in the background. LookInside refreshes when it returns.", comment: "Banner over a live inspector window while the inspected app is in the background; %@ is the app's name"),
+                appName
+            )
+        }
+        // Only on change: KVO observers restart the banner's animation.
+        if connectionLossBannerMessage != lossMessage {
+            connectionLossBannerMessage = lossMessage
+        }
+        if applicationInBackgroundBannerMessage != backgroundMessage {
+            applicationInBackgroundBannerMessage = backgroundMessage
+        }
     }
 
     private func attemptAutoReconnect() {
@@ -207,8 +285,9 @@ final class LiveDocument: NSDocument {
         }
     }
 
-    /// The hierarchy is not fetched again here; the next reload uses the
-    /// new channel.
+    /// Switches to the app found again; watching its channel fetches the
+    /// hierarchy again (`LiveSessionState`), since the tree on screen belongs
+    /// to the old process.
     private func adoptReconnectedApp(_ newApp: InspectableApp) {
         inspectableApp = newApp
         // The window controller and its async update manager hold the app
@@ -218,19 +297,88 @@ final class LiveDocument: NSDocument {
             windowController.inspectableApp = newApp
             windowController.asyncUpdateManager.inspectableApp = newApp
         }
-        connectionLossBannerMessage = nil
         reconnectTask = nil
-        subscribeChannelLifecycle()
+        watchCurrentChannel()
     }
 
     private func fetchInspectableAppMatchingLastKnown() async -> InspectableApp? {
         guard let targetInfo = lastKnownAppInfo else { return nil }
         let apps = await AppsManager.shared.fetchAppInfos(needImages: false, localInfos: nil)
-        guard let match = apps.first(where: { targetInfo.isEqual(to: $0.appInfo) }) else {
+        let candidates = apps.map { app in
+            ReconnectCandidate(
+                identity: app.appInfo.map(Self.identity(of:)) ?? Self.unidentifiedApp,
+                // An app listed without a channel (its Server is too old for
+                // this Host, for one) cannot be inspected.
+                canBeInspected: app.channel?.isConnected == true && app.serverVersionError == nil && app.appInfo != nil
+            )
+        }
+        guard let index = ReconnectTargetSelection.candidateIndex(for: Self.identity(of: targetInfo), among: candidates) else {
             return nil
         }
+        let match = apps[index]
         // Without images the response has no icon; keep the one we had.
         match.appInfo?.appIcon = targetInfo.appIcon
         return match
+    }
+
+    private static func identity(of info: InspectedAppInfo) -> InspectedAppIdentity {
+        InspectedAppIdentity(
+            appName: info.appName,
+            bundleIdentifier: info.appBundleIdentifier,
+            deviceDescription: info.deviceDescription,
+            deviceModelIdentifier: info.deviceModelIdentifier,
+            osDescription: info.osDescription,
+            deviceType: info.deviceType.rawValue
+        )
+    }
+
+    /// An app that sent no app info; it matches nothing.
+    private static let unidentifiedApp = InspectedAppIdentity(
+        appName: nil,
+        bundleIdentifier: nil,
+        deviceDescription: nil,
+        deviceModelIdentifier: nil,
+        osDescription: nil,
+        deviceType: -1
+    )
+
+    /// The refresh after a reconnect or after the app came back from the
+    /// background. A failure leaves the old tree: a refusal in the background
+    /// shows its banner through the connection manager's report, and other
+    /// errors are the ones a manual reload would show.
+    private func reloadHierarchyAfterReturn() {
+        guard let staticWindowController else { return }
+        Task {
+            do {
+                _ = try await staticWindowController.reloadHierarchy(initiator: .host)
+            } catch {
+                #log(.default, "LiveDocument - refresh after the app returned failed: \((error as NSError).localizedDescription, privacy: .public)")
+            }
+        }
+    }
+
+    /// Pings the app every 2 seconds while it is in the background, for
+    /// Servers that do not report their application state. Ends on its own
+    /// once a ping is answered from the foreground; a ping that times out on
+    /// a silent channel closes it (`ChannelLivenessPolicy`), which ends the
+    /// channel and so this probe.
+    private func startBackgroundProbe() {
+        backgroundProbeTask?.cancel()
+        backgroundProbeTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled, let self else { return }
+                guard let channel = inspectableApp.channel, channel.isConnected else { return }
+                do {
+                    try await ConnectionManager.shared.ping(channel: channel)
+                } catch {
+                    continue
+                }
+                guard !Task.isCancelled else { return }
+                backgroundProbeTask = nil
+                handle(.backgroundProbeAnswered)
+                return
+            }
+        }
     }
 }
