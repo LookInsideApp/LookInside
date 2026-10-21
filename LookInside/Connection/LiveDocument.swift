@@ -53,6 +53,10 @@ final class LiveDocument: NSDocument {
     private var applicationStateTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
     private var backgroundProbeTask: Task<Void, Never>?
+    /// The refresh started after the app returned, with its retries.
+    private var automaticRefreshTask: Task<Void, Never>?
+
+    private static let automaticRefreshRetryPolicy = AutomaticRefreshRetryPolicy()
 
     init(inspectableApp: InspectableApp) {
         self.inspectableApp = inspectableApp
@@ -69,6 +73,7 @@ final class LiveDocument: NSDocument {
         applicationStateTask?.cancel()
         reconnectTask?.cancel()
         backgroundProbeTask?.cancel()
+        automaticRefreshTask?.cancel()
     }
 
     /// The live document whose window is `window`, or nil.
@@ -177,6 +182,8 @@ final class LiveDocument: NSDocument {
         reconnectTask = nil
         backgroundProbeTask?.cancel()
         backgroundProbeTask = nil
+        automaticRefreshTask?.cancel()
+        automaticRefreshTask = nil
         super.close()
     }
 
@@ -192,6 +199,9 @@ final class LiveDocument: NSDocument {
         channelEndTask = nil
         applicationStateTask?.cancel()
         applicationStateTask = nil
+        // A refresh still waiting to be retried was meant for the old one.
+        automaticRefreshTask?.cancel()
+        automaticRefreshTask = nil
         guard let channel = inspectableApp.channel, channel.isConnected else {
             handle(.watchedChannel(isAlive: false))
             return
@@ -229,6 +239,8 @@ final class LiveDocument: NSDocument {
                 if let appInfo = inspectableApp.appInfo {
                     lastKnownAppInfo = appInfo
                 }
+                automaticRefreshTask?.cancel()
+                automaticRefreshTask = nil
                 attemptAutoReconnect()
             case .reloadHierarchy:
                 reloadHierarchyAfterReturn()
@@ -343,17 +355,48 @@ final class LiveDocument: NSDocument {
     )
 
     /// The refresh after a reconnect or after the app came back from the
-    /// background. A failure leaves the old tree: a refusal in the background
-    /// shows its banner through the connection manager's report, and other
-    /// errors are the ones a manual reload would show.
+    /// background. A refresh the window refuses because a fetch or the
+    /// detail sync is running is tried again once that is over
+    /// (`AutomaticRefreshRetryPolicy`); a refresh started meanwhile, a new
+    /// channel and closing the document cancel the retries. Any other
+    /// failure leaves the old tree: a refusal in the background shows its
+    /// banner through the connection manager's report, and other errors are
+    /// the ones a manual reload would show.
     private func reloadHierarchyAfterReturn() {
-        guard let staticWindowController else { return }
-        Task {
-            do {
-                _ = try await staticWindowController.reloadHierarchy(initiator: .host)
-            } catch {
-                #log(.default, "LiveDocument - refresh after the app returned failed: \((error as NSError).localizedDescription, privacy: .public)")
+        automaticRefreshTask?.cancel()
+        automaticRefreshTask = Task { [weak self] in
+            var retriesSoFar = 0
+            while true {
+                guard let outcome = await self?.attemptAutomaticRefresh(),
+                      !Task.isCancelled,
+                      let delay = Self.automaticRefreshRetryPolicy.delayBeforeRetry(after: outcome, retriesSoFar: retriesSoFar)
+                else {
+                    return
+                }
+                retriesSoFar += 1
+                try? await Task.sleep(for: delay)
+                guard !Task.isCancelled else { return }
             }
+        }
+    }
+
+    /// One attempt of `reloadHierarchyAfterReturn()`; nil without a window.
+    private func attemptAutomaticRefresh() async -> AutomaticRefreshRetryPolicy.Outcome? {
+        guard let staticWindowController else { return nil }
+        do {
+            _ = try await staticWindowController.reloadHierarchy(initiator: .host)
+            return .succeeded
+        } catch {
+            let error = error as NSError
+            typealias ReloadError = StaticWindowController.ReloadError
+            if error.domain == ReloadError.domain,
+               error.code == ReloadError.alreadyInProgress || error.code == ReloadError.detailSyncInProgress
+            {
+                #log(.debug, "LiveDocument - refresh after the app returned waits for a running fetch: \(error.localizedDescription, privacy: .public)")
+                return .refusedWhileBusy
+            }
+            #log(.default, "LiveDocument - refresh after the app returned failed: \(error.localizedDescription, privacy: .public)")
+            return .failed
         }
     }
 

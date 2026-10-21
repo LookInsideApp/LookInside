@@ -181,3 +181,34 @@ struct LiveSessionStateTests {
         #expect(state.handle(.requestRefusedInBackground) == [fastProbe])
     }
 }
+
+struct AutomaticRefreshRetryPolicyTests {
+    /// The refresh after a reconnect or a return from the background was
+    /// dropped when a fetch was running, and the tree stayed stale.
+    @Test("a refresh refused while a fetch or the detail sync runs is tried again after the interval")
+    func aRefusedRefreshIsRetried() {
+        let policy = AutomaticRefreshRetryPolicy()
+        #expect(policy.delayBeforeRetry(after: .refusedWhileBusy, retriesSoFar: 0) == .milliseconds(500))
+        #expect(policy.delayBeforeRetry(after: .refusedWhileBusy, retriesSoFar: 10) == .milliseconds(500))
+    }
+
+    @Test("a refresh that succeeded or failed for another reason is not tried again", arguments: [AutomaticRefreshRetryPolicy.Outcome.succeeded, .failed])
+    func otherOutcomesAreNotRetried(outcome: AutomaticRefreshRetryPolicy.Outcome) {
+        #expect(AutomaticRefreshRetryPolicy().delayBeforeRetry(after: outcome, retriesSoFar: 0) == nil)
+    }
+
+    @Test("a refresh refused again and again stops after the last retry")
+    func retriesAreBounded() {
+        let policy = AutomaticRefreshRetryPolicy(retryInterval: .seconds(1), maximumRetries: 3)
+        let delays = (0 ... 3).map { retriesSoFar in
+            policy.delayBeforeRetry(after: .refusedWhileBusy, retriesSoFar: retriesSoFar)
+        }
+        #expect(delays == [.seconds(1), .seconds(1), .seconds(1), nil])
+    }
+
+    @Test("by default a refused refresh waits for the blocking fetch for a minute")
+    func theDefaultWaitsAMinute() {
+        let policy = AutomaticRefreshRetryPolicy()
+        #expect(policy.retryInterval * policy.maximumRetries == .seconds(60))
+    }
+}

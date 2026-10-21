@@ -153,3 +153,49 @@ public struct LiveSessionState: Equatable, Sendable {
         return [.stopBackgroundProbe]
     }
 }
+
+/// Whether a refresh a live window starts on its own (`reloadHierarchy`:
+/// after a reconnect, after its app came back) is tried again.
+///
+/// The window refuses a refresh while a hierarchy fetch or the detail sync
+/// is running. Dropping the automatic refresh then left the old tree on
+/// screen, after a reconnect even one whose object identifiers belong to a
+/// process that is gone. A refused refresh is tried again every
+/// `retryInterval`, up to `maximumRetries` times, so it starts once the
+/// fetch that blocked it is over. Any other failure is not retried: a
+/// manual reload would meet it as well.
+public struct AutomaticRefreshRetryPolicy: Equatable, Sendable {
+    /// How one attempt ended.
+    public enum Outcome: Equatable, Sendable {
+        case succeeded
+        /// The window refused to start it: a hierarchy fetch or the detail
+        /// sync was running.
+        case refusedWhileBusy
+        /// Any other failure: the app's, the channel's, or the window's.
+        case failed
+    }
+
+    public static let defaultRetryInterval: Duration = .milliseconds(500)
+    /// A minute at the default interval: longer than a large tree's
+    /// hierarchy fetch, and a detail sync running longer than that is not
+    /// worth waiting out.
+    public static let defaultMaximumRetries = 120
+
+    public let retryInterval: Duration
+    public let maximumRetries: Int
+
+    public init(retryInterval: Duration = Self.defaultRetryInterval, maximumRetries: Int = Self.defaultMaximumRetries) {
+        self.retryInterval = retryInterval
+        self.maximumRetries = maximumRetries
+    }
+
+    /// How long to wait before trying again after an attempt that ended
+    /// with `outcome`, when the refresh was already retried
+    /// `retriesSoFar` times; nil to stop.
+    public func delayBeforeRetry(after outcome: Outcome, retriesSoFar: Int) -> Duration? {
+        guard outcome == .refusedWhileBusy, retriesSoFar < maximumRetries else {
+            return nil
+        }
+        return retryInterval
+    }
+}
