@@ -32,6 +32,21 @@ struct ConnectionPush {
     let data: Any?
 }
 
+/// What a channel's Server said about its app being in the foreground.
+struct ApplicationStateReport {
+    enum Kind {
+        /// `LookinPush_ApplicationStateChanged`; Servers that predate it
+        /// never send it.
+        case serverReported(isActive: Bool)
+        /// A response came back with `appIsInBackground`, from any request
+        /// on the channel (the launch window's app info scan included).
+        case requestRefusedInBackground
+    }
+
+    let channel: ServerChannel
+    let kind: Kind
+}
+
 /// Connection state the manager keeps for one channel.
 @MainActor
 final class ServerChannelConnectionState {
@@ -83,6 +98,12 @@ final class ConnectionManager: NSObject {
 
     private let channelWillEndBroadcaster = AsyncBroadcaster<ServerChannel>()
     private let pushBroadcaster = AsyncBroadcaster<ConnectionPush>()
+    private let applicationStateBroadcaster = AsyncBroadcaster<ApplicationStateReport>()
+
+    /// Which timed-out requests may show a channel to be dead.
+    private static let channelLivenessPolicy = ChannelLivenessPolicy(
+        probeRequestTypes: [UInt32(LookinRequestTypePing), UInt32(LookinRequestTypeApp)]
+    )
 
     /// Totals for the log line of a large multi-frame response.
     private var receivedResponseBytes = 0
@@ -128,6 +149,12 @@ final class ConnectionManager: NSObject {
         pushBroadcaster.subscribe()
     }
 
+    /// The Servers' reports of their apps going to the background and
+    /// coming back.
+    func applicationStateEvents() -> AsyncStream<ApplicationStateReport> {
+        applicationStateBroadcaster.subscribe()
+    }
+
     // MARK: - Connecting
 
     /// Connects every port that may have a Server and returns the connected
@@ -163,8 +190,12 @@ final class ConnectionManager: NSObject {
 
     private func connect(_ port: ConnectionPort, completion: @escaping (ServerChannel?) -> Void) {
         if let connected = port.connectedChannel {
-            completion(connected)
-            return
+            if connected.isConnected {
+                completion(connected)
+                return
+            }
+            // Closed, its end not delivered yet: the port is probed again.
+            port.connectedChannel = nil
         }
         switch port.kind {
         case .simulator, .mac:
@@ -299,6 +330,27 @@ final class ConnectionManager: NSObject {
             }
         }
         sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: pingTimeout, sink: pingSink)
+    }
+
+    /// Sends one ping, and only that: no version check, no license
+    /// handshake. Returns once a Server in the foreground answered; throws
+    /// `appInBackground` while its app is in the background, or the
+    /// transport error or timeout.
+    func ping(channel: ServerChannel) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            var isResumed = false
+            let sink = ResponseSink { event in
+                guard !isResumed else { return }
+                isResumed = true
+                switch event {
+                case .response, .completion:
+                    continuation.resume()
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                }
+            }
+            sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: 2, sink: sink)
+        }
     }
 
     /// Ends the request whose events go to `sink` and reports it as
@@ -448,9 +500,11 @@ final class ConnectionManager: NSObject {
                 // Answered in time, and waiting behind other frames here.
                 channel?.hasUndeliveredFrame(type: request.type, tag: request.tag) ?? false
             },
-            onTimeout: { [weak channel] request in
+            onTimeout: { [weak self, weak channel] request in
                 request.sink.send(.failure(ConnectionError.timeout))
-                channel?.connectionState.remove(request)
+                guard let channel else { return }
+                channel.connectionState.remove(request)
+                self?.closeChannelIfSilent(channel, afterTimeoutOf: request)
             }
         )
 
@@ -499,6 +553,7 @@ final class ConnectionManager: NSObject {
     private static let pushFrameTypes: Set<UInt32> = [
         UInt32(LookinPush_SwiftUISupportDetected),
         UInt32(LookinPush_GestureDebug),
+        UInt32(LookinPush_ApplicationStateChanged),
     ]
 
     private func shouldAcceptFrame(on channel: ServerChannel, type: UInt32, tag: UInt32) -> Bool {
@@ -545,6 +600,7 @@ final class ConnectionManager: NSObject {
             state.remove(request)
             request.sink.send(.failure(ConnectionError.appInBackground))
             #log(.default, "Lookin - the iOS app reported that it is in the background; request failed")
+            applicationStateBroadcaster.yield(ApplicationStateReport(channel: channel, kind: .requestRefusedInBackground))
             return
         }
 
@@ -586,6 +642,12 @@ final class ConnectionManager: NSObject {
     }
 
     private func handlePush(type: UInt32, data: Any?, channel: ServerChannel) {
+        if type == UInt32(LookinPush_ApplicationStateChanged) {
+            guard let isActive = ApplicationStatePush.isActive(inPayload: data) else { return }
+            #log(.default, "Lookin - the app reported that it is \(isActive ? "active" : "in the background", privacy: .public), channel:\(channel, privacy: .public)")
+            applicationStateBroadcaster.yield(ApplicationStateReport(channel: channel, kind: .serverReported(isActive: isActive)))
+            return
+        }
         guard type == UInt32(LookinPush_SwiftUISupportDetected) else { return }
         #log(.default, "LookinClient - received SwiftUI support detection push from channel:\(channel, privacy: .public) data:\(data.map { String(describing: $0) } ?? "(null)", privacy: .public)")
         DispatchQueue.main.async {
@@ -599,9 +661,32 @@ final class ConnectionManager: NSObject {
         }
     }
 
+    /// Closes `channel` when a probe on it timed out and nothing arrived on
+    /// it for a while: over usbmuxd a channel whose other end is gone can
+    /// claim to be connected forever, and reusing it kept its port from being
+    /// probed again. Its end then clears the port.
+    private func closeChannelIfSilent(_ channel: ServerChannel, afterTimeoutOf request: ConnectionRequest) {
+        let silence = channel.secondsSinceLastReceive
+        guard channel.isConnected,
+              Self.channelLivenessPolicy.shouldCloseChannel(afterTimeoutOfRequestType: request.type, secondsSinceLastReceive: silence)
+        else {
+            return
+        }
+        #log(.default, "Lookin - closing a silent channel, \(channel, privacy: .public), \(silence, format: .fixed(precision: 1), privacy: .public)s without data")
+        channel.close()
+    }
+
     private func endChannel(_ channel: ServerChannel) {
         for port in simulatorPorts + macPorts + usbPorts where port.connectedChannel === channel {
             port.connectedChannel = nil
+        }
+        // Nothing can answer these any more. Failing them now, rather than
+        // at their timeouts, ends a hierarchy fetch at once, so the refresh
+        // after a reconnect is not refused as already running.
+        for request in channel.connectionState.activeRequests.removeAll() {
+            request.endTimeoutCount()
+            request.endSignpostInterval()
+            request.sink.send(.failure(ConnectionError.noConnect))
         }
         channelWillEndBroadcaster.yield(channel)
         SwiftUISupportGatekeeper.sharedInstance().licenseHandshakeChannelDidEnd(channel.connectionState.licenseChannelID)

@@ -55,6 +55,13 @@ final class ServerChannel: NSObject {
         frameChannel.isConnected
     }
 
+    /// How long ago bytes last arrived on the channel (since it was made,
+    /// before the first). A probe that times out closes the channel only
+    /// after such a silence (`ChannelLivenessPolicy`).
+    var secondsSinceLastReceive: TimeInterval {
+        ProcessInfo.processInfo.systemUptime - frameChannel.lastReceiveUptime
+    }
+
     /// Takes over `fileDescriptor`, a connected socket, and starts reading.
     /// `initialBytes` are frame bytes read before the channel existed (after
     /// a usbmuxd Connect result). The channel stays alive until it ends.
