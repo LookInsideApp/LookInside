@@ -72,6 +72,7 @@ swiftc -parse-as-library \
 	"$SOURCE_DIR/Read/ReadScreenshotLookup.swift" \
 	"$SOURCE_DIR/Toolbar/ToolbarRules.swift" \
 	"$SOURCE_DIR/Launch/LaunchRules.swift" \
+	"$SOURCE_DIR/Launch/LaunchDeviceList.swift" \
 	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
 	"$TEST_DIR/LaunchToolbarReadTests.swift" \
 	"$WORK"/lookin-core/*.o \

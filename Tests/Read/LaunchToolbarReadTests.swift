@@ -34,6 +34,8 @@ struct LaunchToolbarReadTests {
         testAppsPopoverCopy()
         testLaunchAutoEnter()
         testLaunchServerVersionErrors()
+        testLaunchDeviceGrouping()
+        testLaunchDeviceSelection()
         print("Launch / Toolbar / Read tests passed")
     }
 
@@ -215,6 +217,123 @@ struct LaunchToolbarReadTests {
         expect(LaunchRules.serverVersionAlertTitle(errorCode: LookinErrCode_ServerVersionTooHigh, appName: nil) == "This app uses a newer LookInside Server.", "too high alert title, no name")
         expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "Custom") == "Custom", "own description")
         expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "") == "Unable to inspect this app.", "fallback title")
+    }
+
+    // MARK: - Launch devices
+
+    private static let iPhone = LaunchDeviceIdentity.reported(deviceDescription: "iPhone 17 Pro", osDescription: "iOS 26.4", deviceType: .simulator)
+    private static let iPad = LaunchDeviceIdentity.reported(deviceDescription: "iPad Air", osDescription: "iPadOS 26.4", deviceType: .simulator)
+    private static let mac = LaunchDeviceIdentity.reported(deviceDescription: "MacBook Pro", osDescription: "macOS 26.5", deviceType: .mac)
+    private static let phoneOnUSB = LaunchDeviceIdentity.reported(deviceDescription: "Kai's iPhone", osDescription: "iOS 26.4", deviceType: .others)
+
+    private static func entry(
+        _ app: String,
+        on device: LaunchDeviceIdentity?,
+        origin: String,
+        isConnectable: Bool = true
+    ) -> LaunchDeviceListEntry<String> {
+        LaunchDeviceListEntry(app: app, reportedDevice: device, originGroupKey: origin, isConnectable: isConnectable)
+    }
+
+    private static func groups(_ entries: [LaunchDeviceListEntry<String>]) -> [LaunchDeviceGroup<String>] {
+        LaunchDeviceGrouping.groups(of: entries)
+    }
+
+    private static func testLaunchDeviceGrouping() {
+        let byDevice = groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Finder", on: mac, origin: "mac"),
+            entry("Maps", on: iPhone, origin: "simulator", isConnectable: false),
+        ])
+        expect(byDevice.map(\.identity) == [iPhone, mac], "devices in the order their first app was found")
+        expect(byDevice.first?.apps == ["Notes", "Maps"], "apps of one device stay together, in scan order")
+        expect(byDevice.first?.connectableAppCount == 1, "only apps a click opens count as connectable")
+
+        let sameNameOtherSystem = groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Notes", on: .reported(deviceDescription: "iPhone 17 Pro", osDescription: "iOS 27.0", deviceType: .simulator), origin: "simulator"),
+        ])
+        expect(sameNameOtherSystem.count == 2, "the same device name on another OS is another device")
+
+        let backgroundOnUSB = groups([
+            entry("Mail", on: phoneOnUSB, origin: "usb:3"),
+            entry("(background)", on: nil, origin: "usb:3", isConnectable: false),
+        ])
+        expect(backgroundOnUSB.count == 1 && backgroundOnUSB.first?.apps == ["Mail", "(background)"], "an app without info joins the only device on its origin")
+
+        let twoSimulators = groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Files", on: iPad, origin: "simulator"),
+            entry("(background)", on: nil, origin: "simulator", isConnectable: false),
+        ])
+        expect(twoSimulators.map(\.identity) == [iPhone, iPad, .unidentified(originGroupKey: "simulator")], "an app without info gets its own device when its origin has several")
+
+        let onlyUnknown = groups([
+            entry("(background)", on: nil, origin: "usb:3", isConnectable: false),
+            entry("(version error)", on: nil, origin: "usb:3", isConnectable: false),
+            entry("(other device)", on: nil, origin: "usb:4", isConnectable: false),
+        ])
+        expect(onlyUnknown.map(\.identity) == [.unidentified(originGroupKey: "usb:3"), .unidentified(originGroupKey: "usb:4")], "apps without info are grouped per origin")
+
+        expect(groups([]).isEmpty, "no apps, no devices")
+    }
+
+    private static func testLaunchDeviceSelection() {
+        var selection = LaunchDeviceSelection()
+        selection.update(with: groups([]))
+        expect(selection.selectedDevice == nil, "nothing to select")
+
+        selection.update(with: groups([
+            entry("(background)", on: iPhone, origin: "simulator", isConnectable: false),
+            entry("Finder", on: mac, origin: "mac"),
+        ]))
+        expect(selection.selectedDevice == mac, "the first device with an app a click opens is selected")
+
+        selection.update(with: groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Finder", on: mac, origin: "mac"),
+        ]))
+        expect(selection.selectedDevice == mac, "a device appearing earlier does not take the selection")
+
+        var onlyBackground = LaunchDeviceSelection()
+        onlyBackground.update(with: groups([entry("(background)", on: iPhone, origin: "simulator", isConnectable: false)]))
+        expect(onlyBackground.selectedDevice == iPhone, "with no app a click opens, the first device is selected")
+
+        let threeDevices = groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Files", on: iPad, origin: "simulator"),
+            entry("Finder", on: mac, origin: "mac"),
+        ])
+        var userChoice = LaunchDeviceSelection()
+        userChoice.update(with: threeDevices)
+        userChoice.userDidSelect(iPad)
+        userChoice.update(with: threeDevices)
+        expect(userChoice.selectedDevice == iPad, "the user's device stays selected across scans")
+
+        userChoice.update(with: groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Finder", on: mac, origin: "mac"),
+        ]))
+        expect(userChoice.selectedDevice == mac, "the device after a vanished one takes over")
+
+        userChoice.update(with: threeDevices)
+        expect(userChoice.selectedDevice == iPad, "the user's device is selected again when it comes back")
+
+        var lastVanishes = LaunchDeviceSelection()
+        lastVanishes.update(with: threeDevices)
+        lastVanishes.userDidSelect(mac)
+        lastVanishes.update(with: groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Files", on: iPad, origin: "simulator"),
+        ]))
+        expect(lastVanishes.selectedDevice == iPad, "when the last device vanishes, the one before it takes over")
+
+        var everythingVanishes = LaunchDeviceSelection()
+        everythingVanishes.update(with: threeDevices)
+        everythingVanishes.update(with: groups([]))
+        expect(everythingVanishes.selectedDevice == nil, "no devices left, nothing selected")
+        everythingVanishes.update(with: groups([entry("Finder", on: mac, origin: "mac")]))
+        expect(everythingVanishes.selectedDevice == mac, "a device found after an empty scan is selected")
     }
 
     // MARK: - Helpers
