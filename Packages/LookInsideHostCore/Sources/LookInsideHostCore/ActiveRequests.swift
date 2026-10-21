@@ -53,6 +53,14 @@ public final class ActiveRequests<Request: ChannelRequest> {
         requests.removeAll { $0 === request }
     }
 
+    /// Takes every request out, for a channel that ended: none of them can
+    /// be answered any more, and the caller fails each one.
+    public func removeAll() -> [Request] {
+        let removed = requests
+        requests = []
+        return removed
+    }
+
     public func contains(_ request: Request) -> Bool {
         requests.contains { $0 === request }
     }

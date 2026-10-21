@@ -84,4 +84,24 @@ struct ActiveRequestsTests {
         #expect(replaced.isEmpty)
         #expect(activeRequests.requests.count == 2)
     }
+
+    /// A channel that ended fails what it still waits for at once; until
+    /// then a hierarchy request kept the window "fetching" until its own
+    /// timeout and the refresh after a reconnect was refused.
+    @Test("an ended channel hands back every request still waiting, pings included")
+    func anEndedChannelHandsBackEveryWaitingRequest() {
+        let activeRequests = makeActiveRequests()
+        let ping = SampleRequest(type: Self.pingType)
+        let hierarchy = SampleRequest(type: Self.hierarchyType)
+        let details = SampleRequest(type: Self.detailsType)
+        for request in [ping, hierarchy, details] {
+            _ = activeRequests.admit(request, yieldsToRequestInFlight: false)
+        }
+
+        let removed = activeRequests.removeAll()
+
+        #expect(removed.map(ObjectIdentifier.init) == [ObjectIdentifier(ping), ObjectIdentifier(hierarchy), ObjectIdentifier(details)])
+        #expect(activeRequests.requests.isEmpty)
+        #expect(activeRequests.containsRequest(ofType: Self.hierarchyType) == false)
+    }
 }
