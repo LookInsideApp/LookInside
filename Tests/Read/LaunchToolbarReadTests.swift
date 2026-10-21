@@ -232,7 +232,13 @@ struct LaunchToolbarReadTests {
         origin: String,
         isConnectable: Bool = true
     ) -> LaunchDeviceListEntry<String> {
-        LaunchDeviceListEntry(app: app, reportedDevice: device, originGroupKey: origin, isConnectable: isConnectable)
+        LaunchDeviceListEntry(
+            app: app,
+            reportedDevice: device,
+            originGroupKey: origin,
+            originIdentifiesDevice: origin.hasPrefix("usb:"),
+            isConnectable: isConnectable
+        )
     }
 
     private static func groups(_ entries: [LaunchDeviceListEntry<String>]) -> [LaunchDeviceGroup<String>] {
@@ -274,6 +280,20 @@ struct LaunchToolbarReadTests {
             entry("(other device)", on: nil, origin: "usb:4", isConnectable: false),
         ])
         expect(onlyUnknown.map(\.identity) == [.unidentified(originGroupKey: "usb:3"), .unidentified(originGroupKey: "usb:4")], "apps without info are grouped per origin")
+
+        let twoPhonesOfOneName = groups([
+            entry("Mail", on: phoneOnUSB, origin: "usb:3"),
+            entry("Mail", on: phoneOnUSB, origin: "usb:4"),
+            entry("(background)", on: nil, origin: "usb:4", isConnectable: false),
+        ])
+        expect(twoPhonesOfOneName.count == 2, "USB devices that report the same name and OS are two devices")
+        expect(twoPhonesOfOneName.last?.apps == ["Mail", "(background)"], "an app without info joins the device on its own USB origin")
+
+        let oneSimulatorTwoApps = groups([
+            entry("Notes", on: iPhone, origin: "simulator"),
+            entry("Files", on: iPhone, origin: "simulator"),
+        ])
+        expect(oneSimulatorTwoApps.map(\.identity) == [iPhone], "apps on the Simulator ports that report one device stay one device")
 
         expect(groups([]).isEmpty, "no apps, no devices")
     }

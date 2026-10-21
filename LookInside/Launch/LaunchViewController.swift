@@ -175,6 +175,7 @@ final class LaunchViewController: NSSplitViewController {
                 app: app,
                 reportedDevice: appInfo.map(Self.deviceIdentity(of:)),
                 originGroupKey: app.origin.map(Self.originGroupKey(of:)) ?? "",
+                originIdentifiesDevice: app.origin.map(Self.originIdentifiesDevice(_:)) ?? false,
                 isConnectable: !app.isUnresponsive && app.serverVersionError == nil
             )
         }
@@ -214,7 +215,7 @@ final class LaunchViewController: NSSplitViewController {
     private func sidebarDevice(for group: LaunchDeviceGroup<InspectableApp>) -> LaunchSidebarDevice {
         let iconAppInfo = group.apps.lazy.compactMap { self.displayedAppInfo(of: $0) }.first
         switch group.identity {
-        case let .reported(deviceDescription, osDescription, _):
+        case let .reported(deviceDescription, osDescription, _, _):
             return LaunchSidebarDevice(
                 identity: group.identity,
                 name: deviceDescription.isEmpty ? NSLocalizedString("Unknown", comment: "") : deviceDescription,
@@ -259,6 +260,15 @@ final class LaunchViewController: NSSplitViewController {
         case let .usb(deviceID):
             usbOriginGroupKeyPrefix + String(deviceID)
         }
+    }
+
+    /// Every app on one USB device runs on that device; the Simulator ports
+    /// are shared by every running Simulator.
+    private static func originIdentifiesDevice(_ origin: InspectableAppOrigin) -> Bool {
+        if case .usb = origin.kind {
+            return true
+        }
+        return false
     }
 
     private static func unidentifiedDeviceNameAndIcon(originGroupKey: String) -> (name: String, iconName: String) {

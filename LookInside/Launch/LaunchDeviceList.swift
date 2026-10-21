@@ -12,7 +12,11 @@ import Foundation
 /// One device in the launch window's sidebar.
 enum LaunchDeviceIdentity: Hashable {
     /// A device the app info named: its name, its OS and its kind.
-    case reported(deviceDescription: String, osDescription: String, deviceType: LookinAppInfoDevice)
+    /// `originGroupKey` is set when the apps' origin is one physical device
+    /// (a USB device), so two devices that report the same name and OS stay
+    /// apart; it is nil on the Simulator ports, which every running
+    /// Simulator shares, and on the Mac ports.
+    case reported(deviceDescription: String, osDescription: String, deviceType: LookinAppInfoDevice, originGroupKey: String? = nil)
     /// Apps that sent no app info (an app in the background, or a Server
     /// whose version this Host does not support) and could not be placed on
     /// a reported device. `originGroupKey` names where their channels come
@@ -28,6 +32,11 @@ struct LaunchDeviceListEntry<App> {
     /// Where the app's channel comes from: the same key for every app on the
     /// Simulator ports, on the Mac ports, or on one USB device.
     let originGroupKey: String
+    /// Whether every app on the origin runs on one physical device (a USB
+    /// device), so the origin tells apart devices that report the same name
+    /// and OS. False for the Simulator ports, which every running Simulator
+    /// shares, and for the Mac ports.
+    let originIdentifiesDevice: Bool
     /// Whether a click opens the app: it is in the foreground and its Server
     /// version is supported.
     let isConnectable: Bool
@@ -50,10 +59,14 @@ enum LaunchDeviceGrouping {
     /// and otherwise gets a device of its own per origin: Simulator ports are
     /// shared by every running Simulator, so with two of them there is no
     /// telling which one the app runs on.
+    ///
+    /// A device reported on an origin that is one physical device (a USB
+    /// device) is told apart by that origin, so two devices of the same name
+    /// and OS get a row each.
     static func groups<App>(of entries: [LaunchDeviceListEntry<App>]) -> [LaunchDeviceGroup<App>] {
         var reportedDevicesByOrigin: [String: [LaunchDeviceIdentity]] = [:]
         for entry in entries {
-            guard let reportedDevice = entry.reportedDevice else { continue }
+            guard let reportedDevice = reportedDevice(of: entry) else { continue }
             var devices = reportedDevicesByOrigin[entry.originGroupKey, default: []]
             if !devices.contains(reportedDevice) {
                 devices.append(reportedDevice)
@@ -65,7 +78,7 @@ enum LaunchDeviceGrouping {
         var groupIndexByIdentity: [LaunchDeviceIdentity: Int] = [:]
         for entry in entries {
             let identity: LaunchDeviceIdentity
-            if let reportedDevice = entry.reportedDevice {
+            if let reportedDevice = reportedDevice(of: entry) {
                 identity = reportedDevice
             } else if let devicesOfOrigin = reportedDevicesByOrigin[entry.originGroupKey], devicesOfOrigin.count == 1 {
                 identity = devicesOfOrigin[0]
@@ -86,6 +99,22 @@ enum LaunchDeviceGrouping {
             }
         }
         return groups
+    }
+
+    /// The device the entry's app info names, qualified with the origin when
+    /// the origin is one physical device.
+    private static func reportedDevice<App>(of entry: LaunchDeviceListEntry<App>) -> LaunchDeviceIdentity? {
+        guard entry.originIdentifiesDevice,
+              case let .reported(deviceDescription, osDescription, deviceType, _) = entry.reportedDevice
+        else {
+            return entry.reportedDevice
+        }
+        return .reported(
+            deviceDescription: deviceDescription,
+            osDescription: osDescription,
+            deviceType: deviceType,
+            originGroupKey: entry.originGroupKey
+        )
     }
 }
 
