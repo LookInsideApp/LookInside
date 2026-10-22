@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2640"
+   LastUpgradeVersion = "2720"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -17,7 +17,7 @@
                   <BuildableReference
                      BuildableIdentifier = "primary"
                      BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-                     BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
+                     BuildableName = "LookInside &#x9177;&#x72d7;&#x7248;.app"
                      BlueprintName = "LookInside"
                      ReferencedContainer = "container:LookInside.xcodeproj">
                   </BuildableReference>
@@ -35,7 +35,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-               BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
+               BuildableName = "LookInside &#x9177;&#x72d7;&#x7248;.app"
                BlueprintName = "LookInside"
                ReferencedContainer = "container:LookInside.xcodeproj">
             </BuildableReference>
@@ -46,8 +46,41 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
+      shouldUseLaunchSchemeArgsEnv = "NO"
       shouldAutocreateTestPlan = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
+            BuildableName = "LookInside.app"
+            BlueprintName = "LookInside"
+            ReferencedContainer = "container:LookInside.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A9750A0330A0000100A1B2C3"
+               BuildableName = "LookInsideAppTests.xctest"
+               BlueprintName = "LookInsideAppTests"
+               ReferencedContainer = "container:LookInside.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "LOOKINSIDE_ACTIVATION_STATE_DIR"
+            value = "$(TARGET_TEMP_DIR)/AppTestsActivationState"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "LOOKINSIDE_ACTIVATION_KEYCHAIN_PATH"
+            value = "$(TARGET_TEMP_DIR)/AppTestsActivationState/apptests.keychain-db"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -64,7 +97,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-            BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
+            BuildableName = "LookInside &#x9177;&#x72d7;&#x7248;.app"
             BlueprintName = "LookInside"
             ReferencedContainer = "container:LookInside.xcodeproj">
          </BuildableReference>
@@ -81,7 +114,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA48F29A21CC0CA50032EC2C"
-            BuildableName = "LookInside &#x9177;&#x72d7;&#x9002;&#x914d;&#x7248;.app"
+            BuildableName = "LookInside &#x9177;&#x72d7;&#x7248;.app"
             BlueprintName = "LookInside"
             ReferencedContainer = "container:LookInside.xcodeproj">
          </BuildableReference>

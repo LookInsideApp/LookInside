@@ -33,6 +33,7 @@ MARKETING_VERSION=""
 CURRENT_PROJECT_VERSION=""
 APP_PATH=""
 INJECTOR_REPO="$PROJECT_ROOT/../LookInside-Injector"
+MCP_REPO="$PROJECT_ROOT/../LookInside-MCP"
 
 usage() {
 	cat <<'EOF'
@@ -130,6 +131,10 @@ note_release_prerequisites() {
 	if [[ ! -d "$INJECTOR_REPO" ]]; then
 		log "LookInside-Injector repo not found; building DMG without the injector daemon."
 		log "Injector-dependent attach/injection features will be unavailable in this build."
+	fi
+	if [[ ! -d "$MCP_REPO" ]]; then
+		log "LookInside-MCP repo not found; building DMG without the bundled lookinside-mcp CLI."
+		log "The host MCP bridge still runs; point MCP clients at an official lookinside-mcp binary."
 	fi
 }
 
@@ -322,6 +327,7 @@ build_app_unsigned() {
 		PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_IDENTIFIER"
 		DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM"
 		LOOKINSIDE_ALLOW_MISSING_INJECTOR=YES
+		LOOKINSIDE_ALLOW_MISSING_MCP=YES
 		CODE_SIGNING_ALLOWED=NO
 	)
 

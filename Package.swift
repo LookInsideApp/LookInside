@@ -15,45 +15,21 @@ let sharedCXXDefines: [CXXSetting] = [
 let package = Package(
     name: "LookInside",
     platforms: [
-        .iOS(.v12),
+        .iOS(.v15),
         .tvOS(.v12),
-        .macOS(.v13),
+        .macOS(.v11),
     ],
     products: [
         .library(
             name: "LookinCore",
-            targets: ["LookinCore"]
+            targets: ["LookinCore", "LookinCoreImpl"]
         ),
         .library(
             name: "LookinShared",
-            targets: ["LookinCore", "LookinServerBase"]
-        ),
-        .library(
-            name: "LookinServer",
-            targets: ["LookinServer"]
-        ),
-        .library(
-            name: "LookinServerDynamic",
-            type: .dynamic,
-            targets: ["LookinServer"]
-        ),
-        .library(
-            name: "LookinServerInjected",
-            type: .dynamic,
-            targets: ["LookinServerInjected"]
-        ),
-        .library(
-            name: "LookinMCPCore",
-            targets: ["LookinMCPCore"]
-        ),
-        .executable(
-            name: "lookinside-mcp",
-            targets: ["LookinMCPServer"]
+            targets: ["LookinCore", "LookinCoreImpl", "LookinServerBase"]
         ),
     ],
-    dependencies: [
-        .package(url: "https://github.com/modelcontextprotocol/swift-sdk.git", from: "0.11.0"),
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "LookinServerBase",
@@ -71,81 +47,15 @@ let package = Package(
             dependencies: ["LookinServerBase"],
             path: "Sources/LookinCore",
             publicHeadersPath: "include",
-            cSettings: sharedCDefines + [
-                .headerSearchPath("."),
-                .headerSearchPath("Category"),
-                .headerSearchPath("Peertalk"),
-                .headerSearchPath("../LookinServer/Server/Category"),
-            ],
-            cxxSettings: sharedCXXDefines
-        ),
-        .target(
-            name: "LookinServerSwift",
-            dependencies: ["LookinServerBase"],
-            path: "Sources/LookinServerSwift",
-            cxxSettings: sharedCXXDefines,
-            swiftSettings: [
-                .define("SHOULD_COMPILE_LOOKIN_SERVER"),
-                .define("SPM_LOOKIN_SERVER_ENABLED"),
-            ]
-        ),
-        .target(
-            name: "LookinServer",
-            dependencies: ["LookinCore", "LookinServerBase", "LookinServerSwift"],
-            path: "Sources/LookinServer",
-            exclude: ["Shared"],
-            publicHeadersPath: "include",
-            cSettings: sharedCDefines + [
-                .headerSearchPath("Server"),
-                .headerSearchPath("Server/Category"),
-                .headerSearchPath("Server/Connection"),
-                .headerSearchPath("Server/Connection/RequestHandler"),
-                .headerSearchPath("Server/Others"),
-                .headerSearchPath("../LookinCore"),
-                .headerSearchPath("../LookinCore/include"),
-                .headerSearchPath("../LookinCore/Category"),
-                .headerSearchPath("../LookinCore/Peertalk"),
-            ],
-            cxxSettings: sharedCXXDefines
-        ),
-        .target(
-            name: "LookinServerInjected",
-            dependencies: ["LookinServer"],
-            path: "Sources/LookinServerInjected",
-            publicHeadersPath: "",
             cSettings: sharedCDefines,
-            cxxSettings: sharedCXXDefines,
-            linkerSettings: [
-                .linkedFramework("AppKit", .when(platforms: [.macOS])),
-                .linkedFramework("UIKit", .when(platforms: [.iOS, .tvOS])),
-            ]
+            cxxSettings: sharedCXXDefines
         ),
+        // The LookinCore model classes (plain Swift, `@objc(OriginalName)`), mirrored
+        // from LookInside-Server (Scripts/sync-lookin-core.sh).
         .target(
-            name: "LookinMCPCore",
-            dependencies: ["LookinCore"],
-            path: "Sources/LookinMCPCore",
-            swiftSettings: [
-                .define("SHOULD_COMPILE_LOOKIN_SERVER"),
-                .define("SPM_LOOKIN_SERVER_ENABLED"),
-            ]
-        ),
-        .executableTarget(
-            name: "LookinMCPServer",
-            dependencies: [
-                "LookinMCPCore",
-                .product(name: "MCP", package: "swift-sdk"),
-            ],
-            path: "Sources/LookinMCPServer",
-            swiftSettings: [
-                .define("SHOULD_COMPILE_LOOKIN_SERVER"),
-                .define("SPM_LOOKIN_SERVER_ENABLED"),
-            ]
-        ),
-        .testTarget(
-            name: "LookinMCPCoreTests",
-            dependencies: ["LookinMCPCore"],
-            path: "Tests/LookinMCPCoreTests",
-            resources: [.process("Fixtures")],
+            name: "LookinCoreImpl",
+            dependencies: ["LookinCore", "LookinServerBase"],
+            path: "Sources/LookinCoreImpl",
             swiftSettings: [
                 .define("SHOULD_COMPILE_LOOKIN_SERVER"),
                 .define("SPM_LOOKIN_SERVER_ENABLED"),

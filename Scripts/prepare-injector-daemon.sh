@@ -50,9 +50,80 @@ esac
 
 DERIVED_DATA="$INJECTOR_REPO/build/host-derived/$CONFIGURATION"
 LOG="$DERIVED_DATA/xcodebuild.log"
+TOOLCHAIN_STAMP="$DERIVED_DATA/.toolchain-stamp"
+
+# Reset the nested build's derived data whenever the Swift toolchain
+# changes.
+#
+# This derived data path is fixed rather than Xcode-managed, so it
+# survives Xcode upgrades -- and one thing inside it must not. For macro
+# support, SwiftPM caches a prebuilt swift-syntax under
+# SourcePackages/prebuilts/ in a directory named after the compiler that
+# produced it (e.g. swiftlang-6.3.2.1.108-macosx26.5-MacroSupport). That
+# cache is not invalidated on upgrade, so the next Xcode feeds its own
+# compiler a swiftmodule built by the previous one and every macro
+# target dies with "Unable to resolve Swift module dependency to a
+# compatible module: 'SwiftDiagnostics'".
+#
+# Deleting just the prebuilts directory is not enough: the build
+# description is cached as well, so the already-planned compile commands
+# keep the now-missing -I path and the failure only changes shape
+# ("unable to resolve module dependency"). Wiping the whole derived data
+# is the reliable reset.
+current_toolchain="$(xcrun swiftc -version 2>/dev/null | head -1)"
+if [ -z "$current_toolchain" ]; then
+    echo "warning: could not determine the Swift toolchain version; leaving $DERIVED_DATA as-is" >&2
+elif [ ! -f "$TOOLCHAIN_STAMP" ] || [ "$(cat "$TOOLCHAIN_STAMP")" != "$current_toolchain" ]; then
+    if [ -d "$DERIVED_DATA" ]; then
+        echo "note: Swift toolchain changed; resetting $DERIVED_DATA" >&2
+    fi
+    rm -rf "$DERIVED_DATA"
+fi
+
 mkdir -p "$DERIVED_DATA"
 
-if [ ! -d "$WORKSPACE" ]; then
+# Refuse to build a project that no longer matches its Tuist manifests.
+#
+# The workspace and xcodeproj are gitignored build artifacts, so testing only
+# for their presence means a checkout that already has them keeps building a
+# stale project after Project.swift changes -- and does so silently, since the
+# only symptom is whatever the stale project happens to get wrong. Raising a
+# package version requirement is the case that bites: the generated project
+# still carries the old requirement, SwiftPM keeps honouring the old pin, and
+# the build fails inside a dependency far away from the edit.
+#
+# This reports the problem rather than regenerating in place, and that is not a
+# matter of taste. LookInsideInjector.xcodeproj is a member of the monorepo's
+# LookInside.xcworkspace. Rewriting a workspace member mid-build makes Xcode
+# reload the workspace and cancel the build in progress, which kills this script
+# before it can finish -- and since nothing was recorded, the next build repeats
+# it. The result is a build that cancels itself forever. Generating is only safe
+# when the workspace does not exist yet, because nothing can have it open.
+#
+# Staleness is decided by modification time rather than a stamp file, so that
+# regenerating by hand is enough to clear it -- no bookkeeping this script has
+# to be alive to perform.
+PROJECT_FILE="$INJECTOR_REPO/LookInsideInjector.xcodeproj/project.pbxproj"
+
+newest_manifest_mtime=0
+newest_manifest_file=""
+for manifest_candidate in \
+    "$INJECTOR_REPO/Project.swift" \
+    "$INJECTOR_REPO/Workspace.swift" \
+    "$INJECTOR_REPO/Tuist.swift" \
+    "$INJECTOR_REPO/Tuist/Package.swift" \
+    "$INJECTOR_REPO/mise.toml"
+do
+    if [ -f "$manifest_candidate" ]; then
+        candidate_mtime="$(stat -f %m "$manifest_candidate")"
+        if [ "$candidate_mtime" -gt "$newest_manifest_mtime" ]; then
+            newest_manifest_mtime="$candidate_mtime"
+            newest_manifest_file="$manifest_candidate"
+        fi
+    fi
+done
+
+if [ ! -d "$WORKSPACE" ] || [ ! -f "$PROJECT_FILE" ]; then
     if command -v mise >/dev/null 2>&1; then
         (cd "$INJECTOR_REPO" && mise trust -y mise.toml >/dev/null && mise exec -- tuist generate --no-open)
     elif command -v tuist >/dev/null 2>&1; then
@@ -61,6 +132,13 @@ if [ ! -d "$WORKSPACE" ]; then
         echo "error: neither 'mise' nor 'tuist' is on PATH; cannot generate LookInside-Injector workspace" >&2
         exit 1
     fi
+elif [ "$newest_manifest_mtime" -gt "$(stat -f %m "$PROJECT_FILE")" ]; then
+    echo "error: $newest_manifest_file is newer than the generated LookInsideInjector.xcodeproj," >&2
+    echo "       so this build would use a stale project. Regenerate it, then build again:" >&2
+    echo "           (cd $INJECTOR_REPO && mise exec -- tuist generate --no-open)" >&2
+    echo "       Not done automatically: that project belongs to LookInside.xcworkspace, and" >&2
+    echo "       rewriting it mid-build makes Xcode cancel the build. See docs/monorepo/workflow.md." >&2
+    exit 1
 fi
 
 set +e
@@ -86,6 +164,13 @@ if [ "$build_status" -ne 0 ]; then
     exit "$build_status"
 fi
 
+# Record the toolchain only after a successful build, so a build that
+# failed for unrelated reasons does not leave a stamp claiming this
+# derived data is good for the current compiler.
+if [ -n "$current_toolchain" ]; then
+    printf '%s' "$current_toolchain" > "$TOOLCHAIN_STAMP"
+fi
+
 built_binary="$(find "$DERIVED_DATA/Build/Products" -type f -name 'lookinside-injector' -perm +111 | head -1)"
 if [ -z "$built_binary" ]; then
     echo "lookinside-injector binary not found under $DERIVED_DATA/Build/Products" >&2
@@ -106,5 +191,24 @@ mkdir -p "$DEST_DAEMON_DIR" "$DEST_LAUNCHD_DIR"
 cp -f "$built_binary" "$DEST_DAEMON_DIR/lookinside-injector"
 chmod +x "$DEST_DAEMON_DIR/lookinside-injector"
 cp -f "$LAUNCHD_PLIST" "$DEST_LAUNCHD_DIR/app.lookinside.LookInsideInjector.plist"
+
+# Sign the daemon as the host is signed, when the host is signed with an
+# identity. launchd only starts the injector registered for this bundle
+# identifier when its signing identifier and team match the registration, so
+# the linker's ad-hoc signature leaves a signed local build with a daemon that
+# exits with EX_CONFIG on every request. Release builds re-sign it anyway.
+#
+# The host passes its EXPANDED_CODE_SIGN_IDENTITY under another name: the
+# nested xcodebuild above reads the environment as build settings, and a
+# signed macro plugin there no longer loads.
+if [ -n "${INJECTOR_SIGN_IDENTITY:-}" ] && [ "$INJECTOR_SIGN_IDENTITY" != "-" ]; then
+    codesign \
+        --force \
+        --sign "$INJECTOR_SIGN_IDENTITY" \
+        --identifier app.lookinside.LookInsideInjector \
+        --options runtime \
+        --timestamp=none \
+        "$DEST_DAEMON_DIR/lookinside-injector"
+fi
 
 echo "Embedded lookinside-injector ($CONFIGURATION) into $APP_CONTENTS_DIR"

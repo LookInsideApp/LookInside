@@ -7,11 +7,11 @@
       "layers": [
         {
           "glass": false,
-          "image-name": "Logo_1024.png",
-          "name": "Logo_1024",
+          "image-name": "Logo.svg",
+          "name": "Logo",
           "position": {
             "scale": 0.75,
-            "translation-in-points": [-6, 16.5]
+            "translation-in-points": [-9.5, 16.5]
           }
         }
       ],

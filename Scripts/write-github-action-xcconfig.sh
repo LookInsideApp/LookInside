@@ -17,7 +17,8 @@ Usage: bash Scripts/write-github-action-xcconfig.sh --version <x.y.z> --build-nu
 
 Options:
   --version <x.y.z>          MARKETING_VERSION value. Accepts an optional leading v.
-  --build-number <n>         CURRENT_PROJECT_VERSION value.
+  --build-number <n[.n[.n]]> CURRENT_PROJECT_VERSION value. Each component must
+                             use Apple's canonical numeric bundle-version form.
   --development-team <id>    DEVELOPMENT_TEAM override.
   --signing-identity <name>  CODE_SIGN_IDENTITY override.
   --bundle-id <id>           PRODUCT_BUNDLE_IDENTIFIER override.
@@ -35,7 +36,7 @@ normalize_version() {
 	local raw="$1"
 	raw="${raw#refs/tags/}"
 	raw="${raw#v}"
-	[[ "$raw" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "Invalid version '$1'. Expected x.y.z or vX.Y.Z."
+	[[ "$raw" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || fail "Invalid version '$1'. Expected canonical x.y.z or vX.Y.Z without leading zeroes."
 	echo "$raw"
 }
 
@@ -88,7 +89,8 @@ parse_args "$@"
 
 [[ -n "$VERSION" ]] || fail "--version is required."
 [[ -n "$BUILD_NUMBER" ]] || fail "--build-number is required."
-[[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]] || fail "Invalid build number '$BUILD_NUMBER'. Expected an integer."
+[[ "$BUILD_NUMBER" =~ ^[1-9][0-9]{0,3}(\.(0|[1-9][0-9]?)){0,2}$ ]] ||
+	fail "Invalid build number '$BUILD_NUMBER'. Expected 1-3 canonical numeric components (major 1-9999, remaining components 0-99)."
 
 mkdir -p "$(dirname "$OUTPUT_PATH")"
 

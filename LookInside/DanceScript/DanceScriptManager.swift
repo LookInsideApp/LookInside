@@ -1,0 +1,111 @@
+//
+//  DanceScriptManager.swift
+//  LookInside
+//
+//  Jumps from a DanceUI source location to Xcode. The dashboard hands over a
+//  JSON payload like
+//  {"type":"DanceUIApp.ContentView","method":"body.get","build_path":"…/DanceUIApp.app/DanceUIApp"};
+//  the bundled DanceScript.sh is copied to the temporary directory once and
+//  run as `DanceScript.sh <build_path> <type> <method>`.
+//
+
+import AppKit
+import FoundationToolbox
+
+@Loggable(subsystem: "com.lookinside.app")
+final class DanceScriptManager: NSObject {
+    private static let sharedManager = DanceScriptManager()
+
+    class func shared() -> DanceScriptManager {
+        sharedManager
+    }
+
+    /// The fields of the dashboard's JSON payload.
+    struct Request: Equatable {
+        var type: String
+        var method: String
+        var buildPath: String
+    }
+
+    enum ParseError: Error, Equatable {
+        case invalidJSON
+        case unexpectedFormat
+    }
+
+    static func parse(_ json: String) -> Result<Request, ParseError> {
+        guard let object = try? JSONSerialization.jsonObject(with: Data(json.utf8)) else {
+            return .failure(.invalidJSON)
+        }
+        guard let dict = object as? [String: Any] else {
+            return .failure(.unexpectedFormat)
+        }
+        guard let type = dict["type"] as? String, let method = dict["method"] as? String,
+              let buildPath = dict["build_path"] as? String
+        else {
+            return .failure(.unexpectedFormat)
+        }
+        return .success(Request(type: type, method: method, buildPath: buildPath))
+    }
+
+    @MainActor
+    func handleText(_ json: String?) {
+        guard let json else {
+            PeripheralAlerts.show(ConnectionError.inner, in: PeripheralAlerts.keyWindow)
+            return
+        }
+        switch Self.parse(json) {
+        case let .success(request):
+            execute(request)
+        case .failure(.invalidJSON):
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to parse the request: %@", comment: ""), json), in: PeripheralAlerts.keyWindow)
+            assertionFailure("DanceScript payload is not JSON")
+        case .failure(.unexpectedFormat):
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unexpected request format: %@", comment: ""), json), in: PeripheralAlerts.keyWindow)
+        }
+    }
+
+    @MainActor
+    private func copyScriptFromAppToDisk() -> String? {
+        let fileManager = FileManager.default
+        let newScriptPath = (NSTemporaryDirectory() as NSString).appendingPathComponent("Lookin_DanceJump.sh")
+        if fileManager.fileExists(atPath: newScriptPath) {
+            return newScriptPath
+        }
+        let scriptPath = Bundle.main.url(forResource: "DanceScript", withExtension: "sh")?.relativePath
+        guard let scriptPath, fileManager.fileExists(atPath: scriptPath) else {
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: String(format: NSLocalizedString("Unable to find the script at %@.", comment: ""), scriptPath ?? "(null)"),
+                                    in: PeripheralAlerts.keyWindow)
+            return nil
+        }
+        let copied = (try? fileManager.copyItem(atPath: scriptPath, toPath: newScriptPath)) != nil
+        try? fileManager.setAttributes([.posixPermissions: NSNumber(value: Int16(0o755))], ofItemAtPath: newScriptPath)
+        guard copied else {
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("Unable to copy the script.", comment: ""), in: PeripheralAlerts.keyWindow)
+            return nil
+        }
+        guard fileManager.fileExists(atPath: newScriptPath) else {
+            PeripheralAlerts.show(title: NSLocalizedString("Unable to Run Script", comment: ""), detail: NSLocalizedString("The copied script is missing.", comment: ""), in: PeripheralAlerts.keyWindow)
+            return nil
+        }
+        return newScriptPath
+    }
+
+    @MainActor
+    private func execute(_ request: Request) {
+        let scriptPath = copyScriptFromAppToDisk() ?? "(null)"
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/bash")
+        task.arguments = ["-c", "\(scriptPath) \(request.buildPath) \(request.type) \(request.method)"]
+        let pipe = Pipe()
+        task.standardOutput = pipe
+        do {
+            try task.run()
+        } catch {
+            #log(.default, "DanceScript failed to launch: \(String(describing: error), privacy: .public)")
+            return
+        }
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+        #log(.default, "脚本执行输出：\(output, privacy: .public)")
+    }
+}

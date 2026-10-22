@@ -57,9 +57,31 @@ run_xcode_build() {
 		build
 }
 
+# LookInsideAppTests, hosted by the Debug app.
+run_xcode_test() {
+	run_command \
+		"xcodebuild test scheme=LookInside" \
+		xcodebuild \
+		-skipMacroValidation \
+		-project LookInside.xcodeproj \
+		-scheme LookInside \
+		-configuration Debug \
+		-destination 'platform=macOS' \
+		-derivedDataPath /tmp/LookInsideDerivedData \
+		CODE_SIGNING_ALLOWED=NO \
+		test
+}
+
 run_command "sync derived source" bash Scripts/sync-derived-source.sh
+run_command "gesture capture model tests" bash Scripts/test-gesture-models.sh
+run_command "MessageAttribute tests" bash Scripts/test-message-attribute.sh
+run_command "MCPBridge tests" bash Scripts/test-mcp-bridge.sh
+run_command "Launch / Toolbar / Read tests" bash Scripts/test-launch-toolbar-read.sh
+run_command "Dashboard tests" bash Scripts/test-dashboard.sh
+run_command "Xcode view hierarchy tests" bash Scripts/test-xcode-viewhierarchy.sh
+run_command "security gate tests" bash Scripts/test-security-gates.sh
 run_swift_build "swift build" build
-run_swift_build "swift build target=LookinServer" build -c debug --target LookinServer
 run_xcode_build "LookInside" "Debug"
+run_xcode_test
 
 echo "[*] all tests passed"

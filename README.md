@@ -11,10 +11,16 @@ LookInside continues the work of [Lookin](https://lookin.work/), the original iO
 
 ## Use it
 
-1. Download LookInside from the [Releases page](https://github.com/LookInsideApp/LookInside/releases).
+1. Download LookInside from the [Releases page](https://github.com/LookInsideApp/LookInside/releases). It runs on macOS 14 or later.
 2. Add the server package to the app you want to inspect.
 3. Run your app.
 4. Open LookInside on your Mac and pick the running app.
+
+## Use it with AI agents
+
+LookInside 2.3.11 and later include a local MCP server for Codex, Claude, Cursor, Windsurf, VS Code, and other MCP clients. Agents can inspect hierarchies, attributes, screenshots, and UI changes through the app you already opened in LookInside.
+
+See the [MCP configuration and usage guide](docs/mcp.md).
 
 ## What you can inspect
 
@@ -23,24 +29,20 @@ LookInside continues the work of [Lookin](https://lookin.work/), the original iO
 - SwiftUI modifiers and layout details
 - Live property changes while your app is running
 
+## Activation
+
+SwiftUI inspection needs LookInside Pro, as a trial or a license. Activation runs inside LookInside itself; it no longer installs a separate helper app. The activation code is part of this repository.
+
+If you activated an earlier version, your activation carries over. The first time the new version uses your existing activation key, macOS asks for your login keychain password. Choose **Always Allow** so it does not ask again. Going back to an earlier version keeps working too.
+
 ## Add the server package
 
 Use [LookInside-Release](https://github.com/LookInsideApp/LookInside-Release) with Swift Package Manager or CocoaPods.
 
-## MCP integration (Debug)
-
-LookInside ships an optional MCP server, `lookinside-mcp`, so AI coding agents (Claude Desktop, Claude Code, Cursor, Windsurf, VS Code, …) can inspect the running Debug build directly — hierarchy, screenshots, element search, highlight, layout/accessibility diagnostics, and a one-shot bug report.
-
-Build and try it:
-
-```sh
-./Scripts/build-mcp-server.sh
-./build/lookinside-mcp health
-./build/lookinside-mcp print-config claude-desktop
-```
-
-See [docs/mcp.md](docs/mcp.md) for the full feature set, [docs/mcp-client-configs.md](docs/mcp-client-configs.md) for client setup, and [docs/mcp-troubleshooting.md](docs/mcp-troubleshooting.md) if something looks off.
-
 ## License
 
 GPL-3.0. See [`LICENSE`](LICENSE).
+
+## Sponsor
+
+This project is sponsored by [AirBuild](https://air.build/).

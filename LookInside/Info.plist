@@ -27,6 +27,24 @@
 			<string>LookinArchiveDocument</string>
 		</dict>
 		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>viewhierarchy</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Xcode View Hierarchy</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.apple.dt.ide.debughierarchycontenttype</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<true/>
+			<key>NSDocumentClass</key>
+			<string>LKXcodeViewHierarchyDocument</string>
+		</dict>
+		<dict>
 			<key>CFBundleTypeName</key>
 			<string>LookInside Live Inspection</string>
 			<key>CFBundleTypeRole</key>
@@ -89,6 +107,26 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>lookin</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Xcode View Hierarchy</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.apple.dt.ide.debughierarchycontenttype</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>viewhierarchy</string>
 				</array>
 			</dict>
 		</dict>

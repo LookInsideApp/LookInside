@@ -202,6 +202,8 @@ node "$WEB_DIR/scripts/update-manifest.mjs" \
 	--sha256 "$app_sha256" \
 	--url "$ASSET_DOWNLOAD_URL"
 
-# The zip itself stays out of the web git repo — Cloudflare Pages prebuild
-# fetches it from $ASSET_DOWNLOAD_URL into public/downloads/lookinside/.
+# The zip itself stays out of the web git repo, and out of the site: it is
+# above the 25 MiB Cloudflare Workers asset limit, so the site answers its
+# download path with a 302 to $ASSET_DOWNLOAD_URL (see the web repo's
+# scripts/download-assets.mjs).
 rm -f "$published_zip"
