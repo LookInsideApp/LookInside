@@ -50,6 +50,17 @@ final class WindowToolbarHelper: NSObject {
             manager.freeRotation.subscribe(self, action: #selector(handleOnOffDidChange(_:)), relatedObject: button, sendAtOnce: true)
             return Self.item(toolbarIdentifierRotation, label: NSLocalizedString("Free Rotation", comment: ""), view: button)
 
+        case toolbarIdentifierKGShowAllPages:
+            // 酷狗（KuGou）：按钮状态跟随偏好；点击动作由窗口自己设置
+            let button = Self.symbolButton("rectangle.stack")
+            manager.kgShowAllPages.subscribe(self, action: #selector(handleOnOffDidChange(_:)), relatedObject: button, sendAtOnce: true)
+            return Self.item(toolbarIdentifierKGShowAllPages, label: NSLocalizedString("All Pages", comment: ""), view: button)
+
+        case toolbarIdentifierKGShowDrawer:
+            let button = Self.symbolButton("sidebar.left")
+            manager.kgShowDrawer.subscribe(self, action: #selector(handleOnOffDidChange(_:)), relatedObject: button, sendAtOnce: true)
+            return Self.item(toolbarIdentifierKGShowDrawer, label: NSLocalizedString("Drawer", comment: ""), view: button)
+
         case toolbarIdentifierDimension:
             let images = [Self.templateImage("icon_2d"), Self.templateImage("icon_3d")].compactMap { $0 }
             let control = ToolbarPreferenceSegmentedControl(
@@ -165,6 +176,17 @@ final class WindowToolbarHelper: NSObject {
         return button
     }
 
+    /// 使用 SF Symbol 的开关按钮（酷狗工具栏开关使用）。
+    private static func symbolButton(_ symbolName: String) -> NSButton {
+        let button = NSButton()
+        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)
+        image?.isTemplate = true
+        button.image = image
+        button.bezelStyle = .texturedRounded
+        button.setButtonType(.pushOnPushOff)
+        return button
+    }
+
     // MARK: - Control → preference
 
     @objc private func handleDimension(_ control: ToolbarPreferenceSegmentedControl) {
@@ -205,7 +227,7 @@ final class WindowToolbarHelper: NSObject {
         (param.relatedObject as? NSSlider)?.doubleValue = param.doubleValue
     }
 
-    /// Free rotation: the button is on while the preference is.
+    /// Free rotation and the KuGou toggles: the button is on while the preference is.
     @objc private func handleOnOffDidChange(_ param: MessageActionParameters) {
         (param.relatedObject as? NSButton)?.state = param.boolValue ? .on : .off
     }

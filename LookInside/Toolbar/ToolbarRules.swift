@@ -25,6 +25,10 @@ let toolbarIdentifierMessage = "18"
 // "19" was Fast Mode, removed in 3.1.1; it is not reused.
 let toolbarIdentifierSwiftUIMode = "20"
 let toolbarIdentifierGestureDebug = "21"
+/// 酷狗（KuGou）：显示全部页面（关闭 KGMainViewController 折叠）
+let toolbarIdentifierKGShowAllPages = "22"
+/// 酷狗（KuGou）：显示抽屉（_setViewContainer）
+let toolbarIdentifierKGShowDrawer = "23"
 
 /// What opened the apps popover.
 enum MenuPopoverAppsListControllerEventSource: Int {

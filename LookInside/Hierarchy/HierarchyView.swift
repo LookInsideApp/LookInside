@@ -8,6 +8,7 @@
 
 import AppKit
 import FoundationToolbox
+import UniformTypeIdentifiers
 
 private let rowHeight: CGFloat = 28
 
@@ -408,6 +409,81 @@ class HierarchyView: BaseView {
         ExportManager.exportScreenshot(with: item)
     }
 
+    @objc fileprivate func handleExportNodeAnalysisRecursively(_ menuItem: NSMenuItem) {
+        exportAnalysisData(of: displayItem(of: menuItem), recursive: true)
+    }
+
+    @objc fileprivate func handleExportNodeAnalysisSingle(_ menuItem: NSMenuItem) {
+        exportAnalysisData(of: displayItem(of: menuItem), recursive: false)
+    }
+
+    /// 被检查的 App 是否为 macOS 目标，只影响导出数据里部分属性分组的标题。
+    private var inspectedAppIsMacTarget: Bool {
+        AppHelper.appInfoLooksLikeMacTarget(dataSource.rawHierarchyInfo?.appInfo)
+    }
+
+    /// 把节点（可选连同子树）导出为 MCP 格式的 JSON 文件。
+    private func exportAnalysisData(of item: DisplayItem?, recursive: Bool) {
+        guard let item else {
+            NSSound.beep()
+            return
+        }
+        let data: Data
+        do {
+            data = try MCPNodeExporter.jsonData(for: item, recursive: recursive, isMacTarget: inspectedAppIsMacTarget)
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = NSLocalizedString("Failed to export node analysis data.", comment: "")
+            alert.informativeText = error.localizedDescription
+            alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+            _ = alert.runModal()
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = MCPNodeExporter.suggestedFileName(for: item, recursive: recursive)
+        panel.allowedContentTypes = [.json]
+        panel.canCreateDirectories = true
+        panel.title = recursive
+            ? NSLocalizedString("Export node analysis data (incl. children)…", comment: "")
+            : NSLocalizedString("Export this node's analysis data…", comment: "")
+
+        let completion: (NSApplication.ModalResponse) -> Void = { result in
+            guard result == .OK, let url = panel.url else {
+                return
+            }
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                let alert = NSAlert()
+                alert.messageText = NSLocalizedString("Failed to save file.", comment: "")
+                alert.informativeText = error.localizedDescription
+                alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+                _ = alert.runModal()
+            }
+        }
+        if let window {
+            panel.beginSheetModal(for: window, completionHandler: completion)
+        } else {
+            completion(panel.runModal())
+        }
+    }
+
+    @objc fileprivate func handleCopyAttributesData(_ menuItem: NSMenuItem) {
+        guard let item = displayItem(of: menuItem) else {
+            NSSound.beep()
+            return
+        }
+        let text = MCPNodeExporter.readableAttributesText(for: item, isMacTarget: inspectedAppIsMacTarget)
+        guard !text.isEmpty else {
+            NSSound.beep()
+            return
+        }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.writeObjects([text as NSString])
+    }
+
     @objc fileprivate func handleCopyDisplayItemName(_ menuItem: NSMenuItem) {
         guard let string = menuItem.representedObject as? String else { return }
         let pasteboard = NSPasteboard.general
@@ -574,6 +650,23 @@ extension HierarchyView: NSMenuDelegate {
                 String(format: NSLocalizedString("Copy text \"%@\"", comment: ""), string),
                 action: #selector(handleCopyDisplayItemName(_:)),
                 representedObject: string
+            ))
+        }
+
+        // 酷狗（KuGou）：MCP 数据导出 / 属性复制
+        if !displayItem.isUserCustom() {
+            menu.addItem(.separator())
+            menu.addItem(menuItem(
+                NSLocalizedString("Export node analysis data (incl. children)…", comment: ""),
+                action: #selector(handleExportNodeAnalysisRecursively(_:))
+            ))
+            menu.addItem(menuItem(
+                NSLocalizedString("Export this node's analysis data…", comment: ""),
+                action: #selector(handleExportNodeAnalysisSingle(_:))
+            ))
+            menu.addItem(menuItem(
+                NSLocalizedString("Copy property data", comment: ""),
+                action: #selector(handleCopyAttributesData(_:))
             ))
         }
 

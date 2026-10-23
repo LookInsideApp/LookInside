@@ -76,6 +76,9 @@ final class PreferenceManager: NSObject {
         static let receivingConfigTimeColor = "ConfigTime_Color"
         static let receivingConfigTimeClass = "ConfigTime_Class"
         static let rememberExpansionState = "rememberExpansionState"
+        /// 酷狗（KuGou）：沿用 ObjC 版的存储键，保留老用户的开关状态
+        static let kgShowAllPages = "KGShouldDisableLookinHook"
+        static let kgShowDrawer = "KGShouldShowSetContainer"
     }
 
     static let shared: PreferenceManager = {
@@ -126,6 +129,14 @@ final class PreferenceManager: NSObject {
     /// 默认关闭。开启后像 Xcode 的 Show Layers：每个 view 节点下展开完整 layer 子树，
     /// 内容显示在真正渲染它的 layer 上，view 节点变为线框。切换时重新拉取层级。
     let showBackingLayers: BoolMessageAttribute
+
+    /// 酷狗（KuGou）专用：是否在层级里展开 KGMainViewController 的全部页面（关闭折叠逻辑）。默认关闭。
+    /// 折叠会就地修改层级树，切换时需要重新从设备拉取层级。
+    let kgShowAllPages: BoolMessageAttribute
+
+    /// 酷狗（KuGou）专用：是否显示 KGMainViewController 的抽屉（_setViewContainer）。默认关闭。
+    /// 和 kgShowAllPages 相互独立，切换时同样需要重新拉取层级。
+    let kgShowDrawer: BoolMessageAttribute
 
     /// 范围是 0 ～ 1
     let zInterspace: DoubleMessageAttribute
@@ -262,6 +273,8 @@ final class PreferenceManager: NSObject {
         showHiddenItems = BoolMessageAttribute(bool: number(Key.showHiddenItems, default: false).boolValue)
         showSystemLayoutGuides = BoolMessageAttribute(bool: number(Key.showSystemLayoutGuides, default: true).boolValue)
         showBackingLayers = BoolMessageAttribute(bool: number(Key.showBackingLayers, default: false).boolValue)
+        kgShowAllPages = BoolMessageAttribute(bool: number(Key.kgShowAllPages, default: false).boolValue)
+        kgShowDrawer = BoolMessageAttribute(bool: number(Key.kgShowDrawer, default: false).boolValue)
         doubleClickBehavior = DoubleClickBehavior(rawValue: number(Key.doubleClickBehavior, default: NSNumber(value: DoubleClickBehavior.collapse.rawValue)).intValue) ?? .collapse
         rgbaFormat = number(Key.rgbaFormat, default: true).boolValue
 
@@ -305,6 +318,8 @@ final class PreferenceManager: NSObject {
         showHiddenItems.subscribe(self, action: #selector(handleShowHiddenItemsChange(_:)), relatedObject: nil)
         showSystemLayoutGuides.subscribe(self, action: #selector(handleShowSystemLayoutGuidesChange(_:)), relatedObject: nil)
         showBackingLayers.subscribe(self, action: #selector(handleShowBackingLayersChange(_:)), relatedObject: nil)
+        kgShowAllPages.subscribe(self, action: #selector(handleKGShowAllPagesChange(_:)), relatedObject: nil)
+        kgShowDrawer.subscribe(self, action: #selector(handleKGShowDrawerChange(_:)), relatedObject: nil)
         zInterspace.subscribe(self, action: #selector(handleZInterspaceDidChange(_:)), relatedObject: nil)
         freeRotation.subscribe(self, action: #selector(handleFreeRotationDidChange(_:)), relatedObject: nil)
     }
@@ -398,6 +413,14 @@ final class PreferenceManager: NSObject {
 
     @objc private func handleShowBackingLayersChange(_ param: MessageActionParameters) {
         store(param.boolValue, forKey: Key.showBackingLayers)
+    }
+
+    @objc private func handleKGShowAllPagesChange(_ param: MessageActionParameters) {
+        store(param.boolValue, forKey: Key.kgShowAllPages)
+    }
+
+    @objc private func handleKGShowDrawerChange(_ param: MessageActionParameters) {
+        store(param.boolValue, forKey: Key.kgShowDrawer)
     }
 
     @objc private func handleFreeRotationDidChange(_ param: MessageActionParameters) {

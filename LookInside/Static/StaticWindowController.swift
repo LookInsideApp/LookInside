@@ -154,6 +154,19 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             relatedObject: nil
         )
 
+        // 酷狗（KuGou）：折叠逻辑会就地修改层级树，切换开关后需要重新从设备拉取一份干净的层级，
+        // 再按新开关折叠，因此和 backing layer 开关一样走完整的重新拉取。
+        PreferenceManager.shared.kgShowAllPages.subscribe(
+            self,
+            action: #selector(handleKGHierarchyToggleDidChange(_:)),
+            relatedObject: nil
+        )
+        PreferenceManager.shared.kgShowDrawer.subscribe(
+            self,
+            action: #selector(handleKGHierarchyToggleDidChange(_:)),
+            relatedObject: nil
+        )
+
         window.contentView = viewController.view
         contentViewController = viewController
 
@@ -450,7 +463,9 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     func toolbarDefaultItemIdentifiers(_: NSToolbar) -> [NSToolbarItem.Identifier] {
         var identifiers: [NSToolbarItem.Identifier] = [
-            NSToolbarItem.Identifier(toolbarIdentifierReload), NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierSwiftUIMode),
+            NSToolbarItem.Identifier(toolbarIdentifierReload),
+            NSToolbarItem.Identifier(toolbarIdentifierKGShowAllPages), NSToolbarItem.Identifier(toolbarIdentifierKGShowDrawer),
+            NSToolbarItem.Identifier(toolbarIdentifierApp), NSToolbarItem.Identifier(toolbarIdentifierSwiftUIMode),
             NSToolbarItem.Identifier(toolbarIdentifierGestureDebug),
             .flexibleSpace,
             NSToolbarItem.Identifier(toolbarIdentifierDimension), NSToolbarItem.Identifier(toolbarIdentifierRotation), NSToolbarItem.Identifier(toolbarIdentifierSetting),
@@ -497,6 +512,12 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         case NSToolbarItem.Identifier(toolbarIdentifierRotation):
             item.target = self
             item.action = #selector(handleFreeRotation)
+        case NSToolbarItem.Identifier(toolbarIdentifierKGShowAllPages):
+            item.target = self
+            item.action = #selector(handleKGShowAllPages)
+        case NSToolbarItem.Identifier(toolbarIdentifierKGShowDrawer):
+            item.target = self
+            item.action = #selector(handleKGShowDrawer)
         case NSToolbarItem.Identifier(toolbarIdentifierSetting):
             item.label = NSLocalizedString("View", comment: "")
             item.target = self
@@ -554,6 +575,24 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         // No app bound or a reload already running: the new value still
         // applies on the next manual reload, so refusals stay quiet.
         reloadHierarchy { _ in }
+    }
+
+    @objc(_handleKGHierarchyToggleDidChange:)
+    private func handleKGHierarchyToggleDidChange(_: MessageActionParameters) {
+        // 没有绑定 App 或正在拉取时静默忽略：新开关会在下一次手动刷新时生效
+        reloadHierarchy { _ in }
+    }
+
+    @objc(_handleKGShowAllPages)
+    private func handleKGShowAllPages() {
+        let showAllPages = PreferenceManager.shared.kgShowAllPages
+        showAllPages.setBOOLValue(!showAllPages.currentBOOLValue, ignoreSubscriber: nil)
+    }
+
+    @objc(_handleKGShowDrawer)
+    private func handleKGShowDrawer() {
+        let showDrawer = PreferenceManager.shared.kgShowDrawer
+        showDrawer.setBOOLValue(!showDrawer.currentBOOLValue, ignoreSubscriber: nil)
     }
 
     @objc(_handleApp)

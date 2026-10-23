@@ -259,6 +259,10 @@ class HierarchyDataSource: NSObject {
 
         setUpColors()
 
+        // 酷狗（KuGou）：打平之前就地折叠 KGMainViewController 的页面栈和抽屉，
+        // 层级列表、预览和内置 MCP 都基于折叠后的树。非酷狗 App 不受影响。
+        KuGouHierarchyCollapse.apply(to: info?.displayItems)
+
         // Flatten the tree; this also sets every item's indentLevel.
         rawFlatItems = DisplayItem.flatItems(fromHierarchicalItems: info?.displayItems ?? [])
         let items = rawFlatItems ?? []

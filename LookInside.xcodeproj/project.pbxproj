@@ -38,7 +38,7 @@
 
 /* Begin PBXFileReference section */
 		AA1CAA3D22E471EC006D9285 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		AA48F29B21CC0CA50032EC2C /* LookInside.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LookInside.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA48F29B21CC0CA50032EC2C /* LookInside 酷狗版.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "LookInside 酷狗版.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAB9517A22C3AECA00A5F958 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		AAB9519122C3BDC900A5F958 /* QuickLookThumbnailing.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLookThumbnailing.framework; path = System/Library/Frameworks/QuickLookThumbnailing.framework; sourceTree = SDKROOT; };
 		A9750A0130A0000100A1B2C3 /* LookInsideAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LookInsideAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -145,6 +145,7 @@
 				DebugE2E/SnapshotNormalizer.swift,
 				Export/ExportAccessoryView.swift,
 				Export/ExportManager.swift,
+				Export/MCPNodeExporter.swift,
 				GestureDebug/GestureCaptureModels.swift,
 				GestureDebug/GestureDebugSession.swift,
 				GestureDebug/GestureDebugView.swift,
@@ -161,6 +162,7 @@
 				Hierarchy/HierarchyHandlersPopoverController.swift,
 				Hierarchy/HierarchyRowView.swift,
 				Hierarchy/HierarchyView.swift,
+				Hierarchy/KuGouHierarchyCollapse.swift,
 				Hierarchy/SyncSignal.swift,
 				InfoPlist.xcstrings,
 				Injection/Device/AttachedDeviceMonitor.swift,
@@ -362,7 +364,7 @@
 		AA48F29C21CC0CA50032EC2C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				AA48F29B21CC0CA50032EC2C /* LookInside.app */,
+				AA48F29B21CC0CA50032EC2C /* LookInside 酷狗版.app */,
 				A9750A0130A0000100A1B2C3 /* LookInsideAppTests.xctest */,
 			);
 			name = Products;
@@ -404,7 +406,7 @@
 				C0DE5A1F2FA0000100A1B2C3 /* LookInsideHostCore */,
 			);
 			productName = Lookin;
-			productReference = AA48F29B21CC0CA50032EC2C /* LookInside.app */;
+			productReference = AA48F29B21CC0CA50032EC2C /* LookInside 酷狗版.app */;
 			productType = "com.apple.product-type.application";
 		};
 		A9750A0330A0000100A1B2C3 /* LookInsideAppTests */ = {
@@ -520,7 +522,7 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"if [ ! -d \"$SRCROOT/../LookInside-Injector\" ]; then",
-				"    if [ \"$CONFIGURATION\" = \"Release\" ]; then",
+				"    if [ \"$CONFIGURATION\" = \"Release\" ] && [ \"${LOOKINSIDE_ALLOW_MISSING_INJECTOR:-NO}\" != \"YES\" ]; then",
 				"        echo \"error: LookInside-Injector not present; Release builds must embed the injector daemon\"",
 				"        exit 1",
 				"    fi",
@@ -549,7 +551,7 @@
 			shellPath = /bin/sh;
 			shellScript = (
 				"if [ ! -d \"$SRCROOT/../LookInside-MCP\" ]; then",
-				"    if [ \"$CONFIGURATION\" = \"Release\" ]; then",
+				"    if [ \"$CONFIGURATION\" = \"Release\" ] && [ \"${LOOKINSIDE_ALLOW_MISSING_MCP:-NO}\" != \"YES\" ]; then",
 				"        echo \"error: LookInside-MCP not present; Release builds must embed the MCP server binary\"",
 				"        exit 1",
 				"    fi",
@@ -756,7 +758,7 @@
 				CURRENT_PROJECT_VERSION = "$(inherited)";
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = D5Q73692VW;
+				DEVELOPMENT_TEAM = X6B6C6U6QV;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -780,7 +782,7 @@
 					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
+				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗版";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_OUTPUT_FORMAT = XML;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -791,7 +793,8 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
-				PRODUCT_NAME = LookInside;
+				PRODUCT_MODULE_NAME = LookInside;
+				PRODUCT_NAME = "LookInside 酷狗版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
 				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
@@ -826,7 +829,7 @@
 				CURRENT_PROJECT_VERSION = "$(inherited)";
 				DEAD_CODE_STRIPPING = YES;
 				DEFINES_MODULE = YES;
-				DEVELOPMENT_TEAM = D5Q73692VW;
+				DEVELOPMENT_TEAM = X6B6C6U6QV;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_ENHANCED_SECURITY = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -850,7 +853,7 @@
 					"$(SRCROOT)/LookInside/DerivedSource/LookinServerBase",
 				);
 				INFOPLIST_FILE = LookInside/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = LookInside;
+				INFOPLIST_KEY_CFBundleDisplayName = "LookInside 酷狗版";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_OUTPUT_FORMAT = XML;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -861,7 +864,8 @@
 				MARKETING_VERSION = "$(inherited)";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited)";
-				PRODUCT_NAME = LookInside;
+				PRODUCT_MODULE_NAME = LookInside;
+				PRODUCT_NAME = "LookInside 酷狗版";
 				PROVISIONING_PROFILE_SPECIFIER = "$(inherited)";
 				RUNTIME_EXCEPTION_ALLOW_DYLD_ENVIRONMENT_VARIABLES = YES;
 				RUNTIME_EXCEPTION_ALLOW_JIT = YES;
@@ -889,7 +893,7 @@
 				CODE_SIGN_STYLE = "$(inherited)";
 				CURRENT_PROJECT_VERSION = "$(inherited)";
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = D5Q73692VW;
+				DEVELOPMENT_TEAM = X6B6C6U6QV;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"SHOULD_COMPILE_LOOKIN_SERVER=1",
@@ -908,7 +912,7 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LookInside.app/Contents/MacOS/LookInside";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LookInside 酷狗版.app/Contents/MacOS/LookInside 酷狗版";
 			};
 			name = Debug;
 		};
@@ -922,7 +926,7 @@
 				CODE_SIGN_STYLE = "$(inherited)";
 				CURRENT_PROJECT_VERSION = "$(inherited)";
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = D5Q73692VW;
+				DEVELOPMENT_TEAM = X6B6C6U6QV;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"SHOULD_COMPILE_LOOKIN_SERVER=1",
@@ -940,7 +944,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SHOULD_COMPILE_LOOKIN_SERVER";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LookInside.app/Contents/MacOS/LookInside";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/LookInside 酷狗版.app/Contents/MacOS/LookInside 酷狗版";
 			};
 			name = Release;
 		};
