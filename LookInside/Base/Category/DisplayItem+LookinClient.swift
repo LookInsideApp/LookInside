@@ -267,6 +267,12 @@ extension DisplayItem {
         }
     }
 
+    /// Whether this is a Liquid Glass layer, whose subtree the preview leaves
+    /// out while the setting asks for it; see `PreviewGlassLayers`.
+    func isGlassLayer() -> Bool {
+        PreviewGlassLayers.isGlassLayer(classChain: displayingObject()?.classChainList ?? [])
+    }
+
     // MARK: - SwiftUI
 
     func isSwiftUISupportRelated() -> Bool {

@@ -189,6 +189,7 @@ class HierarchyDataSource: NSObject {
     private var colorToAliasMap: [String: [String]] = [:]
     private var lastRGBAFormat: Bool?
     private var rgbaFormatObservation: NSKeyValueObservation?
+    private var glassLayerSettingObservation: NSKeyValueObservation?
     private var signalSubscriptions: [SyncSubscription] = []
     final let eventBroadcaster = AsyncBroadcaster<HierarchyDataSourceEvent>()
 
@@ -214,6 +215,10 @@ class HierarchyDataSource: NSObject {
             action: #selector(handleShowSystemLayoutGuidesDidChange(_:)),
             relatedObject: nil
         )
+
+        glassLayerSettingObservation = preferenceManager().observe(\.hidesGlassLayersInPreview, options: [.new]) { [weak self] _, _ in
+            self?.glassLayerSettingDidChange()
+        }
     }
 
     deinit {
@@ -264,6 +269,7 @@ class HierarchyDataSource: NSObject {
         let items = rawFlatItems ?? []
 
         let collapsedClasses = classesPreferredToCollapse.union(info?.collapsedClassList ?? [])
+        let hidesGlassLayers = preferenceManager().hidesGlassLayersInPreview
         for item in items {
             if item.itemIsKindOfClasses(withNames: collapsedClasses) {
                 item.enumerateSelfAndChildren { $0.preferToBeCollapsed = true }
@@ -271,6 +277,10 @@ class HierarchyDataSource: NSObject {
             // Windows sit at indent 0 (macOS, iOS before 13) or 1 (inside an
             // iOS 13+ scene).
             if item.indentLevel() <= 1, item.itemIsKindOfClasses(withNames: classesWithNoPreview) {
+                item.noPreview = true
+            }
+            if hidesGlassLayers, item.isGlassLayer() {
+                // A capture of Liquid Glass is only its white shape source.
                 item.noPreview = true
             }
             if !item.isPixelBearing() {
@@ -1143,6 +1153,21 @@ class HierarchyDataSource: NSObject {
 
     @objc private func handleShowSystemLayoutGuidesDidChange(_: MessageActionParameters?) {
         buildDisplayingFlatItems()
+    }
+
+    /// The Liquid Glass setting changed: every glass layer of the loaded tree
+    /// follows it at once. Turning it off gives only the glass layers their
+    /// preview back; other nodes the user hid stay hidden.
+    private func glassLayerSettingDidChange() {
+        let hidesGlassLayers = preferenceManager().hidesGlassLayersInPreview
+        var didChangeNoPreview = false
+        for item in rawFlatItems ?? [] where item.isGlassLayer() && item.noPreview != hidesGlassLayers {
+            item.noPreview = hidesGlassLayers
+            didChangeNoPreview = true
+        }
+        if didChangeNoPreview {
+            itemDidChangeNoPreview.send()
+        }
     }
 
     private func forwardSignalsToEvents() {
