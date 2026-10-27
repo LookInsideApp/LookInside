@@ -76,6 +76,7 @@ final class PreferenceManager: NSObject {
         static let receivingConfigTimeColor = "ConfigTime_Color"
         static let receivingConfigTimeClass = "ConfigTime_Class"
         static let rememberExpansionState = "rememberExpansionState"
+        static let hidesGlassLayersInPreview = "hideGlassLayersInPreview"
     }
 
     static let shared: PreferenceManager = {
@@ -159,6 +160,16 @@ final class PreferenceManager: NSObject {
         didSet {
             guard oldValue != rememberExpansionState else { return }
             store(rememberExpansionState, forKey: Key.rememberExpansionState)
+        }
+    }
+
+    /// Whether Liquid Glass layers stay out of the preview until the user
+    /// shows one: a capture of them is only their white shape source (see
+    /// `PreviewGlassLayers`). Default YES.
+    @objc dynamic var hidesGlassLayersInPreview: Bool {
+        didSet {
+            guard oldValue != hidesGlassLayersInPreview else { return }
+            store(hidesGlassLayersInPreview, forKey: Key.hidesGlassLayersInPreview)
         }
     }
 
@@ -299,6 +310,7 @@ final class PreferenceManager: NSObject {
         receivingConfigTime_Class = defaults.double(forKey: Key.receivingConfigTimeClass)
 
         rememberExpansionState = number(Key.rememberExpansionState, default: true).boolValue
+        hidesGlassLayersInPreview = number(Key.hidesGlassLayersInPreview, default: true).boolValue
 
         super.init()
 

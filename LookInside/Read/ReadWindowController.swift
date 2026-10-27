@@ -24,6 +24,7 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
     private var toolbarItemsMap: [String: NSToolbarItem] = [:]
     private var hierarchyFileObservation: NSKeyValueObservation?
     private var selectedItemObservation: NSKeyValueObservation?
+    private var glassLayerSettingObservation: NSKeyValueObservation?
     private weak var shownFile: HierarchyFile?
 
     init(document: ArchiveDocument) {
@@ -61,6 +62,13 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
             action: #selector(handleShowBackingLayersDidChange(_:)),
             relatedObject: nil
         )
+        // The Liquid Glass setting lives in Settings, not in this window's
+        // view settings: the window's own preference set follows it.
+        glassLayerSettingObservation = PreferenceManager.shared.observe(\.hidesGlassLayersInPreview, options: [.new]) { [weak self] sharedPreferences, _ in
+            MainActor.assumeIsolated {
+                self?.preferenceManager.hidesGlassLayersInPreview = sharedPreferences.hidesGlassLayersInPreview
+            }
+        }
     }
 
     @available(*, unavailable)

@@ -149,6 +149,15 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         // Flatten the tree again; this also sets every item's indentLevel.
         rawFlatItems = DisplayItem.flatItems(fromHierarchicalItems: rawHierarchyInfo?.displayItems ?? [])
         flatItems = rawFlatItems
+        // Before the reload signal, which the preview renders on.
+        if preferenceManager().hidesGlassLayersInPreview {
+            item.enumerateSelfAndChildren { node in
+                if node !== item, node.isGlassLayer() {
+                    // A capture of Liquid Glass is only its white shape source.
+                    node.noPreview = true
+                }
+            }
+        }
         didReloadHierarchyInfo.send()
 
         item.enumerateSelfAndChildren { node in
