@@ -15002,6 +15002,89 @@
         }
       }
     },
+    "Hide Liquid Glass layers" : {
+      "comment" : "Toggle in the Preview group of the Settings window: leave Liquid Glass layers out of the preview.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إخفاء طبقات Liquid Glass"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid-Glass-Ebenen ausblenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Liquid Glass layers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar capas de Liquid Glass"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Masquer les calques Liquid Glass"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nascondi i livelli Liquid Glass"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glassのレイヤーを隠す"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass 레이어 숨기기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar camadas de Liquid Glass"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скрывать слои Liquid Glass"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ẩn các lớp Liquid Glass"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐藏液态玻璃图层"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱藏液態玻璃圖層"
+          }
+        }
+      }
+    },
     "Hide Others" : {
       "comment" : "App menu item",
       "localizations" : {
@@ -20431,6 +20514,89 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "連結無法使用"
+          }
+        }
+      }
+    },
+    "Liquid Glass is drawn by the system and shows up as white blocks in captures. When on, glass layers are left out of the preview; select one and click Display to show it." : {
+      "comment" : "Footer of the Preview group of the Settings window. Display is the button of the tip shown for a node whose screenshot is hidden.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يرسم النظام Liquid Glass، فيظهر في اللقطات على شكل كتل بيضاء. عند التشغيل، تُستبعد طبقات الزجاج من المعاينة؛ حدّد إحداها وانقر على “الشاشة” لإظهارها."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass wird vom System gezeichnet und erscheint in Aufnahmen als weiße Flächen. Wenn aktiviert, werden Glasebenen in der Vorschau weggelassen; wähle eine aus und klicke auf „Anzeige“, um sie zu zeigen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass is drawn by the system and shows up as white blocks in captures. When on, glass layers are left out of the preview; select one and click Display to show it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El sistema dibuja Liquid Glass, que aparece como bloques blancos en las capturas. Si está activado, las capas de cristal se omiten en la vista previa; selecciona una y haz clic en “Pantalla” para mostrarla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass est dessiné par le système et apparaît sous forme de blocs blancs dans les captures. Lorsque l’option est activée, les calques de verre sont exclus de l’aperçu ; sélectionnez-en un et cliquez sur « Affichage » pour l’afficher."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass viene disegnato dal sistema e nelle acquisizioni appare come blocchi bianchi. Se attivo, i livelli di vetro vengono esclusi dall’anteprima; selezionane uno e fai clic su \"Visualizzazione\" per mostrarlo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glassはシステムが描画するため、キャプチャでは白いブロックとして表示されます。オンのときはガラスのレイヤーをプレビューから除外します。表示するにはレイヤーを選択して“表示”をクリックします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass는 시스템이 그리기 때문에 캡처에서는 흰색 블록으로 나타납니다. 켜면 유리 레이어를 미리보기에서 제외합니다. 표시하려면 레이어를 선택하고 \"디스플레이\"를 클릭하십시오."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Liquid Glass é desenhado pelo sistema e aparece como blocos brancos nas capturas. Quando ativado, as camadas de vidro ficam fora da pré-visualização; selecione uma e clique em \"Exibição\" para mostrá-la."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass рисует система, поэтому на снимках он выглядит как белые блоки. Если включено, слои стекла не показываются в предпросмотре; выберите слой и нажмите «Дисплей», чтобы показать его."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquid Glass do hệ thống vẽ nên hiện thành các khối trắng trong ảnh chụp. Khi bật, các lớp kính được loại khỏi bản xem trước; chọn một lớp và bấm \"Hiển thị\" để hiện lớp đó."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "液态玻璃由系统绘制，截图中只会显示成白块。开启后，玻璃图层不进入预览；选中其中一层并点按“显示”即可单独显示。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "液態玻璃由系統繪製，截圖中只會顯示成白塊。開啟後，玻璃圖層不會出現在預覽中；選取其中一層並按一下「顯示」即可單獨顯示。"
           }
         }
       }
@@ -28101,6 +28267,89 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在準備…"
+          }
+        }
+      }
+    },
+    "Preview" : {
+      "comment" : "Header of the Settings window's group of preview settings.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المعاينة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista previa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperçu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anteprima"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレビュー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "미리보기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pré-visualização"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предпросмотр"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Xem trước"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预览"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預覽"
           }
         }
       }

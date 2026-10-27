@@ -21,6 +21,7 @@ struct GeneralSettingsPage: View {
             GeneralAppearanceSection(model: model)
             GeneralColorFormatSection(model: model)
             GeneralImageContrastSection(model: model)
+            GeneralPreviewSection(model: model)
             GeneralHierarchySection(model: model)
             GeneralTimeoutSection(model: model)
             #if DEBUG
@@ -101,6 +102,21 @@ private struct GeneralImageContrastSection: View {
             }
         } footer: {
             Text("Adjust this option to use a deeper layer selection color.")
+        }
+    }
+}
+
+/// Whether Liquid Glass layers are left out of the preview.
+private struct GeneralPreviewSection: View {
+    @Bindable var model: GeneralSettingsModel
+
+    var body: some View {
+        Section {
+            Toggle("Hide Liquid Glass layers", isOn: $model.hidesGlassLayersInPreview)
+        } header: {
+            Text("Preview")
+        } footer: {
+            Text("Liquid Glass is drawn by the system and shows up as white blocks in captures. When on, glass layers are left out of the preview; select one and click Display to show it.")
         }
     }
 }
@@ -319,6 +335,7 @@ final class GeneralSettingsModel {
     private var currentImageContrastLevel: Int
     private var currentDoubleClickBehavior: DoubleClickBehavior
     private var currentRemembersExpansionState: Bool
+    private var currentHidesGlassLayersInPreview: Bool
     private var currentHierarchyRequestTimeout: TimeInterval
     private var currentLicenseHandshakeTimeout: TimeInterval
 
@@ -329,6 +346,7 @@ final class GeneralSettingsModel {
         currentImageContrastLevel = preferences.imageContrastLevel
         currentDoubleClickBehavior = preferences.doubleClickBehavior
         currentRemembersExpansionState = preferences.rememberExpansionState
+        currentHidesGlassLayersInPreview = preferences.hidesGlassLayersInPreview
         currentHierarchyRequestTimeout = preferences.hierarchyRequestTimeoutInterval
         currentLicenseHandshakeTimeout = preferences.licenseHandshakeTimeoutInterval
 
@@ -347,6 +365,9 @@ final class GeneralSettingsModel {
             },
             preferences.observe(\.rememberExpansionState, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated { self?.currentRemembersExpansionState = preferences.rememberExpansionState }
+            },
+            preferences.observe(\.hidesGlassLayersInPreview, options: [.new]) { [weak self] preferences, _ in
+                MainActor.assumeIsolated { self?.currentHidesGlassLayersInPreview = preferences.hidesGlassLayersInPreview }
             },
             preferences.observe(\.hierarchyRequestTimeoutInterval, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated { self?.currentHierarchyRequestTimeout = preferences.hierarchyRequestTimeoutInterval }
@@ -382,6 +403,11 @@ final class GeneralSettingsModel {
         set { preferences.rememberExpansionState = newValue }
     }
 
+    var hidesGlassLayersInPreview: Bool {
+        get { currentHidesGlassLayersInPreview }
+        set { preferences.hidesGlassLayersInPreview = newValue }
+    }
+
     var hierarchyRequestTimeout: TimeInterval {
         get { currentHierarchyRequestTimeout }
         set {
@@ -408,6 +434,7 @@ final class GeneralSettingsModel {
         imageContrastLevel = 0
         doubleClickBehavior = .collapse
         remembersExpansionState = true
+        hidesGlassLayersInPreview = true
         hierarchyRequestTimeout = defaultHierarchyRequestTimeoutInterval
 
         #if DEBUG
