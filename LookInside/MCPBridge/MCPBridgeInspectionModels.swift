@@ -82,8 +82,8 @@ struct MCPBridgeTargetInfo: Sendable, Codable {
 /// screenshot URIs live in separate methods to be added in subsequent
 /// commits.
 struct MCPBridgeViewNode: Sendable, Codable {
-    /// Hex-encoded `InspectedObject.oid`, prefixed with `0x` (for example,
-    /// `0x600000abc123`). Stable within a single connected app instance.
+    /// Opaque handle: a hex native/deferred-detail oid, or a namespaced
+    /// virtual-node handle for older SDKs. Rediscover after hierarchy refresh.
     let objectIdentifier: String
 
     /// Leaf Objective-C class name (head of `InspectedObject.classChainList`),

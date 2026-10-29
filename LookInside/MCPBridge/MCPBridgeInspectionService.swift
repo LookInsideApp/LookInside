@@ -297,7 +297,7 @@ final class MCPBridgeInspectionService {
             // see an empty `groups` array fetch the details with
             // `read_view_details` (the `details.read` route). `secureContent`
             // tells the agent why textual values may be `null` here.
-            let hasCachedDetails = displayItem.attributesGroupList?.isEmpty == false
+            let hasCachedDetails = MCPBridgeDisplayItemAccess.hasCachedDetails(displayItem)
             return .success(
                 identifier: identifier,
                 result: .object([

@@ -28,8 +28,8 @@
 import AppKit
 import CoreGraphics
 import Foundation
-import os
 import FoundationToolbox
+import os
 
 @Loggable(subsystem: "com.lookinside.app", category: "MCPBridge.Details")
 @MainActor
@@ -39,7 +39,6 @@ final class MCPBridgeDetailsService {
     /// Larger batches are rejected at the wire boundary; agents that
     /// need more issue multiple calls.
     private static let maximumObjectIdentifiersPerCall = 100
-
 
     init() {}
 
@@ -82,9 +81,8 @@ final class MCPBridgeDetailsService {
         case let .success(parsed):
             requestedIdentifiers = parsed.identifiers
             if parsed.droppedDuplicateCount > 0 {
-                #log(.debug, 
-                    "details.read collapsed \(parsed.droppedDuplicateCount, privacy: .public) duplicate object identifier(s)"
-                )
+                #log(.debug,
+                     "details.read collapsed \(parsed.droppedDuplicateCount, privacy: .public) duplicate object identifier(s)")
             }
         case .failure(.notAllStrings), .failure(.empty):
             return .failure(identifier: identifier, error: .invalidParameters)
@@ -98,11 +96,10 @@ final class MCPBridgeDetailsService {
             )
         }
 
-        let includeUserCustom: Bool
-        if case let .bool(raw)? = parameters["includeUserCustom"] {
-            includeUserCustom = raw
+        let includeUserCustom: Bool = if case let .bool(raw)? = parameters["includeUserCustom"] {
+            raw
         } else {
-            includeUserCustom = true
+            true
         }
 
         // Live-document lookup
@@ -134,24 +131,42 @@ final class MCPBridgeDetailsService {
         var resolvedItems: [(identifier: String, displayItem: DisplayItem, nativeOid: UInt)] = []
         resolvedItems.reserveCapacity(requestedIdentifiers.count)
         var failedIdentifiers: [String] = []
+        var emittedDetails: [MCPBridgeViewDetail] = []
 
         for requested in requestedIdentifiers {
             guard let displayItem = MCPBridgeLiveDocumentLookup.findDisplayItem(
                 amongRoots: roots,
                 matchingObjectIdentifier: requested
-            ),
-                case let nativeOid = displayItem.detailRequestOid,
-                nativeOid != 0
-            else {
+            ) else {
                 failedIdentifiers.append(requested)
                 continue
             }
-            resolvedItems.append((identifier: requested, displayItem: displayItem, nativeOid: nativeOid))
+            let nativeOid = displayItem.detailRequestOid
+            if displayItem.customInfo != nil, nativeOid == 0 {
+                // Older Servers send virtual-node attributes with the tree.
+                // They have no object for RPC 203; return that inline detail.
+                if displayItem.customAttrGroupList == nil {
+                    displayItem.customAttrGroupList = []
+                }
+                emittedDetails.append(encodeDetail(
+                    identifier: requested, displayItem: displayItem,
+                    inbuiltGroups: displayItem.attributesGroupList,
+                    customGroups: displayItem.customAttrGroupList,
+                    includeUserCustom: includeUserCustom
+                ))
+            } else if nativeOid != 0 {
+                resolvedItems.append((identifier: requested, displayItem: displayItem, nativeOid: nativeOid))
+            } else {
+                failedIdentifiers.append(requested)
+            }
         }
 
         // If everything is gone, surface a structured error instead of
         // an empty success response — the agent likely passed stale oids.
         if resolvedItems.isEmpty {
+            if !emittedDetails.isEmpty {
+                return successResponse(identifier: identifier, details: emittedDetails, failedIdentifiers: failedIdentifiers)
+            }
             return .failure(
                 identifier: identifier,
                 error: MCPBridgeErrorPayload(
@@ -215,8 +230,7 @@ final class MCPBridgeDetailsService {
         // to its owning document.
         let staticDataSource = document.hierarchyDataSource
 
-        var emittedDetails: [MCPBridgeViewDetail] = []
-        emittedDetails.reserveCapacity(allDetails.count)
+        emittedDetails.reserveCapacity(emittedDetails.count + allDetails.count)
         var seenOids: Set<UInt> = []
 
         for detail in allDetails {
@@ -246,40 +260,11 @@ final class MCPBridgeDetailsService {
             // Encode the attribute groups carried in this detail
             // through the read-side encoder so the wire shape matches
             // attributes.read.
-            let redactSecureContent = MCPBridgeSecureContentDetector.isSecure(displayItem: resolved.displayItem)
-            var rawGroups: [AttributesGroup] = []
-            if let inbuiltGroups = detail.attributesGroupList {
-                rawGroups.append(contentsOf: inbuiltGroups)
-            }
-            if includeUserCustom, let customGroups = detail.customAttrGroupList {
-                rawGroups.append(contentsOf: customGroups)
-            }
-            let encodedGroups = rawGroups.map { group -> MCPBridgeAttributeGroup in
-                let sections = (group.attrSections ?? []).map { section -> MCPBridgeAttributeSection in
-                    let attributes = (section.attributes ?? []).map { attribute in
-                        MCPBridgeAttributeEncoder.encode(
-                            attribute,
-                            redactingSecureContent: redactSecureContent
-                        )
-                    }
-                    return MCPBridgeAttributeSection(
-                        identifier: section.identifier ?? "",
-                        attributes: attributes
-                    )
-                }
-                let groupIdentifier = group.userCustomTitle ?? group.identifier ?? ""
-                return MCPBridgeAttributeGroup(
-                    identifier: groupIdentifier,
-                    isUserCustom: group.userCustomTitle != nil,
-                    isSwiftUIGroup: group.isSwiftUIGroup,
-                    sections: sections
-                )
-            }
-
-            emittedDetails.append(MCPBridgeViewDetail(
-                objectIdentifier: resolved.identifier,
-                groups: encodedGroups,
-                secureContent: redactSecureContent
+            emittedDetails.append(encodeDetail(
+                identifier: resolved.identifier, displayItem: resolved.displayItem,
+                inbuiltGroups: detail.attributesGroupList,
+                customGroups: detail.customAttrGroupList,
+                includeUserCustom: includeUserCustom
             ))
         }
 
@@ -298,6 +283,33 @@ final class MCPBridgeDetailsService {
     }
 
     // MARK: - Helpers
+
+    private func encodeDetail(
+        identifier: String,
+        displayItem: DisplayItem,
+        inbuiltGroups: [AttributesGroup]?,
+        customGroups: [AttributesGroup]?,
+        includeUserCustom: Bool
+    ) -> MCPBridgeViewDetail {
+        let redact = MCPBridgeSecureContentDetector.isSecure(displayItem: displayItem)
+        let groups = (inbuiltGroups ?? []) + (includeUserCustom ? customGroups ?? [] : [])
+        let encoded = groups.map { group in
+            MCPBridgeAttributeGroup(
+                identifier: group.userCustomTitle ?? group.identifier ?? "",
+                isUserCustom: group.userCustomTitle != nil,
+                isSwiftUIGroup: group.isSwiftUIGroup,
+                sections: (group.attrSections ?? []).map { section in
+                    MCPBridgeAttributeSection(
+                        identifier: section.identifier ?? "",
+                        attributes: (section.attributes ?? []).map {
+                            MCPBridgeAttributeEncoder.encode($0, redactingSecureContent: redact)
+                        }
+                    )
+                }
+            )
+        }
+        return MCPBridgeViewDetail(objectIdentifier: identifier, groups: encoded, secureContent: redact)
+    }
 
     private func successResponse(
         identifier: String,
