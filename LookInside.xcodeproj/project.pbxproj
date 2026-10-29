@@ -191,6 +191,7 @@
 				MCPBridge/MCPBridgeAttributeValueDecoder.swift,
 				MCPBridge/MCPBridgeConnection.swift,
 				MCPBridge/MCPBridgeDetailsService.swift,
+				MCPBridge/MCPBridgeDisplayItemAccess.swift,
 				MCPBridge/MCPBridgeEventPublisher.swift,
 				MCPBridge/MCPBridgeFrame.swift,
 				MCPBridge/MCPBridgeInspectionModels.swift,

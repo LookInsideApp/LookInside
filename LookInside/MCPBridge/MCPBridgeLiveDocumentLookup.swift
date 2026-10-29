@@ -2,11 +2,8 @@
 //
 // Shared lookup helpers that translate the bridge wire identifiers
 // (`targetIdentifier`, `objectIdentifier`) into the host's live runtime
-// objects (`LiveDocument`, `DisplayItem`). Both the inspection
-// service (read-only queries) and the invocation service (round-trips to
-// the server over the connection channel) share this surface so the wire shape — hex
-// `oid` strings, decimal `appInfoIdentifier` strings — stays one
-// canonical implementation.
+// objects (`LiveDocument`, `DisplayItem`). The services share one canonical
+// implementation for native and virtual node handles and decimal target IDs.
 //
 // All entry points are `@MainActor`: `NSDocumentController` and
 // `LiveDocument` require main-thread isolation, and the bridge
@@ -39,23 +36,12 @@ enum MCPBridgeLiveDocumentLookup {
 
     /// Breadth-first search across the supplied root display items for an
     /// item whose wire `objectIdentifier` matches `identifier`. The wire
-    /// form is the hex-encoded `InspectedObject.oid`, prefixed with `0x`
-    /// (e.g. `0x600000abc123`).
+    /// form is an opaque native or virtual node handle returned by this bridge.
     static func findDisplayItem(
         amongRoots roots: [DisplayItem],
         matchingObjectIdentifier identifier: String
     ) -> DisplayItem? {
-        var queue: [DisplayItem] = roots
-        while queue.isEmpty == false {
-            let current = queue.removeFirst()
-            if objectIdentifierString(for: current) == identifier {
-                return current
-            }
-            if let subitems = current.subitems {
-                queue.append(contentsOf: subitems)
-            }
-        }
-        return nil
+        MCPBridgeDisplayItemAccess.find(in: roots, identifier: identifier)
     }
 
     /// Top-level display items (windows / scenes) inside a live document.
@@ -72,12 +58,11 @@ enum MCPBridgeLiveDocumentLookup {
         return flatItems.filter { $0.indentLevel() == 0 }
     }
 
-    /// Canonical hex-encoded `objectIdentifier` string for a display item.
+    /// Canonical `objectIdentifier` for native and virtual display items.
     /// Stays in sync with the form returned by `hierarchy.read` so
     /// callers can round-trip identifiers across bridge methods.
     static func objectIdentifierString(for item: DisplayItem) -> String {
-        let oid = item.displayingObject()?.oid ?? 0
-        return String(format: "0x%lx", oid)
+        MCPBridgeDisplayItemAccess.objectIdentifier(for: item)
     }
 
     /// The item's rectangle in the root coordinate space.
@@ -93,6 +78,6 @@ enum MCPBridgeLiveDocumentLookup {
     /// both values are equally meaningless and the raw one at least matches
     /// what the host inspector displays.
     static func rootSpaceFrame(for item: DisplayItem) -> CGRect {
-        return item.hasValidFrameToRoot() ? item.calculateFrameToRoot() : item.frame
+        item.hasValidFrameToRoot() ? item.calculateFrameToRoot() : item.frame
     }
 }

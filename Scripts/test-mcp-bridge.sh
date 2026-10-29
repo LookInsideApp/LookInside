@@ -42,4 +42,25 @@ RECOVERY_HINT_TEST="$ROOT/Tests/MCPBridge/MCPBridgeRecoveryHintTests.swift"
 swiftc -parse-as-library "$RECOVERY_HINT" "$RECOVERY_HINT_TEST" -o "$TMPDIR/recovery-hint-test"
 "$TMPDIR/recovery-hint-test"
 
+# Exercise virtual-node identity against the real wire model. Only the C
+# declarations are imported; Swift model implementations compile alongside it.
+CORE="$ROOT/Sources/LookinCore"
+SERVER_BASE="$ROOT/Sources/LookinServerBase"
+mkdir -p "$TMPDIR/core"
+for source_file in "$CORE"/*.m "$CORE"/Shim/*.m "$SERVER_BASE"/*.m; do
+	[ -e "$source_file" ] || continue
+	xcrun clang -c -fobjc-arc -w -DSHOULD_COMPILE_LOOKIN_SERVER=1 \
+		-mmacosx-version-min=14.0 -I "$CORE" -I "$CORE/include" -I "$SERVER_BASE" \
+		"$source_file" -o "$TMPDIR/core/$(basename "$source_file" .m).o"
+done
+swiftc -parse-as-library -target "$(uname -m)-apple-macos14.0" \
+	-import-objc-header "$ROOT/Tests/Dashboard/LKDashboardTests-Bridging-Header.h" \
+	-Xcc -DSHOULD_COMPILE_LOOKIN_SERVER=1 -D SHOULD_COMPILE_LOOKIN_SERVER -D LOOKIN_CORE_STANDALONE \
+	-Xcc -I"$CORE" -Xcc -I"$CORE/include" -Xcc -I"$SERVER_BASE" \
+	$(rg --files "$ROOT/Sources/LookinCoreImpl" -g '*.swift' | sort) \
+	"$ROOT/LookInside/MCPBridge/MCPBridgeDisplayItemAccess.swift" \
+	"$ROOT/Tests/MCPBridge/MCPBridgeDisplayItemAccessTests.swift" \
+	"$TMPDIR"/core/*.o -framework AppKit -framework QuartzCore -o "$TMPDIR/display-item-test"
+"$TMPDIR/display-item-test"
+
 echo "MCPBridge tests passed"
