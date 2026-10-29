@@ -57,7 +57,7 @@ swiftc -parse-as-library -target "$(uname -m)-apple-macos14.0" \
 	-import-objc-header "$ROOT/Tests/Dashboard/LKDashboardTests-Bridging-Header.h" \
 	-Xcc -DSHOULD_COMPILE_LOOKIN_SERVER=1 -D SHOULD_COMPILE_LOOKIN_SERVER -D LOOKIN_CORE_STANDALONE \
 	-Xcc -I"$CORE" -Xcc -I"$CORE/include" -Xcc -I"$SERVER_BASE" \
-	$(rg --files "$ROOT/Sources/LookinCoreImpl" -g '*.swift' | sort) \
+	$(find "$ROOT/Sources/LookinCoreImpl" -name '*.swift' -type f | sort) \
 	"$ROOT/LookInside/MCPBridge/MCPBridgeDisplayItemAccess.swift" \
 	"$ROOT/Tests/MCPBridge/MCPBridgeDisplayItemAccessTests.swift" \
 	"$TMPDIR"/core/*.o -framework AppKit -framework QuartzCore -o "$TMPDIR/display-item-test"
