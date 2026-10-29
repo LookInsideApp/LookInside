@@ -42,10 +42,21 @@ json_slashes() { sed 's#/#\\/#g'; }
 
 failures=0
 
+# Keep the temporary root out of diagnostics. A long directory component can
+# look like base64 key material to the report-content check below.
+scan_fixture_paths() {
+	local input_path
+	local -a relative_paths=()
+	for input_path in "$@"; do
+		relative_paths+=("${input_path#"$work_dir/"}")
+	done
+	(cd "$work_dir" && bash "$scanner" "${relative_paths[@]}")
+}
+
 expect_clean() {
 	local label="$1"
 	shift
-	if ! bash "$scanner" "$@" >/dev/null 2>"$work_dir/stderr"; then
+	if ! scan_fixture_paths "$@" >/dev/null 2>"$work_dir/stderr"; then
 		echo "FAIL ($label): clean input was rejected" >&2
 		cat "$work_dir/stderr" >&2
 		failures=$((failures + 1))
@@ -58,7 +69,7 @@ expect_hit() {
 	local label="$1"
 	local needle="$2"
 	shift 2
-	if bash "$scanner" "$@" >/dev/null 2>"$work_dir/stderr"; then
+	if scan_fixture_paths "$@" >/dev/null 2>"$work_dir/stderr"; then
 		echo "FAIL ($label): private key was not detected" >&2
 		failures=$((failures + 1))
 		return
