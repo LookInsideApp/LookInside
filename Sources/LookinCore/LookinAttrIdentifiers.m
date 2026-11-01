@@ -346,6 +346,7 @@ LookinAttrIdentifier const LookinAttr_None = @"n";
 LookinAttrIdentifier const LookinAttr_UserCustom = @"ctm";
 
 LookinAttrIdentifier const LookinAttr_Class_Class_Class = @"c_c_c";
+LookinAttrIdentifier const LookinAttr_Class_Class_ImagePaths = @"c_c_ip";
 
 
 LookinAttrIdentifier const LookinAttr_Relation_Relation_Relation = @"r_r_r";

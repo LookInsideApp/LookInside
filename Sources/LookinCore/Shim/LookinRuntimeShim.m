@@ -99,7 +99,24 @@ id LookinInvoke(id target, SEL selector, NSArray *arguments, NSError **outError)
         [invocation setArgument:buffer atIndex:index + 2];
         free(buffer);
     }
+#if TARGET_OS_WATCH
+    // The watch's UIKitCore leaves out some selectors its headers declare
+    // (-[UIWindowScene pointerLockState] for one), and a getter that calls
+    // one raises. Report that instead of ending the app. This is the last
+    // line of defence only: the exception unwinds through the Server's Swift
+    // getter, which Swift does not promise to survive, so the getters stay
+    // away from every selector known to be missing on the watch.
+    @try {
+        [invocation invoke];
+    } @catch (NSException *exception) {
+        if (outError) {
+            *outError = LookinInvokeError([NSString stringWithFormat:@"%@ raised %@: %@", NSStringFromSelector(selector), exception.name, exception.reason ?: @"no reason"]);
+        }
+        return nil;
+    }
+#else
     [invocation invoke];
+#endif
 
     const char *returnType = signature.methodReturnType;
     if (returnType[0] == _C_VOID) {

@@ -27,6 +27,12 @@
         public var needSubitems: Bool = false
         @objc(clientReadableVersion)
         public var clientReadableVersion: String?
+        /// The Host shows which image each class comes from, so the Server adds
+        /// LookinAttr_Class_Class_ImagePaths to the Class group. Archived only
+        /// when set, so older Hosts' tasks encode exactly as before; older
+        /// Servers ignore the key.
+        @objc(wantsClassImagePaths)
+        public var wantsClassImagePaths: Bool = false
         /// Not archived.
         @objc(frameSize)
         public var frameSize: CGSize = .zero
@@ -45,6 +51,9 @@
             aCoder.encode(attrRequest.rawValue, forKey: "attrRequest")
             aCoder.encode(needBasisVisualInfo, forKey: "needBasisVisualInfo")
             aCoder.encode(needSubitems, forKey: "needSubitems")
+            if wantsClassImagePaths {
+                aCoder.encode(true, forKey: "wantsClassImagePaths")
+            }
         }
 
         public required init?(coder aDecoder: NSCoder) {
@@ -74,6 +83,8 @@
             } else {
                 needSubitems = false
             }
+
+            wantsClassImagePaths = aDecoder.containsValue(forKey: "wantsClassImagePaths") && aDecoder.decodeBool(forKey: "wantsClassImagePaths")
         }
 
         @objc(supportsSecureCoding)

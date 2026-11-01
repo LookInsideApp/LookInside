@@ -367,6 +367,10 @@ extern LookinAttrIdentifier const LookinAttr_None;
 extern LookinAttrIdentifier const LookinAttr_UserCustom;
 
 extern LookinAttrIdentifier const LookinAttr_Class_Class_Class;
+/// The images the classes of LookinAttr_Class_Class_Class come from, one path per
+/// class name, in the same nested order. Only sent to Hosts that ask for it
+/// (LookinStaticAsyncUpdateTask.wantsClassImagePaths).
+extern LookinAttrIdentifier const LookinAttr_Class_Class_ImagePaths;
 
 extern LookinAttrIdentifier const LookinAttr_Relation_Relation_Relation;
 
@@ -762,6 +766,10 @@ extern LookinAttrIdentifier const LookinAttr_None;
 extern LookinAttrIdentifier const LookinAttr_UserCustom;
 
 extern LookinAttrIdentifier const LookinAttr_Class_Class_Class;
+/// The images the classes of LookinAttr_Class_Class_Class come from, one path per
+/// class name, in the same nested order. Only sent to Hosts that ask for it
+/// (LookinStaticAsyncUpdateTask.wantsClassImagePaths).
+extern LookinAttrIdentifier const LookinAttr_Class_Class_ImagePaths;
 
 extern LookinAttrIdentifier const LookinAttr_Relation_Relation_Relation;
 

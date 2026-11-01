@@ -21,6 +21,7 @@
         static let attrInfo: [String: AttrInfo] = {
             var table: [String: AttrInfo] = [:]
             table[LookinAttr_Class_Class_Class] = AttrInfo(className: "CALayer", getterString: "lks_relatedClassChainList", setterString: "", typeIfObj: .customObj)
+            table[LookinAttr_Class_Class_ImagePaths] = AttrInfo(className: "CALayer", getterString: "lks_relatedClassChainImagePaths", setterString: "", typeIfObj: .customObj)
             table[LookinAttr_Relation_Relation_Relation] = AttrInfo(className: "CALayer", getterString: "lks_selfRelation", setterString: "", typeIfObj: .customObj, hideIfNil: true)
             table[LookinAttr_Layout_Frame_Frame] = AttrInfo(className: "CALayer", fullTitle: "Frame", patch: true)
             table[LookinAttr_Layout_Bounds_Bounds] = AttrInfo(className: "CALayer", fullTitle: "Bounds", patch: true)
