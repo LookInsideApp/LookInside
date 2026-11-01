@@ -439,6 +439,10 @@
                     // On Catalyst -[UIDevice systemVersion] answers the *macOS*
                     // version, not the iOS version Catalyst maps onto.
                     info.osDescription = "macCatalyst \(systemVersion)"
+                #elseif os(watchOS)
+                    info.osDescription = "watchOS \(systemVersion)"
+                #elseif os(tvOS)
+                    info.osDescription = "tvOS \(systemVersion)"
                 #else
                     info.osDescription = "iOS \(systemVersion)"
                 #endif
