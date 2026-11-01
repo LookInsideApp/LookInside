@@ -425,8 +425,10 @@ class HierarchyRowView: OutlineRowView {
             return
         }
         // A row inside a Live Doc's window is editable; rows in a read-only
-        // archive or launch window are not.
-        let editable = LiveDocument.document(in: window) != nil
+        // archive or launch window are not, nor the rows of a watch app,
+        // which the Host inspects read-only.
+        let liveDocument = LiveDocument.document(in: window)
+        let editable = liveDocument != nil && liveDocument?.inspectableApp.allowsModification != false
 
         let controller = HierarchyHandlersPopoverController(displayItem: item, editable: editable)
         let popover = NSPopover()

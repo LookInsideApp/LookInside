@@ -34,9 +34,10 @@ class DashboardAttributeView: BaseView {
 
     /// Whether the user can change the value: a user-custom attribute with
     /// a setter, or a known attribute with a setter on a live (not read
-    /// from file) dashboard.
+    /// from file) dashboard; never in an app the Host inspects read-only
+    /// (a watch app).
     func canEdit() -> Bool {
-        guard let attribute else { return false }
+        guard let attribute, dashboardViewController?.allowsModification ?? true else { return false }
         if attribute.isUserCustom() {
             return !(attribute.customSetterID ?? "").isEmpty
         }

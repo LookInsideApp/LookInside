@@ -205,8 +205,13 @@ final class DashboardSectionView: BaseView {
             titleLabel?.isHidden = true
         }
 
+        // Shown inside the class chain's own view rather than as a row.
+        let classImagePaths = attrSection.attributes?
+            .first { $0.identifier == LookinAttr_Class_Class_ImagePaths }?
+            .value as? [[String]]
+
         var notUsedViews = attrViews
-        for attr in attrSection.attributes ?? [] {
+        for attr in attrSection.attributes ?? [] where attr.identifier != LookinAttr_Class_Class_ImagePaths {
             guard let viewClass = Self.attrViewClass(for: attr.attrType, identifier: attr.identifier) else {
                 // Debug builds stop here so a missing case surfaces at once;
                 // release builds skip the attribute and log it. An attribute
@@ -228,6 +233,7 @@ final class DashboardSectionView: BaseView {
                 attrViews.append(view)
                 addSubview(view)
             }
+            (view as? DashboardAttributeClassView)?.classImagePaths = classImagePaths
             view.attribute = attr
         }
         notUsedViews.forEach { $0.isHidden = true }

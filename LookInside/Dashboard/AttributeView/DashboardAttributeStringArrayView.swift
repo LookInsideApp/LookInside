@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import LookInsideHostCore
 
 /// A list of selectable texts separated by hairlines: the class chain and
 /// the relations of an object.
@@ -21,6 +22,17 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
     func stringList(with _: InspectedAttribute) -> [String] {
         assertionFailure("should implement by subclass")
         return []
+    }
+
+    /// The texts as shown: `stringList(with:)` in the list's one style,
+    /// unless a subclass styles parts of them.
+    func attributedStringList(with attribute: InspectedAttribute) -> [NSAttributedString] {
+        stringList(with: attribute).map { DashboardText.attributed($0, font: DashboardStyle.font(12), color: .labelColor, lineHeight: 18) }
+    }
+
+    /// A tooltip per text; none unless a subclass has them.
+    func toolTipList(with _: InspectedAttribute) -> [String?] {
+        []
     }
 
     override func layout() {
@@ -59,7 +71,8 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
 
     override func renderWithAttribute() {
         guard let attribute else { return }
-        let list = stringList(with: attribute)
+        let list = attributedStringList(with: attribute)
+        let toolTips = toolTipList(with: attribute)
 
         while labels.count > list.count {
             labels.removeLast().removeFromSuperview()
@@ -72,8 +85,9 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
             addSubview(label)
             labels.append(label)
         }
-        for (label, string) in zip(labels, list) {
-            label.attributedStringValue = DashboardText.attributed(string, font: DashboardStyle.font(12), color: .labelColor, lineHeight: 18)
+        for (index, (label, text)) in zip(labels, list).enumerated() {
+            label.attributedStringValue = text
+            label.toolTip = toolTips.indices.contains(index) ? toolTips[index] : nil
         }
 
         let separatorCount = list.count > 1 ? list.count - 1 : 0
@@ -129,13 +143,65 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
     }
 }
 
-/// The class chain of the object, one class list per entry, demangled.
+/// The class chain of the object, one class list per entry, demangled, each
+/// class followed by the framework it comes from when the Server sent that.
 final class DashboardAttributeClassView: DashboardAttributeStringArrayView {
+    /// The image each class comes from, nested like the attribute's value
+    /// (LookinAttr_Class_Class_ImagePaths); nil from a Server that does not
+    /// send them. Set before the attribute, which renders.
+    var classImagePaths: [[String]]?
+
     override func stringList(with attribute: InspectedAttribute) -> [String] {
-        let lists = attribute.value as? [[String]] ?? []
-        return lists.map { rawClassList in
-            rawClassList.map { SwiftDemangler.completedParse(input: $0) }.joined(separator: "\n")
+        classLists(of: attribute).map { $0.joined(separator: "\n") }
+    }
+
+    override func attributedStringList(with attribute: InspectedAttribute) -> [NSAttributedString] {
+        classLists(of: attribute).enumerated().map { chainIndex, classNames in
+            let text = NSMutableAttributedString()
+            for (classIndex, className) in classNames.enumerated() {
+                let imageName = imagePath(chainIndex: chainIndex, classIndex: classIndex)
+                    .flatMap(ClientDisplayText.imageShortName(ofImagePath:))
+                let line = DashboardText.attributed(
+                    imageName.map { "\(className)  \($0)" } ?? className,
+                    font: DashboardStyle.font(12),
+                    color: .labelColor,
+                    lineHeight: 18
+                )
+                if let imageName {
+                    let imageRange = NSRange(location: line.length - (imageName as NSString).length, length: (imageName as NSString).length)
+                    line.addAttributes([.foregroundColor: NSColor.secondaryLabelColor, .font: DashboardStyle.font(11)], range: imageRange)
+                }
+                if classIndex > 0 {
+                    text.append(DashboardText.attributed("\n", font: DashboardStyle.font(12), lineHeight: 18))
+                }
+                text.append(line)
+            }
+            return text
         }
+    }
+
+    /// Each chain's full image paths, one per class, for the framework names'
+    /// sake.
+    override func toolTipList(with _: InspectedAttribute) -> [String?] {
+        (classImagePaths ?? []).map { imagePaths in
+            let knownPaths = imagePaths.filter { !$0.isEmpty }
+            return knownPaths.isEmpty ? nil : knownPaths.joined(separator: "\n")
+        }
+    }
+
+    private func classLists(of attribute: InspectedAttribute) -> [[String]] {
+        (attribute.value as? [[String]] ?? []).map { rawClassList in
+            rawClassList.map { SwiftDemangler.completedParse(input: $0) }
+        }
+    }
+
+    private func imagePath(chainIndex: Int, classIndex: Int) -> String? {
+        guard let classImagePaths, classImagePaths.indices.contains(chainIndex),
+              classImagePaths[chainIndex].indices.contains(classIndex)
+        else {
+            return nil
+        }
+        return classImagePaths[chainIndex][classIndex]
     }
 }
 

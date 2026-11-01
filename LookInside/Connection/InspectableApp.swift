@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import LookInsideHostCore
 
 /// What a request to the inspected app reports: zero or more values (the
 /// `data` of each response), then a failure or a completion.
@@ -41,6 +42,13 @@ final class InspectableApp: NSObject {
     var serverVersionError: NSError?
 
     var appInfo: InspectedAppInfo?
+
+    /// Whether the Host offers changing this app (attribute edits, method
+    /// calls, gesture recognizer switches): not for a watch app, whose
+    /// Server is inspected read-only.
+    var allowsModification: Bool {
+        InspectedPlatform.allowsModification(osDescription: appInfo?.osDescription)
+    }
 
     weak var channel: ServerChannel?
 
