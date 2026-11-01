@@ -480,6 +480,8 @@ final class StaticAsyncUpdateManager: NSObject {
         task.taskType = type
         task.needBasisVisualInfo = true
         task.clientReadableVersion = context.clientReadableVersion
+        // The Class card shows the image each class comes from.
+        task.wantsClassImagePaths = true
         return task
     }
 

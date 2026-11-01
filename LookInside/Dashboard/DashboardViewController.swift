@@ -52,6 +52,12 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         didSet { methodsDataSource?.liveDocument = liveDocument }
     }
 
+    /// Whether the dashboard offers changing the inspected app; false for a
+    /// watch app, which the Host inspects read-only.
+    var allowsModification: Bool {
+        liveDocument?.inspectableApp.allowsModification ?? true
+    }
+
     init(staticDataSource dataSource: StaticHierarchyDataSource) {
         staticDataSource = dataSource
         readDataSource = nil
@@ -374,8 +380,8 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
             }
         }
 
-        // Methods, on a live document only
-        guard let staticDataSource, currentDataSource() === staticDataSource, let methodsDataSource else {
+        // Methods, on a live document of an app the Host may change only
+        guard let staticDataSource, currentDataSource() === staticDataSource, let methodsDataSource, allowsModification else {
             searchContainerView.isHidden = false
             searchMethodsView?.isHidden = true
             view.needsLayout = true

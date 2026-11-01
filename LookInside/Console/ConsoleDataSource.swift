@@ -104,6 +104,9 @@ final class ConsoleDataSource {
         guard let inspectableApp = liveDocument?.inspectableApp else {
             throw ConnectionError.noConnect
         }
+        guard inspectableApp.allowsModification else {
+            throw PeripheralAlerts.error(title: NSLocalizedString("LookInside can't call methods in a watch app.", comment: "Console alert: watch apps are inspected read-only."), detail: "")
+        }
         switch check {
         case .hasArguments:
             let format = NSLocalizedString("You can click \"Pause\" button near the bottom-left corner in Xcode to pause your iOS app, and input in Xcode console like the contents below:\nexpr [((%@ *)%@) %@]", comment: "")

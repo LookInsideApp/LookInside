@@ -21013,6 +21013,89 @@
         }
       }
     },
+    "LookInside can't call methods in a watch app." : {
+      "comment" : "Console alert: watch apps are inspected read-only.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يستطيع LookInside استدعاء الدوال في تطبيق ساعة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside kann in einer Watch-App keine Methoden aufrufen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside can't call methods in a watch app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside no puede llamar a métodos en una app de reloj."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside ne peut pas appeler de méthodes dans une app pour montre."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside non può chiamare metodi in un'app per orologio."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside は Apple Watch アプリのメソッドを呼び出せません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside는 워치 앱의 메서드를 호출할 수 없습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O LookInside não pode chamar métodos em um app de relógio."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside не может вызывать методы в приложении для часов."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside không thể gọi phương thức trong ứng dụng đồng hồ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 无法调用手表 App 中的方法。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 無法呼叫手錶 App 中的方法。"
+          }
+        }
+      }
+    },
     "LookInside doesn't support this syntax yet. Please input a method or property name." : {
       "localizations" : {
         "ar" : {

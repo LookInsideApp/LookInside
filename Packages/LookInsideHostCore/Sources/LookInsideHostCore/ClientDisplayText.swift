@@ -9,6 +9,27 @@ import Foundation
 
 public enum ClientDisplayText {}
 
+// MARK: - Class images
+
+public extension ClientDisplayText {
+    /// The short name the dashboard shows for the image a class comes from:
+    /// the framework for a path inside one ("…/PepperUICore.framework/PepperUICore",
+    /// also in the "Versions/A" form, gives "PepperUICore"), the library
+    /// without its extension for a dylib ("libswiftCore"), the file name
+    /// otherwise (an app's executable). Nil for an empty path: the Server
+    /// sends one for a class the runtime could not place.
+    static func imageShortName(ofImagePath imagePath: String) -> String? {
+        let components = imagePath.split(separator: "/")
+        if let framework = components.last(where: { $0.hasSuffix(".framework") }) {
+            return String(framework.dropLast(".framework".count))
+        }
+        guard let fileName = components.last else {
+            return nil
+        }
+        return fileName.hasSuffix(".dylib") ? String(fileName.dropLast(".dylib".count)) : String(fileName)
+    }
+}
+
 // MARK: - Class names
 
 public extension ClientDisplayText {
