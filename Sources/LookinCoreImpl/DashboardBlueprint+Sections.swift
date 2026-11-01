@@ -19,7 +19,7 @@
         /// `+attrIDsForSectionID:`, in display order.
         static let attrIDsBySectionID: [String: [String]] = {
             var table: [String: [String]] = [:]
-            table[LookinAttrSec_Class_Class] = [LookinAttr_Class_Class_Class]
+            table[LookinAttrSec_Class_Class] = [LookinAttr_Class_Class_Class, LookinAttr_Class_Class_ImagePaths]
             table[LookinAttrSec_Relation_Relation] = [LookinAttr_Relation_Relation_Relation]
             table[LookinAttrSec_Layout_Frame] = [LookinAttr_Layout_Frame_Frame]
             table[LookinAttrSec_Layout_Bounds] = [LookinAttr_Layout_Bounds_Bounds]
