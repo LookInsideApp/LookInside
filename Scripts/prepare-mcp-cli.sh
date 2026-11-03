@@ -68,11 +68,18 @@ case "$CONFIGURATION" in
         ;;
 esac
 
-# A scratch path of our own, never the package's default .build. A developer
-# very likely has `swift build` running in this same package from a terminal,
-# and SwiftPM takes an exclusive lock on its scratch directory -- sharing one
-# would make the two builds block each other.
-SCRATCH_PATH="$MCP_REPO/build/host-derived"
+# A scratch path of our own, never the package's default .build itself. A
+# developer very likely has `swift build` running in this same package from a
+# terminal, and SwiftPM takes an exclusive lock keyed on the scratch path --
+# sharing one would make the two builds block each other. A directory nested
+# inside .build is a separate scratch path with a lock of its own.
+#
+# Keep it under a hidden directory. Xcode lists and text-indexes every
+# non-hidden file of a package that a workspace adds as a local package, so a
+# visible scratch path (build/host-derived, until it moved here) put tens of
+# thousands of build files into the navigator and made opening such a
+# workspace crawl. .build/ is already gitignored by the package, too.
+SCRATCH_PATH="$MCP_REPO/.build/host-derived"
 LOG="$SCRATCH_PATH/swift-build-$swift_configuration.log"
 
 mkdir -p "$SCRATCH_PATH"
