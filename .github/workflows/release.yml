@@ -241,7 +241,7 @@ jobs:
         run: xcodebuild -version
 
       # ldid-procursus, not Homebrew's ldid formula: it writes the same
-      # entitlement blobs as the vphone-cli builds the injector was accepted with.
+      # entitlement blobs as the vphone-cli signer the injector was accepted with.
       - name: Install Packaging Tools
         run: brew install mise ldid-procursus xcbeautify
 
