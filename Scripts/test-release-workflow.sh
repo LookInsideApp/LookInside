@@ -34,6 +34,22 @@ assert_contains 'ref: ${{ needs.prepare.outputs.source_ref }}'
 assert_contains 'checkout --detach "${{ needs.prepare.outputs.injector_ref }}"'
 assert_contains 'MCP_REF="${{ github.event.client_payload.mcp_ref }}"'
 assert_contains 'checkout --detach "${{ needs.prepare.outputs.mcp_ref }}"'
+assert_contains 'SERVER_REF="${{ github.event.client_payload.server_ref }}"'
+assert_contains 'checkout --detach "${{ needs.prepare.outputs.server_ref }}"'
+assert_contains 'mise exec -- bash Scripts/package-injector.sh "$output_dir"'
+assert_contains 'AD_HOC_SIGNER: ldid'
+assert_contains 'brew install mise ldid-procursus xcbeautify'
+assert_contains 'CURRENT_PROJECT_VERSION: ${{ needs.prepare.outputs.build_number }}'
+assert_contains 'name: lookinside-${{ needs.prepare.outputs.build_version }}-ios-injector'
+assert_contains '"build/ios-injector/LookInside-${{ needs.prepare.outputs.build_version }}-iOS-injector.ipa"'
+# The release waits for the IPA, and the IPA is checksummed, uploaded and
+# published with the Mac app: a failed IPA build must fail the release.
+assert_contains 'needs: [prepare, sign_notarize_app, build_ios_injector]'
+assert_contains 'shasum -a 256 ./*.zip ./*.ipa > checksums.txt'
+if [[ "$(grep -cF -- 'dist/*.ipa' "$workflow_path")" -lt 2 ]]; then
+	echo "the IPA must be in both the collected artifact and the GitHub Release files" >&2
+	exit 1
+fi
 assert_contains 'token: ${{ secrets.LOOKINSIDE_WEB_RELEASE_TOKEN }}'
 assert_contains 'target_commitish: ${{ needs.prepare.outputs.source_ref }}'
 assert_contains 'if existing_target="$(gh api'

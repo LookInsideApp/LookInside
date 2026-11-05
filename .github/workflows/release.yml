@@ -24,6 +24,7 @@ jobs:
       source_ref: ${{ steps.context.outputs.source_ref }}
       injector_ref: ${{ steps.context.outputs.injector_ref }}
       mcp_ref: ${{ steps.context.outputs.mcp_ref }}
+      server_ref: ${{ steps.context.outputs.server_ref }}
 
     steps:
       - name: Validate Trigger Actor
@@ -42,6 +43,7 @@ jobs:
           SOURCE_REF="${{ github.event.client_payload.source_ref }}"
           INJECTOR_REF="${{ github.event.client_payload.injector_ref }}"
           MCP_REF="${{ github.event.client_payload.mcp_ref }}"
+          SERVER_REF="${{ github.event.client_payload.server_ref }}"
           RELEASE_REF="${{ github.event.client_payload.release_ref }}"
           PARENT_REPOSITORY="${{ github.event.client_payload.parent_repository }}"
           PARENT_REF="${{ github.event.client_payload.parent_ref }}"
@@ -65,6 +67,7 @@ jobs:
           [[ "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Host source SHA." >&2; exit 1; }
           [[ "$INJECTOR_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Injector source SHA." >&2; exit 1; }
           [[ "$MCP_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid MCP source SHA." >&2; exit 1; }
+          [[ "$SERVER_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Server source SHA." >&2; exit 1; }
           [[ "$RELEASE_REF" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid Release source SHA." >&2; exit 1; }
           [[ "$RELEASE_ID" == "release/app/$VERSION@$PARENT_SHA/host" ]] || {
             echo "Release id does not identify the parent tag and commit." >&2
@@ -79,6 +82,7 @@ jobs:
             echo "source_ref=${SOURCE_REF}"
             echo "injector_ref=${INJECTOR_REF}"
             echo "mcp_ref=${MCP_REF}"
+            echo "server_ref=${SERVER_REF}"
           } >>"${GITHUB_OUTPUT}"
 
   build_package:
@@ -212,6 +216,105 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  # The iOS injector ships beside the Mac app, built from the same pinned
+  # Injector commit the Host embeds, so the Mac's device-control client and the
+  # injector's listener always come from one source. Its server payload is
+  # LookinServerInjected, which only exists in Server source, hence server_ref.
+  # Any failure here fails the release: collect_release waits for this job.
+  build_ios_injector:
+    needs: prepare
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.5.0.app/Contents/Developer
+      GIT_TERMINAL_PROMPT: "0"
+      GCM_INTERACTIVE: "Never"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.source_ref }}
+          persist-credentials: false
+
+      - name: Show Xcode Version
+        run: xcodebuild -version
+
+      # ldid-procursus, not Homebrew's ldid formula: it writes the same
+      # entitlement blobs as the vphone-cli signer the injector was accepted with.
+      - name: Install Packaging Tools
+        run: brew install mise ldid-procursus xcbeautify
+
+      - name: Checkout Injector And Server
+        env:
+          LOOKINSIDE_PRIVATE_READ_TOKEN: ${{ secrets.LOOKINSIDE_PRIVATE_READ_TOKEN || secrets.LOOKINSIDE_WEB_RELEASE_TOKEN || secrets.LOOKINSIDE_INJECTOR_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${LOOKINSIDE_PRIVATE_READ_TOKEN}" ]]; then
+            echo "LOOKINSIDE_PRIVATE_READ_TOKEN, LOOKINSIDE_WEB_RELEASE_TOKEN, or LOOKINSIDE_INJECTOR_READ_TOKEN is required to checkout LookInside-Injector and LookInside-Server." >&2
+            exit 1
+          fi
+          # Siblings of this checkout: fetch-payload.sh finds the Server only
+          # as ../LookInside-Server next to the Injector.
+          git clone --no-checkout \
+            "https://x-access-token:${LOOKINSIDE_PRIVATE_READ_TOKEN}@github.com/LookInsideApp/LookInside-Injector.git" \
+            ../LookInside-Injector
+          git -C ../LookInside-Injector checkout --detach "${{ needs.prepare.outputs.injector_ref }}"
+          [[ "$(git -C ../LookInside-Injector rev-parse HEAD)" == "${{ needs.prepare.outputs.injector_ref }}" ]]
+          git clone --no-checkout \
+            "https://x-access-token:${LOOKINSIDE_PRIVATE_READ_TOKEN}@github.com/LookInsideApp/LookInside-Server.git" \
+            ../LookInside-Server
+          git -C ../LookInside-Server checkout --detach "${{ needs.prepare.outputs.server_ref }}"
+          [[ "$(git -C ../LookInside-Server rev-parse HEAD)" == "${{ needs.prepare.outputs.server_ref }}" ]]
+
+      - name: Package iOS Injector
+        timeout-minutes: 45
+        env:
+          MARKETING_VERSION: ${{ needs.prepare.outputs.build_version }}
+          CURRENT_PROJECT_VERSION: ${{ needs.prepare.outputs.build_number }}
+          AD_HOC_SIGNER: ldid
+          DERIVED_DATA: ${{ runner.temp }}/ios-injector-derived-data
+        run: |
+          set -euo pipefail
+          output_dir="${GITHUB_WORKSPACE}/build/ios-injector"
+          cd ../LookInside-Injector
+          mise trust -y mise.toml >/dev/null
+          mise install
+          mise exec -- bash Scripts/package-injector.sh "$output_dir"
+          mv "$output_dir/LookInsideInjector.ipa" \
+            "$output_dir/LookInside-${MARKETING_VERSION}-iOS-injector.ipa"
+
+      - name: Verify iOS Injector Version
+        env:
+          VERSION: ${{ needs.prepare.outputs.build_version }}
+          BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
+        run: |
+          set -euo pipefail
+          ipa="build/ios-injector/LookInside-${VERSION}-iOS-injector.ipa"
+          info_plist="$RUNNER_TEMP/ios-injector-Info.plist"
+          unzip -p "$ipa" 'Payload/*.app/Info.plist' >"$info_plist"
+          short_version="$(plutil -extract CFBundleShortVersionString raw -o - "$info_plist")"
+          bundle_version="$(plutil -extract CFBundleVersion raw -o - "$info_plist")"
+          [[ "$short_version" == "$VERSION" ]] || { echo "IPA version is $short_version, expected $VERSION." >&2; exit 1; }
+          [[ "$bundle_version" == "$BUILD_NUMBER" ]] || { echo "IPA build is $bundle_version, expected $BUILD_NUMBER." >&2; exit 1; }
+          unzip -l "$ipa" | grep -F '.app/LookinServerInjected.dylib' >/dev/null || {
+            echo "IPA carries no server payload." >&2
+            exit 1
+          }
+
+      - name: Scan iOS Injector For Private Keys
+        run: |
+          bash Scripts/scan-private-keys.sh \
+            "build/ios-injector/LookInside-${{ needs.prepare.outputs.build_version }}-iOS-injector.ipa"
+
+      - name: Upload iOS Injector
+        uses: actions/upload-artifact@v4
+        with:
+          name: lookinside-${{ needs.prepare.outputs.build_version }}-ios-injector
+          path: build/ios-injector/LookInside-*-iOS-injector.ipa
+          if-no-files-found: error
+          retention-days: 14
+
   sign_notarize_app:
     needs: [prepare, build_package]
     runs-on: macos-26
@@ -293,7 +396,7 @@ jobs:
           retention-days: 14
 
   collect_release:
-    needs: [prepare, sign_notarize_app]
+    needs: [prepare, sign_notarize_app, build_ios_injector]
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -312,10 +415,16 @@ jobs:
           name: lookinside-${{ needs.prepare.outputs.build_version }}-app
           path: dist
 
+      - name: Download iOS Injector Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: lookinside-${{ needs.prepare.outputs.build_version }}-ios-injector
+          path: dist
+
       - name: Generate Checksums
         run: |
           cd dist
-          shasum -a 256 ./*.zip > checksums.txt
+          shasum -a 256 ./*.zip ./*.ipa > checksums.txt
 
       - name: Scan Release Artifacts For Private Keys
         run: bash app/Scripts/scan-private-keys.sh dist
@@ -326,6 +435,7 @@ jobs:
           name: ${{ needs.prepare.outputs.artifact_name }}
           path: |
             dist/*.zip
+            dist/*.ipa
             dist/checksums.txt
           if-no-files-found: error
           retention-days: 14
@@ -365,6 +475,7 @@ jobs:
           generate_release_notes: ${{ steps.release_state.outputs.exists != 'true' }}
           files: |
             dist/*.zip
+            dist/*.ipa
             dist/checksums.txt
 
   publish_appcast:
