@@ -26,13 +26,13 @@ FOUNDATION_EXPORT NSException *_Nullable LookinCatchException(NS_NOESCAPE void (
 
 #pragma mark - NSInvocation
 
-/// The `@encode` string of the return type of `selector` on `target`
+/// The `\@encode` string of the return type of `selector` on `target`
 /// (`[[target methodSignatureForSelector:selector] methodReturnType]`), or
 /// nil when `target` does not answer `selector`. `outArgumentCount`, when not
 /// NULL, receives `numberOfArguments` (2 for a method without parameters).
 FOUNDATION_EXPORT NSString *_Nullable LookinMethodReturnType(id target, SEL selector, NSUInteger *_Nullable outArgumentCount);
 
-/// The `@encode` string of the parameter at `index` (0 = first parameter after
+/// The `\@encode` string of the parameter at `index` (0 = first parameter after
 /// self and _cmd), or nil when there is no such parameter.
 FOUNDATION_EXPORT NSString *_Nullable LookinMethodArgumentType(id target, SEL selector, NSUInteger index);
 
@@ -60,7 +60,7 @@ FOUNDATION_EXPORT id _Nullable LookinInvoke(id target, SEL selector, NSArray *_N
 #pragma mark - @encode
 
 /// The types the server compares method signatures and NSValue contents
-/// against. Swift has no @encode; use `LookinEncoding(_:)` instead of
+/// against. Swift has no \@encode; use `LookinEncoding(_:)` instead of
 /// hand-written strings.
 typedef NS_ENUM(NSInteger, LookinEncodedType) {
     LookinEncodedTypeVoid,
@@ -91,7 +91,7 @@ typedef NS_ENUM(NSInteger, LookinEncodedType) {
 #endif
 };
 
-/// `@encode(T)` for `type` (`LookinEncodedTypeLookinInsets` is UIEdgeInsets on
+/// `\@encode(T)` for `type` (`LookinEncodedTypeLookinInsets` is UIEdgeInsets on
 /// UIKit, NSEdgeInsets on AppKit).
 FOUNDATION_EXPORT NSString *LookinEncoding(LookinEncodedType type);
 
