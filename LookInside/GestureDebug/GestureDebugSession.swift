@@ -18,6 +18,8 @@ final class GestureDebugSession: ObservableObject {
     @Published var selectedNodeID: String?
     @Published var followsLatest = true
     @Published var overlayEnabled = true
+    @Published var eventLoggingEnabled = false
+    @Published var pointCloudEnabled = true
     @Published private(set) var overlayStatus: GestureOverlayStatus?
     @Published private(set) var nativeRegions: [NativeInteractionRegion] = []
     @Published private var lastNativeRegions: [NativeInteractionRegion] = []
@@ -113,7 +115,10 @@ final class GestureDebugSession: ObservableObject {
         message = NSLocalizedString("Starting gesture capture…", comment: "")
         startTask = Task { [weak self] in
             do {
-                let response = try await app.controlGestureDebug(["command": "start", "sessionID": token, "overlay": self?.overlayEnabled ?? true])
+                let response = try await app.controlGestureDebug(["command": "start", "sessionID": token,
+                                                                  "overlay": self?.overlayEnabled ?? true,
+                                                                  "eventLogging": self?.eventLoggingEnabled ?? false,
+                                                                  "pointCloud": (self?.eventLoggingEnabled ?? false) && (self?.pointCloudEnabled ?? false)])
                 guard let self, sessionID == token, !Task.isCancelled else { return }
                 state = response["state"] as? String ?? "waiting"
                 isStarting = state == "starting"
@@ -166,9 +171,11 @@ final class GestureDebugSession: ObservableObject {
     private func sendOverlayControl(clear: Bool) {
         guard let app, let token = sessionID, isRunning || isStarting else { return }
         let enabled = overlayEnabled
+        let cloud = eventLoggingEnabled && pointCloudEnabled
         Task { [weak self] in
             do {
-                _ = try await app.controlGestureDebug(["command": "overlay", "sessionID": token, "enabled": enabled, "clear": clear])
+                _ = try await app.controlGestureDebug(["command": "overlay", "sessionID": token, "enabled": enabled,
+                                                       "pointCloud": cloud, "clear": clear])
             } catch {
                 guard self?.sessionID == token else { return }
                 self?.message = error.localizedDescription

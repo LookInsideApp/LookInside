@@ -19,6 +19,17 @@ struct GestureDebugView: View {
     var body: some View {
         VStack(spacing: 0) {
             controls
+            HStack(spacing: 16) {
+                Toggle("Record SwiftUI events", isOn: $session.eventLoggingEnabled)
+                    .disabled(session.isRunning || session.isStarting)
+                    .help("Enable SwiftUI diagnostic logging for this capture. Change this option before starting capture.")
+                Toggle("Point cloud", isOn: $session.pointCloudEnabled)
+                    .disabled(!session.eventLoggingEnabled)
+                    .help("Show estimated sample points from recorded input for two seconds. System log delivery may delay the display. Gesture borders must be visible.")
+                Text("Point clouds reconstruct samples from event logs.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Spacer()
+            }.padding(.horizontal, 12).padding(.bottom, 10)
             Divider()
             status
             Divider()
@@ -44,6 +55,7 @@ struct GestureDebugView: View {
             }
         }
         .onChange(of: session.overlayEnabled) { session.updateOverlay() }
+        .onChange(of: session.pointCloudEnabled) { session.updateOverlay() }
         .onChange(of: session.followsLatest) { session.followLatest() }
         .onChange(of: section) { session.selectedNodeID = nil }
     }
@@ -218,7 +230,7 @@ struct GestureDebugView: View {
                     .textSelection(.enabled).padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 }
             case .hitTest:
-                rawText(snapshot.hitTest.isEmpty ? NSLocalizedString("No HIT TEST block was reported for this event.", comment: "") : snapshot.hitTest)
+                GestureHitTestDetailView(snapshot: snapshot)
             case .raw:
                 rawText(snapshot.rawRecords.map { "[\($0.sequence)] \($0.message)" }.joined(separator: "\n"))
             }

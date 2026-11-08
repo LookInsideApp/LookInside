@@ -24,15 +24,47 @@ struct GestureCaptureModelsTests {
         let cleared = try decoder.decode(GestureCaptureBatch.self, from: JSONEncoder().encode(batch))
         precondition(cleared.nativeRegions?.isEmpty == true)
         try testSuggestions()
+        try testPointClouds()
         print("Gesture capture model compatibility and native archive tests passed")
+    }
+
+    static func testPointClouds() throws {
+        let json = Data(#"{"eventID":"touch#1","inputKind":"touch","center":{"x":10,"y":20},"reportedRadius":8,"samplingRadius":8,"points":[{"x":10,"y":20,"weight":24},{"x":14,"y":20,"weight":6}],"responderAddresses":["0x1"],"source":"reconstructed","coordinateSpace":"swiftUIGlobal"}"#.utf8)
+        let cloud = try JSONDecoder().decode(GestureCapturePointCloud.self, from: json)
+        precondition(cloud.canDraw && cloud.responderAddresses == ["0x1"])
+        let decoded = try JSONDecoder().decode(GestureCapturePointCloud.self, from: JSONEncoder().encode(cloud))
+        precondition(decoded.points.count == 2 && decoded.center.x == 10 && decoded.source == "reconstructed")
+        let legacy = Data(#"{"id":"event","timestamp":1,"receivedAt":2,"threadID":"main","eventText":"","hitTest":"","responders":[],"gestures":[],"bindings":[],"rawRecords":[],"complete":true,"warnings":[]}"#.utf8)
+        var snapshot = try JSONDecoder().decode(GestureCaptureSnapshot.self, from: legacy)
+        precondition(snapshot.pointClouds == nil, "Old captures remain decodable")
+        let oldStatus = Data(#"{"mode":"livePage","isEnabled":true,"regionCount":1,"hostingViewCount":1}"#.utf8)
+        let decodedStatus = try JSONDecoder().decode(GestureOverlayStatus.self, from: oldStatus)
+        precondition(decodedStatus.pointCloudEnabled == nil)
+        snapshot.pointClouds = [cloud]
+        let archive = GestureCaptureArchive(appName: "Test", bundleIdentifier: "test", snapshots: [snapshot], records: [])
+        let roundTrip = try JSONDecoder().decode(GestureCaptureArchive.self, from: JSONEncoder().encode(archive))
+        precondition(roundTrip.snapshots.first?.pointClouds?.first?.reportedRadius == 8)
+        var invalid = cloud
+        invalid.points[0].x = .infinity
+        precondition(!invalid.canDraw)
+        invalid = cloud
+        invalid.points = Array(repeating: cloud.points[0], count: 62)
+        precondition(!invalid.canDraw)
+        invalid = cloud
+        invalid.source = "unknown"
+        precondition(!invalid.canDraw)
+        invalid = cloud
+        invalid.points[0].x = 500
+        precondition(!invalid.canDraw)
+        print("Point cloud model round-trip and rendering bounds tests passed")
     }
 
     static func testSuggestions() throws {
         func target(_ width: Double, _ height: Double, id: String = "target", kind: String = "contentShapeBounds") -> InteractionTarget {
             InteractionTarget(id: id, source: "swiftUI", name: "Test", targetAddress: "0x1",
-                                geometry: GestureCaptureGeometry(x: 0, y: 0, width: width, height: height,
-                                                                   source: kind, coordinateSpace: "window"),
-                                geometryKind: kind, shapeKind: "rectangle")
+                              geometry: GestureCaptureGeometry(x: 0, y: 0, width: width, height: height,
+                                                               source: kind, coordinateSpace: "window"),
+                              geometryKind: kind, shapeKind: "rectangle")
         }
         for (platform, threshold) in [(HitTargetSuggestionPlatform.iPhone, 44.0), (.mac, 28.0)] {
             for (width, height, warning) in [(threshold, threshold, false), (threshold - 0.1, threshold, true),
@@ -83,7 +115,7 @@ struct GestureCaptureModelsTests {
         report.replace(with: nextPage, platform: .mac, isCapturing: true)
         precondition(report.coverageMessage.contains("unavailable") && report.coverageMessage.contains("partially"))
         let archive = GestureCaptureArchive(appName: "Test", bundleIdentifier: "test", snapshots: [], records: [],
-                                              interactions: snapshot, suggestionPlatform: .iPhone)
+                                            interactions: snapshot, suggestionPlatform: .iPhone)
         let decoded = try JSONDecoder().decode(GestureCaptureArchive.self, from: JSONEncoder().encode(archive))
         precondition(decoded.interactions?.targets.first?.geometry.width == 24 && decoded.suggestionPlatform == .iPhone)
         print("Hit target rule boundaries, device selection, lifecycle and export tests passed")

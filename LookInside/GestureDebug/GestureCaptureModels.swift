@@ -43,6 +43,7 @@ struct GestureOverlayStatus: Codable {
     var isEnabled: Bool
     var regionCount: Int
     var hostingViewCount: Int
+    var pointCloudEnabled: Bool?
 }
 
 struct GestureCaptureRecord: Codable, Identifiable {
@@ -75,6 +76,7 @@ struct GestureCaptureSnapshot: Codable, Identifiable {
     var complete: Bool
     var responderTreeComplete: Bool?
     var warnings: [String]
+    var pointClouds: [GestureCapturePointCloud]?
 
     var title: String {
         gestures.first?.typeName ?? responders.first?.typeName ?? NSLocalizedString("Event", comment: "")
