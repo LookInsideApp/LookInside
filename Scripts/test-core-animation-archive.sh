@@ -75,4 +75,21 @@ swiftc -parse-as-library \
 	-o "$TMPDIR/converter-test"
 "$TMPDIR/converter-test"
 
+# The Settings row that makes LookInside the default app for the type,
+# against a stand-in for Launch Services: a test must not change the
+# machine's own default.
+swiftc -parse-as-library \
+	-target "$(uname -m)-apple-macos$DEPLOYMENT_TARGET" \
+	-import-objc-header "$TEST_DIR/CoreAnimationArchiveTests-Bridging-Header.h" \
+	-Xcc -DSHOULD_COMPILE_LOOKIN_SERVER=1 \
+	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" \
+	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
+	"$SOURCE_DIR/CoreAnimationArchive.swift" \
+	"$SOURCE_DIR/CoreAnimationArchiveDefaultApplication.swift" \
+	"$TEST_DIR/CoreAnimationArchiveDefaultApplicationTests.swift" \
+	"$TMPDIR"/lookin-core/*.o \
+	-framework AppKit -framework QuartzCore \
+	-o "$TMPDIR/default-application-test"
+"$TMPDIR/default-application-test"
+
 echo "Core Animation archive tests passed"

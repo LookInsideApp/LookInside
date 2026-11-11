@@ -15,6 +15,7 @@ import UIFoundationSettingsUI
 
 struct GeneralSettingsPage: View {
     let model: GeneralSettingsModel
+    @State private var coreAnimationArchiveDefaultApplication = CoreAnimationArchiveDefaultApplication()
 
     var body: some View {
         SettingsForm {
@@ -24,6 +25,7 @@ struct GeneralSettingsPage: View {
             GeneralPreviewSection(model: model)
             GeneralHierarchySection(model: model)
             GeneralTimeoutSection(model: model)
+            GeneralFilesSection(defaultApplication: coreAnimationArchiveDefaultApplication)
             #if DEBUG
                 GeneralLicenseTimeoutSection(model: model)
             #endif
@@ -155,6 +157,65 @@ private struct GeneralTimeoutSection: View {
             Text("Timeouts")
         } footer: {
             Text("Timeout for hierarchy and hierarchy-details requests, in seconds. Default: 15s.")
+        }
+    }
+}
+
+/// Which app opens the Core Animation archives (`.caar`) the AppKit debug
+/// menu's Dump Layer writes, and a button that makes it LookInside. Laid out
+/// like the Reset row. The default can change in Finder at any time, so it is
+/// read again whenever the app comes back to the front.
+private struct GeneralFilesSection: View {
+    let defaultApplication: CoreAnimationArchiveDefaultApplication
+
+    var body: some View {
+        Section {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Core Animation Archives")
+                        .font(.headline)
+                    handlerDescription
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                Button("Make Default") {
+                    Task {
+                        do {
+                            try await defaultApplication.makeLookInsideTheDefault()
+                        } catch let error as CocoaError where error.code == .userCancelled {
+                            // Declined in the system's confirmation: nothing to report.
+                        } catch {
+                            NSApp.presentError(error)
+                        }
+                    }
+                }
+                .disabled(defaultApplication.handler == .lookInside || defaultApplication.isChanging)
+            }
+        } header: {
+            Text("Files")
+        } footer: {
+            Text("Dump Layer in the AppKit debug menu saves a window's layers as a .caar file and opens it in the default app.")
+        }
+        .onAppear {
+            defaultApplication.refresh()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            defaultApplication.refresh()
+        }
+    }
+
+    @ViewBuilder private var handlerDescription: some View {
+        switch defaultApplication.handler {
+        case .lookInside:
+            Text("Opened in LookInside.")
+        case let .otherApplication(name):
+            Text("Opened in \(name).")
+        case .none:
+            Text("No app opens them yet.")
         }
     }
 }

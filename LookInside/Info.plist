@@ -43,6 +43,26 @@
 			<string>LKXcodeViewHierarchyDocument</string>
 		</dict>
 		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>caar</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>Core Animation Archive</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.apple.coreanimation-archive</string>
+			</array>
+			<key>LSTypeIsPackage</key>
+			<false/>
+			<key>NSDocumentClass</key>
+			<string>LKCoreAnimationArchiveDocument</string>
+		</dict>
+		<dict>
 			<key>CFBundleTypeName</key>
 			<string>LookInside Live Inspection</string>
 			<key>CFBundleTypeRole</key>
@@ -125,6 +145,23 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>viewhierarchy</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>Core Animation Archive</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.apple.coreanimation-archive</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>caar</string>
 				</array>
 			</dict>
 		</dict>
