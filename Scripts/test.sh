@@ -79,6 +79,7 @@ run_command "MCPBridge tests" bash Scripts/test-mcp-bridge.sh
 run_command "Launch / Toolbar / Read tests" bash Scripts/test-launch-toolbar-read.sh
 run_command "Dashboard tests" bash Scripts/test-dashboard.sh
 run_command "Xcode view hierarchy tests" bash Scripts/test-xcode-viewhierarchy.sh
+run_command "Core Animation archive tests" bash Scripts/test-core-animation-archive.sh
 run_command "security gate tests" bash Scripts/test-security-gates.sh
 run_swift_build "swift build" build
 run_xcode_build "LookInside" "Debug"

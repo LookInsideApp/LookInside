@@ -59,6 +59,9 @@ jobs:
       - name: Test Xcode View Hierarchy
         run: bash Scripts/test-xcode-viewhierarchy.sh
 
+      - name: Test Core Animation Archive
+        run: bash Scripts/test-core-animation-archive.sh
+
       - name: Test Security Gates
         run: bash Scripts/test-security-gates.sh
 
