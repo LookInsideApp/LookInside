@@ -227,6 +227,8 @@ final class PreviewView: SCNView {
             let unused = displayItemNodes[items.count...]
             for node in unused {
                 node.removeFromParentNode()
+                // A node kept for reuse holds no texture meanwhile.
+                node.releasingPicture()
             }
             if discardCache {
                 displayItemNodes.removeLast(unused.count)
