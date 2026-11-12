@@ -79,6 +79,12 @@ enum CoreAnimationArchiveConverter {
             let item = DisplayItem()
             let viewIdentity = CoreAnimationArchiveViewIdentity(layer: layer)
             item.nodeKind = viewIdentity == nil ? .layer : .view
+            // A layer other code named reads by that name, as Mica's outline
+            // shows it (`NSCGSWindow`, `CUIWindowFrameLayer`, `CAHostingLayer`);
+            // its class stays on the Class card. A view reads by its class.
+            if viewIdentity == nil, let name = layer.name, !name.isEmpty {
+                item.customDisplayTitle = name
+            }
             // Nothing else sets this for a node built in memory, and NO reads as
             // "the user hid this layer's image", taking its subtree's previews
             // with it.

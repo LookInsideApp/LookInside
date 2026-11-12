@@ -424,23 +424,33 @@
             guard let superItem = self.super else {
                 return frame
             }
+            return superItem.convertRectToRoot(fromBounds: frame)
+        }
 
-            let superFrameToRoot = superItem.calculateFrameToRoot()
-            var superBounds = superItem.bounds
-            if !LookinIsUsableRect(superBounds) {
-                superBounds = .zero
+        /// `rect`, given in this item's bounds space — where its subitems'
+        /// frames and its screenshot regions live — in the root space.
+        @objc(convertRectToRootFromBounds:)
+        public func convertRectToRoot(fromBounds rect: CGRect) -> CGRect {
+            let frameToRoot = calculateFrameToRoot()
+            var ownBounds = bounds
+            if !LookinIsUsableRect(ownBounds) {
+                ownBounds = .zero
             }
-            let selfFrame = frame
 
-            let x = selfFrame.origin.x - superBounds.origin.x + superFrameToRoot.origin.x
+            let x = rect.origin.x - ownBounds.origin.x + frameToRoot.origin.x
             let y: CGFloat
-            if superItem.isFlipped {
-                y = superFrameToRoot.origin.y + (superBounds.size.height - selfFrame.origin.y - selfFrame.size.height)
+            if isFlipped {
+                // The space runs down from the bounds origin, which is what
+                // shows at the top edge: a scrolled clip view's origin is its
+                // scroll offset, an inset one's is minus the inset. The root
+                // space runs up from the bottom edge.
+                let distanceFromTop = rect.origin.y - ownBounds.origin.y
+                y = frameToRoot.origin.y + (ownBounds.size.height - distanceFromTop - rect.size.height)
             } else {
-                y = selfFrame.origin.y - superBounds.origin.y + superFrameToRoot.origin.y
+                y = rect.origin.y - ownBounds.origin.y + frameToRoot.origin.y
             }
 
-            return CGRect(x: x, y: y, width: selfFrame.size.width, height: selfFrame.size.height)
+            return CGRect(x: x, y: y, width: rect.size.width, height: rect.size.height)
         }
 
         @objc(frame)
