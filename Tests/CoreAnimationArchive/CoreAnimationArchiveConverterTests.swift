@@ -23,6 +23,12 @@ struct CoreAnimationArchiveConverterTests {
         testLayerRowsFollowTheServerTypes()
         testClassCardEndsAtCALayer()
         testAppNameComesFromTheFileName()
+        MainActor.assumeIsolated {
+            testViewLayersBecomeViewNodes()
+            testCustomBackingLayerNamesBothClasses()
+            testViewClassThisProcessLacksKeepsItsName()
+        }
+        testUnmarkedOrMisnamedLayersStayLayers()
         print("Core Animation archive converter tests passed")
     }
 
@@ -222,9 +228,148 @@ struct CoreAnimationArchiveConverterTests {
         expect(unnamed.hierarchyInfo?.appInfo?.appName?.isEmpty == false, "an archive with no origin still needs a name")
     }
 
+    // MARK: - Views
+
+    /// AppKit names the layer it makes for a view after the view's class and
+    /// marks every layer a view installs; a view node carries that class and
+    /// the layer folded in, while a layer added beside it stays a layer node.
+    @MainActor
+    private static func testViewLayersBecomeViewNodes() {
+        let (contentView, window) = makingLayerBackedContentView()
+        let markerView = CoreAnimationArchiveMarkerView(frame: NSRect(x: 10, y: 10, width: 40, height: 40))
+        contentView.addSubview(markerView)
+        let plainSublayer = makingLayer(CGRect(x: 0, y: 0, width: 5, height: 5))
+        settlingLayers(of: window)
+        markerView.layer?.addSublayer(plainSublayer)
+
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        let items = flattened(convertedFile(of: contentLayer).hierarchyInfo?.displayItems ?? [])
+        guard let contentItem = items.first,
+              let markerItem = items.first(where: { $0.viewObject?.classChainList?.first == NSStringFromClass(CoreAnimationArchiveMarkerView.self) }),
+              let plainItem = markerItem.subitems?.first(where: { $0.nodeKind == .layer })
+        else { fail("the tree should hold the content view, the marker view and the plain sublayer, got \(items.map(\.nodeKind))") }
+
+        expect(contentItem.nodeKind == .view, "the content view's layer should become a view node")
+        expect(contentItem.viewObject?.classChainList == ["NSView", "NSResponder", "NSObject"], "AppKit's NSView should get its whole chain, got \(String(describing: contentItem.viewObject?.classChainList))")
+        expect(markerItem.nodeKind == .view, "the marker view's layer should become a view node")
+        expect(
+            markerItem.viewObject?.classChainList == [NSStringFromClass(CoreAnimationArchiveMarkerView.self), "NSView", "NSResponder", "NSObject"],
+            "a class this process has should get its whole chain, got \(String(describing: markerItem.viewObject?.classChainList))"
+        )
+        let classCard = attributesByIdentifier(of: markerItem)[LookinAttr_Class_Class_Class]?.value as? [[String]]
+        expect(
+            classCard == [[NSStringFromClass(CoreAnimationArchiveMarkerView.self), "NSView"]],
+            "a view node's Class card should list the view's chain up to NSView, got \(String(describing: classCard))"
+        )
+        expect(markerItem.layerObject?.classChainList?.first == "CALayer", "the folded-in layer should keep its decoded class")
+        expect(plainItem.viewObject == nil, "a layer the view did not install should stay a bare layer node")
+
+        let layerObjectIdentifiers = Set(items.compactMap { $0.layerObject?.oid })
+        let viewObjectIdentifiers = items.compactMap { $0.viewObject?.oid }
+        expect(viewObjectIdentifiers.allSatisfy { $0 != 0 }, "every view needs an oid")
+        expect(
+            layerObjectIdentifiers.isDisjoint(with: viewObjectIdentifiers) && Set(viewObjectIdentifiers).count == viewObjectIdentifiers.count,
+            "view oids must collide with no layer oid and no other view oid"
+        )
+        expect(layerObjectIdentifiers == Set(1 ... UInt(items.count)), "layers should keep their depth-first numbers")
+    }
+
+    /// A view whose `-makeBackingLayer` returns a layer of another class is
+    /// named `"<layer class>: <view class>"`: the view node takes the view's
+    /// class, and the folded-in layer gets back the class the archive cut.
+    @MainActor
+    private static func testCustomBackingLayerNamesBothClasses() {
+        let (contentView, window) = makingLayerBackedContentView()
+        let shapeBackedView = CoreAnimationArchiveShapeBackedView(frame: NSRect(x: 0, y: 0, width: 20, height: 20))
+        contentView.addSubview(shapeBackedView)
+        settlingLayers(of: window)
+        let expectedName = "CAShapeLayer: \(NSStringFromClass(CoreAnimationArchiveShapeBackedView.self))"
+        expect(shapeBackedView.layer?.name == expectedName, "AppKit should have named the layer \(expectedName), got \(String(describing: shapeBackedView.layer?.name))")
+
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        let items = flattened(convertedFile(of: contentLayer).hierarchyInfo?.displayItems ?? [])
+        guard let shapeItem = items.first(where: { $0.viewObject?.classChainList?.first == NSStringFromClass(CoreAnimationArchiveShapeBackedView.self) }) else {
+            fail("the shape-backed view should become a view node")
+        }
+        expect(shapeItem.layerObject?.classChainList == ["CAShapeLayer", "CALayer", "NSObject"], "the layer's class should come from its name, got \(String(describing: shapeItem.layerObject?.classChainList))")
+    }
+
+    /// The dumped app's own view classes are not in this process: the node
+    /// keeps the class name the layer was given and claims no superclasses.
+    @MainActor
+    private static func testViewClassThisProcessLacksKeepsItsName() {
+        let (contentView, window) = makingLayerBackedContentView()
+        let appView = NSView(frame: NSRect(x: 0, y: 0, width: 20, height: 20))
+        contentView.addSubview(appView)
+        settlingLayers(of: window)
+        appView.layer?.name = "DumpedAppOnlyView"
+
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        let items = flattened(convertedFile(of: contentLayer).hierarchyInfo?.displayItems ?? [])
+        guard let appItem = items.first(where: { $0.viewObject?.classChainList?.first == "DumpedAppOnlyView" }) else {
+            fail("a view of a class this process lacks should still become a view node")
+        }
+        expect(appItem.viewObject?.classChainList == ["DumpedAppOnlyView"], "an unknown class should claim no superclasses, got \(String(describing: appItem.viewObject?.classChainList))")
+        let classCard = attributesByIdentifier(of: appItem)[LookinAttr_Class_Class_Class]?.value as? [[String]]
+        expect(classCard == [["DumpedAppOnlyView"]], "the Class card should list just the name, got \(String(describing: classCard))")
+    }
+
+    /// Only a layer both marked by `-[NSView setLayer:]` and named like a view
+    /// class is a view. The window's own layers are marked but named
+    /// otherwise; layers other code names keep the default edges; a layer an
+    /// app hands its view has the mark but no name.
+    private static func testUnmarkedOrMisnamedLayersStayLayers() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 40, height: 40))
+        let contentLayer = makingMarkedLayer(named: "NSWindow content layer")
+        let windowClassLayer = makingMarkedLayer(named: "NSWindow")
+        let unmarkedLayer = makingLayer(CGRect(x: 0, y: 0, width: 10, height: 10))
+        unmarkedLayer.name = "NSTextField"
+        let hostedLayer = makingMarkedLayer(named: nil)
+        for sublayer in [contentLayer, windowClassLayer, unmarkedLayer, hostedLayer] {
+            rootLayer.addSublayer(sublayer)
+        }
+
+        let items = flattened(convertedFile(of: rootLayer).hierarchyInfo?.displayItems ?? [])
+        expect(items.count == 5, "the tree should have five nodes, got \(items.count)")
+        expect(items.allSatisfy { $0.nodeKind == .layer && $0.viewObject == nil }, "none of these layers backed a view, got \(items.map(\.nodeKind))")
+    }
+
     // MARK: - Helpers
 
     private typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
+
+    /// A content view AppKit has given a layer, in a window never put on
+    /// screen.
+    @MainActor
+    private static func makingLayerBackedContentView() -> (NSView, NSWindow) {
+        _ = NSApplication.shared
+        NSApp.setActivationPolicy(.prohibited)
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 100, height: 100),
+            styleMask: [.titled],
+            backing: .buffered,
+            defer: false
+        )
+        guard let contentView = window.contentView else { fail("the window should have a content view") }
+        contentView.wantsLayer = true
+        return (contentView, window)
+    }
+
+    /// Lets AppKit build the layers of views added since the last pass.
+    @MainActor
+    private static func settlingLayers(of window: NSWindow) {
+        window.displayIfNeeded()
+        CATransaction.flush()
+    }
+
+    /// A layer carrying the mark `-[NSView setLayer:]` leaves on the layers
+    /// it installs.
+    private static func makingMarkedLayer(named name: String?) -> CALayer {
+        let layer = makingLayer(CGRect(x: 0, y: 0, width: 10, height: 10))
+        layer.edgeAntialiasingMask = []
+        layer.name = name
+        return layer
+    }
 
     private static func makingLayer(_ frame: CGRect) -> CALayer {
         let layer = CALayer()
@@ -301,5 +446,16 @@ struct CoreAnimationArchiveConverterTests {
     private static func fail(_ message: String) -> Never {
         FileHandle.standardError.write(Data("FAIL: \(message)\n".utf8))
         Foundation.exit(1)
+    }
+}
+
+/// A view class of the test's own, which this process has but AppKit does not.
+final class CoreAnimationArchiveMarkerView: NSView {}
+
+/// A view that makes its own layer, of a class other than AppKit's
+/// `NSViewBackingLayer`.
+final class CoreAnimationArchiveShapeBackedView: NSView {
+    override func makeBackingLayer() -> CALayer {
+        CAShapeLayer()
     }
 }

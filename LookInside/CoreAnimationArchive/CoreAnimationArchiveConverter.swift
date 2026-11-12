@@ -1,14 +1,16 @@
 // CoreAnimationArchiveConverter.swift
 //
 // Turns a decoded and rendered Core Animation archive into the inspector's
-// model: one `.layer` node per layer, in a `HierarchyFile` the read-only
-// window shows exactly as it shows a `.lookin` archive.
+// model: one node per layer, in a `HierarchyFile` the read-only window shows
+// exactly as it shows a `.lookin` archive.
 //
-// Each node takes the shape the server gives a layer that backs no view
-// (`HierarchyDisplayItemsMaker`): the layer's frame and bounds, visibility,
-// opacity and background colour, and the dashboard rows the blueprint aims
-// at a CALayer, read here from the decoded layer as the server reads them
-// from the live one.
+// Each node takes the shape the server gives a layer (`HierarchyDisplayItemsMaker`):
+// the layer's frame and bounds, visibility, opacity and background colour,
+// and the dashboard rows the blueprint aims at a CALayer, read here from the
+// decoded layer as the server reads them from the live one. A layer that
+// backed a view becomes a `.view` node with the view folded in, the shape a
+// live session gives a view while backing layers are hidden; every other
+// layer is a `.layer` node.
 //
 // One deliberate difference: `isFlipped` is the layer's cumulative flip
 // (`contentsAreFlipped`), not its own `geometryFlipped`. The inspector reads
@@ -19,8 +21,9 @@
 // window holds whole subtrees of flipped views, where they do not.
 //
 // The archive keeps no app or AppKit classes: Core Animation archives every
-// layer as its nearest QuartzCore class (`CALayerCreateCodingProxy`), so a
-// view's backing layer arrives as a CALayer and the Class card shows that.
+// layer as its nearest QuartzCore class (`CALayerCreateCodingProxy`), and the
+// views themselves are not archived at all. What survives of a view is what
+// AppKit wrote onto its layer — see `CoreAnimationArchiveViewIdentity`.
 
 import AppKit
 import Foundation
@@ -74,7 +77,8 @@ enum CoreAnimationArchiveConverter {
             let objectIdentifier = capture.tree.objectIdentifier(of: layer)
 
             let item = DisplayItem()
-            item.nodeKind = .layer
+            let viewIdentity = CoreAnimationArchiveViewIdentity(layer: layer)
+            item.nodeKind = viewIdentity == nil ? .layer : .view
             // Nothing else sets this for a node built in memory, and NO reads as
             // "the user hid this layer's image", taking its subtree's previews
             // with it.
@@ -88,11 +92,20 @@ enum CoreAnimationArchiveConverter {
                 item.backgroundColor = NSColor(cgColor: backgroundColor)
             }
 
-            let object = InspectedObject()
-            object.oid = objectIdentifier
-            object.classChainList = CoreAnimationArchiveConverter.classChain(of: layer)
-            item.layerObject = object
-            item.attributesGroupList = CoreAnimationArchiveAttributes.makingGroups(for: layer)
+            let layerObject = InspectedObject()
+            layerObject.oid = objectIdentifier
+            layerObject.classChainList = viewIdentity?.layerClassChain ?? CoreAnimationArchiveConverter.classChain(of: layer)
+            item.layerObject = layerObject
+            if let viewIdentity {
+                // The merged node routes by its layer oid, as a live view node
+                // does while backing layers are hidden; the view still needs an
+                // oid of its own, which no layer's number may collide with.
+                let viewObject = InspectedObject()
+                viewObject.oid = UInt(capture.tree.layers.count) + objectIdentifier
+                viewObject.classChainList = viewIdentity.viewClassChain
+                item.viewObject = viewObject
+            }
+            item.attributesGroupList = CoreAnimationArchiveAttributes.makingGroups(for: layer, viewIdentity: viewIdentity)
 
             filingScreenshots(of: objectIdentifier, onto: item)
             item.subitems = (layer.sublayers ?? []).compactMap { sublayer in
@@ -123,11 +136,18 @@ enum CoreAnimationArchiveConverter {
     /// The decoded object's class and its superclasses, up to NSObject: the
     /// shape of the server's `lks_classChainList`.
     static func classChain(of layer: CALayer) -> [String] {
+        classChain(of: type(of: layer))
+    }
+
+    /// `someClass` and its superclasses, up to the root class. Walks the
+    /// runtime's metadata only and sends the classes no message, so it runs
+    /// no `+initialize`.
+    static func classChain(of someClass: AnyClass) -> [String] {
         var chain: [String] = []
-        var currentClass: AnyClass? = type(of: layer)
-        while let someClass = currentClass {
-            chain.append(NSStringFromClass(someClass))
-            currentClass = class_getSuperclass(someClass)
+        var currentClass: AnyClass? = someClass
+        while let visitedClass = currentClass {
+            chain.append(NSStringFromClass(visitedClass))
+            currentClass = class_getSuperclass(visitedClass)
         }
         return chain
     }
@@ -147,6 +167,105 @@ enum CoreAnimationArchiveConverter {
     }
 }
 
+// MARK: - Views
+
+/// The view a decoded layer backed, recovered from what AppKit wrote onto the
+/// layer; nil for a layer that backed no view, or one that left no name.
+///
+/// The archive holds no views: a layer's delegate is not archived, and its
+/// class is cut back to QuartzCore's. Two traces of the view remain, both
+/// written by AppKit when the view got its layer (macOS 27.2):
+///
+/// - `-[NSView setLayer:]` sets `edgeAntialiasingMask` to 0 on every layer it
+///   installs, whoever made the layer. Other layers keep the default of all
+///   four edges, except the window's own two above the views (the
+///   `NSCGSWindow` root and `NSWindow content layer`), which the name test
+///   below turns away.
+/// - `-[NSView _createLayerAndInitialize]`, which makes the layer of every
+///   layer-backed view, names it `[view className]`, or
+///   `"<layer className>: <view className>"` when `-makeBackingLayer`
+///   returned something other than an `NSViewBackingLayer`.
+///
+/// A layer the app made and handed to the view itself (a layer-hosting view)
+/// has no such name, and code may rename a layer afterwards: AppKit's scroll
+/// pockets call theirs `PocketMask` and `Container`, Xcode appends
+/// `_ControlledBy_<controller>`. The first stays a layer node; the second
+/// becomes a view node whose class is that name, which the name cannot be
+/// told apart from.
+struct CoreAnimationArchiveViewIdentity {
+    /// The view's class and its superclasses when this process has the class
+    /// (AppKit's own); the bare class name when it does not (the dumped
+    /// app's).
+    let viewClassChain: [String]
+    /// The layer's own class chain, when the name records a class this process
+    /// has; nil to use the decoded layer's.
+    let layerClassChain: [String]?
+
+    init?(layer: CALayer) {
+        guard layer.edgeAntialiasingMask.isEmpty, let name = layer.name else { return nil }
+
+        let viewClassName: String
+        let layerClassName: String?
+        if let separatorRange = name.range(of: ": ") {
+            layerClassName = String(name[..<separatorRange.lowerBound])
+            viewClassName = String(name[separatorRange.upperBound...])
+        } else {
+            layerClassName = nil
+            viewClassName = name
+        }
+        guard Self.isShapedLikeClassName(viewClassName),
+              layerClassName.map(Self.isShapedLikeClassName) ?? true
+        else { return nil }
+
+        // The names come from a file, but the class lookup is the one the
+        // keyed unarchiver already made for every class the file names, and it
+        // runs no code of the class it finds.
+        if let viewClass = NSClassFromString(viewClassName) {
+            // A class this process has and that is no view: the name was
+            // something else's, such as the window's root layer's.
+            guard Self.isClass(viewClass, kindOf: NSView.self) else { return nil }
+            viewClassChain = CoreAnimationArchiveConverter.classChain(of: viewClass)
+        } else {
+            viewClassChain = [viewClassName]
+        }
+
+        if let layerClassName, let layerClass = NSClassFromString(layerClassName),
+           Self.isClass(layerClass, kindOf: CALayer.self)
+        {
+            layerClassChain = CoreAnimationArchiveConverter.classChain(of: layerClass)
+        } else {
+            layerClassChain = nil
+        }
+    }
+
+    /// The view's chain the way the Class card lists it: up to NSView, as the
+    /// server's `lks_relatedClassChainList` lists a view's.
+    var classCardChain: [String] {
+        viewClassChain.firstIndex(of: "NSView").map { Array(viewClassChain[...$0]) } ?? viewClassChain
+    }
+
+    /// `className` spells an Objective-C name, a module-qualified Swift name
+    /// or a mangled one (`_TtC…`, which may hold `$`); none has a space or a
+    /// colon, and a name written for people, such as `NSWindow content layer`,
+    /// usually has a space.
+    private static func isShapedLikeClassName(_ name: String) -> Bool {
+        !name.isEmpty && !name.contains { $0.isWhitespace || $0 == ":" }
+    }
+
+    /// Walks the superclass chain rather than asking the class, which would
+    /// send it a message and run its `+initialize`.
+    private static func isClass(_ someClass: AnyClass, kindOf ancestor: AnyClass) -> Bool {
+        var currentClass: AnyClass? = someClass
+        while let visitedClass = currentClass {
+            if visitedClass === ancestor {
+                return true
+            }
+            currentClass = class_getSuperclass(visitedClass)
+        }
+        return false
+    }
+}
+
 // MARK: - Attributes
 
 /// The dashboard rows of one decoded layer: the rows the blueprint aims at a
@@ -158,13 +277,13 @@ enum CoreAnimationArchiveConverter {
 /// for a row whose class it does not record, and the card order shared with
 /// the `.viewhierarchy` import lists rows of every kind.
 enum CoreAnimationArchiveAttributes {
-    static func makingGroups(for layer: CALayer) -> [AttributesGroup] {
+    static func makingGroups(for layer: CALayer, viewIdentity: CoreAnimationArchiveViewIdentity? = nil) -> [AttributesGroup] {
         var groups: [AttributesGroup] = []
         for catalogGroup in XcodeViewHierarchyAttributeCatalog.groups {
             var sections: [AttributesSection] = []
             for catalogSection in catalogGroup.sections {
                 let attributes = catalogSection.attributes.compactMap { identifier in
-                    makingAttribute(identifier, of: layer)
+                    makingAttribute(identifier, of: layer, viewIdentity: viewIdentity)
                 }
                 if !attributes.isEmpty {
                     let section = AttributesSection()
@@ -183,11 +302,20 @@ enum CoreAnimationArchiveAttributes {
         return groups
     }
 
-    private static func makingAttribute(_ identifier: String, of layer: CALayer) -> InspectedAttribute? {
+    private static func makingAttribute(
+        _ identifier: String,
+        of layer: CALayer,
+        viewIdentity: CoreAnimationArchiveViewIdentity?
+    ) -> InspectedAttribute? {
         switch identifier {
         case LookinAttr_Class_Class_Class:
-            // The server's `lks_relatedClassChainList` for a layer that backs
-            // no view: its own chain, cut after CALayer.
+            // The server's `lks_relatedClassChainList`: for a layer that backs
+            // a view, the view's chain up to NSView (the view controller's
+            // chain it adds is not in the archive); for any other layer, its
+            // own chain, cut after CALayer.
+            if let viewIdentity {
+                return attribute(identifier, .customObj, [viewIdentity.classCardChain] as NSArray)
+            }
             let chain = CoreAnimationArchiveConverter.classChain(of: layer)
             let trimmedChain = chain.firstIndex(of: "CALayer").map { Array(chain[...$0]) } ?? chain
             return attribute(identifier, .customObj, [trimmedChain] as NSArray)

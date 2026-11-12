@@ -104,6 +104,10 @@ struct ImportSummary {
     let appName: String
     let rootSize: CGSize
     let classCounts: [String: Int]
+    let viewNodeCount: Int
+    /// View nodes whose class this process has, so whose whole chain is known.
+    let resolvedViewNodeCount: Int
+    let viewClassCounts: [String: Int]
 }
 
 func importing(_ url: URL, outputDirectory: URL) throws -> ImportSummary {
@@ -122,6 +126,9 @@ func importing(_ url: URL, outputDirectory: URL) throws -> ImportSummary {
     var maximumDepth = 0
     var flippedNodeCount = 0
     var classCounts: [String: Int] = [:]
+    var viewNodeCount = 0
+    var resolvedViewNodeCount = 0
+    var viewClassCounts: [String: Int] = [:]
     func walking(_ items: [DisplayItem], depth: Int) {
         for item in items {
             nodeCount += 1
@@ -130,6 +137,13 @@ func importing(_ url: URL, outputDirectory: URL) throws -> ImportSummary {
                 flippedNodeCount += 1
             }
             classCounts[item.layerObject?.classChainList?.first ?? "?", default: 0] += 1
+            if item.nodeKind == .view, let viewClassChain = item.viewObject?.classChainList {
+                viewNodeCount += 1
+                if viewClassChain.count > 1 {
+                    resolvedViewNodeCount += 1
+                }
+                viewClassCounts[viewClassChain.first ?? "?", default: 0] += 1
+            }
             // Where the inspector places the coloured nodes, in its bottom-up
             // root space: compare with the root image, measured from its top.
             if let backgroundColor = item.backgroundColor?.usingColorSpace(.sRGB), backgroundColor.alphaComponent > 0.1 {
@@ -165,7 +179,10 @@ func importing(_ url: URL, outputDirectory: URL) throws -> ImportSummary {
         imageBytes: soloImages.values.reduce(0) { $0 + $1.count } + groupImages.values.reduce(0) { $0 + $1.count },
         appName: file.hierarchyInfo?.appInfo?.appName ?? "?",
         rootSize: rootItems.first?.frame.size ?? .zero,
-        classCounts: classCounts
+        classCounts: classCounts,
+        viewNodeCount: viewNodeCount,
+        resolvedViewNodeCount: resolvedViewNodeCount,
+        viewClassCounts: viewClassCounts
     )
 }
 
@@ -209,6 +226,9 @@ func runningProbe() -> Int32 {
             print("  \(summary.groupImageCount) group images, \(summary.soloImageCount) solo images, \(summary.imageBytes / 1024) KB")
             let classes = summary.classCounts.sorted { $0.value > $1.value }.prefix(8).map { "\($0.key) \($0.value)" }
             print("  classes: \(classes.joined(separator: ", "))")
+            print("  \(summary.viewNodeCount) view nodes, \(summary.resolvedViewNodeCount) of them with their whole class chain")
+            let viewClasses = summary.viewClassCounts.sorted { $0.value > $1.value }.prefix(8).map { "\($0.key) \($0.value)" }
+            print("  views: \(viewClasses.joined(separator: ", "))")
             print(String(format: "  imported in %.2f s", elapsed))
         } catch {
             failureCount += 1
