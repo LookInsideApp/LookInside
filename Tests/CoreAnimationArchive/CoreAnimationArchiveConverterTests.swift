@@ -21,6 +21,7 @@ struct CoreAnimationArchiveConverterTests {
         testRootArchivedOutOfAFlippedSuperlayerRendersUpright()
         testScreenshotsAreFiledUnderTheirNodes()
         testEveryImageFitsThePreviewTextureLimit()
+        testVibrantContentDrawsWhereItsMaterialIsMissing()
         testCancelledRecoveryThrows()
         testLayerRowsFollowTheServerTypes()
         testClassCardEndsAtCALayer()
@@ -229,6 +230,57 @@ struct CoreAnimationArchiveConverterTests {
             centre.redComponent < 0.8 || centre.greenComponent < 0.8 || centre.blueComponent < 0.8,
             "the glass rendered as its white shape source: \(centre)"
         )
+    }
+
+    /// Text and icons on a sidebar or a toolbar are composited through a
+    /// vibrant filter onto the material behind them. A node drawn on its
+    /// own leaves out whatever its ancestors draw, so a sidebar's labels
+    /// vanished from every image below the sidebar's material. A vibrant
+    /// layer with nothing drawn behind it in the render is drawn plain; one
+    /// with something behind it keeps its filter. The filter is made at run
+    /// time, as Dump Layer decodes it: AppKit sets it only in windows on
+    /// screen.
+    private static func testVibrantContentDrawsWhereItsMaterialIsMissing() {
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let vibrantFilter = filterClass.perform(
+                  NSSelectorFromString("filterWithType:"), with: "vibrantColorMatrixSourceOver"
+              )?.takeUnretainedValue()
+        else { fail("QuartzCore should make a vibrant filter") }
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 200, height: 100))
+        // A material under the left half; nothing under the right.
+        let materialLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        materialLayer.backgroundColor = CGColor(srgbRed: 0.2, green: 0.2, blue: 0.2, alpha: 1)
+        let labelOnMaterial = makingLayer(CGRect(x: 30, y: 30, width: 40, height: 40))
+        labelOnMaterial.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        labelOnMaterial.compositingFilter = vibrantFilter
+        // Inside a sidebar row's rounded container, which draws nothing and
+        // is no material.
+        let roundedRowLayer = makingLayer(CGRect(x: 120, y: 20, width: 60, height: 60))
+        roundedRowLayer.cornerRadius = 6
+        let labelWithoutMaterial = makingLayer(CGRect(x: 10, y: 10, width: 40, height: 40))
+        labelWithoutMaterial.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        labelWithoutMaterial.compositingFilter = vibrantFilter
+        roundedRowLayer.addSublayer(labelWithoutMaterial)
+        rootLayer.addSublayer(materialLayer)
+        rootLayer.addSublayer(labelOnMaterial)
+        rootLayer.addSublayer(roundedRowLayer)
+
+        let file = convertedFile(of: rootLayer)
+        guard let rootData = file.groupScreenshots?[NSNumber(value: 1)],
+              let rootImage = NSBitmapImageRep(data: rootData)
+        else { fail("the root's subtree draws, so it needs a group image") }
+        expect(
+            isRed(rootImage.colorAt(x: 150, y: 50)),
+            "a vibrant layer with nothing behind it should be drawn plain; got \(String(describing: rootImage.colorAt(x: 150, y: 50)))"
+        )
+        expect(
+            !isRed(rootImage.colorAt(x: 50, y: 50)),
+            "a vibrant layer over its material should keep its filter"
+        )
+        guard let labelData = file.groupScreenshots?[NSNumber(value: 5)],
+              let labelImage = NSBitmapImageRep(data: labelData)
+        else { fail("the label drawn on its own should have an image") }
+        expect(isRed(labelImage.colorAt(x: 20, y: 20)), "the label on its own should be drawn plain")
     }
 
     private static func testCancelledRecoveryThrows() {
