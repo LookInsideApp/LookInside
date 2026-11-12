@@ -212,12 +212,19 @@ enum XcodeViewHierarchyPixelRecovery {
     /// below it. Hidden and fully transparent layers count for nothing. The
     /// estimate errs on the large side: it can include blank space, never
     /// cut drawing off.
+    ///
+    /// A container with no area that does not clip — a window's content
+    /// layer is 0 × 0, with the whole window laid out in it — draws only
+    /// through its sublayers, wherever they are; its region is theirs, and
+    /// may lie outside its empty bounds. Cut to those bounds it was nothing.
     static func drawingRegion(of layer: CALayer, hiding hiddenLayers: [CALayer]) -> DrawingRegion? {
         let bounds = layer.bounds
         let hidden = Set(hiddenLayers.map(ObjectIdentifier.init))
-        let union = drawingUnion(of: layer, in: layer, clip: bounds, hiddenLayers: hidden)
+        let drawsOutsideItsBounds = !layer.masksToBounds && (bounds.width <= 0 || bounds.height <= 0)
+        let clip = drawsOutsideItsBounds ? CGRect.infinite : bounds
+        let union = drawingUnion(of: layer, in: layer, clip: clip, hiddenLayers: hidden)
         guard !union.isNull else { return nil }
-        let rect = union.intersection(bounds).integral
+        let rect = (drawsOutsideItsBounds ? union : union.intersection(bounds)).integral
         guard !rect.isEmpty else { return nil }
         let isPartial = rect != bounds.integral
         return DrawingRegion(

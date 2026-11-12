@@ -22,6 +22,7 @@ struct CoreAnimationArchiveConverterTests {
         testScreenshotsAreFiledUnderTheirNodes()
         testEveryImageFitsThePreviewTextureLimit()
         testVibrantContentDrawsWhereItsMaterialIsMissing()
+        testEmptyContainerTakesItsSublayersPicture()
         testCancelledRecoveryThrows()
         testLayerRowsFollowTheServerTypes()
         testClassCardEndsAtCALayer()
@@ -281,6 +282,36 @@ struct CoreAnimationArchiveConverterTests {
               let labelImage = NSBitmapImageRep(data: labelData)
         else { fail("the label drawn on its own should have an image") }
         expect(isRed(labelImage.colorAt(x: 20, y: 20)), "the label on its own should be drawn plain")
+    }
+
+    /// A window's content layer is a container of no size that does not
+    /// clip: AppKit lays the whole window out in it, outside its bounds. Cut
+    /// to its own empty bounds, its image was nothing, and unfolding a dumped
+    /// window showed a blank plane. Such a container's image covers what its
+    /// sublayers draw, placed by its region.
+    private static func testEmptyContainerTakesItsSublayersPicture() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        let contentLayer = makingLayer(.zero)
+        let viewLayer = makingLayer(CGRect(x: 30, y: 30, width: 40, height: 40))
+        viewLayer.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        viewLayer.borderWidth = 1
+        contentLayer.addSublayer(viewLayer)
+        rootLayer.addSublayer(contentLayer)
+
+        let file = convertedFile(of: rootLayer)
+        guard let containerData = file.groupScreenshots?[NSNumber(value: 2)],
+              let containerImage = NSBitmapImageRep(data: containerData)
+        else { fail("the empty container should show what its sublayers draw") }
+        expect(
+            containerImage.pixelsWide == 40 && containerImage.pixelsHigh == 40,
+            "the image covers the sublayer's drawing; got \(containerImage.pixelsWide) x \(containerImage.pixelsHigh)"
+        )
+        let items = flattened(file.hierarchyInfo?.displayItems ?? [])
+        guard items.count == 3 else { fail("the tree should have three nodes, got \(items.count)") }
+        expect(
+            items[1].groupScreenshotRegion == CGRect(x: 30, y: 30, width: 40, height: 40),
+            "the region places the image where the sublayer is; got \(items[1].groupScreenshotRegion)"
+        )
     }
 
     private static func testCancelledRecoveryThrows() {
