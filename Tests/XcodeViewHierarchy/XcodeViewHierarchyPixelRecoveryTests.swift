@@ -28,6 +28,7 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testZeroSizedLayerProducesNoImage()
         testLargeLayerIsScaledWithinTheCap()
         testTallLayerStaysWithinTheTextureEdge()
+        testExtremelyTallLayerStaysWithinTheTextureEdge()
         testPlainColorLayersRenderNoImageOfTheirOwn()
         testSparseLayerIsRenderedOnlyWhereItDraws()
         testArchiveRoundTripsThroughDecoder()
@@ -334,6 +335,27 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         guard let image = NSBitmapImageRep(data: data) else { fail("rendered data was not a bitmap") }
         expect(image.pixelsHigh <= 16384, "a side longer than the texture limit; got \(image.pixelsHigh)")
         expect(image.pixelsHigh > 16000, "the tall side should use the whole texture edge; got \(image.pixelsHigh)")
+    }
+
+    /// Fitting a layer more than ten times the texture edge takes a scale
+    /// below 0.1. The console of a dumped Xcode window was 256310 points
+    /// tall, and a floor on the scale once rendered it 25630 pixels high —
+    /// an image the preview asserts on. However tall the layer, the edge
+    /// holds.
+    private static func testExtremelyTallLayerStaysWithinTheTextureEdge() {
+        let layer = CALayer()
+        layer.bounds = CGRect(x: 0, y: 0, width: 1819, height: 256_310)
+        layer.contentsScale = 2
+        layer.backgroundColor = NSColor.red.cgColor
+        layer.borderWidth = 1
+        guard let data = XcodeViewHierarchyPixelRecovery.renderingPNG(
+            of: layer, includingSublayers: true, isFlipped: false
+        ) else { fail("an extremely tall layer should still render") }
+        guard let image = NSBitmapImageRep(data: data) else { fail("rendered data was not a bitmap") }
+        expect(image.pixelsHigh <= 16384, "a side longer than the texture limit; got \(image.pixelsHigh)")
+        expect(image.pixelsHigh > 16000, "the tall side should use the whole texture edge; got \(image.pixelsHigh)")
+        let scale = XcodeViewHierarchyPixelRecovery.renderingScale(for: layer)
+        expect(abs(scale - 16384.0 / 256_310.0) < 0.0001, "the longest side sets the scale, however small; got \(scale)")
     }
 
     /// A plain CALayer with nothing but a background colour needs no image:

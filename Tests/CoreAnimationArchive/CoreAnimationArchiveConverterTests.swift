@@ -19,6 +19,7 @@ struct CoreAnimationArchiveConverterTests {
         testNodesReportTheirCumulativeFlip()
         testRootArchivedOutOfAFlippedSuperlayerRendersUpright()
         testScreenshotsAreFiledUnderTheirNodes()
+        testEveryImageFitsThePreviewTextureLimit()
         testCancelledRecoveryThrows()
         testLayerRowsFollowTheServerTypes()
         testClassCardEndsAtCALayer()
@@ -141,6 +142,46 @@ struct CoreAnimationArchiveConverterTests {
         expect(
             root?.groupScreenshotRegion == CGRect(x: 10, y: 10, width: 20, height: 20),
             "the root's image covers only where its subtree draws, got \(String(describing: root?.groupScreenshotRegion))"
+        )
+    }
+
+    /// A Dump Layer of an Xcode window held the console's content view,
+    /// 256310 points of text. Its image came out 25630 pixels tall, and the
+    /// preview asserts that no image it is handed is longer than
+    /// `LookinNodeImageMaxLengthInPx` on a side. Every image an import files
+    /// has to fit, measured as the reader loads it, and the tall layer still
+    /// gets its image: a folded node shows its whole subtree in it.
+    private static func testEveryImageFitsThePreviewTextureLimit() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 400, height: 300))
+        rootLayer.masksToBounds = true
+        let contentLayer = makingLayer(CGRect(x: 0, y: 0, width: 380, height: 256_310))
+        // A line at either end, so the layer draws along its whole height.
+        let firstLineLayer = makingLayer(CGRect(x: 0, y: 0, width: 380, height: 14))
+        firstLineLayer.borderWidth = 1
+        let lastLineLayer = makingLayer(CGRect(x: 0, y: 256_296, width: 380, height: 14))
+        lastLineLayer.borderWidth = 1
+        contentLayer.addSublayer(firstLineLayer)
+        contentLayer.addSublayer(lastLineLayer)
+        rootLayer.addSublayer(contentLayer)
+
+        let file = convertedFile(of: rootLayer)
+        let images = Array((file.soloScreenshots ?? [:]).values) + Array((file.groupScreenshots ?? [:]).values)
+        for data in images {
+            guard let representation = NSImage(data: data)?.representations.first else {
+                fail("a filed image does not load")
+            }
+            let longestSide = max(representation.pixelsWide, representation.pixelsHigh)
+            expect(
+                Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                "an image of \(representation.pixelsWide) x \(representation.pixelsHigh) pixels is past the preview's limit"
+            )
+        }
+        guard let contentData = file.groupScreenshots?[NSNumber(value: 2)],
+              let contentRepresentation = NSImage(data: contentData)?.representations.first
+        else { fail("the tall layer's subtree draws, so it needs a group image") }
+        expect(
+            contentRepresentation.pixelsHigh > 16000,
+            "the tall side should use the whole texture edge; got \(contentRepresentation.pixelsHigh)"
         )
     }
 

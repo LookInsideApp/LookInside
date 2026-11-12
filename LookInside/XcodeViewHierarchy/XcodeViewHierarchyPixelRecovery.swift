@@ -315,6 +315,11 @@ enum XcodeViewHierarchyPixelRecovery {
 
     /// Scale that keeps the layer's own resolution without exceeding either
     /// cap: first the longest side, then the pixel budget.
+    ///
+    /// Both caps are hard limits, so the scale has no floor. A floor of 0.1
+    /// once let anything longer than ten texture edges — the console of a
+    /// dumped Xcode window, 256310 points of text — render past the edge,
+    /// and the preview asserts on such an image.
     static func renderingScale(for layer: CALayer) -> CGFloat {
         renderingScale(contentsScale: layer.contentsScale, size: layer.bounds.size)
     }
@@ -329,7 +334,7 @@ enum XcodeViewHierarchyPixelRecovery {
         if pixelCount > CGFloat(maximumRenderedPixelCount) {
             scale *= (CGFloat(maximumRenderedPixelCount) / pixelCount).squareRoot()
         }
-        return max(scale, 0.1)
+        return scale
     }
 
     /// Xcode's `-[DBGViewSurface _needsImageSnapshot]`, negated: a plain
