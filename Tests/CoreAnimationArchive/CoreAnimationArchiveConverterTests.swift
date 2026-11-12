@@ -29,6 +29,8 @@ struct CoreAnimationArchiveConverterTests {
             testViewClassThisProcessLacksKeepsItsName()
         }
         testUnmarkedOrMisnamedLayersStayLayers()
+        testNamedLayersShowTheirNames()
+        testSublayersOfAScrolledFlippedLayerSitWhereTheyShow()
         print("Core Animation archive converter tests passed")
     }
 
@@ -332,6 +334,47 @@ struct CoreAnimationArchiveConverterTests {
         let items = flattened(convertedFile(of: rootLayer).hierarchyInfo?.displayItems ?? [])
         expect(items.count == 5, "the tree should have five nodes, got \(items.count)")
         expect(items.allSatisfy { $0.nodeKind == .layer && $0.viewObject == nil }, "none of these layers backed a view, got \(items.map(\.nodeKind))")
+    }
+
+    /// Layers other code named (`NSCGSWindow`, `CUIWindowFrameLayer`,
+    /// `CAHostingLayer`) read by that name, as in Mica; an unnamed one by its
+    /// class, and a view by its view's class.
+    private static func testNamedLayersShowTheirNames() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 40, height: 40))
+        rootLayer.name = "NSCGSWindow"
+        let unnamedLayer = makingLayer(CGRect(x: 0, y: 0, width: 10, height: 10))
+        let emptyNamedLayer = makingLayer(CGRect(x: 0, y: 0, width: 10, height: 10))
+        emptyNamedLayer.name = ""
+        let viewLayer = makingMarkedLayer(named: "NSTextField")
+        for sublayer in [unnamedLayer, emptyNamedLayer, viewLayer] {
+            rootLayer.addSublayer(sublayer)
+        }
+
+        let items = flattened(convertedFile(of: rootLayer).hierarchyInfo?.displayItems ?? [])
+        guard items.count == 4 else { fail("the tree should have four nodes, got \(items.count)") }
+        expect(items[0].customDisplayTitle == "NSCGSWindow", "a named layer should be titled by its name, got \(String(describing: items[0].customDisplayTitle))")
+        expect(items[1].customDisplayTitle == nil, "an unnamed layer should fall back to its class")
+        expect(items[2].customDisplayTitle == nil, "an empty name should fall back to the class rather than leave the row blank")
+        expect(items[3].nodeKind == .view && items[3].customDisplayTitle == nil, "a view node should be titled by its view's class")
+    }
+
+    /// A scrolled or inset clip view's layer is flipped and has a bounds
+    /// origin other than zero; what sits at that origin shows at its top. The
+    /// marker must land there in the inspector's bottom-up root space, not
+    /// one inset lower.
+    private static func testSublayersOfAScrolledFlippedLayerSitWhereTheyShow() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        let clipLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        clipLayer.isGeometryFlipped = true
+        clipLayer.bounds = CGRect(x: 0, y: -30, width: 100, height: 100)
+        let markerLayer = makingLayer(CGRect(x: 0, y: -30, width: 100, height: 10))
+        clipLayer.addSublayer(markerLayer)
+        rootLayer.addSublayer(clipLayer)
+
+        let items = flattened(convertedFile(of: rootLayer).hierarchyInfo?.displayItems ?? [])
+        guard items.count == 3 else { fail("the tree should have three nodes, got \(items.count)") }
+        let markerFrame = items[2].calculateFrameToRoot()
+        expect(markerFrame == CGRect(x: 0, y: 90, width: 100, height: 10), "the marker should sit at the top of the clip layer, got \(markerFrame)")
     }
 
     // MARK: - Helpers
