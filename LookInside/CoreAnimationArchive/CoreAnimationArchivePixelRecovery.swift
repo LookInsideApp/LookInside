@@ -84,10 +84,13 @@ enum CoreAnimationArchivePixelRecovery {
 
     /// Renders every layer of `tree`.
     ///
-    /// Must be called from a single thread: rendering a layer on its own
-    /// detaches its sublayers for the duration, and they are put back before
-    /// the next layer is drawn. `isCancelled` is polled once per layer; when
-    /// it answers true the recovery throws `CancellationError`, since a
+    /// Must be called from a single thread, and not inside an explicit
+    /// CATransaction: rendering a layer moves it into the renderer, and on
+    /// its own detaches its sublayers, for the duration, and everything is
+    /// put back before the next layer is drawn; every render commits its own
+    /// transaction. The tree's animations are removed first, so the images
+    /// show the layers' own values. `isCancelled` is polled once per layer;
+    /// when it answers true the recovery throws `CancellationError`, since a
     /// partial set of images would read as missing pixels.
     static func recovering(
         from tree: CoreAnimationArchiveLayerTree,
@@ -97,7 +100,8 @@ enum CoreAnimationArchivePixelRecovery {
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        defer { CATransaction.commit() }
+        Renderer.removingAnimations(from: tree.rootLayer)
+        CATransaction.commit()
 
         for (index, layer) in tree.layers.enumerated() {
             if isCancelled() {

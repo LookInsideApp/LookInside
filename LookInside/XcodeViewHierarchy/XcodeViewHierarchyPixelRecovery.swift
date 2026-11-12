@@ -30,9 +30,20 @@
 // NSOutlineView, an NSTextView, a UIKit screen — reads mirrored, which is how
 // an imported Xcode window once came back with its navigator upside down while
 // the window as a whole rendered fine.
+//
+// The images are drawn by Core Animation's own renderer (CARenderer, into a
+// Metal texture), the engine that puts these layers on screen. CGContext's
+// renderInContext is a simplified software path: it draws Liquid Glass as the
+// white fill of its shape source, leaves backdrops and vibrancy blank and
+// misses some masks, which made an imported Xcode window read as white
+// lozenges over a white sidebar. CARenderer honours the flag on the layer it
+// is given, so instead of flipping the result, the layer is drawn inside a
+// container that carries its superlayer's cumulative flip — the same picture.
+// renderInContext remains the fallback where there is no Metal device.
 
 import AppKit
 import Foundation
+import Metal
 import QuartzCore
 
 struct XcodeViewHierarchyScreenshots {
@@ -86,9 +97,11 @@ enum XcodeViewHierarchyPixelRecovery {
 
     /// Renders every node the capture has pixels for.
     ///
-    /// Must be called from a single thread; it mutates the decoded layer trees
-    /// while rendering (detaching sublayers for the solo pass) and restores
-    /// them before returning.
+    /// Must be called from a single thread, and not inside an explicit
+    /// CATransaction: it mutates the decoded layer trees while rendering
+    /// (moving each layer into the renderer, detaching sublayers for the solo
+    /// pass) and restores them before returning, and every render commits
+    /// its own transaction, which an enclosing one would hold back.
     ///
     /// `isCancelled` is polled once per layer. When it answers true the render
     /// stops and nothing is returned: a partial set of images would read as
@@ -101,21 +114,24 @@ enum XcodeViewHierarchyPixelRecovery {
         let alignment = XcodeViewHierarchyLayerAlignment.aligning(trees: trees, graph: graph)
         let topology = XcodeViewHierarchyLayerTopology(graph: graph)
 
-        for tree in trees where tree.isGeometryFlipped {
-            // A y-down capture: the root carries the axis and the subtree
-            // inherits it. The context flip in renderingPNG is the other half.
-            tree.rootLayer.isGeometryFlipped = true
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for tree in trees {
+            if tree.isGeometryFlipped {
+                // A y-down capture: the root carries the axis and the subtree
+                // inherits it. The flip of the render's container in
+                // renderingPNG is the other half.
+                tree.rootLayer.isGeometryFlipped = true
+            }
+            removingAnimations(from: tree.rootLayer)
         }
+        CATransaction.commit()
 
         var soloByObjectIdentifier: [String: Data] = [:]
         var groupByObjectIdentifier: [String: Data] = [:]
         var groupExcludingHostedViewsByObjectIdentifier: [String: Data] = [:]
         var groupRegionByObjectIdentifier: [String: CGRect] = [:]
         var groupExcludingHostedViewsRegionByObjectIdentifier: [String: CGRect] = [:]
-
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        defer { CATransaction.commit() }
 
         for (objectIdentifier, layer) in alignment {
             if isCancelled() {
@@ -247,10 +263,30 @@ enum XcodeViewHierarchyPixelRecovery {
 
     // MARK: - Rendering
 
+    /// What one render draws.
+    struct RenderRequest {
+        let layer: CALayer
+        let includingSublayers: Bool
+        /// Hidden for the duration of the render; descendants of `layer`.
+        let hiddenLayers: [CALayer]
+        /// The part of the layer's bounds the image covers.
+        let region: CGRect
+        let scale: CGFloat
+        let pixelWidth: Int
+        let pixelHeight: Int
+        /// The layer's cumulative flip in its tree (`contentsAreFlipped`).
+        let isFlipped: Bool
+    }
+
     /// `hiddenLayers` are hidden for the duration of the render and restored
     /// afterwards; they must be descendants of `layer`. `region`, a rect in
     /// the layer's bounds space, limits the render to that part of the
-    /// bounds; the image then covers exactly the region.
+    /// bounds; the image then covers exactly the region. `isFlipped` is the
+    /// layer's cumulative flip in its tree, and the image shows the layer the
+    /// way it looks there.
+    ///
+    /// Not to be called inside an explicit CATransaction: the render commits
+    /// its own, which an enclosing one would hold back.
     static func renderingPNG(
         of layer: CALayer,
         includingSublayers: Bool,
@@ -263,45 +299,100 @@ enum XcodeViewHierarchyPixelRecovery {
               bounds.width.isFinite, bounds.height.isFinite
         else { return nil }
 
-        let scale = renderingScale(contentsScale: layer.contentsScale, size: bounds.size)
+        // A group image holds the whole subtree, so it is as sharp as the
+        // sharpest layer in it: a window's root layer never draws and keeps a
+        // contentsScale of 1 while the views inside draw at 2x. A solo image
+        // is the layer's own drawing, at the layer's own scale.
+        let contentsScale = includingSublayers ? sharpestContentsScale(in: layer) : layer.contentsScale
+        let scale = renderingScale(contentsScale: contentsScale, size: bounds.size)
         // Rounded down so a layer sitting exactly at a cap cannot creep past
         // it by a row of pixels.
         let pixelWidth = Int((bounds.width * scale).rounded(.down))
         let pixelHeight = Int((bounds.height * scale).rounded(.down))
         guard pixelWidth > 0, pixelHeight > 0 else { return nil }
 
+        let request = RenderRequest(
+            layer: layer,
+            includingSublayers: includingSublayers,
+            hiddenLayers: hiddenLayers.filter { !$0.isHidden },
+            region: bounds,
+            scale: scale,
+            pixelWidth: pixelWidth,
+            pixelHeight: pixelHeight,
+            isFlipped: isFlipped
+        )
+        let renderedImage = if let renderer = CoreAnimationLayerRenderer.shared {
+            renderer.rendering(request)
+        } else {
+            renderingWithCoreGraphics(request)
+        }
+        guard let renderedImage else { return nil }
+        let bitmap = NSBitmapImageRep(cgImage: renderedImage)
+        return bitmap.representation(using: .png, properties: [:])
+    }
+
+    /// The largest `contentsScale` in `layer`'s subtree, the layer's own
+    /// included.
+    static func sharpestContentsScale(in layer: CALayer) -> CGFloat {
+        var sharpestScale = layer.contentsScale
+        for sublayer in layer.sublayers ?? [] {
+            sharpestScale = max(sharpestScale, sharpestContentsScale(in: sublayer))
+        }
+        return sharpestScale
+    }
+
+    /// Strips the animations off a decoded tree, so that Core Animation's
+    /// renderer, which plays them, draws the layers' own values as
+    /// renderInContext did — an archived blink or spinner would otherwise
+    /// land in whatever phase the clock is in.
+    static func removingAnimations(from layer: CALayer) {
+        layer.removeAllAnimations()
+        layer.mask.map(removingAnimations(from:))
+        for sublayer in layer.sublayers ?? [] {
+            removingAnimations(from: sublayer)
+        }
+    }
+
+    /// The software path, for a machine without a Metal device: CGContext's
+    /// renderInContext. It ignores the flag on the layer it draws, so a layer
+    /// whose cumulative flip is odd has its context mirrored instead.
+    private static func renderingWithCoreGraphics(_ request: RenderRequest) -> CGImage? {
         guard let context = CGContext(
             data: nil,
-            width: pixelWidth,
-            height: pixelHeight,
+            width: request.pixelWidth,
+            height: request.pixelHeight,
             bitsPerComponent: 8,
             bytesPerRow: 0,
             space: CGColorSpaceSRGB(),
             bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         ) else { return nil }
 
-        var detachedSublayers: [CALayer]?
-        if !includingSublayers, let existingSublayers = layer.sublayers, !existingSublayers.isEmpty {
-            detachedSublayers = existingSublayers
+        let layer = request.layer
+        let detachedSublayers = request.includingSublayers ? nil : layer.sublayers.flatMap { $0.isEmpty ? nil : $0 }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        if detachedSublayers != nil {
             layer.sublayers = nil
         }
-        let layersHiddenForRender = hiddenLayers.filter { !$0.isHidden }
-        for hiddenLayer in layersHiddenForRender {
+        for hiddenLayer in request.hiddenLayers {
             hiddenLayer.isHidden = true
         }
+        CATransaction.commit()
         defer {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
             if let detachedSublayers {
                 layer.sublayers = detachedSublayers
             }
-            for hiddenLayer in layersHiddenForRender {
+            for hiddenLayer in request.hiddenLayers {
                 hiddenLayer.isHidden = false
             }
+            CATransaction.commit()
         }
 
-        context.scaleBy(x: scale, y: scale)
-        if isFlipped {
-            // The layer's cumulative flip is odd: mirror the context so the
-            // image matches how the layer looks inside its tree.
+        let bounds = request.region
+        context.scaleBy(x: request.scale, y: request.scale)
+        if request.isFlipped {
             context.translateBy(x: 0, y: bounds.height)
             context.scaleBy(x: 1, y: -1)
         }
@@ -309,8 +400,7 @@ enum XcodeViewHierarchyPixelRecovery {
         layer.render(in: context)
 
         guard let renderedImage = context.makeImage(), containsVisiblePixels(context) else { return nil }
-        let bitmap = NSBitmapImageRep(cgImage: renderedImage)
-        return bitmap.representation(using: .png, properties: [:])
+        return renderedImage
     }
 
     /// Scale that keeps the layer's own resolution without exceeding either
@@ -386,5 +476,214 @@ enum XcodeViewHierarchyPixelRecovery {
 
     private static func CGColorSpaceSRGB() -> CGColorSpace {
         CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+    }
+}
+
+// MARK: - Core Animation's renderer
+
+/// Draws layers with Core Animation's own renderer into Metal textures: the
+/// engine that puts them on screen, so glass, backdrops, portals and masks
+/// come out as they look there.
+///
+/// One per process. CARenderer and the container it draws are not thread
+/// safe, and two imports can run at once, so renders take turns.
+final class CoreAnimationLayerRenderer: @unchecked Sendable {
+    /// Nil where there is no Metal device, or where a test render does not
+    /// come back right; renders then fall back to CGContext.
+    static let shared: CoreAnimationLayerRenderer? = CoreAnimationLayerRenderer()
+
+    private let device: MTLDevice
+    private let commandQueue: MTLCommandQueue
+    private let renderer: CARenderer
+    /// The root of every render: the layer being drawn is moved in for the
+    /// render and put back in its tree afterwards.
+    private let containerLayer = CALayer()
+    private let lock = NSLock()
+
+    private init?() {
+        guard let device = MTLCreateSystemDefaultDevice(),
+              let commandQueue = device.makeCommandQueue(),
+              let placeholderTexture = Self.makingTexture(on: device, width: 1, height: 1)
+        else { return nil }
+        self.device = device
+        self.commandQueue = commandQueue
+        renderer = CARenderer(mtlTexture: placeholderTexture, options: [
+            kCARendererMetalCommandQueue: commandQueue,
+            kCARendererColorSpace: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+        ])
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        containerLayer.anchorPoint = .zero
+        containerLayer.position = .zero
+        renderer.layer = containerLayer
+        CATransaction.commit()
+
+        guard rendersATestLayer() else { return nil }
+    }
+
+    /// The image `request` describes, or nil when it drew nothing.
+    func rendering(_ request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> CGImage? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let pixels = renderingPixels(request), Self.containsVisiblePixels(pixels) else { return nil }
+        return Self.makingImage(pixels, width: request.pixelWidth, height: request.pixelHeight)
+    }
+
+    /// A small red layer, drawn and read back: proof that this machine's
+    /// renderer works before an import depends on it.
+    private func rendersATestLayer() -> Bool {
+        let testLayer = CALayer()
+        testLayer.bounds = CGRect(x: 0, y: 0, width: 4, height: 4)
+        testLayer.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        let request = XcodeViewHierarchyPixelRecovery.RenderRequest(
+            layer: testLayer,
+            includingSublayers: true,
+            hiddenLayers: [],
+            region: testLayer.bounds,
+            scale: 1,
+            pixelWidth: 4,
+            pixelHeight: 4,
+            isFlipped: false
+        )
+        guard let pixels = renderingPixels(request) else { return false }
+        // Blue, green, red, alpha.
+        return pixels[0] < 16 && pixels[1] < 16 && pixels[2] > 240 && pixels[3] > 240
+    }
+
+    /// BGRA, premultiplied, top row first.
+    private func renderingPixels(_ request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> [UInt8]? {
+        let width = request.pixelWidth
+        let height = request.pixelHeight
+        guard let texture = Self.makingTexture(on: device, width: width, height: height) else { return nil }
+
+        let layer = request.layer
+        let originalSuperlayer = layer.superlayer
+        let originalIndex = originalSuperlayer?.sublayers?.firstIndex { $0 === layer }
+        let originalPosition = layer.position
+        let originalAnchorPoint = layer.anchorPoint
+        let originalTransform = layer.transform
+        let detachedSublayers = request.includingSublayers ? nil : layer.sublayers.flatMap { $0.isEmpty ? nil : $0 }
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.removeFromSuperlayer()
+        if detachedSublayers != nil {
+            layer.sublayers = nil
+        }
+        for hiddenLayer in request.hiddenLayers {
+            hiddenLayer.isHidden = true
+        }
+        // Only the layer's bounds space is drawn, as renderInContext draws
+        // it: its position and transform belong to its superlayer's picture.
+        // The region's origin goes to the container's origin.
+        layer.transform = CATransform3DIdentity
+        layer.anchorPoint = .zero
+        layer.position = CGPoint(
+            x: layer.bounds.origin.x - request.region.origin.x,
+            y: layer.bounds.origin.y - request.region.origin.y
+        )
+        // The container stands in for the superlayer's cumulative flip, so
+        // the subtree lies as it does in its tree.
+        containerLayer.isGeometryFlipped = request.isFlipped != layer.isGeometryFlipped
+        containerLayer.bounds = CGRect(x: 0, y: 0, width: width, height: height)
+        containerLayer.sublayerTransform = CATransform3DMakeScale(request.scale, request.scale, 1)
+        containerLayer.addSublayer(layer)
+        renderer.setDestination(texture)
+        renderer.bounds = containerLayer.bounds
+        CATransaction.commit()
+        CATransaction.flush()
+
+        renderer.beginFrame(atTime: CACurrentMediaTime(), timeStamp: nil)
+        renderer.addUpdate(renderer.bounds)
+        renderer.render()
+        renderer.endFrame()
+        // Work committed after the renderer's on the same queue finishes
+        // after it; a managed texture is copied back for the CPU on the way.
+        if let commandBuffer = commandQueue.makeCommandBuffer() {
+            if texture.storageMode == .managed, let blitEncoder = commandBuffer.makeBlitCommandEncoder() {
+                blitEncoder.synchronize(resource: texture)
+                blitEncoder.endEncoding()
+            }
+            commandBuffer.commit()
+            commandBuffer.waitUntilCompleted()
+        }
+
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.removeFromSuperlayer()
+        layer.transform = originalTransform
+        layer.anchorPoint = originalAnchorPoint
+        layer.position = originalPosition
+        if let detachedSublayers {
+            layer.sublayers = detachedSublayers
+        }
+        for hiddenLayer in request.hiddenLayers {
+            hiddenLayer.isHidden = false
+        }
+        if let originalSuperlayer, let originalIndex {
+            originalSuperlayer.insertSublayer(layer, at: UInt32(originalIndex))
+        }
+        CATransaction.commit()
+        CATransaction.flush()
+
+        let bytesPerRow = width * 4
+        var pixels = [UInt8](repeating: 0, count: bytesPerRow * height)
+        pixels.withUnsafeMutableBytes { buffer in
+            guard let baseAddress = buffer.baseAddress else { return }
+            // The texture's first row is the bottom of the picture; an
+            // image's first row is its top.
+            for row in 0 ..< height {
+                texture.getBytes(
+                    baseAddress + (height - 1 - row) * bytesPerRow,
+                    bytesPerRow: bytesPerRow,
+                    from: MTLRegionMake2D(0, row, width, 1),
+                    mipmapLevel: 0
+                )
+            }
+        }
+        return pixels
+    }
+
+    private static func makingTexture(on device: MTLDevice, width: Int, height: Int) -> MTLTexture? {
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .bgra8Unorm, width: width, height: height, mipmapped: false
+        )
+        descriptor.usage = [.renderTarget, .shaderRead, .shaderWrite]
+        // Read back on the CPU: shared where the GPU shares memory with it,
+        // managed on a discrete GPU.
+        descriptor.storageMode = device.hasUnifiedMemory ? .shared : .managed
+        return device.makeTexture(descriptor: descriptor)
+    }
+
+    private static func containsVisiblePixels(_ pixels: [UInt8]) -> Bool {
+        pixels.withUnsafeBufferPointer { buffer in
+            var alphaIndex = 3
+            while alphaIndex < buffer.count {
+                if buffer[alphaIndex] != 0 {
+                    return true
+                }
+                alphaIndex += 4
+            }
+            return false
+        }
+    }
+
+    private static func makingImage(_ pixels: [UInt8], width: Int, height: Int) -> CGImage? {
+        guard let provider = CGDataProvider(data: Data(pixels) as CFData) else { return nil }
+        return CGImage(
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bitsPerPixel: 32,
+            bytesPerRow: width * 4,
+            space: CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGBitmapInfo(
+                rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+            ),
+            provider: provider,
+            decode: nil,
+            shouldInterpolate: true,
+            intent: .defaultIntent
+        )
     }
 }

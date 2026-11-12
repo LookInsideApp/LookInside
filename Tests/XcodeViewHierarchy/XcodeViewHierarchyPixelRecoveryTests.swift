@@ -29,6 +29,7 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testLargeLayerIsScaledWithinTheCap()
         testTallLayerStaysWithinTheTextureEdge()
         testExtremelyTallLayerStaysWithinTheTextureEdge()
+        testGroupImageTakesTheSharpestScaleInItsSubtree()
         testPlainColorLayersRenderNoImageOfTheirOwn()
         testSparseLayerIsRenderedOnlyWhereItDraws()
         testArchiveRoundTripsThroughDecoder()
@@ -356,6 +357,39 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         expect(image.pixelsHigh > 16000, "the tall side should use the whole texture edge; got \(image.pixelsHigh)")
         let scale = XcodeViewHierarchyPixelRecovery.renderingScale(for: layer)
         expect(abs(scale - 16384.0 / 256_310.0) < 0.0001, "the longest side sets the scale, however small; got \(scale)")
+    }
+
+    /// A window's root layer never draws, so it keeps the default
+    /// contentsScale of 1 while every view inside draws at 2x. Its group image
+    /// holds all of them, and at the root's own scale a whole imported window
+    /// read blurred. A group image takes the sharpest scale in its subtree;
+    /// a solo image, which is the layer's own drawing only, keeps the layer's.
+    private static func testGroupImageTakesTheSharpestScaleInItsSubtree() {
+        let root = CALayer()
+        root.bounds = CGRect(x: 0, y: 0, width: 100, height: 50)
+        root.contentsScale = 1
+        root.borderWidth = 1 // something of its own, so the solo image exists
+        let child = CALayer()
+        child.frame = CGRect(x: 10, y: 10, width: 30, height: 30)
+        child.contentsScale = 2
+        child.backgroundColor = NSColor.red.cgColor
+        child.borderWidth = 1
+        root.addSublayer(child)
+
+        guard let groupData = XcodeViewHierarchyPixelRecovery.renderingPNG(
+            of: root, includingSublayers: true, isFlipped: false
+        ), let groupImage = NSBitmapImageRep(data: groupData) else { fail("the root's subtree should render") }
+        expect(
+            groupImage.pixelsWide == 200 && groupImage.pixelsHigh == 100,
+            "the group image should follow its 2x sublayer; got \(groupImage.pixelsWide) x \(groupImage.pixelsHigh)"
+        )
+        guard let soloData = XcodeViewHierarchyPixelRecovery.renderingPNG(
+            of: root, includingSublayers: false, isFlipped: false
+        ), let soloImage = NSBitmapImageRep(data: soloData) else { fail("the root's own border should render") }
+        expect(
+            soloImage.pixelsWide == 100 && soloImage.pixelsHigh == 50,
+            "the solo image should keep the root's own 1x; got \(soloImage.pixelsWide) x \(soloImage.pixelsHigh)"
+        )
     }
 
     /// A plain CALayer with nothing but a background colour needs no image:

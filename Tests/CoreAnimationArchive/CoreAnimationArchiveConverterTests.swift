@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import Metal
 import QuartzCore
 
 /// Coverage for turning a decoded Core Animation archive into the
@@ -28,6 +29,7 @@ struct CoreAnimationArchiveConverterTests {
             testViewLayersBecomeViewNodes()
             testCustomBackingLayerNamesBothClasses()
             testViewClassThisProcessLacksKeepsItsName()
+            testGlassRendersAsGlassNotItsShape()
         }
         testUnmarkedOrMisnamedLayersStayLayers()
         testNamedLayersShowTheirNames()
@@ -155,7 +157,10 @@ struct CoreAnimationArchiveConverterTests {
         let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 400, height: 300))
         rootLayer.masksToBounds = true
         let contentLayer = makingLayer(CGRect(x: 0, y: 0, width: 380, height: 256_310))
-        // A line at either end, so the layer draws along its whole height.
+        // The console's background, so the layer draws along its whole
+        // height, and a line of text at either end. A line alone shrinks to
+        // less than a pixel at this scale, and draws nothing.
+        contentLayer.backgroundColor = CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
         let firstLineLayer = makingLayer(CGRect(x: 0, y: 0, width: 380, height: 14))
         firstLineLayer.borderWidth = 1
         let lastLineLayer = makingLayer(CGRect(x: 0, y: 256_296, width: 380, height: 14))
@@ -182,6 +187,47 @@ struct CoreAnimationArchiveConverterTests {
         expect(
             contentRepresentation.pixelsHigh > 16000,
             "the tall side should use the whole texture edge; got \(contentRepresentation.pixelsHigh)"
+        )
+    }
+
+    /// Liquid Glass is a signed-distance-field layer whose shape source is a
+    /// white fill that only Core Animation's own renderer turns into glass;
+    /// CGContext's renderInContext draws the white fill, which is how every
+    /// glass toolbar button of a dumped Xcode window came out a white
+    /// lozenge. A real NSGlassEffectView over a dark window, dumped and
+    /// imported, must show dark glass where the button is.
+    @MainActor
+    private static func testGlassRendersAsGlassNotItsShape() {
+        guard #available(macOS 26.0, *) else {
+            print("skipped testGlassRendersAsGlassNotItsShape: NSGlassEffectView needs macOS 26")
+            return
+        }
+        // Without a GPU the import draws with renderInContext, glass and all;
+        // with one, Core Animation's renderer must be the one drawing.
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testGlassRendersAsGlassNotItsShape: no Metal device")
+            return
+        }
+        expect(CoreAnimationLayerRenderer.shared != nil, "Core Animation's renderer did not start on a machine with a Metal device")
+        let (contentView, window) = makingLayerBackedContentView()
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.setContentSize(NSSize(width: 200, height: 100))
+        contentView.layer?.backgroundColor = CGColor(srgbRed: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        // Centred, so the image's centre is the glass's.
+        let glassView = NSGlassEffectView(frame: NSRect(x: 40, y: 30, width: 120, height: 40))
+        glassView.cornerRadius = 20
+        contentView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+
+        let file = convertedFile(of: contentLayer)
+        guard let rootData = file.groupScreenshots?[NSNumber(value: 1)],
+              let rootImage = NSBitmapImageRep(data: rootData),
+              let centre = rootImage.colorAt(x: rootImage.pixelsWide / 2, y: rootImage.pixelsHigh / 2)?.usingColorSpace(.sRGB)
+        else { fail("the window's content should render") }
+        expect(
+            centre.redComponent < 0.8 || centre.greenComponent < 0.8 || centre.blueComponent < 0.8,
+            "the glass rendered as its white shape source: \(centre)"
         )
     }
 
