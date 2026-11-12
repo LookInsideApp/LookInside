@@ -648,13 +648,16 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         }
         // Only the layer's bounds space is drawn, as renderInContext draws
         // it: its position and transform belong to its superlayer's picture.
-        // The region's origin goes to the container's origin.
+        // The region goes to the container's origin. A layer flipped by its
+        // own flag lays its bounds space out from its top edge down, so
+        // there the region's top, not its bottom, lines up with the
+        // container's.
         layer.transform = CATransform3DIdentity
         layer.anchorPoint = .zero
-        layer.position = CGPoint(
-            x: layer.bounds.origin.x - request.region.origin.x,
-            y: layer.bounds.origin.y - request.region.origin.y
-        )
+        let regionOffsetY = layer.isGeometryFlipped
+            ? request.region.maxY - layer.bounds.maxY
+            : layer.bounds.origin.y - request.region.origin.y
+        layer.position = CGPoint(x: layer.bounds.origin.x - request.region.origin.x, y: regionOffsetY)
         // The container stands in for the superlayer's cumulative flip, so
         // the subtree lies as it does in its tree.
         containerLayer.isGeometryFlipped = request.isFlipped != layer.isGeometryFlipped
