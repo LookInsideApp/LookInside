@@ -238,20 +238,14 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
     }
 
     /// Places the region plane over `region`, a rect in the node's bounds
-    /// space. It maps to root space the way a subview's frame does (see
-    /// -[LookinDisplayItem calculateFrameToRoot]): offset from the bounds
-    /// origin, measured from the bottom when the node is flipped, and the
-    /// y axis negated for iOS targets as the node's own position is.
+    /// space. It maps to root space exactly as a subview's frame does
+    /// (-[LookinDisplayItem convertRectToRootFromBounds:]), and the y axis is
+    /// negated for iOS targets as the node's own position is.
     private func layoutRegionNode(region: CGRect, frameToRoot: CGRect) {
         guard let displayItem else { return }
-        let bounds = displayItem.bounds
-        let x = region.origin.x - bounds.origin.x
-        let y: CGFloat
-        if displayItem.isFlipped {
-            y = bounds.size.height - region.origin.y - region.size.height
-        } else {
-            y = region.origin.y - bounds.origin.y
-        }
+        let regionToRoot = displayItem.convertRectToRoot(fromBounds: region)
+        let x = regionToRoot.origin.x - frameToRoot.origin.x
+        let y = regionToRoot.origin.y - frameToRoot.origin.y
         let offsetX = (x + region.size.width / 2) - frameToRoot.size.width / 2
         let offsetY = (y + region.size.height / 2) - frameToRoot.size.height / 2
         regionPlane.width = region.size.width * Self.factor
