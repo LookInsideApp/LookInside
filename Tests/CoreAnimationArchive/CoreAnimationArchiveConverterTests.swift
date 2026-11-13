@@ -33,6 +33,8 @@ struct CoreAnimationArchiveConverterTests {
             testCustomBackingLayerNamesBothClasses()
             testViewClassThisProcessLacksKeepsItsName()
             testGlassRendersAsGlassNotItsShape()
+            testGlassDrawnOnItsOwnLooksAsInTheWindow()
+            testGlassShapeInputsGetNoImage()
         }
         testUnmarkedOrMisnamedLayersStayLayers()
         testNamedLayersShowTheirNames()
@@ -232,6 +234,112 @@ struct CoreAnimationArchiveConverterTests {
             centre.redComponent < 0.8 || centre.greenComponent < 0.8 || centre.blueComponent < 0.8,
             "the glass rendered as its white shape source: \(centre)"
         )
+    }
+
+    /// A node's image draws its subtree on its own, over transparency, and a
+    /// backdrop captures whatever lies behind it there. Liquid Glass reads a
+    /// partly transparent capture as if it were opaque and blows the colours
+    /// in it up into a saturated block: unfolding a dumped Xcode window put a
+    /// solid blue block on the toolbar's back/forward glass, from the blue
+    /// project icon beside it, where the window shows dark glass. Glass over
+    /// content, drawn on its own, must look as it does in the window, and its
+    /// image stay clear where nothing draws.
+    @MainActor
+    private static func testGlassDrawnOnItsOwnLooksAsInTheWindow() {
+        guard let (tree, screenshots) = importedGlassOverSquare(skipping: "testGlassDrawnOnItsOwnLooksAsInTheWindow") else {
+            return
+        }
+        guard let containerIndex = tree.layers.firstIndex(where: { $0.bounds.size == CGSize(width: 260, height: 60) }) else {
+            fail("the container should be in the archive")
+        }
+        // A band of the glass just left of the square, in the content view's
+        // space, which is the archive root's: in the window, dark glass with
+        // the square's glow coming through; drawn on its own, it was blue.
+        let glassBand = CGRect(x: 108, y: 42, width: 20, height: 16)
+        guard let inTheWindow = averageColor(of: glassBand, inImageOf: 1, tree: tree, screenshots: screenshots),
+              let onItsOwn = averageColor(of: glassBand, inImageOf: UInt(containerIndex + 1), tree: tree, screenshots: screenshots)
+        else { fail("the window and the container should both have images") }
+        let largestDifference = zip(inTheWindow, onItsOwn).map { abs($0 - $1) }.max() ?? 0
+        expect(
+            largestDifference < 0.08,
+            "the glass drawn on its own should look as it does in the window: \(onItsOwn) against \(inTheWindow)"
+        )
+        guard let containerData = screenshots.groupByObjectIdentifier[UInt(containerIndex + 1)],
+              let containerImage = NSBitmapImageRep(data: containerData)?.cgImage
+        else { fail("the container should have an image") }
+        let alphas = premultipliedPixels(of: containerImage).enumerated().filter { $0.offset % 4 == 3 }.map(\.element)
+        expect(alphas.contains { $0 < 5 }, "the container's image should stay clear where nothing draws")
+    }
+
+    /// Liquid Glass reads its shape from signed-distance-field layers under
+    /// its backdrop (`CASDFLayer` and its `CASDFElementLayer`s). On screen
+    /// they are never drawn themselves; drawn without the backdrop that
+    /// reads them they come out as the raw field, a rainbow-coloured
+    /// lozenge, which is what unfolding a glass control down to them showed.
+    /// They get no image.
+    @MainActor
+    private static func testGlassShapeInputsGetNoImage() {
+        guard let (tree, screenshots) = importedGlassOverSquare(skipping: "testGlassShapeInputsGetNoImage") else {
+            return
+        }
+        let backdropLayerClass: AnyClass? = NSClassFromString("CABackdropLayer")
+        let shapeInputIdentifiers = tree.layers.enumerated().compactMap { index, layer -> UInt? in
+            guard NSStringFromClass(type(of: layer)).hasPrefix("CASDF") else { return nil }
+            var ancestor = layer.superlayer
+            while let current = ancestor {
+                if let backdropLayerClass, current.isKind(of: backdropLayerClass) {
+                    return UInt(index + 1)
+                }
+                ancestor = current.superlayer
+            }
+            return nil
+        }
+        expect(!shapeInputIdentifiers.isEmpty, "the glass should read its shape from distance-field layers under its backdrop")
+        for objectIdentifier in shapeInputIdentifiers {
+            expect(
+                screenshots.groupByObjectIdentifier[objectIdentifier] == nil && screenshots.soloByObjectIdentifier[objectIdentifier] == nil,
+                "the glass's shape input #\(objectIdentifier) should get no image"
+            )
+        }
+    }
+
+    /// A dark window whose transparent container holds a blue square and,
+    /// drawn after it, a real NSGlassEffectView over the square's left part,
+    /// dumped and imported: the container's own image has nothing behind the
+    /// glass but the square. Nil, after saying the test was skipped, where
+    /// there is no Liquid Glass or no GPU to draw it.
+    @MainActor
+    private static func importedGlassOverSquare(
+        skipping testName: String
+    ) -> (CoreAnimationArchiveLayerTree, CoreAnimationArchiveScreenshots)? {
+        guard #available(macOS 26.0, *) else {
+            print("skipped \(testName): NSGlassEffectView needs macOS 26")
+            return nil
+        }
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped \(testName): no Metal device")
+            return nil
+        }
+        let (contentView, window) = makingLayerBackedContentView()
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.setContentSize(NSSize(width: 300, height: 100))
+        contentView.layer?.backgroundColor = CGColor(srgbRed: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        let containerView = NSView(frame: NSRect(x: 20, y: 20, width: 260, height: 60))
+        containerView.wantsLayer = true
+        contentView.addSubview(containerView)
+        let squareView = NSView(frame: NSRect(x: 110, y: 15, width: 30, height: 30))
+        squareView.wantsLayer = true
+        squareView.layer?.backgroundColor = CGColor(srgbRed: 0, green: 0.4, blue: 1, alpha: 1)
+        containerView.addSubview(squareView)
+        let glassView = NSGlassEffectView(frame: NSRect(x: 10, y: 10, width: 120, height: 40))
+        glassView.cornerRadius = 20
+        containerView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        // The window owns the views being dumped: kept alive until they are.
+        let contents = withExtendedLifetime(window) { decodedContents(of: contentLayer) }
+        let tree = CoreAnimationArchiveLayerTree(contents: contents)
+        return (tree, recoveredScreenshots(of: tree))
     }
 
     /// Text and icons on a sidebar or a toolbar are composited through a
@@ -689,14 +797,78 @@ struct CoreAnimationArchiveConverterTests {
 
     private static func convertedFile(of layer: CALayer, origin: CoreAnimationArchiveOrigin? = nil) -> HierarchyFile {
         let tree = CoreAnimationArchiveLayerTree(contents: decodedContents(of: layer))
-        let screenshots: CoreAnimationArchiveScreenshots
+        let capture = CoreAnimationArchiveCapture(tree: tree, screenshots: recoveredScreenshots(of: tree), origin: origin)
+        return CoreAnimationArchiveConverter.makingHierarchyFile(from: capture)
+    }
+
+    private static func recoveredScreenshots(of tree: CoreAnimationArchiveLayerTree) -> CoreAnimationArchiveScreenshots {
         do {
-            screenshots = try CoreAnimationArchivePixelRecovery.recovering(from: tree)
+            return try CoreAnimationArchivePixelRecovery.recovering(from: tree)
         } catch {
             fail("pixel recovery failed: \(error)")
         }
-        let capture = CoreAnimationArchiveCapture(tree: tree, screenshots: screenshots, origin: origin)
-        return CoreAnimationArchiveConverter.makingHierarchyFile(from: capture)
+    }
+
+    /// The average colour, red, green and blue unpremultiplied, of where the
+    /// group image of node `objectIdentifier` shows `rect`, a rect in the
+    /// archive root's space. Nil when the node has no image there.
+    private static func averageColor(
+        of rect: CGRect,
+        inImageOf objectIdentifier: UInt,
+        tree: CoreAnimationArchiveLayerTree,
+        screenshots: CoreAnimationArchiveScreenshots
+    ) -> [Double]? {
+        guard let data = screenshots.groupByObjectIdentifier[objectIdentifier],
+              let image = NSBitmapImageRep(data: data)?.cgImage
+        else { return nil }
+        let layer = tree.layers[Int(objectIdentifier) - 1]
+        let bounds = layer.bounds
+        // The image covers its region, measured from the bounds origin, or
+        // the whole bounds; its top row is the layer's top as it shows.
+        let region = screenshots.groupRegionByObjectIdentifier[objectIdentifier]
+            .map { $0.offsetBy(dx: bounds.origin.x, dy: bounds.origin.y) } ?? bounds
+        let rectInLayer = tree.rootLayer.convert(rect, to: layer)
+        let horizontalScale = CGFloat(image.width) / region.width
+        let verticalScale = CGFloat(image.height) / region.height
+        let top = layer.contentsAreFlipped() ? rectInLayer.minY - region.minY : region.maxY - rectInLayer.maxY
+        let pixelRect = CGRect(
+            x: (rectInLayer.minX - region.minX) * horizontalScale,
+            y: top * verticalScale,
+            width: rectInLayer.width * horizontalScale,
+            height: rectInLayer.height * verticalScale
+        ).integral.intersection(CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        guard !pixelRect.isEmpty else { return nil }
+        let pixels = premultipliedPixels(of: image)
+        var sums = [Double](repeating: 0, count: 4)
+        for row in Int(pixelRect.minY) ..< Int(pixelRect.maxY) {
+            for column in Int(pixelRect.minX) ..< Int(pixelRect.maxX) {
+                for channel in 0 ..< 4 {
+                    sums[channel] += Double(pixels[(row * image.width + column) * 4 + channel])
+                }
+            }
+        }
+        guard sums[3] > 0 else { return nil }
+        return sums.prefix(3).map { $0 / sums[3] }
+    }
+
+    /// The image's pixels as premultiplied RGBA bytes in sRGB, top row first.
+    private static func premultipliedPixels(of image: CGImage) -> [UInt8] {
+        var pixels = [UInt8](repeating: 0, count: image.width * image.height * 4)
+        pixels.withUnsafeMutableBytes { buffer in
+            guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+                  let context = CGContext(
+                      data: buffer.baseAddress,
+                      width: image.width,
+                      height: image.height,
+                      bitsPerComponent: 8,
+                      bytesPerRow: image.width * 4,
+                      space: colorSpace,
+                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                  )
+            else { return }
+            context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+        }
+        return pixels
     }
 
     private static func flattened(_ items: [DisplayItem]) -> [DisplayItem] {
