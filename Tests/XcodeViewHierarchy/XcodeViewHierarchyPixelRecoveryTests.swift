@@ -34,6 +34,7 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testSparseLayerIsRenderedOnlyWhereItDraws()
         testSparseFlippedLayerIsRenderedWhereItDraws()
         testStandInIsTakenBackOutByCoverage()
+        testVibrantFillKeepsWhatItMadeOfTheStandIn()
         testStandInDoesNotOutliveItsRender()
         testArchiveRoundTripsThroughDecoder()
         testMalformedArchiveIsRejected()
@@ -484,12 +485,15 @@ struct XcodeViewHierarchyPixelRecoveryTests {
             20, 20, 20, 255, // glass, dark over transparency
             30, 30, 30, 100, // glass's edge, lighter over the stand-in
         ]
-        let pixelsOverStandIn: [UInt8] = over([0, 0, 0], alpha: 0)
+        var result: [UInt8] = over([0, 0, 0], alpha: 0)
             + over([0, 0, 128], alpha: 128)
             + [60, 62, 66, 255]
             + [220, 220, 220, 255]
-        let result = XcodeViewHierarchyPixelRecovery.removingBackdropStandIn(
-            standIn, from: pixelsOverStandIn, coverage: coverage, width: 4, height: 1
+        expect(
+            XcodeViewHierarchyPixelRecovery.removingMaterialStandIn(
+                standIn, from: &result, coverage: coverage, width: 4, height: 1
+            ),
+            "taking the stand-in out should succeed"
         )
         func close(_ pixelIndex: Int, _ expected: [UInt8]) -> Bool {
             (0 ..< 4).allSatisfy { abs(Int(result[pixelIndex * 4 + $0]) - Int(expected[$0])) <= 1 }
@@ -498,6 +502,47 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         expect(close(1, [0, 0, 128, 128]), "half-covering red should come out as over transparency, got \(result[4 ..< 8])")
         expect(close(2, [60, 62, 66, 255]), "opaque glass should keep its colour over the stand-in, got \(result[8 ..< 12])")
         expect(close(3, [100, 100, 100, 100]), "no colour should exceed its pixel's alpha, got \(result[12 ..< 16])")
+    }
+
+    /// A vibrant fill — a selection highlight, the sheen of glass — draws
+    /// nothing over transparency and only lightens or darkens the material
+    /// it lies on. Where it lies, what it made of the stand-in is kept as
+    /// the faintest white or black that gives that colour over the
+    /// stand-in, not as an opaque block of the stand-in; elsewhere a pixel
+    /// nothing covers stays clear, and noise between the two renders is
+    /// not taken for a fill.
+    private static func testVibrantFillKeepsWhatItMadeOfTheStandIn() {
+        let standIn = XcodeViewHierarchyPixelRecovery.OpaqueColorBytes(red: 60, green: 60, blue: 60)
+        let coverage = [UInt8](repeating: 0, count: 4 * 4)
+        // Blue, green, red, alpha over the stand-in: lightened by a fill,
+        // darkened by a fill, a pixel off by one, and a lightened pixel
+        // outside the fill's region.
+        var result: [UInt8] = [
+            111, 111, 111, 255,
+            30, 30, 30, 255,
+            61, 61, 61, 255,
+            111, 111, 111, 255,
+        ]
+        expect(
+            XcodeViewHierarchyPixelRecovery.removingMaterialStandIn(
+                standIn, from: &result, coverage: coverage, width: 4, height: 1,
+                uncoveredRegions: [CGRect(x: 0, y: 0, width: 3, height: 1)]
+            ),
+            "taking the stand-in out should succeed"
+        )
+        // White at (111 − 60) / (255 − 60) of full alpha, premultiplied.
+        let lighteningAlpha = Int(((111.0 - 60) / (255 - 60) * 255).rounded())
+        expect(
+            (0 ..< 3).allSatisfy { abs(Int(result[$0]) - lighteningAlpha) <= 1 } && abs(Int(result[3]) - lighteningAlpha) <= 1,
+            "a lightening fill should become a faint white, got \(result[0 ..< 4])"
+        )
+        // Black at (60 − 30) / 60 of full alpha.
+        expect(
+            result[4 ..< 7].allSatisfy { $0 == 0 } && abs(Int(result[7]) - 128) <= 1,
+            "a darkening fill should become a faint black, got \(result[4 ..< 8])"
+        )
+        expect(result[8 ..< 12].allSatisfy { $0 == 0 }, "noise between the renders is no fill, got \(result[8 ..< 12])")
+        expect(result[12 ..< 16].allSatisfy { $0 == 0 }, "outside a fill a clear pixel stays clear, got \(result[12 ..< 16])")
     }
 
     /// The stand-in belongs to the one render drawn over it. Should it stay
@@ -521,7 +566,7 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         backdrop.frame = CGRect(x: 10, y: 10, width: 20, height: 20)
         root.addSublayer(backdrop)
         let red = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
-        _ = XcodeViewHierarchyPixelRecovery.renderingPNG(of: root, includingSublayers: true, isFlipped: false, backdropStandIn: red)
+        _ = XcodeViewHierarchyPixelRecovery.renderingPNG(of: root, includingSublayers: true, isFlipped: false, materialStandIn: red)
         guard let afterwards = XcodeViewHierarchyPixelRecovery.renderingPNG(of: root, includingSublayers: true, isFlipped: false),
               let image = NSBitmapImageRep(data: afterwards)
         else { fail("the mark should render") }

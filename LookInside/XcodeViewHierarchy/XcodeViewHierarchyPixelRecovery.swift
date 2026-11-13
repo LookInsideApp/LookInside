@@ -47,13 +47,16 @@
 // partly transparent capture as if it were opaque, so content near it comes
 // out as saturated blocks of its colour (a blue block on Xcode's
 // back/forward glass, from the project icon beside it) where the window,
-// opaque behind, shows plain glass. Such a subtree is drawn a second time
-// over a stand-in for the window, its average colour, which the backdrops
-// capture instead; the stand-in is then taken back out of each pixel by how
-// much of it the subtree covers in the first render. Liquid Glass's shape
-// inputs, the signed-distance-field layers under its backdrop, get no image
-// at all: on screen only that backdrop reads them, and drawn without it
-// they come out as the raw field.
+// opaque behind, shows plain glass. Vibrant content — text, icons and
+// highlights blended through a vibrant filter with the material behind them
+// — loses that material the same way. Such a subtree is drawn a second time
+// over a stand-in for the window's material, its average colour, which the
+// backdrops capture and the vibrant filters act on; the stand-in is then
+// taken back out of each pixel by how much of it the subtree covers in the
+// first render, where vibrant content is drawn plain for its coverage. Liquid
+// Glass's shape inputs, the signed-distance-field layers under its backdrop,
+// get no image at all: on screen only that backdrop reads them, and drawn
+// without it they come out as the raw field.
 
 import Accelerate
 import AppKit
@@ -142,19 +145,20 @@ enum XcodeViewHierarchyPixelRecovery {
         }
         CATransaction.commit()
 
-        // What the backdrops of a subtree drawn on its own capture: the
-        // average colour of the window it belongs to. A root's own image is
-        // the window itself and needs none.
-        var backdropStandInsByRoot: [ObjectIdentifier: CGColor] = [:]
+        // What stands in for the window's material behind a subtree drawn on
+        // its own — its backdrops capture it, its vibrant content acts on
+        // it: the average colour of the window it belongs to. A root's own
+        // image is the window itself and needs none.
+        var materialStandInsByRoot: [ObjectIdentifier: CGColor] = [:]
         for tree in trees {
-            backdropStandInsByRoot[ObjectIdentifier(tree.rootLayer)] = backdropStandInColor(for: tree.rootLayer)
+            materialStandInsByRoot[ObjectIdentifier(tree.rootLayer)] = materialStandInColor(for: tree.rootLayer)
         }
-        func backdropStandIn(for layer: CALayer) -> CGColor? {
+        func materialStandIn(for layer: CALayer) -> CGColor? {
             var rootLayer = layer
             while let superlayer = rootLayer.superlayer {
                 rootLayer = superlayer
             }
-            return rootLayer === layer ? nil : backdropStandInsByRoot[ObjectIdentifier(rootLayer)]
+            return rootLayer === layer ? nil : materialStandInsByRoot[ObjectIdentifier(rootLayer)]
         }
 
         var soloByObjectIdentifier: [String: Data] = [:]
@@ -179,12 +183,12 @@ enum XcodeViewHierarchyPixelRecovery {
             // for a fraction of the memory and import time. Its subtree
             // still needs the group image.
             let paintsOnlyItsBackground = representsPlainColorFill(layer)
-            let layerBackdropStandIn = backdropStandIn(for: layer)
+            let layerMaterialStandIn = materialStandIn(for: layer)
             if !paintsOnlyItsBackground || hasSublayers,
                let region = drawingRegion(of: layer, hiding: []),
                let groupImage = renderingPNG(
                    of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped,
-                   backdropStandIn: layerBackdropStandIn
+                   materialStandIn: layerMaterialStandIn
                )
             {
                 groupByObjectIdentifier[objectIdentifier] = groupImage
@@ -200,7 +204,7 @@ enum XcodeViewHierarchyPixelRecovery {
                let region = drawingRegion(of: layer, hiding: hostedDescendants),
                let excludingImage = renderingPNG(
                    of: layer, includingSublayers: true, hiding: hostedDescendants, region: region.rect, isFlipped: isFlipped,
-                   backdropStandIn: layerBackdropStandIn
+                   materialStandIn: layerMaterialStandIn
                )
             {
                 groupExcludingHostedViewsByObjectIdentifier[objectIdentifier] = excludingImage
@@ -211,7 +215,9 @@ enum XcodeViewHierarchyPixelRecovery {
             // A node with no sublayers renders identically either way; storing
             // the second copy would double the memory for no visible gain.
             guard hasSublayers, !paintsOnlyItsBackground else { continue }
-            if let soloImage = renderingPNG(of: layer, includingSublayers: false, isFlipped: isFlipped) {
+            if let soloImage = renderingPNG(
+                of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn
+            ) {
                 soloByObjectIdentifier[objectIdentifier] = soloImage
             }
         }
@@ -305,27 +311,51 @@ enum XcodeViewHierarchyPixelRecovery {
 
     // MARK: - Vibrancy
 
-    /// The layers of `root`'s subtree that draw through a vibrant filter
-    /// (`drawsThroughRemovableVibrantFilter`) with nothing drawn behind them
-    /// inside the subtree.
+    /// The layers of `root`'s subtree that draw an image or text through a
+    /// vibrant filter (`drawsThroughRemovableVibrantFilter`) with nothing
+    /// drawn behind them inside the subtree.
     ///
     /// Text and icons on a sidebar or a toolbar blend through such a filter
     /// with the material behind them: AppKit's as a compositing filter
     /// (`vibrantColorMatrixSourceOver`), SwiftUI's controls as an entry in
-    /// `filters` (`vibrantColorMatrix`, aware of the backdrop). A subtree
-    /// drawn on its own leaves that material out whenever an ancestor or a
-    /// sibling draws it, and the content vanishes with it, so for that
-    /// render such a layer is drawn plain. What counts as behind a layer is
-    /// the material (`providesMaterial`) drawn before it in painter's order —
-    /// ancestors included — where it overlaps the layer. Hidden layers count
-    /// for nothing.
+    /// `filters` (`vibrantColorMatrix`, aware of the backdrop). The filter's
+    /// matrix acts on that material, cut to the content's shape. A subtree
+    /// drawn on its own leaves the material out whenever an ancestor or a
+    /// sibling draws it, and without it the content vanishes. Over
+    /// transparency such a layer is therefore drawn plain, which gives its
+    /// coverage; over a material stand-in it keeps its filter and takes the
+    /// colour the filter makes of the stand-in. What counts as behind a
+    /// layer is the material (`providesMaterial`) drawn before it in
+    /// painter's order — ancestors included — where it overlaps the layer.
+    /// Hidden layers count for nothing.
     static func vibrantLayersWithNothingBehind(in root: CALayer) -> [CALayer] {
+        layersWithNothingBehind(in: root, matching: drawsThroughRemovableVibrantFilter)
+    }
+
+    /// The layers of `root`'s subtree that only fill through a vibrant
+    /// filter (`isVibrantFill`) with nothing drawn behind them inside the
+    /// subtree, measured as `vibrantLayersWithNothingBehind` measures.
+    ///
+    /// They are the selection highlights of SwiftUI's controls and the
+    /// sheens of Liquid Glass, faint against their material; drawn plain
+    /// they are opaque white lozenges. So they keep their filter in both
+    /// renders: over transparency they leave nothing, and over a material
+    /// stand-in what they make of it — a little lighter or darker — is kept
+    /// (`removingMaterialStandIn`'s `uncoveredRegions`).
+    static func vibrantFillsWithNothingBehind(in root: CALayer) -> [CALayer] {
+        layersWithNothingBehind(in: root, matching: isVibrantFill)
+    }
+
+    private static func layersWithNothingBehind(
+        in root: CALayer,
+        matching isCandidate: (CALayer) -> Bool
+    ) -> [CALayer] {
         var materialRects: [CGRect] = []
         var layersWithNothingBehind: [CALayer] = []
         func visiting(_ layer: CALayer) {
             guard !layer.isHidden, layer.opacity > 0 else { return }
             let rect = layer.convert(layer.bounds, to: root)
-            if drawsThroughRemovableVibrantFilter(layer), !materialRects.contains(where: { $0.intersects(rect) }) {
+            if isCandidate(layer), !materialRects.contains(where: { $0.intersects(rect) }) {
                 layersWithNothingBehind.append(layer)
             }
             if providesMaterial(layer) {
@@ -342,16 +372,24 @@ enum XcodeViewHierarchyPixelRecovery {
     /// Whether a layer's own drawing goes through a vibrant filter that can
     /// be taken off it for a render: its compositing filter, or a vibrant
     /// entry in `filters` on a layer that draws an image (`contents`).
-    ///
-    /// A vibrant entry in `filters` on a layer that only fills stays on it:
-    /// such layers are the selection highlights of SwiftUI's controls and
-    /// the insides of Liquid Glass, faint against their backdrop and opaque
-    /// white or grey lozenges drawn plain.
+    /// A layer that only fills keeps its filter (`isVibrantFill`).
     static func drawsThroughRemovableVibrantFilter(_ layer: CALayer) -> Bool {
         if isVibrant(layer.compositingFilter) {
             return true
         }
         guard layer.contents != nil else { return false }
+        return (layer.filters ?? []).contains { isVibrant($0) }
+    }
+
+    /// Whether a layer only fills through a vibrant entry in `filters`: it
+    /// draws no image and has no vibrant compositing filter. Signed-distance-
+    /// field layers are left out: their vibrant filter shapes the glass from
+    /// the raw field, which no stand-in can take the place of.
+    static func isVibrantFill(_ layer: CALayer) -> Bool {
+        guard layer.contents == nil,
+              !isVibrant(layer.compositingFilter),
+              !NSStringFromClass(type(of: layer)).hasPrefix("CASDF")
+        else { return false }
         return (layer.filters ?? []).contains { isVibrant($0) }
     }
 
@@ -384,23 +422,24 @@ enum XcodeViewHierarchyPixelRecovery {
         return type.range(of: "vibrant", options: .caseInsensitive) != nil
     }
 
-    // MARK: - Backdrops drawn on their own
+    // MARK: - The material behind a subtree drawn on its own
 
     /// Longest side, in pixels, of the picture a window's average colour is
     /// taken from.
-    static let backdropStandInSampleLength: CGFloat = 256
+    static let materialStandInSampleLength: CGFloat = 256
 
-    /// What the backdrops of a subtree drawn on its own capture where the
-    /// render is transparent: the average colour of `rootLayer`'s picture,
-    /// opaque, each pixel weighted by how much of it is covered — the window
-    /// behind, as near as one colour comes. Nil without Core Animation's
-    /// renderer (renderInContext draws no backdrops) or when the root draws
-    /// nothing.
-    static func backdropStandInColor(for rootLayer: CALayer) -> CGColor? {
+    /// What stands in for the material behind a subtree drawn on its own:
+    /// its backdrops capture it where the render is transparent, and its
+    /// vibrant content acts on it. The average colour of `rootLayer`'s
+    /// picture, opaque, each pixel weighted by how much of it is covered —
+    /// the window behind, as near as one colour comes. Nil without Core
+    /// Animation's renderer (renderInContext draws neither backdrops nor
+    /// vibrancy) or when the root draws nothing.
+    static func materialStandInColor(for rootLayer: CALayer) -> CGColor? {
         guard let renderer = CoreAnimationLayerRenderer.shared,
               let region = drawingRegion(of: rootLayer, hiding: [])?.rect
         else { return nil }
-        let scale = min(1, backdropStandInSampleLength / max(region.width, region.height))
+        let scale = min(1, materialStandInSampleLength / max(region.width, region.height))
         let request = RenderRequest(
             layer: rootLayer,
             includingSublayers: true,
@@ -410,7 +449,7 @@ enum XcodeViewHierarchyPixelRecovery {
             pixelWidth: max(1, Int((region.width * scale).rounded(.down))),
             pixelHeight: max(1, Int((region.height * scale).rounded(.down))),
             isFlipped: rootLayer.contentsAreFlipped(),
-            backdropStandIn: nil
+            materialStandIn: nil
         )
         return renderer.averageColor(of: request)
     }
@@ -516,28 +555,218 @@ enum XcodeViewHierarchyPixelRecovery {
         }
     }
 
-    /// Takes an opaque stand-in back out of a render drawn over it.
+    /// What drawing a render over a material stand-in calls for.
+    struct MaterialStandInUse {
+        /// Where vibrant fills with nothing behind them lie, in the render's
+        /// pixels, top row first (`removingMaterialStandIn`'s
+        /// `uncoveredRegions`).
+        let vibrantFillRegions: [CGRect]
+    }
+
+    /// Whether `request` is to be drawn over a material stand-in as well,
+    /// and what for; nil when the render over transparency is already the
+    /// picture: no backdrop in it captures transparency
+    /// (`hasBackdropCapturingTransparency`) and no vibrant content in it
+    /// lacks its material.
+    static func materialStandInUse(for request: RenderRequest) -> MaterialStandInUse? {
+        let layer = request.layer
+        let vibrantFills: [CALayer]
+        let needsStandIn: Bool
+        if request.includingSublayers {
+            vibrantFills = vibrantFillsWithNothingBehind(in: layer)
+            needsStandIn = !vibrantFills.isEmpty
+                || !vibrantLayersWithNothingBehind(in: layer).isEmpty
+                || hasBackdropCapturingTransparency(in: layer, region: request.region, hiding: request.hiddenLayers)
+        } else {
+            // Drawn without its sublayers, a layer has nothing behind it.
+            vibrantFills = !layer.isHidden && isVibrantFill(layer) ? [layer] : []
+            needsStandIn = !vibrantFills.isEmpty || drawsThroughRemovableVibrantFilter(layer)
+        }
+        guard needsStandIn else { return nil }
+        return MaterialStandInUse(vibrantFillRegions: vibrantFills.compactMap { pixelRegion(of: $0, in: request) })
+    }
+
+    /// Where `sublayer` — `request.layer` itself or a layer of its subtree —
+    /// lies in the render's pixels, top row first, widened by a pixel for an
+    /// antialiased edge; nil when it lies outside the render.
+    private static func pixelRegion(of sublayer: CALayer, in request: RenderRequest) -> CGRect? {
+        let rectInLayer = sublayer === request.layer
+            ? sublayer.bounds
+            : sublayer.convert(sublayer.bounds, to: request.layer)
+        let visibleRect = rectInLayer.intersection(request.region)
+        guard !visibleRect.isNull, !visibleRect.isEmpty else { return nil }
+        // The image's top row is the layer's top as it shows: the region's
+        // low edge when the layer's space runs downwards, its high edge
+        // otherwise.
+        let distanceFromTop = request.isFlipped
+            ? visibleRect.minY - request.region.minY
+            : request.region.maxY - visibleRect.maxY
+        let pixelRect = CGRect(
+            x: (visibleRect.minX - request.region.minX) * request.scale,
+            y: distanceFromTop * request.scale,
+            width: visibleRect.width * request.scale,
+            height: visibleRect.height * request.scale
+        ).integral.insetBy(dx: -1, dy: -1)
+        let clippedRect = pixelRect.intersection(CGRect(x: 0, y: 0, width: request.pixelWidth, height: request.pixelHeight))
+        return clippedRect.isNull || clippedRect.isEmpty ? nil : clippedRect
+    }
+
+    /// A difference from the stand-in this small, in 8-bit steps, is the
+    /// renderer's own noise between two renders, not a vibrant fill.
+    static let vibrantFillNoiseLevel = 2
+
+    /// Lays what vibrant fills made of the stand-in over the pixels of one
+    /// region that the subtree leaves clear over transparency
+    /// (`removingMaterialStandIn`'s `uncoveredRegions`). `overStandIn` holds
+    /// the region's pixels of the render over the stand-in, row after row;
+    /// `pixels` and `coverage` are the whole render, `width` pixels wide.
     ///
-    /// `pixelsOverStandIn` is a subtree drawn over `standIn`, `coverage` the
-    /// same subtree drawn over transparency, whose alpha says how much of
-    /// each pixel the subtree covers; both premultiplied BGRA, `width` by
-    /// `height`, as the renderer reads them back. Content composited normally
-    /// comes out over the stand-in as content + (1 − alpha) × stand-in, so
-    /// taking the second term away leaves the content exactly — drawn with
-    /// backdrops that captured the stand-in instead of transparency. The
-    /// result has the coverage's alpha, and no colour component above it.
-    /// Should vImage fail, the render over transparency is returned as it is.
-    static func removingBackdropStandIn(
+    /// Written with plain loops over raw pointers: a fill can span a sidebar
+    /// and turn up in many renders, and the iterators of an unoptimised
+    /// build made this the import's slowest step.
+    private static func keepingVibrantFillSheens(
+        in pixels: UnsafeMutablePointer<UInt8>,
+        overStandIn: UnsafePointer<UInt8>,
+        coverage: UnsafePointer<UInt8>,
+        width: Int,
+        columns: Range<Int>,
+        rows: Range<Int>,
+        standIn: OpaqueColorBytes
+    ) {
+        // Memory order: blue, green, red.
+        let standInBlue = Int(standIn.blue), standInGreen = Int(standIn.green), standInRed = Int(standIn.red)
+        func lighteningScale(_ component: Int) -> Double { component < 255 ? 1 / Double(255 - component) : 0 }
+        func darkeningScale(_ component: Int) -> Double { component > 0 ? 1 / Double(component) : 0 }
+        let lighteningBlue = lighteningScale(standInBlue), darkeningBlue = darkeningScale(standInBlue)
+        let lighteningGreen = lighteningScale(standInGreen), darkeningGreen = darkeningScale(standInGreen)
+        let lighteningRed = lighteningScale(standInRed), darkeningRed = darkeningScale(standInRed)
+        let noise = vibrantFillNoiseLevel
+        // The alpha a white (lighter) or black (darker) overlay needs for
+        // one channel's change.
+        func overlayAlpha(_ difference: Int, lightening: Double, darkening: Double) -> Double {
+            if difference > noise { return Double(difference) * lightening }
+            if difference < -noise { return Double(-difference) * darkening }
+            return 0
+        }
+        func premultiplied(_ overStandIn: UInt8, standInComponent: Int, alpha: Int) -> UInt8 {
+            let value = Int(overStandIn) - ((255 - alpha) * standInComponent + 127) / 255
+            if value < 0 { return 0 }
+            return UInt8(value > alpha ? alpha : value)
+        }
+        let copiedRowByteCount = columns.count * 4
+        var row = rows.lowerBound
+        var copiedRowStart = 0
+        while row < rows.upperBound {
+            var column = columns.lowerBound
+            var pixelStart = (row * width + column) * 4
+            var copiedStart = copiedRowStart
+            while column < columns.upperBound {
+                if coverage[pixelStart + 3] == 0 {
+                    let blueDifference = Int(overStandIn[copiedStart]) - standInBlue
+                    let greenDifference = Int(overStandIn[copiedStart + 1]) - standInGreen
+                    let redDifference = Int(overStandIn[copiedStart + 2]) - standInRed
+                    var alpha = overlayAlpha(blueDifference, lightening: lighteningBlue, darkening: darkeningBlue)
+                    let greenAlpha = overlayAlpha(greenDifference, lightening: lighteningGreen, darkening: darkeningGreen)
+                    if greenAlpha > alpha { alpha = greenAlpha }
+                    let redAlpha = overlayAlpha(redDifference, lightening: lighteningRed, darkening: darkeningRed)
+                    if redAlpha > alpha { alpha = redAlpha }
+                    if alpha > 0 {
+                        var alphaByte = Int(alpha * 255 + 0.5)
+                        if alphaByte > 255 { alphaByte = 255 }
+                        pixels[pixelStart] = premultiplied(overStandIn[copiedStart], standInComponent: standInBlue, alpha: alphaByte)
+                        pixels[pixelStart + 1] = premultiplied(overStandIn[copiedStart + 1], standInComponent: standInGreen, alpha: alphaByte)
+                        pixels[pixelStart + 2] = premultiplied(overStandIn[copiedStart + 2], standInComponent: standInRed, alpha: alphaByte)
+                        pixels[pixelStart + 3] = UInt8(alphaByte)
+                    }
+                }
+                column += 1
+                pixelStart += 4
+                copiedStart += 4
+            }
+            row += 1
+            copiedRowStart += copiedRowByteCount
+        }
+    }
+
+    /// Takes an opaque stand-in back out of a render drawn over it, in
+    /// place.
+    ///
+    /// `pixels` holds a subtree drawn over `standIn` and becomes the result;
+    /// `coverage` is the same subtree drawn over transparency, whose alpha
+    /// says how much of each pixel the subtree covers. Both are premultiplied
+    /// BGRA, `width` by `height`, as the renderer reads them back. Content
+    /// composited normally comes out over the stand-in as
+    /// content + (1 − alpha) × stand-in, so taking the second term away
+    /// leaves the content exactly — drawn with backdrops that captured the
+    /// stand-in and vibrant filters that acted on it. The result has the
+    /// coverage's alpha, and no colour component above it.
+    ///
+    /// In `uncoveredRegions` (pixel rects, top row first), a pixel the
+    /// subtree leaves clear over transparency keeps what vibrant fills made
+    /// of the stand-in there: the faintest white or black that, laid over
+    /// the stand-in, gives the pixel — a highlight's sheen or a shade.
+    ///
+    /// Returns false when vImage fails, `pixels` then being of no use: the
+    /// render over transparency is the picture to keep.
+    static func removingMaterialStandIn(
         _ standIn: OpaqueColorBytes,
-        from pixelsOverStandIn: [UInt8],
+        from pixels: inout [UInt8],
         coverage: [UInt8],
         width: Int,
-        height: Int
-    ) -> [UInt8] {
+        height: Int,
+        uncoveredRegions: [CGRect] = []
+    ) -> Bool {
         let byteCount = width * height * 4
-        guard width > 0, height > 0, pixelsOverStandIn.count == byteCount, coverage.count == byteCount else {
-            return coverage
+        guard width > 0, height > 0, pixels.count == byteCount, coverage.count == byteCount else { return false }
+        let flags = vImage_Flags(kvImageNoFlags)
+
+        // The vibrant fills' part of the render over the stand-in, kept
+        // aside before the stand-in comes off everywhere.
+        let fillRegions = uncoveredRegions.compactMap { region -> (columns: Range<Int>, rows: Range<Int>)? in
+            let columns = max(0, Int(region.minX)) ..< min(width, Int(region.maxX))
+            let rows = max(0, Int(region.minY)) ..< min(height, Int(region.maxY))
+            return columns.isEmpty || rows.isEmpty ? nil : (columns, rows)
         }
+        let fillPixelsOverStandIn = fillRegions.map { region in
+            let rowByteCount = region.columns.count * 4
+            return [UInt8](unsafeUninitializedCapacity: rowByteCount * region.rows.count) { buffer, initializedCount in
+                pixels.withUnsafeBytes { source in
+                    guard let destination = buffer.baseAddress, let sourceStart = source.baseAddress else { return }
+                    for (copiedRow, row) in region.rows.enumerated() {
+                        memcpy(
+                            destination + copiedRow * rowByteCount,
+                            sourceStart + (row * width + region.columns.lowerBound) * 4,
+                            rowByteCount
+                        )
+                    }
+                }
+                initializedCount = rowByteCount * region.rows.count
+            }
+        }
+
+        // The coverage's alpha, as a plane.
+        var extractedCoverageAlpha = false
+        let coverageAlpha = [UInt8](unsafeUninitializedCapacity: width * height) { buffer, initializedCount in
+            coverage.withUnsafeBytes { coverageBytes in
+                var coverageBuffer = vImage_Buffer(
+                    data: UnsafeMutableRawPointer(mutating: coverageBytes.baseAddress),
+                    height: vImagePixelCount(height),
+                    width: vImagePixelCount(width),
+                    rowBytes: width * 4
+                )
+                var alphaBuffer = vImage_Buffer(
+                    data: buffer.baseAddress,
+                    height: vImagePixelCount(height),
+                    width: vImagePixelCount(width),
+                    rowBytes: width
+                )
+                // Channel 3 is the last of the four, the alpha of BGRA.
+                extractedCoverageAlpha = vImageExtractChannel_ARGB8888(&coverageBuffer, &alphaBuffer, 3, flags) == kvImageNoError
+            }
+            initializedCount = extractedCoverageAlpha ? width * height : 0
+        }
+        guard extractedCoverageAlpha else { return false }
+
         // Channel by channel in memory order (blue, green, red, alpha), each
         // output channel takes the input channels times one matrix row:
         //   colour = (255 × colour + stand-in × alpha − 255 × stand-in) / 255
@@ -551,41 +780,51 @@ enum XcodeViewHierarchyPixelRecovery {
         ]
         let rounding: Int32 = 127
         let postBias: [Int32] = standInComponents.map { -255 * $0 + rounding } + [rounding]
-        var result = pixelsOverStandIn
-        var coverageAlpha = [UInt8](repeating: 0, count: width * height)
-        let succeeded = coverage.withUnsafeBytes { coverageBytes in
-            coverageAlpha.withUnsafeMutableBytes { coverageAlphaBytes in
-                result.withUnsafeMutableBytes { resultBytes in
-                    var coverageBuffer = vImage_Buffer(
-                        data: UnsafeMutableRawPointer(mutating: coverageBytes.baseAddress),
-                        height: vImagePixelCount(height),
-                        width: vImagePixelCount(width),
-                        rowBytes: width * 4
-                    )
-                    var coverageAlphaBuffer = vImage_Buffer(
-                        data: coverageAlphaBytes.baseAddress,
-                        height: vImagePixelCount(height),
-                        width: vImagePixelCount(width),
-                        rowBytes: width
-                    )
-                    var resultBuffer = vImage_Buffer(
-                        data: resultBytes.baseAddress,
-                        height: vImagePixelCount(height),
-                        width: vImagePixelCount(width),
-                        rowBytes: width * 4
-                    )
-                    let flags = vImage_Flags(kvImageNoFlags)
-                    // The coverage's alpha into the last channel; copy mask
-                    // 0x1 names the last of the four.
-                    return vImageExtractChannel_ARGB8888(&coverageBuffer, &coverageAlphaBuffer, 3, flags) == kvImageNoError
-                        && vImageOverwriteChannels_ARGB8888(&coverageAlphaBuffer, &resultBuffer, &resultBuffer, 0x1, flags) == kvImageNoError
-                        && vImageMatrixMultiply_ARGB8888(&resultBuffer, &resultBuffer, matrix, 255, nil, postBias, flags) == kvImageNoError
-                        // vImageClipToAlpha_BGRA8888, a macro Swift does not see.
-                        && vImageClipToAlpha_RGBA8888(&resultBuffer, &resultBuffer, flags) == kvImageNoError
+        let tookStandInOut = coverageAlpha.withUnsafeBytes { coverageAlphaBytes in
+            pixels.withUnsafeMutableBytes { pixelBytes in
+                var alphaBuffer = vImage_Buffer(
+                    data: UnsafeMutableRawPointer(mutating: coverageAlphaBytes.baseAddress),
+                    height: vImagePixelCount(height),
+                    width: vImagePixelCount(width),
+                    rowBytes: width
+                )
+                var pixelBuffer = vImage_Buffer(
+                    data: pixelBytes.baseAddress,
+                    height: vImagePixelCount(height),
+                    width: vImagePixelCount(width),
+                    rowBytes: width * 4
+                )
+                // The coverage's alpha into the last channel (copy mask 0x1
+                // names the last of the four), the matrix, then no colour
+                // above alpha (vImageClipToAlpha_BGRA8888 is a macro Swift
+                // does not see).
+                return vImageOverwriteChannels_ARGB8888(&alphaBuffer, &pixelBuffer, &pixelBuffer, 0x1, flags) == kvImageNoError
+                    && vImageMatrixMultiply_ARGB8888(&pixelBuffer, &pixelBuffer, matrix, 255, nil, postBias, flags) == kvImageNoError
+                    && vImageClipToAlpha_RGBA8888(&pixelBuffer, &pixelBuffer, flags) == kvImageNoError
+            }
+        }
+        guard tookStandInOut else { return false }
+
+        pixels.withUnsafeMutableBufferPointer { resultPixels in
+            coverage.withUnsafeBufferPointer { coveragePixels in
+                guard let resultStart = resultPixels.baseAddress, let coverageStart = coveragePixels.baseAddress else { return }
+                for (regionIndex, region) in fillRegions.enumerated() {
+                    fillPixelsOverStandIn[regionIndex].withUnsafeBufferPointer { overStandInPixels in
+                        guard let overStandInStart = overStandInPixels.baseAddress else { return }
+                        keepingVibrantFillSheens(
+                            in: resultStart,
+                            overStandIn: overStandInStart,
+                            coverage: coverageStart,
+                            width: width,
+                            columns: region.columns,
+                            rows: region.rows,
+                            standIn: standIn
+                        )
+                    }
                 }
             }
         }
-        return succeeded ? result : coverage
+        return true
     }
 
     // MARK: - Rendering
@@ -603,9 +842,9 @@ enum XcodeViewHierarchyPixelRecovery {
         let pixelHeight: Int
         /// The layer's cumulative flip in its tree (`contentsAreFlipped`).
         let isFlipped: Bool
-        /// What backdrops in the subtree capture instead of transparency
-        /// (`backdropStandInColor(for:)`); nil to draw the subtree as it is.
-        let backdropStandIn: CGColor?
+        /// What stands in for the material behind the layer
+        /// (`materialStandInColor(for:)`); nil to draw it as it is.
+        let materialStandIn: CGColor?
     }
 
     /// `hiddenLayers` are hidden for the duration of the render and restored
@@ -613,11 +852,12 @@ enum XcodeViewHierarchyPixelRecovery {
     /// the layer's bounds space, limits the render to that part of the
     /// bounds; the image then covers exactly the region. `isFlipped` is the
     /// layer's cumulative flip in its tree, and the image shows the layer the
-    /// way it looks there. `backdropStandIn`, for a render with sublayers, is
-    /// what a backdrop in the subtree captures where the render is
-    /// transparent (`backdropStandInColor(for:)`): the subtree is then drawn
-    /// a second time over it, and it is taken back out. Pass nil for a
-    /// window's root, whose image is the window.
+    /// way it looks there. `materialStandIn` stands in for the material
+    /// behind the layer (`materialStandInColor(for:)`): where a backdrop in
+    /// the render would capture transparency or vibrant content would lack
+    /// its material (`materialStandInUse(for:)`), the layer is drawn a second
+    /// time over it, and it is taken back out. Pass nil for a window's root,
+    /// whose image is the window.
     ///
     /// Not to be called inside an explicit CATransaction: the render commits
     /// its own, which an enclosing one would hold back.
@@ -627,7 +867,7 @@ enum XcodeViewHierarchyPixelRecovery {
         hiding hiddenLayers: [CALayer] = [],
         region: CGRect? = nil,
         isFlipped: Bool,
-        backdropStandIn: CGColor? = nil
+        materialStandIn: CGColor? = nil
     ) -> Data? {
         let bounds = region ?? layer.bounds
         guard bounds.width >= minimumRenderedEdgeLength, bounds.height >= minimumRenderedEdgeLength,
@@ -655,7 +895,7 @@ enum XcodeViewHierarchyPixelRecovery {
             pixelWidth: pixelWidth,
             pixelHeight: pixelHeight,
             isFlipped: isFlipped,
-            backdropStandIn: includingSublayers ? backdropStandIn : nil
+            materialStandIn: materialStandIn
         )
         let renderedImage = if let renderer = CoreAnimationLayerRenderer.shared {
             renderer.rendering(request)
@@ -859,30 +1099,32 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
 
     /// The image `request` describes, or nil when it drew nothing.
     ///
-    /// With a backdrop stand-in, a subtree whose backdrops would capture
-    /// transparency is drawn twice — over transparency for each pixel's
-    /// coverage, over the stand-in for its colour — and the stand-in is
-    /// taken back out (`removingBackdropStandIn`).
+    /// With a material stand-in, a layer whose backdrops would capture
+    /// transparency or whose vibrant content would lack its material
+    /// (`materialStandInUse(for:)`) is drawn twice — over transparency for
+    /// each pixel's coverage, vibrant content drawn plain; over the stand-in
+    /// for its colour, vibrant filters acting on it — and the stand-in is
+    /// taken back out (`removingMaterialStandIn`).
     func rendering(_ request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> CGImage? {
         lock.lock()
         defer { lock.unlock() }
-        guard var pixels = renderingPixels(request), Self.containsVisiblePixels(pixels) else { return nil }
-        if let backdropStandIn = request.backdropStandIn,
-           request.includingSublayers,
-           XcodeViewHierarchyPixelRecovery.hasBackdropCapturingTransparency(
-               in: request.layer, region: request.region, hiding: request.hiddenLayers
-           ),
-           let standInBytes = XcodeViewHierarchyPixelRecovery.OpaqueColorBytes(backdropStandIn),
-           let pixelsOverStandIn = renderingPixels(request, background: backdropStandIn)
+        guard var pixels = renderingPixels(request) else { return nil }
+        if let materialStandIn = request.materialStandIn,
+           let standInUse = XcodeViewHierarchyPixelRecovery.materialStandInUse(for: request),
+           let standInBytes = XcodeViewHierarchyPixelRecovery.OpaqueColorBytes(materialStandIn),
+           var pixelsOverStandIn = renderingPixels(request, background: materialStandIn),
+           XcodeViewHierarchyPixelRecovery.removingMaterialStandIn(
+               standInBytes,
+               from: &pixelsOverStandIn,
+               coverage: pixels,
+               width: request.pixelWidth,
+               height: request.pixelHeight,
+               uncoveredRegions: standInUse.vibrantFillRegions
+           )
         {
-            pixels = XcodeViewHierarchyPixelRecovery.removingBackdropStandIn(
-                standInBytes,
-                from: pixelsOverStandIn,
-                coverage: pixels,
-                width: request.pixelWidth,
-                height: request.pixelHeight
-            )
+            pixels = pixelsOverStandIn
         }
+        guard Self.containsVisiblePixels(pixels) else { return nil }
         return Self.makingImage(pixels, width: request.pixelWidth, height: request.pixelHeight)
     }
 
@@ -926,7 +1168,7 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
             pixelWidth: 4,
             pixelHeight: 4,
             isFlipped: false,
-            backdropStandIn: nil
+            materialStandIn: nil
         )
         guard let pixels = renderingPixels(request) else { return false }
         // Blue, green, red, alpha.
@@ -934,7 +1176,9 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
     }
 
     /// BGRA, premultiplied, top row first. `background`, when given, fills
-    /// the render behind the layer.
+    /// the render behind the layer and stands in for the material of its
+    /// vibrant content; without it, vibrant images and text with nothing
+    /// behind them are drawn plain.
     private func renderingPixels(
         _ request: XcodeViewHierarchyPixelRecovery.RenderRequest,
         background: CGColor? = nil
@@ -960,9 +1204,13 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         for hiddenLayer in request.hiddenLayers {
             hiddenLayer.isHidden = true
         }
-        // Vibrant content whose material an ancestor or a sibling draws would
-        // vanish with it; for this render its vibrant filters come off.
-        let plainVibrantLayers = XcodeViewHierarchyPixelRecovery.vibrantLayersWithNothingBehind(in: layer)
+        // Vibrant images and text whose material an ancestor or a sibling
+        // draws would vanish with it. Over transparency their vibrant
+        // filters come off for this render; over a background they stay and
+        // act on it.
+        let plainVibrantLayers = background == nil
+            ? XcodeViewHierarchyPixelRecovery.vibrantLayersWithNothingBehind(in: layer)
+            : []
         let vibrantCompositingFilters = plainVibrantLayers.map(\.compositingFilter)
         let vibrantFilterLists = plainVibrantLayers.map(\.filters)
         for vibrantLayer in plainVibrantLayers {
@@ -1036,9 +1284,14 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         CATransaction.flush()
 
         let bytesPerRow = width * 4
-        var pixels = [UInt8](repeating: 0, count: bytesPerRow * height)
-        pixels.withUnsafeMutableBytes { buffer in
-            guard let baseAddress = buffer.baseAddress else { return }
+        // Read straight into uninitialised storage: every byte is written,
+        // and filling a large array with zeros first is slow in an
+        // unoptimised build.
+        return [UInt8](unsafeUninitializedCapacity: bytesPerRow * height) { buffer, initializedCount in
+            guard let baseAddress = buffer.baseAddress else {
+                initializedCount = 0
+                return
+            }
             // The texture's first row is the bottom of the picture; an
             // image's first row is its top.
             for row in 0 ..< height {
@@ -1049,8 +1302,8 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
                     mipmapLevel: 0
                 )
             }
+            initializedCount = bytesPerRow * height
         }
-        return pixels
     }
 
     private static func makingTexture(on device: MTLDevice, width: Int, height: Int) -> MTLTexture? {

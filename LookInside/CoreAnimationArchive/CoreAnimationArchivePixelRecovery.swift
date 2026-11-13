@@ -93,9 +93,9 @@ enum CoreAnimationArchivePixelRecovery {
     /// when it answers true the recovery throws `CancellationError`, since a
     /// partial set of images would read as missing pixels.
     ///
-    /// Every subtree but the root's is drawn without the window behind it;
-    /// its backdrops capture the window's average colour instead of that
-    /// transparency (`renderingPNG`'s `backdropStandIn`).
+    /// Every layer but the root is drawn without the window behind it; its
+    /// backdrops capture, and its vibrant content acts on, the window's
+    /// average colour instead (`renderingPNG`'s `materialStandIn`).
     static func recovering(
         from tree: CoreAnimationArchiveLayerTree,
         isCancelled: () -> Bool = { false }
@@ -106,7 +106,7 @@ enum CoreAnimationArchivePixelRecovery {
         CATransaction.setDisableActions(true)
         Renderer.removingAnimations(from: tree.rootLayer)
         CATransaction.commit()
-        let backdropStandIn = Renderer.backdropStandInColor(for: tree.rootLayer)
+        let materialStandIn = Renderer.materialStandInColor(for: tree.rootLayer)
 
         for (index, layer) in tree.layers.enumerated() {
             if isCancelled() {
@@ -121,11 +121,12 @@ enum CoreAnimationArchivePixelRecovery {
             // image: the inspector fills an imageless node with the node's
             // background colour. Its subtree still needs the group image.
             let paintsOnlyItsBackground = Renderer.representsPlainColorFill(layer)
+            let layerMaterialStandIn = layer === tree.rootLayer ? nil : materialStandIn
             if !paintsOnlyItsBackground || hasSublayers,
                let region = Renderer.drawingRegion(of: layer, hiding: []),
                let groupImage = Renderer.renderingPNG(
                    of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped,
-                   backdropStandIn: layer === tree.rootLayer ? nil : backdropStandIn
+                   materialStandIn: layerMaterialStandIn
                )
             {
                 screenshots.groupByObjectIdentifier[objectIdentifier] = groupImage
@@ -134,7 +135,9 @@ enum CoreAnimationArchivePixelRecovery {
                 }
             }
             guard hasSublayers, !paintsOnlyItsBackground else { continue }
-            if let soloImage = Renderer.renderingPNG(of: layer, includingSublayers: false, isFlipped: isFlipped) {
+            if let soloImage = Renderer.renderingPNG(
+                of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn
+            ) {
                 screenshots.soloByObjectIdentifier[objectIdentifier] = soloImage
             }
         }

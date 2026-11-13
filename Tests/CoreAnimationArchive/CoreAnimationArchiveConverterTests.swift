@@ -36,6 +36,7 @@ struct CoreAnimationArchiveConverterTests {
             testGlassDrawnOnItsOwnLooksAsInTheWindow()
             testGlassShapeInputsGetNoImage()
         }
+        testVibrantContentOnItsOwnLooksAsOverItsMaterial()
         testUnmarkedOrMisnamedLayersStayLayers()
         testNamedLayersShowTheirNames()
         testSublayersOfAScrolledFlippedLayerSitWhereTheyShow()
@@ -345,11 +346,14 @@ struct CoreAnimationArchiveConverterTests {
     /// Text and icons on a sidebar or a toolbar are composited through a
     /// vibrant filter onto the material behind them. A node drawn on its
     /// own leaves out whatever its ancestors draw, so a sidebar's labels
-    /// vanished from every image below the sidebar's material. A vibrant
-    /// layer with nothing drawn behind it in the render is drawn plain; one
-    /// with something behind it keeps its filter. The filter is made at run
-    /// time, as Dump Layer decodes it: AppKit sets it only in windows on
-    /// screen.
+    /// vanished from every image below the sidebar's material. In the
+    /// window's own image, which has nothing to stand in for a missing
+    /// material, a vibrant layer with nothing drawn behind it is drawn
+    /// plain; one with something behind it keeps its filter. A node drawn on
+    /// its own still shows its label: there the window's colour stands in
+    /// for the material (`testVibrantContentOnItsOwnLooksAsOverItsMaterial`).
+    /// The filter is made at run time, as Dump Layer decodes it: AppKit sets
+    /// it only in windows on screen.
     private static func testVibrantContentDrawsWhereItsMaterialIsMissing() {
         guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
               let vibrantFilter = filterClass.perform(
@@ -390,7 +394,10 @@ struct CoreAnimationArchiveConverterTests {
         guard let labelData = file.groupScreenshots?[NSNumber(value: 5)],
               let labelImage = NSBitmapImageRep(data: labelData)
         else { fail("the label drawn on its own should have an image") }
-        expect(isRed(labelImage.colorAt(x: 20, y: 20)), "the label on its own should be drawn plain")
+        expect(
+            (labelImage.colorAt(x: 20, y: 20)?.alphaComponent ?? 0) > 0.9,
+            "the label on its own should still show; got \(String(describing: labelImage.colorAt(x: 20, y: 20)))"
+        )
     }
 
     /// SwiftUI draws the icons of a toolbar control as images through a
@@ -399,10 +406,11 @@ struct CoreAnimationArchiveConverterTests {
     /// backdrop down. Without it the filter leaves nothing: unfolding the
     /// hosting view of a dumped Xcode window's navigator switcher emptied
     /// its plane, and controls whose glass an ancestor draws had no icons
-    /// even folded. A layer that draws an image through a vibrant filter
-    /// with nothing behind it is drawn plain; one over its material keeps
-    /// the filter. A fill through such a filter stays as it is: drawn plain
-    /// it is an opaque lozenge where the glass shows a faint highlight.
+    /// even folded. In the window's own image, a layer that draws an image
+    /// through a vibrant filter with nothing behind it is drawn plain; one
+    /// over its material keeps the filter. A fill through such a filter
+    /// stays as it is: drawn plain it is an opaque lozenge where the glass
+    /// shows a faint highlight. Drawn on its own, the icon still shows.
     private static func testVibrantImageDrawsWhereItsBackdropIsMissing() {
         guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
               let vibrantFilter = filterClass.perform(
@@ -451,7 +459,79 @@ struct CoreAnimationArchiveConverterTests {
         guard let iconData = file.groupScreenshots?[NSNumber(value: 3)],
               let iconImage = NSBitmapImageRep(data: iconData)
         else { fail("the icon drawn on its own should have an image") }
-        expect(isRed(iconImage.colorAt(x: 20, y: 20)), "the icon on its own should be drawn plain")
+        expect(
+            (iconImage.colorAt(x: 20, y: 20)?.alphaComponent ?? 0) > 0.9,
+            "the icon on its own should still show; got \(String(describing: iconImage.colorAt(x: 20, y: 20)))"
+        )
+    }
+
+    /// Vibrant content takes its colour from the material behind it: the
+    /// filter acts on that material, cut to the content's shape. A node drawn
+    /// on its own has none behind it; drawn plain, a disabled toolbar icon
+    /// of a dumped Xcode window came out white where the window shows it
+    /// grey, and the folder icons of its navigator a deeper blue. The
+    /// window's colour stands in for the material, so a vibrant label, a
+    /// vibrant icon and a vibrant fill in a transparent container, laid over
+    /// the window's one grey material, must look in the container's own image
+    /// as they do in the window's — and the fill, a sheen on its material,
+    /// must not become an opaque block.
+    private static func testVibrantContentOnItsOwnLooksAsOverItsMaterial() {
+        guard CoreAnimationLayerRenderer.shared != nil else {
+            print("skipped testVibrantContentOnItsOwnLooksAsOverItsMaterial: no Core Animation renderer")
+            return
+        }
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let compositingFilter = filterClass.perform(
+                  NSSelectorFromString("filterWithType:"), with: "vibrantColorMatrixSourceOver"
+              )?.takeUnretainedValue(),
+              let imageFilter = filterClass.perform(
+                  NSSelectorFromString("filterWithType:"), with: "vibrantColorMatrix"
+              )?.takeUnretainedValue() as? NSObject
+        else { fail("QuartzCore should make vibrant filters") }
+        imageFilter.setValue(true, forKey: "inputBackdropAware")
+        let red = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        guard let redImage = makingImage(of: red, side: 40) else { fail("the icon image should draw") }
+        // The window: one opaque grey material, so its average colour is that
+        // grey. The container on top is transparent: drawn on its own,
+        // nothing lies behind what it holds.
+        let grey: CGFloat = 0.3
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 400, height: 200))
+        rootLayer.backgroundColor = CGColor(srgbRed: grey, green: grey, blue: grey, alpha: 1)
+        let containerLayer = makingLayer(CGRect(x: 0, y: 0, width: 400, height: 200))
+        let labelLayer = makingLayer(CGRect(x: 20, y: 20, width: 40, height: 40))
+        labelLayer.backgroundColor = red
+        labelLayer.compositingFilter = compositingFilter
+        let iconLayer = makingLayer(CGRect(x: 80, y: 20, width: 40, height: 40))
+        iconLayer.contents = redImage
+        iconLayer.filters = [imageFilter]
+        let fillLayer = makingLayer(CGRect(x: 140, y: 20, width: 40, height: 40))
+        fillLayer.backgroundColor = CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
+        fillLayer.filters = [imageFilter]
+        containerLayer.addSublayer(labelLayer)
+        containerLayer.addSublayer(iconLayer)
+        containerLayer.addSublayer(fillLayer)
+        rootLayer.addSublayer(containerLayer)
+
+        let tree = CoreAnimationArchiveLayerTree(contents: decodedContents(of: rootLayer))
+        let screenshots = recoveredScreenshots(of: tree)
+        let greyBackground = [Double](repeating: Double(grey), count: 3)
+        for (name, layer) in [("label", labelLayer), ("icon", iconLayer), ("fill", fillLayer)] {
+            // The middle of the layer, in the root's space.
+            let middle = layer.frame.insetBy(dx: 10, dy: 10)
+            guard let inTheWindow = averageColor(of: middle, inImageOf: 1, tree: tree, screenshots: screenshots),
+                  let onItsOwn = averageColor(of: middle, inImageOf: 2, tree: tree, screenshots: screenshots, over: greyBackground)
+            else { fail("the window and the container should both have images where the \(name) is") }
+            let largestDifference = zip(inTheWindow, onItsOwn).map { abs($0 - $1) }.max() ?? 0
+            expect(
+                largestDifference < 0.06,
+                "the vibrant \(name) drawn on its own should look as over its material: \(onItsOwn) against \(inTheWindow)"
+            )
+        }
+        let fillMiddle = fillLayer.frame.insetBy(dx: 10, dy: 10)
+        guard let fillAlpha = averageAlpha(of: fillMiddle, inImageOf: 2, tree: tree, screenshots: screenshots) else {
+            fail("the container's image should reach the fill")
+        }
+        expect(fillAlpha < 0.5, "the vibrant fill should stay a sheen, not an opaque block; its alpha is \(fillAlpha)")
     }
 
     /// A window's content layer is a container of no size that does not
@@ -809,15 +889,16 @@ struct CoreAnimationArchiveConverterTests {
         }
     }
 
-    /// The average colour, red, green and blue unpremultiplied, of where the
-    /// group image of node `objectIdentifier` shows `rect`, a rect in the
-    /// archive root's space. Nil when the node has no image there.
-    private static func averageColor(
+    /// The pixels of the group image of node `objectIdentifier` where it
+    /// shows `rect`, a rect in the archive root's space: red, green, blue and
+    /// alpha, premultiplied, from 0 to 1. Nil when the node has no image
+    /// there.
+    private static func sampledPixels(
         of rect: CGRect,
         inImageOf objectIdentifier: UInt,
         tree: CoreAnimationArchiveLayerTree,
         screenshots: CoreAnimationArchiveScreenshots
-    ) -> [Double]? {
+    ) -> [[Double]]? {
         guard let data = screenshots.groupByObjectIdentifier[objectIdentifier],
               let image = NSBitmapImageRep(data: data)?.cgImage
         else { return nil }
@@ -839,16 +920,52 @@ struct CoreAnimationArchiveConverterTests {
         ).integral.intersection(CGRect(x: 0, y: 0, width: image.width, height: image.height))
         guard !pixelRect.isEmpty else { return nil }
         let pixels = premultipliedPixels(of: image)
-        var sums = [Double](repeating: 0, count: 4)
+        var sampled: [[Double]] = []
         for row in Int(pixelRect.minY) ..< Int(pixelRect.maxY) {
             for column in Int(pixelRect.minX) ..< Int(pixelRect.maxX) {
-                for channel in 0 ..< 4 {
-                    sums[channel] += Double(pixels[(row * image.width + column) * 4 + channel])
-                }
+                let pixelStart = (row * image.width + column) * 4
+                sampled.append((0 ..< 4).map { Double(pixels[pixelStart + $0]) / 255 })
             }
         }
-        guard sums[3] > 0 else { return nil }
-        return sums.prefix(3).map { $0 / sums[3] }
+        return sampled
+    }
+
+    /// The average colour, red, green and blue unpremultiplied, of where the
+    /// group image of node `objectIdentifier` shows `rect`, a rect in the
+    /// archive root's space; or, given `background`, the average of that
+    /// image laid over it there. Nil when the node has no image there.
+    private static func averageColor(
+        of rect: CGRect,
+        inImageOf objectIdentifier: UInt,
+        tree: CoreAnimationArchiveLayerTree,
+        screenshots: CoreAnimationArchiveScreenshots,
+        over background: [Double]? = nil
+    ) -> [Double]? {
+        guard let pixels = sampledPixels(of: rect, inImageOf: objectIdentifier, tree: tree, screenshots: screenshots) else {
+            return nil
+        }
+        if let background {
+            return (0 ..< 3).map { channel in
+                pixels.reduce(0) { $0 + $1[channel] + (1 - $1[3]) * background[channel] } / Double(pixels.count)
+            }
+        }
+        let alphaSum = pixels.reduce(0) { $0 + $1[3] }
+        guard alphaSum > 0 else { return nil }
+        return (0 ..< 3).map { channel in pixels.reduce(0) { $0 + $1[channel] } / alphaSum }
+    }
+
+    /// The average alpha of where the group image of node `objectIdentifier`
+    /// shows `rect`, a rect in the archive root's space.
+    private static func averageAlpha(
+        of rect: CGRect,
+        inImageOf objectIdentifier: UInt,
+        tree: CoreAnimationArchiveLayerTree,
+        screenshots: CoreAnimationArchiveScreenshots
+    ) -> Double? {
+        guard let pixels = sampledPixels(of: rect, inImageOf: objectIdentifier, tree: tree, screenshots: screenshots) else {
+            return nil
+        }
+        return pixels.reduce(0) { $0 + $1[3] } / Double(pixels.count)
     }
 
     /// The image's pixels as premultiplied RGBA bytes in sRGB, top row first.
