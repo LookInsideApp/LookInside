@@ -33,6 +33,8 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testPlainColorLayersRenderNoImageOfTheirOwn()
         testSparseLayerIsRenderedOnlyWhereItDraws()
         testSparseFlippedLayerIsRenderedWhereItDraws()
+        testStandInIsTakenBackOutByCoverage()
+        testStandInDoesNotOutliveItsRender()
         testArchiveRoundTripsThroughDecoder()
         testMalformedArchiveIsRejected()
         print("Xcode view hierarchy pixel recovery tests passed")
@@ -458,6 +460,78 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         expect(screenshots.soloByObjectIdentifier["0x1"] == nil, "a plain layer's own picture is its background colour: no solo")
         expect(screenshots.groupByObjectIdentifier["0x2"] == nil, "a plain leaf layer needs no image at all")
         expect(screenshots.groupByObjectIdentifier["0x3"] != nil, "a layer that draws a border keeps its image")
+    }
+
+    // MARK: - Backdrop stand-in
+
+    /// A subtree whose backdrops would capture transparency is drawn again
+    /// over an opaque stand-in for the window, and the stand-in comes back
+    /// out by each pixel's coverage in the render over transparency. Where
+    /// nothing is drawn the result is clear; content drawn normally comes out
+    /// exactly as over transparency; opaque glass keeps the colour it shows
+    /// over the stand-in; and no colour exceeds its pixel's alpha.
+    private static func testStandInIsTakenBackOutByCoverage() {
+        let standIn = XcodeViewHierarchyPixelRecovery.OpaqueColorBytes(red: 50, green: 44, blue: 40)
+        func over(_ content: [Int], alpha: Int) -> [UInt8] {
+            // Blue, green, red: content plus what shows of the stand-in.
+            let standInComponents = [40, 44, 50]
+            return (0 ..< 3).map { UInt8(content[$0] + (255 - alpha) * standInComponents[$0] / 255) } + [255]
+        }
+        // Blue, green, red, alpha, premultiplied, one pixel after another.
+        let coverage: [UInt8] = [
+            0, 0, 0, 0, // nothing drawn
+            0, 0, 128, 128, // half-covering red
+            20, 20, 20, 255, // glass, dark over transparency
+            30, 30, 30, 100, // glass's edge, lighter over the stand-in
+        ]
+        let pixelsOverStandIn: [UInt8] = over([0, 0, 0], alpha: 0)
+            + over([0, 0, 128], alpha: 128)
+            + [60, 62, 66, 255]
+            + [220, 220, 220, 255]
+        let result = XcodeViewHierarchyPixelRecovery.removingBackdropStandIn(
+            standIn, from: pixelsOverStandIn, coverage: coverage, width: 4, height: 1
+        )
+        func close(_ pixelIndex: Int, _ expected: [UInt8]) -> Bool {
+            (0 ..< 4).allSatisfy { abs(Int(result[pixelIndex * 4 + $0]) - Int(expected[$0])) <= 1 }
+        }
+        expect(close(0, [0, 0, 0, 0]), "a pixel nothing covers should come out clear, got \(result[0 ..< 4])")
+        expect(close(1, [0, 0, 128, 128]), "half-covering red should come out as over transparency, got \(result[4 ..< 8])")
+        expect(close(2, [60, 62, 66, 255]), "opaque glass should keep its colour over the stand-in, got \(result[8 ..< 12])")
+        expect(close(3, [100, 100, 100, 100]), "no colour should exceed its pixel's alpha, got \(result[12 ..< 16])")
+    }
+
+    /// The stand-in belongs to the one render drawn over it. Should it stay
+    /// behind in the renderer's container — left set, or fading out through
+    /// an implicit animation because it was changed outside an action-free
+    /// transaction — the next render's backdrops capture it, and a backdrop
+    /// with nothing behind it fills with the stand-in instead of drawing
+    /// nothing. A diagnostic copy of the renderer did exactly that.
+    private static func testStandInDoesNotOutliveItsRender() {
+        guard CoreAnimationLayerRenderer.shared != nil,
+              let backdropLayerClass = NSClassFromString("CABackdropLayer") as? CALayer.Type
+        else {
+            print("skipped testStandInDoesNotOutliveItsRender: no Core Animation renderer")
+            return
+        }
+        // A green mark beside the backdrop, so that the subtree draws
+        // something over transparency and the render over the stand-in runs.
+        let root = coloredLayer(width: 40, height: 40, at: .zero, color: .clear)
+        root.addSublayer(coloredLayer(width: 5, height: 5, at: .zero, color: .green))
+        let backdrop = backdropLayerClass.init()
+        backdrop.frame = CGRect(x: 10, y: 10, width: 20, height: 20)
+        root.addSublayer(backdrop)
+        let red = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        _ = XcodeViewHierarchyPixelRecovery.renderingPNG(of: root, includingSublayers: true, isFlipped: false, backdropStandIn: red)
+        guard let afterwards = XcodeViewHierarchyPixelRecovery.renderingPNG(of: root, includingSublayers: true, isFlipped: false),
+              let image = NSBitmapImageRep(data: afterwards)
+        else { fail("the mark should render") }
+        var redPixelCount = 0
+        for row in 0 ..< image.pixelsHigh {
+            for column in 0 ..< image.pixelsWide where colorName(image, x: column, y: row) == "red" {
+                redPixelCount += 1
+            }
+        }
+        expect(redPixelCount == 0, "the backdrop drew the stand-in an earlier render gave it to capture: \(redPixelCount) red pixels")
     }
 
     // MARK: - Archive decoding

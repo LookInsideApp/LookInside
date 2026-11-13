@@ -40,7 +40,19 @@
 // is given, so instead of flipping the result, the layer is drawn inside a
 // container that carries its superlayer's cumulative flip — the same picture.
 // renderInContext remains the fallback where there is no Metal device.
+//
+// A node's image draws its subtree on its own, over transparency, and a
+// backdrop — a CABackdropLayer, behind Liquid Glass, a sidebar or a scroll
+// edge's blur — captures whatever lies behind it there. Its filters read a
+// partly transparent capture as if it were opaque, so content near it comes
+// out as saturated blocks of its colour (a blue block on Xcode's
+// back/forward glass, from the project icon beside it) where the window,
+// opaque behind, shows plain glass. Such a subtree is drawn a second time
+// over a stand-in for the window, its average colour, which the backdrops
+// capture instead; the stand-in is then taken back out of each pixel by how
+// much of it the subtree covers in the first render.
 
+import Accelerate
 import AppKit
 import Foundation
 import Metal
@@ -127,6 +139,21 @@ enum XcodeViewHierarchyPixelRecovery {
         }
         CATransaction.commit()
 
+        // What the backdrops of a subtree drawn on its own capture: the
+        // average colour of the window it belongs to. A root's own image is
+        // the window itself and needs none.
+        var backdropStandInsByRoot: [ObjectIdentifier: CGColor] = [:]
+        for tree in trees {
+            backdropStandInsByRoot[ObjectIdentifier(tree.rootLayer)] = backdropStandInColor(for: tree.rootLayer)
+        }
+        func backdropStandIn(for layer: CALayer) -> CGColor? {
+            var rootLayer = layer
+            while let superlayer = rootLayer.superlayer {
+                rootLayer = superlayer
+            }
+            return rootLayer === layer ? nil : backdropStandInsByRoot[ObjectIdentifier(rootLayer)]
+        }
+
         var soloByObjectIdentifier: [String: Data] = [:]
         var groupByObjectIdentifier: [String: Data] = [:]
         var groupExcludingHostedViewsByObjectIdentifier: [String: Data] = [:]
@@ -147,10 +174,12 @@ enum XcodeViewHierarchyPixelRecovery {
             // for a fraction of the memory and import time. Its subtree
             // still needs the group image.
             let paintsOnlyItsBackground = representsPlainColorFill(layer)
+            let layerBackdropStandIn = backdropStandIn(for: layer)
             if !paintsOnlyItsBackground || hasSublayers,
                let region = drawingRegion(of: layer, hiding: []),
                let groupImage = renderingPNG(
-                   of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped
+                   of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped,
+                   backdropStandIn: layerBackdropStandIn
                )
             {
                 groupByObjectIdentifier[objectIdentifier] = groupImage
@@ -165,7 +194,8 @@ enum XcodeViewHierarchyPixelRecovery {
             if !hostedDescendants.isEmpty,
                let region = drawingRegion(of: layer, hiding: hostedDescendants),
                let excludingImage = renderingPNG(
-                   of: layer, includingSublayers: true, hiding: hostedDescendants, region: region.rect, isFlipped: isFlipped
+                   of: layer, includingSublayers: true, hiding: hostedDescendants, region: region.rect, isFlipped: isFlipped,
+                   backdropStandIn: layerBackdropStandIn
                )
             {
                 groupExcludingHostedViewsByObjectIdentifier[objectIdentifier] = excludingImage
@@ -349,6 +379,193 @@ enum XcodeViewHierarchyPixelRecovery {
         return type.range(of: "vibrant", options: .caseInsensitive) != nil
     }
 
+    // MARK: - Backdrops drawn on their own
+
+    /// Longest side, in pixels, of the picture a window's average colour is
+    /// taken from.
+    static let backdropStandInSampleLength: CGFloat = 256
+
+    /// What the backdrops of a subtree drawn on its own capture where the
+    /// render is transparent: the average colour of `rootLayer`'s picture,
+    /// opaque, each pixel weighted by how much of it is covered — the window
+    /// behind, as near as one colour comes. Nil without Core Animation's
+    /// renderer (renderInContext draws no backdrops) or when the root draws
+    /// nothing.
+    static func backdropStandInColor(for rootLayer: CALayer) -> CGColor? {
+        guard let renderer = CoreAnimationLayerRenderer.shared,
+              let region = drawingRegion(of: rootLayer, hiding: [])?.rect
+        else { return nil }
+        let scale = min(1, backdropStandInSampleLength / max(region.width, region.height))
+        let request = RenderRequest(
+            layer: rootLayer,
+            includingSublayers: true,
+            hiddenLayers: [],
+            region: region,
+            scale: scale,
+            pixelWidth: max(1, Int((region.width * scale).rounded(.down))),
+            pixelHeight: max(1, Int((region.height * scale).rounded(.down))),
+            isFlipped: rootLayer.contentsAreFlipped(),
+            backdropStandIn: nil
+        )
+        return renderer.averageColor(of: request)
+    }
+
+    /// Whether `layer` is a backdrop, a layer that draws what lies behind it
+    /// through its filters. CABackdropLayer is QuartzCore's, outside the SDK.
+    static func isBackdrop(_ layer: CALayer) -> Bool {
+        guard let backdropLayerClass = NSClassFromString("CABackdropLayer") else { return false }
+        return layer.isKind(of: backdropLayerClass)
+    }
+
+    /// Whether a backdrop in `root`'s subtree captures transparency when the
+    /// subtree is drawn on its own over `region` (in `root`'s bounds space):
+    /// a visible backdrop whose capture — its bounds widened by its margin,
+    /// within the region — no opaque fill drawn before it in painter's order
+    /// covers. `hiddenLayers` count as hidden.
+    ///
+    /// Errs towards yes. Only a plain rectangular fill counts as cover, and
+    /// only one that covers a whole capture by itself: a wrong yes costs a
+    /// second render, a wrong no leaves a backdrop's colours blown up. A
+    /// window's background covers every backdrop in it, so the subtrees
+    /// holding that background are drawn once.
+    static func hasBackdropCapturingTransparency(
+        in root: CALayer,
+        region: CGRect,
+        hiding hiddenLayers: [CALayer] = []
+    ) -> Bool {
+        let hidden = Set(hiddenLayers.map(ObjectIdentifier.init))
+        var opaqueRects: [CGRect] = []
+        func visiting(_ layer: CALayer, clip: CGRect, drawsPlainly: Bool) -> Bool {
+            guard !layer.isHidden, layer.opacity > 0, !hidden.contains(ObjectIdentifier(layer)) else { return false }
+            let rect = layer.convert(layer.bounds, to: root)
+            let layerIsBackdrop = isBackdrop(layer)
+            if layerIsBackdrop {
+                let margin = (layer.value(forKey: "marginWidth") as? NSNumber).map { CGFloat($0.doubleValue) } ?? 0
+                let capture = rect.insetBy(dx: -margin, dy: -margin).intersection(region)
+                if !capture.isEmpty, !opaqueRects.contains(where: { $0.contains(capture) }) {
+                    return true
+                }
+            }
+            // A fill is opaque only if nothing between it and the root fades,
+            // masks, filters or blends it.
+            let layerDrawsPlainly = drawsPlainly
+                && layer.opacity >= 1
+                && layer.mask == nil
+                && layer.compositingFilter == nil
+                && (layer.filters?.isEmpty ?? true)
+            if layerDrawsPlainly, !layerIsBackdrop, layer.cornerRadius <= 0,
+               let backgroundColor = layer.backgroundColor, backgroundColor.alpha >= 1
+            {
+                opaqueRects.append(rect.intersection(clip))
+            }
+            let sublayerClip = layer.masksToBounds ? rect.intersection(clip) : clip
+            for sublayer in layer.sublayers ?? [] {
+                if visiting(sublayer, clip: sublayerClip, drawsPlainly: layerDrawsPlainly) {
+                    return true
+                }
+            }
+            return false
+        }
+        return visiting(root, clip: .infinite, drawsPlainly: true)
+    }
+
+    /// An opaque colour as the 8-bit sRGB components the renderer writes.
+    struct OpaqueColorBytes: Equatable {
+        let red: UInt8
+        let green: UInt8
+        let blue: UInt8
+
+        init(red: UInt8, green: UInt8, blue: UInt8) {
+            self.red = red
+            self.green = green
+            self.blue = blue
+        }
+
+        /// `color` in sRGB, its alpha ignored; nil when it does not convert.
+        init?(_ color: CGColor) {
+            guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+                  let components = color.converted(to: colorSpace, intent: .defaultIntent, options: nil)?.components,
+                  components.count >= 3
+            else { return nil }
+            func byte(_ component: CGFloat) -> UInt8 {
+                UInt8((min(max(component, 0), 1) * 255).rounded())
+            }
+            self.init(red: byte(components[0]), green: byte(components[1]), blue: byte(components[2]))
+        }
+    }
+
+    /// Takes an opaque stand-in back out of a render drawn over it.
+    ///
+    /// `pixelsOverStandIn` is a subtree drawn over `standIn`, `coverage` the
+    /// same subtree drawn over transparency, whose alpha says how much of
+    /// each pixel the subtree covers; both premultiplied BGRA, `width` by
+    /// `height`, as the renderer reads them back. Content composited normally
+    /// comes out over the stand-in as content + (1 − alpha) × stand-in, so
+    /// taking the second term away leaves the content exactly — drawn with
+    /// backdrops that captured the stand-in instead of transparency. The
+    /// result has the coverage's alpha, and no colour component above it.
+    /// Should vImage fail, the render over transparency is returned as it is.
+    static func removingBackdropStandIn(
+        _ standIn: OpaqueColorBytes,
+        from pixelsOverStandIn: [UInt8],
+        coverage: [UInt8],
+        width: Int,
+        height: Int
+    ) -> [UInt8] {
+        let byteCount = width * height * 4
+        guard width > 0, height > 0, pixelsOverStandIn.count == byteCount, coverage.count == byteCount else {
+            return coverage
+        }
+        // Channel by channel in memory order (blue, green, red, alpha), each
+        // output channel takes the input channels times one matrix row:
+        //   colour = (255 × colour + stand-in × alpha − 255 × stand-in) / 255
+        //   alpha  = alpha
+        let standInComponents = [Int32(standIn.blue), Int32(standIn.green), Int32(standIn.red)]
+        let matrix: [Int16] = [
+            255, 0, 0, 0,
+            0, 255, 0, 0,
+            0, 0, 255, 0,
+            Int16(standIn.blue), Int16(standIn.green), Int16(standIn.red), 255,
+        ]
+        let rounding: Int32 = 127
+        let postBias: [Int32] = standInComponents.map { -255 * $0 + rounding } + [rounding]
+        var result = pixelsOverStandIn
+        var coverageAlpha = [UInt8](repeating: 0, count: width * height)
+        let succeeded = coverage.withUnsafeBytes { coverageBytes in
+            coverageAlpha.withUnsafeMutableBytes { coverageAlphaBytes in
+                result.withUnsafeMutableBytes { resultBytes in
+                    var coverageBuffer = vImage_Buffer(
+                        data: UnsafeMutableRawPointer(mutating: coverageBytes.baseAddress),
+                        height: vImagePixelCount(height),
+                        width: vImagePixelCount(width),
+                        rowBytes: width * 4
+                    )
+                    var coverageAlphaBuffer = vImage_Buffer(
+                        data: coverageAlphaBytes.baseAddress,
+                        height: vImagePixelCount(height),
+                        width: vImagePixelCount(width),
+                        rowBytes: width
+                    )
+                    var resultBuffer = vImage_Buffer(
+                        data: resultBytes.baseAddress,
+                        height: vImagePixelCount(height),
+                        width: vImagePixelCount(width),
+                        rowBytes: width * 4
+                    )
+                    let flags = vImage_Flags(kvImageNoFlags)
+                    // The coverage's alpha into the last channel; copy mask
+                    // 0x1 names the last of the four.
+                    return vImageExtractChannel_ARGB8888(&coverageBuffer, &coverageAlphaBuffer, 3, flags) == kvImageNoError
+                        && vImageOverwriteChannels_ARGB8888(&coverageAlphaBuffer, &resultBuffer, &resultBuffer, 0x1, flags) == kvImageNoError
+                        && vImageMatrixMultiply_ARGB8888(&resultBuffer, &resultBuffer, matrix, 255, nil, postBias, flags) == kvImageNoError
+                        // vImageClipToAlpha_BGRA8888, a macro Swift does not see.
+                        && vImageClipToAlpha_RGBA8888(&resultBuffer, &resultBuffer, flags) == kvImageNoError
+                }
+            }
+        }
+        return succeeded ? result : coverage
+    }
+
     // MARK: - Rendering
 
     /// What one render draws.
@@ -364,6 +581,9 @@ enum XcodeViewHierarchyPixelRecovery {
         let pixelHeight: Int
         /// The layer's cumulative flip in its tree (`contentsAreFlipped`).
         let isFlipped: Bool
+        /// What backdrops in the subtree capture instead of transparency
+        /// (`backdropStandInColor(for:)`); nil to draw the subtree as it is.
+        let backdropStandIn: CGColor?
     }
 
     /// `hiddenLayers` are hidden for the duration of the render and restored
@@ -371,7 +591,11 @@ enum XcodeViewHierarchyPixelRecovery {
     /// the layer's bounds space, limits the render to that part of the
     /// bounds; the image then covers exactly the region. `isFlipped` is the
     /// layer's cumulative flip in its tree, and the image shows the layer the
-    /// way it looks there.
+    /// way it looks there. `backdropStandIn`, for a render with sublayers, is
+    /// what a backdrop in the subtree captures where the render is
+    /// transparent (`backdropStandInColor(for:)`): the subtree is then drawn
+    /// a second time over it, and it is taken back out. Pass nil for a
+    /// window's root, whose image is the window.
     ///
     /// Not to be called inside an explicit CATransaction: the render commits
     /// its own, which an enclosing one would hold back.
@@ -380,7 +604,8 @@ enum XcodeViewHierarchyPixelRecovery {
         includingSublayers: Bool,
         hiding hiddenLayers: [CALayer] = [],
         region: CGRect? = nil,
-        isFlipped: Bool
+        isFlipped: Bool,
+        backdropStandIn: CGColor? = nil
     ) -> Data? {
         let bounds = region ?? layer.bounds
         guard bounds.width >= minimumRenderedEdgeLength, bounds.height >= minimumRenderedEdgeLength,
@@ -407,7 +632,8 @@ enum XcodeViewHierarchyPixelRecovery {
             scale: scale,
             pixelWidth: pixelWidth,
             pixelHeight: pixelHeight,
-            isFlipped: isFlipped
+            isFlipped: isFlipped,
+            backdropStandIn: includingSublayers ? backdropStandIn : nil
         )
         let renderedImage = if let renderer = CoreAnimationLayerRenderer.shared {
             renderer.rendering(request)
@@ -610,11 +836,57 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
     }
 
     /// The image `request` describes, or nil when it drew nothing.
+    ///
+    /// With a backdrop stand-in, a subtree whose backdrops would capture
+    /// transparency is drawn twice — over transparency for each pixel's
+    /// coverage, over the stand-in for its colour — and the stand-in is
+    /// taken back out (`removingBackdropStandIn`).
     func rendering(_ request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> CGImage? {
         lock.lock()
         defer { lock.unlock() }
-        guard let pixels = renderingPixels(request), Self.containsVisiblePixels(pixels) else { return nil }
+        guard var pixels = renderingPixels(request), Self.containsVisiblePixels(pixels) else { return nil }
+        if let backdropStandIn = request.backdropStandIn,
+           request.includingSublayers,
+           XcodeViewHierarchyPixelRecovery.hasBackdropCapturingTransparency(
+               in: request.layer, region: request.region, hiding: request.hiddenLayers
+           ),
+           let standInBytes = XcodeViewHierarchyPixelRecovery.OpaqueColorBytes(backdropStandIn),
+           let pixelsOverStandIn = renderingPixels(request, background: backdropStandIn)
+        {
+            pixels = XcodeViewHierarchyPixelRecovery.removingBackdropStandIn(
+                standInBytes,
+                from: pixelsOverStandIn,
+                coverage: pixels,
+                width: request.pixelWidth,
+                height: request.pixelHeight
+            )
+        }
         return Self.makingImage(pixels, width: request.pixelWidth, height: request.pixelHeight)
+    }
+
+    /// The average colour of what `request` draws, opaque, each pixel
+    /// weighted by its alpha; nil when it draws nothing.
+    func averageColor(of request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> CGColor? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let pixels = renderingPixels(request) else { return nil }
+        // Blue, green, red and alpha; premultiplied, so the colour sums over
+        // the alpha sum are the coverage-weighted average.
+        var sums = [Double](repeating: 0, count: 4)
+        var pixelStart = 0
+        while pixelStart + 3 < pixels.count {
+            for channel in 0 ..< 4 {
+                sums[channel] += Double(pixels[pixelStart + channel])
+            }
+            pixelStart += 4
+        }
+        guard sums[3] > 0 else { return nil }
+        return CGColor(
+            srgbRed: CGFloat(sums[2] / sums[3]),
+            green: CGFloat(sums[1] / sums[3]),
+            blue: CGFloat(sums[0] / sums[3]),
+            alpha: 1
+        )
     }
 
     /// A small red layer, drawn and read back: proof that this machine's
@@ -631,15 +903,20 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
             scale: 1,
             pixelWidth: 4,
             pixelHeight: 4,
-            isFlipped: false
+            isFlipped: false,
+            backdropStandIn: nil
         )
         guard let pixels = renderingPixels(request) else { return false }
         // Blue, green, red, alpha.
         return pixels[0] < 16 && pixels[1] < 16 && pixels[2] > 240 && pixels[3] > 240
     }
 
-    /// BGRA, premultiplied, top row first.
-    private func renderingPixels(_ request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> [UInt8]? {
+    /// BGRA, premultiplied, top row first. `background`, when given, fills
+    /// the render behind the layer.
+    private func renderingPixels(
+        _ request: XcodeViewHierarchyPixelRecovery.RenderRequest,
+        background: CGColor? = nil
+    ) -> [UInt8]? {
         let width = request.pixelWidth
         let height = request.pixelHeight
         guard let texture = Self.makingTexture(on: device, width: width, height: height) else { return nil }
@@ -691,6 +968,7 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         containerLayer.isGeometryFlipped = request.isFlipped != layer.isGeometryFlipped
         containerLayer.bounds = CGRect(x: 0, y: 0, width: width, height: height)
         containerLayer.sublayerTransform = CATransform3DMakeScale(request.scale, request.scale, 1)
+        containerLayer.backgroundColor = background
         containerLayer.addSublayer(layer)
         renderer.setDestination(texture)
         renderer.bounds = containerLayer.bounds
@@ -715,6 +993,7 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         layer.removeFromSuperlayer()
+        containerLayer.backgroundColor = nil
         layer.transform = originalTransform
         layer.anchorPoint = originalAnchorPoint
         layer.position = originalPosition

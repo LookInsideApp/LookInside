@@ -92,6 +92,10 @@ enum CoreAnimationArchivePixelRecovery {
     /// show the layers' own values. `isCancelled` is polled once per layer;
     /// when it answers true the recovery throws `CancellationError`, since a
     /// partial set of images would read as missing pixels.
+    ///
+    /// Every subtree but the root's is drawn without the window behind it;
+    /// its backdrops capture the window's average colour instead of that
+    /// transparency (`renderingPNG`'s `backdropStandIn`).
     static func recovering(
         from tree: CoreAnimationArchiveLayerTree,
         isCancelled: () -> Bool = { false }
@@ -102,6 +106,7 @@ enum CoreAnimationArchivePixelRecovery {
         CATransaction.setDisableActions(true)
         Renderer.removingAnimations(from: tree.rootLayer)
         CATransaction.commit()
+        let backdropStandIn = Renderer.backdropStandInColor(for: tree.rootLayer)
 
         for (index, layer) in tree.layers.enumerated() {
             if isCancelled() {
@@ -117,7 +122,8 @@ enum CoreAnimationArchivePixelRecovery {
             if !paintsOnlyItsBackground || hasSublayers,
                let region = Renderer.drawingRegion(of: layer, hiding: []),
                let groupImage = Renderer.renderingPNG(
-                   of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped
+                   of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped,
+                   backdropStandIn: layer === tree.rootLayer ? nil : backdropStandIn
                )
             {
                 screenshots.groupByObjectIdentifier[objectIdentifier] = groupImage
