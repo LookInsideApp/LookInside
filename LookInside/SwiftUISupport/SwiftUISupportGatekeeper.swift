@@ -1,8 +1,8 @@
 import AppKit
 import Foundation
+import FoundationToolbox
 import LookInsideActivation
 import LookInsideActivationUI
-import FoundationToolbox
 
 public enum SwiftUISupportActivationState: Int, CustomDebugStringConvertible {
     case unknown
@@ -97,11 +97,10 @@ public final class SwiftUISupportGatekeeper: NSObject {
         publishedStatusSummary = initialDecision?.statusSummary
         presentsKeychainExplainer = monitorsState
         super.init()
-        #log(.info, 
-            // Logger interpolations are escaping autoclosures.
-            // swiftformat:disable:next redundantSelf
-            "activation runtime ready, state=\(self.publishedState.debugDescription, privacy: .public)"
-        )
+        #log(.info,
+             // Logger interpolations are escaping autoclosures.
+             // swiftformat:disable:next redundantSelf
+             "activation runtime ready, state=\(self.publishedState.debugDescription, privacy: .public)")
         decisionObservation = runtime.addDecisionObserver { [weak self] decision in
             self?.recordDecision(decision)
         }
@@ -156,9 +155,8 @@ public final class SwiftUISupportGatekeeper: NSObject {
             return handshakeGeneration != status.handshakeGeneration
         }
         guard shouldNotify else { return }
-        #log(.info, 
-            "license handshakes may start again (generation \(status.handshakeGeneration, privacy: .public))"
-        )
+        #log(.info,
+             "license handshakes may start again (generation \(status.handshakeGeneration, privacy: .public))")
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: Self.licenseHandshakeAvailabilityDidChangeNotification, object: self)
         }
@@ -225,9 +223,8 @@ public final class SwiftUISupportGatekeeper: NSObject {
             return true
         }
         guard shouldNotify else { return }
-        #log(.info, 
-            "activation state changed: \(previousState.debugDescription, privacy: .public) -> \(newState.debugDescription, privacy: .public) (decision=\(decision.decision.rawValue, privacy: .public))"
-        )
+        #log(.info,
+             "activation state changed: \(previousState.debugDescription, privacy: .public) -> \(newState.debugDescription, privacy: .public) (decision=\(decision.decision.rawValue, privacy: .public))")
         DispatchQueue.main.async {
             NotificationCenter.default.post(
                 name: Self.activationStateDidChangeNotification,
@@ -272,19 +269,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
             refreshActivationStateInBackground()
             return decision
         }
-        return evaluateDecisionBlocking()
-    }
-
-    private func evaluateDecisionBlocking() -> ActivationAccessDecision {
-        let runtime = runtime
-        let box = SwiftUISupportDecisionBox()
-        let semaphore = DispatchSemaphore(value: 0)
-        Task.detached(priority: .userInitiated) {
-            box.decision = await runtime.currentDecision()
-            semaphore.signal()
-        }
-        semaphore.wait()
-        return box.decision ?? runtime.lastDecision ?? Self.activationRequiredDecision
+        return runtime.currentDecisionBlocking()
     }
 
     private static var activationRequiredDecision: ActivationAccessDecision {
@@ -377,9 +362,8 @@ public final class SwiftUISupportGatekeeper: NSObject {
             result = measured.signature
             keyUseDurationOut?.pointee = measured.keyUseDuration
         } catch let error as ActivationError {
-            #log(.error, 
-                "sign_challenge failed code=\(error.errorCode, privacy: .public)"
-            )
+            #log(.error,
+                 "sign_challenge failed code=\(error.errorCode, privacy: .public)")
             throw error
         }
         signatureOut.pointee = result.signature as NSData
@@ -430,9 +414,8 @@ public final class SwiftUISupportGatekeeper: NSObject {
                         ActivationAlert(title: decision.title, message: decision.message, style: .warning)
                     )
                 } catch {
-                    #log(.error, 
-                        "license status refresh failed: \(error.localizedDescription, privacy: .public)"
-                    )
+                    #log(.error,
+                         "license status refresh failed: \(error.localizedDescription, privacy: .public)")
                     coordinator.showAlert(
                         ActivationAlert(
                             title: NSLocalizedString("Unable to Refresh License Status", comment: ""),
@@ -498,8 +481,7 @@ public final class SwiftUISupportGatekeeper: NSObject {
         let alreadyDone = activationPromptLock.withLock {
             hasPromptedForDetectedSwiftUISupport || !hasPendingDetectionPrompt
         }
-        guard !alreadyDone else { return }
-        guard isInspectorWindow(window) else { return }
+        guard !alreadyDone, isInspectorWindow(window) else { return }
 
         let shouldPrompt = activationPromptLock.withLock {
             guard hasPendingDetectedSwiftUISupportPrompt,
@@ -526,9 +508,8 @@ public final class SwiftUISupportGatekeeper: NSObject {
         let runtime = runtime
         Task { [weak self, weak window] in
             guard await runtime.hasLicenseMaterial() else {
-                #log(.info, 
-                    "activation prompt skipped: no local license material"
-                )
+                #log(.info,
+                     "activation prompt skipped: no local license material")
                 return
             }
             self?.onMain { [weak self] coordinator in
@@ -588,10 +569,6 @@ public final class SwiftUISupportGatekeeper: NSObject {
         cachedWindowCoordinator = coordinator
         return coordinator
     }
-}
-
-private final class SwiftUISupportDecisionBox: @unchecked Sendable {
-    var decision: ActivationAccessDecision?
 }
 
 #if DEBUG

@@ -34,6 +34,38 @@ struct ActivationRuntimeTests {
         }
     }
 
+    /// Records the priority of every task that reads the clock.
+    private final class PriorityRecorder: @unchecked Sendable {
+        private let lock = NSLock()
+        private var stored: [TaskPriority] = []
+
+        func recordCurrentPriority() {
+            let priority = Task.currentPriority
+            lock.withLock { stored.append(priority) }
+        }
+
+        func reset() {
+            lock.withLock { stored.removeAll() }
+        }
+
+        var priorities: [TaskPriority] {
+            lock.withLock { stored }
+        }
+    }
+
+    /// Runs `body` on a global queue of `qualityOfService`, the way the Host's
+    /// connection code calls the blocking runtime API.
+    private func runOnQueue<Value: Sendable>(
+        qualityOfService: DispatchQoS.QoSClass,
+        _ body: @escaping @Sendable () -> Value
+    ) async -> Value {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: qualityOfService).async {
+                continuation.resume(returning: body())
+            }
+        }
+    }
+
     private func makeRuntime(
         fixture: String?,
         clock: Clock
@@ -149,6 +181,63 @@ struct ActivationRuntimeTests {
         }
     }
 
+    /// The blocking API makes its caller wait on a semaphore, which lends the
+    /// waiting thread's priority to nothing. Its task must therefore run at
+    /// the caller's priority: a task left at the default priority made the
+    /// handshake's user-initiated thread wait on default-priority work, the
+    /// priority inversion the Thread Performance Checker reported.
+    @Test func blockingSigningRunsAtTheCallersPriority() async throws {
+        let recorder = PriorityRecorder()
+        let directory = try HelperFixtures.makeStateDirectory(copying: nil)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let runtime = ActivationRuntime(
+            configuration: HelperFixtures.isolatedConfiguration(stateDirectoryURL: directory),
+            urlSession: .shared,
+            now: {
+                recorder.recordCurrentPriority()
+                return HelperFixtureValues.base
+            },
+            silentRenewalEnabled: false
+        )
+        recorder.reset()
+
+        // Without a license the signing is refused after it read the clock.
+        let refused = await runOnQueue(qualityOfService: .userInitiated) {
+            (try? runtime.signChallengeMeasuredBlocking(nonce: Data(count: 32), serverInstanceID: "srv")) == nil
+        }
+
+        #expect(refused)
+        #expect(recorder.priorities.isEmpty == false)
+        #expect(recorder.priorities.allSatisfy { $0 == .userInitiated })
+    }
+
+    /// `currentDecisionBlocking()` waits the same way, and its callers may
+    /// run above user-initiated priority.
+    @Test func blockingDecisionRunsAtTheCallersPriority() async throws {
+        let recorder = PriorityRecorder()
+        let directory = try HelperFixtures.makeStateDirectory(copying: nil)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let runtime = ActivationRuntime(
+            configuration: HelperFixtures.isolatedConfiguration(stateDirectoryURL: directory),
+            urlSession: .shared,
+            now: {
+                recorder.recordCurrentPriority()
+                return HelperFixtureValues.base
+            },
+            silentRenewalEnabled: false
+        )
+        recorder.reset()
+
+        let decision = await runOnQueue(qualityOfService: .userInteractive) {
+            runtime.currentDecisionBlocking()
+        }
+
+        #expect(decision == .activationRequired)
+        let userInteractive = TaskPriority(rawValue: UInt8(QOS_CLASS_USER_INTERACTIVE.rawValue))
+        #expect(recorder.priorities.isEmpty == false)
+        #expect(recorder.priorities.allSatisfy { $0 == userInteractive })
+    }
+
     /// `currentDecision()` schedules the silent renewal once the lease is in
     /// its renewal window and the Host allowed renewal after its first
     /// window; a failed attempt (unreachable local service) is recorded in
@@ -232,13 +321,13 @@ struct ActivationRuntimeTests {
     }
 
     #if DEBUG
-        @Test func debugOverridesRedirectServiceAndAddTrustedRoot() {
+        @Test func debugOverridesRedirectServiceAndAddTrustedRoot() throws {
             let testRoot = TrustedRootPublicKey(
                 certificateID: "root_test_activation",
                 publicKeyPEM: "-----BEGIN PUBLIC KEY-----\nAA==\n-----END PUBLIC KEY-----\n",
                 publicKeySHA256: ""
             )
-            let url = URL(string: "http://127.0.0.1:8787")!
+            let url = try #require(URL(string: "http://127.0.0.1:8787"))
             ActivationDebugOverrides.serviceBaseURL = url
             ActivationDebugOverrides.additionalTrustedRoot = testRoot
             defer {

@@ -189,6 +189,14 @@ public final class ActivationRuntime: Sendable {
         return decision
     }
 
+    /// Blocking form of `currentDecision()` for synchronous callers. It
+    /// evaluates the stored state locally and does not touch the network.
+    public func currentDecisionBlocking() -> ActivationAccessDecision {
+        Self.waitForResult { [self] in
+            await currentDecision()
+        }
+    }
+
     /// `license.refresh_status`: refreshes the activation session when due,
     /// fetches the license status from the server, persists it and returns the
     /// new decision. Without a stored session it returns `currentDecision()`.
@@ -294,24 +302,37 @@ public final class ActivationRuntime: Sendable {
         serverInstanceID: String,
         channel: String? = nil
     ) throws -> (signature: ActivationChallengeSignature, keyUseDuration: TimeInterval) {
-        let box = ResultBox<MeasuredSignature>()
+        let measured = try Self.waitForResult { [self] in
+            let (signature, duration) = try await signChallengeMeasured(
+                nonce: nonce,
+                serverInstanceID: serverInstanceID,
+                channel: channel
+            )
+            return MeasuredSignature(signature: signature, keyUseDuration: duration)
+        }
+        return (measured.signature, measured.keyUseDuration)
+    }
+
+    /// Runs `operation` in a new task and blocks the calling thread until it
+    /// finishes. The task runs at the calling thread's priority: the caller
+    /// waits on a semaphore, which lends its priority to nothing, so a task
+    /// at a lower priority would leave it waiting on lower-priority work (a
+    /// priority inversion).
+    private static func waitForResult<Value: Sendable, Failure: Error>(
+        of operation: @escaping @Sendable () async throws(Failure) -> Value
+    ) throws(Failure) -> Value {
+        let box = ResultBox<Value, Failure>()
         let semaphore = DispatchSemaphore(value: 0)
-        Task.detached { [self] in
-            do {
-                let (signature, duration) = try await signChallengeMeasured(
-                    nonce: nonce,
-                    serverInstanceID: serverInstanceID,
-                    channel: channel
-                )
-                box.set(.success(MeasuredSignature(signature: signature, keyUseDuration: duration)))
+        Task.detached(priority: Task.currentPriority) {
+            do throws(Failure) {
+                try box.set(.success(await operation()))
             } catch {
                 box.set(.failure(error))
             }
             semaphore.signal()
         }
         semaphore.wait()
-        let measured = try box.get()
-        return (measured.signature, measured.keyUseDuration)
+        return try box.get()
     }
 
     /// `true` when a license handshake may start on `channel` now: the Host
@@ -677,17 +698,18 @@ private struct MeasuredSignature: Sendable {
     let keyUseDuration: TimeInterval
 }
 
-private final class ResultBox<Value: Sendable>: @unchecked Sendable {
+private final class ResultBox<Value: Sendable, Failure: Error>: @unchecked Sendable {
     private let lock = NSLock()
-    private var result: Result<Value, any Error>?
+    private var result: Result<Value, Failure>?
 
-    func set(_ result: Result<Value, any Error>) {
+    func set(_ result: Result<Value, Failure>) {
         lock.withLock { self.result = result }
     }
 
-    func get() throws -> Value {
+    /// The stored result. Read it only after the task that sets it finished.
+    func get() throws(Failure) -> Value {
         guard let result = lock.withLock({ result }) else {
-            throw ActivationError.signingFailed("Signing finished without a result.")
+            preconditionFailure("The blocking task finished without a result.")
         }
         return try result.get()
     }
