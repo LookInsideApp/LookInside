@@ -39,6 +39,9 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
     private let maskNode: SCNNode
     private let borderNode = SCNNode()
     private var borderGeometry: SCNGeometry?
+    /// Whether the planes were last given the node's picture, which they
+    /// hold only while the node shows (`showsContent()`).
+    private var isShowingPicture = false
     private var borderColor: NSColor? {
         didSet { renderBorderColor() }
     }
@@ -177,7 +180,32 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         return geometry
     }
 
+    /// Whether the node's plane shows its content: the rule `renderVisibility`
+    /// applies to the content node's opacity.
+    private func showsContent() -> Bool {
+        guard let displayItem else { return false }
+        if displayItem.inHiddenHierarchy, !(preferenceManager?.showHiddenItems.currentBOOLValue ?? false) {
+            return false
+        }
+        return displayItem.displayingInHierarchy
+    }
+
+    /// Hands the planes nothing but a clear colour, for a node taken out of
+    /// the scene: it keeps no picture while nothing shows it.
+    func releasingPicture() {
+        contentPlane.firstMaterial?.diffuse.contents = NSColor.clear
+        regionPlane.firstMaterial?.diffuse.contents = NSColor.clear
+        regionNode.isHidden = true
+        isShowingPicture = false
+    }
+
     @objc private func renderVisibility() {
+        defer {
+            // The planes hold the node's picture only while it shows.
+            if showsContent() != isShowingPicture {
+                renderImageAndColor()
+            }
+        }
         let displayingInHierarchy = displayItem?.displayingInHierarchy ?? false
         let inHiddenHierarchy = displayItem?.inHiddenHierarchy ?? false
         let showEvenWhenCollapsed = (preferenceManager?.isQuickSelecting.currentBOOLValue ?? false)
@@ -266,16 +294,25 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
             assert(CGFloat(Swift.max(rep.pixelsWide, rep.pixelsHigh)) <= CGFloat(LookinNodeImageMaxLengthInPx), "image is too large")
         }
         let backgroundColor = displayItem?.backgroundColor ?? NSColor.clear
-        if let screenshot, let region = region(of: screenshot) {
+        // A plane that does not show gets no picture. SceneKit uploads the
+        // texture of a plane at opacity 0 all the same, so with every node
+        // holding its image the preview cost the decoded size of all of them
+        // — 1.5 GB for a dumped Xcode window, of which the folded tree shows
+        // one. A texture is let go a moment after its plane loses it.
+        isShowingPicture = showsContent()
+        let shownScreenshot = isShowingPicture ? screenshot : nil
+        if let shownScreenshot, let region = region(of: shownScreenshot) {
             // A partial screenshot: the node's own plane shows what the image
             // does not cover, the region plane shows the image where it
             // belongs.
             contentPlane.firstMaterial?.diffuse.contents = backgroundColor
-            regionPlane.firstMaterial?.diffuse.contents = screenshot
+            regionPlane.firstMaterial?.diffuse.contents = shownScreenshot
             regionNode.isHidden = false
             layoutRegionNode(region: region, frameToRoot: displayItem?.calculateFrameToRoot() ?? .zero)
         } else {
-            contentPlane.firstMaterial?.diffuse.contents = screenshot ?? backgroundColor
+            contentPlane.firstMaterial?.diffuse.contents = shownScreenshot ?? backgroundColor
+            // Never nil: some scenes then render the wrong content.
+            regionPlane.firstMaterial?.diffuse.contents = NSColor.clear
             regionNode.isHidden = true
         }
 

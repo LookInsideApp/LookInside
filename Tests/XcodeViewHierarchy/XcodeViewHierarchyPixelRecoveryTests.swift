@@ -28,8 +28,11 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testZeroSizedLayerProducesNoImage()
         testLargeLayerIsScaledWithinTheCap()
         testTallLayerStaysWithinTheTextureEdge()
+        testExtremelyTallLayerStaysWithinTheTextureEdge()
+        testGroupImageTakesTheSharpestScaleInItsSubtree()
         testPlainColorLayersRenderNoImageOfTheirOwn()
         testSparseLayerIsRenderedOnlyWhereItDraws()
+        testSparseFlippedLayerIsRenderedWhereItDraws()
         testArchiveRoundTripsThroughDecoder()
         testMalformedArchiveIsRejected()
         print("Xcode view hierarchy pixel recovery tests passed")
@@ -261,6 +264,48 @@ struct XcodeViewHierarchyPixelRecoveryTests {
                "the root draws from its bottom band to its top row, so its region is the whole bounds")
     }
 
+    /// The same sparse content in a geometry-flipped layer, as an outline's
+    /// or a scroll view's document is: its region is measured down from its
+    /// top, where the drawn row sits. Core Animation's renderer honours the
+    /// layer's own flag, and placing the region as if it ran up from the
+    /// bottom put it off the texture: 22 images of one dumped Xcode window
+    /// came back empty or showing the wrong part.
+    private static func testSparseFlippedLayerIsRenderedWhereItDraws() {
+        let content = CALayer()
+        content.bounds = CGRect(x: 0, y: 0, width: 200, height: 400)
+        content.anchorPoint = .zero
+        content.position = .zero
+        content.isGeometryFlipped = true
+        // Twenty points down from the top, thirty tall: red, with a blue
+        // lower half.
+        let row = coloredLayer(width: 50, height: 30, at: CGPoint(x: 10, y: 20), color: .red)
+        row.borderWidth = 1
+        row.borderColor = NSColor.red.cgColor
+        let lowerHalf = coloredLayer(width: 50, height: 15, at: CGPoint(x: 0, y: 15), color: .blue)
+        row.addSublayer(lowerHalf)
+        content.addSublayer(row)
+        let root = CALayer()
+        root.bounds = CGRect(x: 0, y: 0, width: 200, height: 400)
+        root.addSublayer(content)
+        guard let archiveData = archiveData(rootLayer: root, geometryFlipped: false) else {
+            fail("could not build the archive fixture")
+        }
+        let capture = layerCapture(
+            archiveData: archiveData,
+            tree: LayerNodeFixture("0x1", [LayerNodeFixture("0x2", [LayerNodeFixture("0x3", [LayerNodeFixture("0x4")])])])
+        )
+        let screenshots = XcodeViewHierarchyPixelRecovery.recovering(from: capture)
+        guard let contentData = screenshots.groupByObjectIdentifier["0x2"],
+              let contentBitmap = NSBitmapImageRep(data: contentData)
+        else { fail("the flipped content's drawn row should render") }
+        expect(screenshots.groupRegionByObjectIdentifier["0x2"] == CGRect(x: 10, y: 20, width: 50, height: 30),
+               "the region records where the row is; got \(String(describing: screenshots.groupRegionByObjectIdentifier["0x2"]))")
+        expect(contentBitmap.pixelsWide == 50 && contentBitmap.pixelsHigh == 30,
+               "only the drawn row is rendered; got \(contentBitmap.pixelsWide)x\(contentBitmap.pixelsHigh)")
+        expect(colorName(contentBitmap, x: 25, y: 7) == "red" && colorName(contentBitmap, x: 25, y: 22) == "blue",
+               "the row should read red over blue, as it does in its tree; got \(colorName(contentBitmap, x: 25, y: 7)) over \(colorName(contentBitmap, x: 25, y: 22))")
+    }
+
     // MARK: - Cancellation
 
     /// The document cancels a running import when its window closes, and the
@@ -334,6 +379,60 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         guard let image = NSBitmapImageRep(data: data) else { fail("rendered data was not a bitmap") }
         expect(image.pixelsHigh <= 16384, "a side longer than the texture limit; got \(image.pixelsHigh)")
         expect(image.pixelsHigh > 16000, "the tall side should use the whole texture edge; got \(image.pixelsHigh)")
+    }
+
+    /// Fitting a layer more than ten times the texture edge takes a scale
+    /// below 0.1. The console of a dumped Xcode window was 256310 points
+    /// tall, and a floor on the scale once rendered it 25630 pixels high —
+    /// an image the preview asserts on. However tall the layer, the edge
+    /// holds.
+    private static func testExtremelyTallLayerStaysWithinTheTextureEdge() {
+        let layer = CALayer()
+        layer.bounds = CGRect(x: 0, y: 0, width: 1819, height: 256_310)
+        layer.contentsScale = 2
+        layer.backgroundColor = NSColor.red.cgColor
+        layer.borderWidth = 1
+        guard let data = XcodeViewHierarchyPixelRecovery.renderingPNG(
+            of: layer, includingSublayers: true, isFlipped: false
+        ) else { fail("an extremely tall layer should still render") }
+        guard let image = NSBitmapImageRep(data: data) else { fail("rendered data was not a bitmap") }
+        expect(image.pixelsHigh <= 16384, "a side longer than the texture limit; got \(image.pixelsHigh)")
+        expect(image.pixelsHigh > 16000, "the tall side should use the whole texture edge; got \(image.pixelsHigh)")
+        let scale = XcodeViewHierarchyPixelRecovery.renderingScale(for: layer)
+        expect(abs(scale - 16384.0 / 256_310.0) < 0.0001, "the longest side sets the scale, however small; got \(scale)")
+    }
+
+    /// A window's root layer never draws, so it keeps the default
+    /// contentsScale of 1 while every view inside draws at 2x. Its group image
+    /// holds all of them, and at the root's own scale a whole imported window
+    /// read blurred. A group image takes the sharpest scale in its subtree;
+    /// a solo image, which is the layer's own drawing only, keeps the layer's.
+    private static func testGroupImageTakesTheSharpestScaleInItsSubtree() {
+        let root = CALayer()
+        root.bounds = CGRect(x: 0, y: 0, width: 100, height: 50)
+        root.contentsScale = 1
+        root.borderWidth = 1 // something of its own, so the solo image exists
+        let child = CALayer()
+        child.frame = CGRect(x: 10, y: 10, width: 30, height: 30)
+        child.contentsScale = 2
+        child.backgroundColor = NSColor.red.cgColor
+        child.borderWidth = 1
+        root.addSublayer(child)
+
+        guard let groupData = XcodeViewHierarchyPixelRecovery.renderingPNG(
+            of: root, includingSublayers: true, isFlipped: false
+        ), let groupImage = NSBitmapImageRep(data: groupData) else { fail("the root's subtree should render") }
+        expect(
+            groupImage.pixelsWide == 200 && groupImage.pixelsHigh == 100,
+            "the group image should follow its 2x sublayer; got \(groupImage.pixelsWide) x \(groupImage.pixelsHigh)"
+        )
+        guard let soloData = XcodeViewHierarchyPixelRecovery.renderingPNG(
+            of: root, includingSublayers: false, isFlipped: false
+        ), let soloImage = NSBitmapImageRep(data: soloData) else { fail("the root's own border should render") }
+        expect(
+            soloImage.pixelsWide == 100 && soloImage.pixelsHigh == 50,
+            "the solo image should keep the root's own 1x; got \(soloImage.pixelsWide) x \(soloImage.pixelsHigh)"
+        )
     }
 
     /// A plain CALayer with nothing but a background colour needs no image:

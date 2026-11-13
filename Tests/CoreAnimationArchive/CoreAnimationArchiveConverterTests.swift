@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import Metal
 import QuartzCore
 
 /// Coverage for turning a decoded Core Animation archive into the
@@ -19,6 +20,9 @@ struct CoreAnimationArchiveConverterTests {
         testNodesReportTheirCumulativeFlip()
         testRootArchivedOutOfAFlippedSuperlayerRendersUpright()
         testScreenshotsAreFiledUnderTheirNodes()
+        testEveryImageFitsThePreviewTextureLimit()
+        testVibrantContentDrawsWhereItsMaterialIsMissing()
+        testEmptyContainerTakesItsSublayersPicture()
         testCancelledRecoveryThrows()
         testLayerRowsFollowTheServerTypes()
         testClassCardEndsAtCALayer()
@@ -27,6 +31,7 @@ struct CoreAnimationArchiveConverterTests {
             testViewLayersBecomeViewNodes()
             testCustomBackingLayerNamesBothClasses()
             testViewClassThisProcessLacksKeepsItsName()
+            testGlassRendersAsGlassNotItsShape()
         }
         testUnmarkedOrMisnamedLayersStayLayers()
         testNamedLayersShowTheirNames()
@@ -141,6 +146,171 @@ struct CoreAnimationArchiveConverterTests {
         expect(
             root?.groupScreenshotRegion == CGRect(x: 10, y: 10, width: 20, height: 20),
             "the root's image covers only where its subtree draws, got \(String(describing: root?.groupScreenshotRegion))"
+        )
+    }
+
+    /// A Dump Layer of an Xcode window held the console's content view,
+    /// 256310 points of text. Its image came out 25630 pixels tall, and the
+    /// preview asserts that no image it is handed is longer than
+    /// `LookinNodeImageMaxLengthInPx` on a side. Every image an import files
+    /// has to fit, measured as the reader loads it, and the tall layer still
+    /// gets its image: a folded node shows its whole subtree in it.
+    private static func testEveryImageFitsThePreviewTextureLimit() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 400, height: 300))
+        rootLayer.masksToBounds = true
+        let contentLayer = makingLayer(CGRect(x: 0, y: 0, width: 380, height: 256_310))
+        // The console's background, so the layer draws along its whole
+        // height, and a line of text at either end. A line alone shrinks to
+        // less than a pixel at this scale, and draws nothing.
+        contentLayer.backgroundColor = CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
+        let firstLineLayer = makingLayer(CGRect(x: 0, y: 0, width: 380, height: 14))
+        firstLineLayer.borderWidth = 1
+        let lastLineLayer = makingLayer(CGRect(x: 0, y: 256_296, width: 380, height: 14))
+        lastLineLayer.borderWidth = 1
+        contentLayer.addSublayer(firstLineLayer)
+        contentLayer.addSublayer(lastLineLayer)
+        rootLayer.addSublayer(contentLayer)
+
+        let file = convertedFile(of: rootLayer)
+        let images = Array((file.soloScreenshots ?? [:]).values) + Array((file.groupScreenshots ?? [:]).values)
+        for data in images {
+            guard let representation = NSImage(data: data)?.representations.first else {
+                fail("a filed image does not load")
+            }
+            let longestSide = max(representation.pixelsWide, representation.pixelsHigh)
+            expect(
+                Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                "an image of \(representation.pixelsWide) x \(representation.pixelsHigh) pixels is past the preview's limit"
+            )
+        }
+        guard let contentData = file.groupScreenshots?[NSNumber(value: 2)],
+              let contentRepresentation = NSImage(data: contentData)?.representations.first
+        else { fail("the tall layer's subtree draws, so it needs a group image") }
+        expect(
+            contentRepresentation.pixelsHigh > 16000,
+            "the tall side should use the whole texture edge; got \(contentRepresentation.pixelsHigh)"
+        )
+    }
+
+    /// Liquid Glass is a signed-distance-field layer whose shape source is a
+    /// white fill that only Core Animation's own renderer turns into glass;
+    /// CGContext's renderInContext draws the white fill, which is how every
+    /// glass toolbar button of a dumped Xcode window came out a white
+    /// lozenge. A real NSGlassEffectView over a dark window, dumped and
+    /// imported, must show dark glass where the button is.
+    @MainActor
+    private static func testGlassRendersAsGlassNotItsShape() {
+        guard #available(macOS 26.0, *) else {
+            print("skipped testGlassRendersAsGlassNotItsShape: NSGlassEffectView needs macOS 26")
+            return
+        }
+        // Without a GPU the import draws with renderInContext, glass and all;
+        // with one, Core Animation's renderer must be the one drawing.
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testGlassRendersAsGlassNotItsShape: no Metal device")
+            return
+        }
+        expect(CoreAnimationLayerRenderer.shared != nil, "Core Animation's renderer did not start on a machine with a Metal device")
+        let (contentView, window) = makingLayerBackedContentView()
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.setContentSize(NSSize(width: 200, height: 100))
+        contentView.layer?.backgroundColor = CGColor(srgbRed: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        // Centred, so the image's centre is the glass's.
+        let glassView = NSGlassEffectView(frame: NSRect(x: 40, y: 30, width: 120, height: 40))
+        glassView.cornerRadius = 20
+        contentView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+
+        let file = convertedFile(of: contentLayer)
+        guard let rootData = file.groupScreenshots?[NSNumber(value: 1)],
+              let rootImage = NSBitmapImageRep(data: rootData),
+              let centre = rootImage.colorAt(x: rootImage.pixelsWide / 2, y: rootImage.pixelsHigh / 2)?.usingColorSpace(.sRGB)
+        else { fail("the window's content should render") }
+        expect(
+            centre.redComponent < 0.8 || centre.greenComponent < 0.8 || centre.blueComponent < 0.8,
+            "the glass rendered as its white shape source: \(centre)"
+        )
+    }
+
+    /// Text and icons on a sidebar or a toolbar are composited through a
+    /// vibrant filter onto the material behind them. A node drawn on its
+    /// own leaves out whatever its ancestors draw, so a sidebar's labels
+    /// vanished from every image below the sidebar's material. A vibrant
+    /// layer with nothing drawn behind it in the render is drawn plain; one
+    /// with something behind it keeps its filter. The filter is made at run
+    /// time, as Dump Layer decodes it: AppKit sets it only in windows on
+    /// screen.
+    private static func testVibrantContentDrawsWhereItsMaterialIsMissing() {
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let vibrantFilter = filterClass.perform(
+                  NSSelectorFromString("filterWithType:"), with: "vibrantColorMatrixSourceOver"
+              )?.takeUnretainedValue()
+        else { fail("QuartzCore should make a vibrant filter") }
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 200, height: 100))
+        // A material under the left half; nothing under the right.
+        let materialLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        materialLayer.backgroundColor = CGColor(srgbRed: 0.2, green: 0.2, blue: 0.2, alpha: 1)
+        let labelOnMaterial = makingLayer(CGRect(x: 30, y: 30, width: 40, height: 40))
+        labelOnMaterial.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        labelOnMaterial.compositingFilter = vibrantFilter
+        // Inside a sidebar row's rounded container, which draws nothing and
+        // is no material.
+        let roundedRowLayer = makingLayer(CGRect(x: 120, y: 20, width: 60, height: 60))
+        roundedRowLayer.cornerRadius = 6
+        let labelWithoutMaterial = makingLayer(CGRect(x: 10, y: 10, width: 40, height: 40))
+        labelWithoutMaterial.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        labelWithoutMaterial.compositingFilter = vibrantFilter
+        roundedRowLayer.addSublayer(labelWithoutMaterial)
+        rootLayer.addSublayer(materialLayer)
+        rootLayer.addSublayer(labelOnMaterial)
+        rootLayer.addSublayer(roundedRowLayer)
+
+        let file = convertedFile(of: rootLayer)
+        guard let rootData = file.groupScreenshots?[NSNumber(value: 1)],
+              let rootImage = NSBitmapImageRep(data: rootData)
+        else { fail("the root's subtree draws, so it needs a group image") }
+        expect(
+            isRed(rootImage.colorAt(x: 150, y: 50)),
+            "a vibrant layer with nothing behind it should be drawn plain; got \(String(describing: rootImage.colorAt(x: 150, y: 50)))"
+        )
+        expect(
+            !isRed(rootImage.colorAt(x: 50, y: 50)),
+            "a vibrant layer over its material should keep its filter"
+        )
+        guard let labelData = file.groupScreenshots?[NSNumber(value: 5)],
+              let labelImage = NSBitmapImageRep(data: labelData)
+        else { fail("the label drawn on its own should have an image") }
+        expect(isRed(labelImage.colorAt(x: 20, y: 20)), "the label on its own should be drawn plain")
+    }
+
+    /// A window's content layer is a container of no size that does not
+    /// clip: AppKit lays the whole window out in it, outside its bounds. Cut
+    /// to its own empty bounds, its image was nothing, and unfolding a dumped
+    /// window showed a blank plane. Such a container's image covers what its
+    /// sublayers draw, placed by its region.
+    private static func testEmptyContainerTakesItsSublayersPicture() {
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        let contentLayer = makingLayer(.zero)
+        let viewLayer = makingLayer(CGRect(x: 30, y: 30, width: 40, height: 40))
+        viewLayer.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        viewLayer.borderWidth = 1
+        contentLayer.addSublayer(viewLayer)
+        rootLayer.addSublayer(contentLayer)
+
+        let file = convertedFile(of: rootLayer)
+        guard let containerData = file.groupScreenshots?[NSNumber(value: 2)],
+              let containerImage = NSBitmapImageRep(data: containerData)
+        else { fail("the empty container should show what its sublayers draw") }
+        expect(
+            containerImage.pixelsWide == 40 && containerImage.pixelsHigh == 40,
+            "the image covers the sublayer's drawing; got \(containerImage.pixelsWide) x \(containerImage.pixelsHigh)"
+        )
+        let items = flattened(file.hierarchyInfo?.displayItems ?? [])
+        guard items.count == 3 else { fail("the tree should have three nodes, got \(items.count)") }
+        expect(
+            items[1].groupScreenshotRegion == CGRect(x: 30, y: 30, width: 40, height: 40),
+            "the region places the image where the sublayer is; got \(items[1].groupScreenshotRegion)"
         )
     }
 
