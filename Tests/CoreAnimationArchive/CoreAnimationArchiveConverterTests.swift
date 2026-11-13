@@ -22,6 +22,7 @@ struct CoreAnimationArchiveConverterTests {
         testScreenshotsAreFiledUnderTheirNodes()
         testEveryImageFitsThePreviewTextureLimit()
         testVibrantContentDrawsWhereItsMaterialIsMissing()
+        testVibrantImageDrawsWhereItsBackdropIsMissing()
         testEmptyContainerTakesItsSublayersPicture()
         testCancelledRecoveryThrows()
         testLayerRowsFollowTheServerTypes()
@@ -282,6 +283,67 @@ struct CoreAnimationArchiveConverterTests {
               let labelImage = NSBitmapImageRep(data: labelData)
         else { fail("the label drawn on its own should have an image") }
         expect(isRed(labelImage.colorAt(x: 20, y: 20)), "the label on its own should be drawn plain")
+    }
+
+    /// SwiftUI draws the icons of a toolbar control as images through a
+    /// vibrant entry in `filters` (vibrantColorMatrix, aware of the
+    /// backdrop), and the control's glass, a sibling of the icons, lays the
+    /// backdrop down. Without it the filter leaves nothing: unfolding the
+    /// hosting view of a dumped Xcode window's navigator switcher emptied
+    /// its plane, and controls whose glass an ancestor draws had no icons
+    /// even folded. A layer that draws an image through a vibrant filter
+    /// with nothing behind it is drawn plain; one over its material keeps
+    /// the filter. A fill through such a filter stays as it is: drawn plain
+    /// it is an opaque lozenge where the glass shows a faint highlight.
+    private static func testVibrantImageDrawsWhereItsBackdropIsMissing() {
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let vibrantFilter = filterClass.perform(
+                  NSSelectorFromString("filterWithType:"), with: "vibrantColorMatrix"
+              )?.takeUnretainedValue() as? NSObject
+        else { fail("QuartzCore should make a vibrant filter") }
+        vibrantFilter.setValue(true, forKey: "inputBackdropAware")
+        guard let redImage = makingImage(of: CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1), side: 40) else {
+            fail("the icon image should draw")
+        }
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 200, height: 100))
+        // A material under the left half; nothing under the right.
+        let materialLayer = makingLayer(CGRect(x: 0, y: 0, width: 100, height: 100))
+        materialLayer.backgroundColor = CGColor(srgbRed: 0.2, green: 0.2, blue: 0.2, alpha: 1)
+        let iconOnMaterial = makingLayer(CGRect(x: 30, y: 30, width: 40, height: 40))
+        iconOnMaterial.contents = redImage
+        iconOnMaterial.filters = [vibrantFilter]
+        let iconWithoutMaterial = makingLayer(CGRect(x: 110, y: 30, width: 40, height: 40))
+        iconWithoutMaterial.contents = redImage
+        iconWithoutMaterial.filters = [vibrantFilter]
+        let highlightWithoutMaterial = makingLayer(CGRect(x: 160, y: 30, width: 30, height: 40))
+        highlightWithoutMaterial.backgroundColor = CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
+        highlightWithoutMaterial.filters = [vibrantFilter]
+        rootLayer.addSublayer(materialLayer)
+        rootLayer.addSublayer(iconOnMaterial)
+        rootLayer.addSublayer(iconWithoutMaterial)
+        rootLayer.addSublayer(highlightWithoutMaterial)
+
+        let file = convertedFile(of: rootLayer)
+        guard let rootData = file.groupScreenshots?[NSNumber(value: 1)],
+              let rootImage = NSBitmapImageRep(data: rootData)
+        else { fail("the root's subtree draws, so it needs a group image") }
+        expect(
+            isRed(rootImage.colorAt(x: 130, y: 50)),
+            "an image through a vibrant filter with nothing behind it should be drawn plain; got \(String(describing: rootImage.colorAt(x: 130, y: 50)))"
+        )
+        expect(
+            !isRed(rootImage.colorAt(x: 50, y: 50)),
+            "an image through a vibrant filter over its material should keep the filter"
+        )
+        expect(
+            (rootImage.colorAt(x: 175, y: 50)?.alphaComponent ?? 0) < 0.1,
+            "a fill through a vibrant filter should not be drawn plain; got \(String(describing: rootImage.colorAt(x: 175, y: 50)))"
+        )
+        // Unfolded, the icon over the material is drawn without it.
+        guard let iconData = file.groupScreenshots?[NSNumber(value: 3)],
+              let iconImage = NSBitmapImageRep(data: iconData)
+        else { fail("the icon drawn on its own should have an image") }
+        expect(isRed(iconImage.colorAt(x: 20, y: 20)), "the icon on its own should be drawn plain")
     }
 
     /// A window's content layer is a container of no size that does not
@@ -588,6 +650,24 @@ struct CoreAnimationArchiveConverterTests {
         let layer = CALayer()
         layer.frame = frame
         return layer
+    }
+
+    /// A square image filled with `color`, `side` pixels on a side.
+    private static func makingImage(of color: CGColor, side: Int) -> CGImage? {
+        guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+              let context = CGContext(
+                  data: nil,
+                  width: side,
+                  height: side,
+                  bitsPerComponent: 8,
+                  bytesPerRow: 0,
+                  space: colorSpace,
+                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+              )
+        else { return nil }
+        context.setFillColor(color)
+        context.fill(CGRect(x: 0, y: 0, width: side, height: side))
+        return context.makeImage()
     }
 
     /// The archive Dump Layer would write for `layer`, decoded.

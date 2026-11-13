@@ -270,28 +270,27 @@ enum XcodeViewHierarchyPixelRecovery {
 
     // MARK: - Vibrancy
 
-    /// The layers of `root`'s subtree that are composited through a vibrant
-    /// filter with nothing drawn behind them inside the subtree.
+    /// The layers of `root`'s subtree that draw through a vibrant filter
+    /// (`drawsThroughRemovableVibrantFilter`) with nothing drawn behind them
+    /// inside the subtree.
     ///
     /// Text and icons on a sidebar or a toolbar blend through such a filter
-    /// (`vibrantColorMatrixSourceOver`) with the material behind them. A
-    /// subtree drawn on its own leaves that material out whenever an
-    /// ancestor draws it, and the content vanishes with it, so for that
+    /// with the material behind them: AppKit's as a compositing filter
+    /// (`vibrantColorMatrixSourceOver`), SwiftUI's controls as an entry in
+    /// `filters` (`vibrantColorMatrix`, aware of the backdrop). A subtree
+    /// drawn on its own leaves that material out whenever an ancestor or a
+    /// sibling draws it, and the content vanishes with it, so for that
     /// render such a layer is drawn plain. What counts as behind a layer is
     /// the material (`providesMaterial`) drawn before it in painter's order —
     /// ancestors included — where it overlaps the layer. Hidden layers count
     /// for nothing.
-    ///
-    /// Vibrant `filters`, as opposed to compositing filters, are left alone:
-    /// the layers carrying them are the insides of Liquid Glass, whose white
-    /// shape sources would come back as white lozenges.
     static func vibrantLayersWithNothingBehind(in root: CALayer) -> [CALayer] {
         var materialRects: [CGRect] = []
         var layersWithNothingBehind: [CALayer] = []
         func visiting(_ layer: CALayer) {
             guard !layer.isHidden, layer.opacity > 0 else { return }
             let rect = layer.convert(layer.bounds, to: root)
-            if isVibrant(layer.compositingFilter), !materialRects.contains(where: { $0.intersects(rect) }) {
+            if drawsThroughRemovableVibrantFilter(layer), !materialRects.contains(where: { $0.intersects(rect) }) {
                 layersWithNothingBehind.append(layer)
             }
             if providesMaterial(layer) {
@@ -303,6 +302,22 @@ enum XcodeViewHierarchyPixelRecovery {
         }
         visiting(root)
         return layersWithNothingBehind
+    }
+
+    /// Whether a layer's own drawing goes through a vibrant filter that can
+    /// be taken off it for a render: its compositing filter, or a vibrant
+    /// entry in `filters` on a layer that draws an image (`contents`).
+    ///
+    /// A vibrant entry in `filters` on a layer that only fills stays on it:
+    /// such layers are the selection highlights of SwiftUI's controls and
+    /// the insides of Liquid Glass, faint against their backdrop and opaque
+    /// white or grey lozenges drawn plain.
+    static func drawsThroughRemovableVibrantFilter(_ layer: CALayer) -> Bool {
+        if isVibrant(layer.compositingFilter) {
+            return true
+        }
+        guard layer.contents != nil else { return false }
+        return (layer.filters ?? []).contains { isVibrant($0) }
     }
 
     /// Whether a layer lays down something a vibrant layer above it can blend
@@ -646,12 +661,18 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         for hiddenLayer in request.hiddenLayers {
             hiddenLayer.isHidden = true
         }
-        // Vibrant content whose material an ancestor draws would vanish with
-        // it; for this render it is drawn plain.
+        // Vibrant content whose material an ancestor or a sibling draws would
+        // vanish with it; for this render its vibrant filters come off.
         let plainVibrantLayers = XcodeViewHierarchyPixelRecovery.vibrantLayersWithNothingBehind(in: layer)
-        let vibrantFilters = plainVibrantLayers.map(\.compositingFilter)
+        let vibrantCompositingFilters = plainVibrantLayers.map(\.compositingFilter)
+        let vibrantFilterLists = plainVibrantLayers.map(\.filters)
         for vibrantLayer in plainVibrantLayers {
-            vibrantLayer.compositingFilter = nil
+            if XcodeViewHierarchyPixelRecovery.isVibrant(vibrantLayer.compositingFilter) {
+                vibrantLayer.compositingFilter = nil
+            }
+            if let filters = vibrantLayer.filters {
+                vibrantLayer.filters = filters.filter { !XcodeViewHierarchyPixelRecovery.isVibrant($0) }
+            }
         }
         // Only the layer's bounds space is drawn, as renderInContext draws
         // it: its position and transform belong to its superlayer's picture.
@@ -703,8 +724,9 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         for hiddenLayer in request.hiddenLayers {
             hiddenLayer.isHidden = false
         }
-        for (vibrantLayer, vibrantFilter) in zip(plainVibrantLayers, vibrantFilters) {
-            vibrantLayer.compositingFilter = vibrantFilter
+        for (index, vibrantLayer) in plainVibrantLayers.enumerated() {
+            vibrantLayer.compositingFilter = vibrantCompositingFilters[index]
+            vibrantLayer.filters = vibrantFilterLists[index]
         }
         if let originalSuperlayer, let originalIndex {
             originalSuperlayer.insertSublayer(layer, at: UInt32(originalIndex))
