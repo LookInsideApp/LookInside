@@ -34,6 +34,7 @@ struct CoreAnimationArchiveConverterTests {
             testViewClassThisProcessLacksKeepsItsName()
             testGlassRendersAsGlassNotItsShape()
             testGlassDrawnOnItsOwnLooksAsInTheWindow()
+            testGlassShapeInputsGetNoImage()
         }
         testUnmarkedOrMisnamedLayersStayLayers()
         testNamedLayersShowTheirNames()
@@ -245,35 +246,9 @@ struct CoreAnimationArchiveConverterTests {
     /// image stay clear where nothing draws.
     @MainActor
     private static func testGlassDrawnOnItsOwnLooksAsInTheWindow() {
-        guard #available(macOS 26.0, *) else {
-            print("skipped testGlassDrawnOnItsOwnLooksAsInTheWindow: NSGlassEffectView needs macOS 26")
+        guard let (tree, screenshots) = importedGlassOverSquare(skipping: "testGlassDrawnOnItsOwnLooksAsInTheWindow") else {
             return
         }
-        guard MTLCreateSystemDefaultDevice() != nil else {
-            print("skipped testGlassDrawnOnItsOwnLooksAsInTheWindow: no Metal device")
-            return
-        }
-        let (contentView, window) = makingLayerBackedContentView()
-        window.appearance = NSAppearance(named: .darkAqua)
-        window.setContentSize(NSSize(width: 300, height: 100))
-        contentView.layer?.backgroundColor = CGColor(srgbRed: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-        // A transparent container, so that in its own image nothing lies
-        // behind the glass but a blue square, drawn first, under its right end.
-        let containerView = NSView(frame: NSRect(x: 20, y: 20, width: 260, height: 60))
-        containerView.wantsLayer = true
-        contentView.addSubview(containerView)
-        let squareView = NSView(frame: NSRect(x: 110, y: 15, width: 30, height: 30))
-        squareView.wantsLayer = true
-        squareView.layer?.backgroundColor = CGColor(srgbRed: 0, green: 0.4, blue: 1, alpha: 1)
-        containerView.addSubview(squareView)
-        let glassView = NSGlassEffectView(frame: NSRect(x: 10, y: 10, width: 120, height: 40))
-        glassView.cornerRadius = 20
-        containerView.addSubview(glassView)
-        settlingLayers(of: window)
-        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
-
-        let tree = CoreAnimationArchiveLayerTree(contents: decodedContents(of: contentLayer))
-        let screenshots = recoveredScreenshots(of: tree)
         guard let containerIndex = tree.layers.firstIndex(where: { $0.bounds.size == CGSize(width: 260, height: 60) }) else {
             fail("the container should be in the archive")
         }
@@ -294,6 +269,77 @@ struct CoreAnimationArchiveConverterTests {
         else { fail("the container should have an image") }
         let alphas = premultipliedPixels(of: containerImage).enumerated().filter { $0.offset % 4 == 3 }.map(\.element)
         expect(alphas.contains { $0 < 5 }, "the container's image should stay clear where nothing draws")
+    }
+
+    /// Liquid Glass reads its shape from signed-distance-field layers under
+    /// its backdrop (`CASDFLayer` and its `CASDFElementLayer`s). On screen
+    /// they are never drawn themselves; drawn without the backdrop that
+    /// reads them they come out as the raw field, a rainbow-coloured
+    /// lozenge, which is what unfolding a glass control down to them showed.
+    /// They get no image.
+    @MainActor
+    private static func testGlassShapeInputsGetNoImage() {
+        guard let (tree, screenshots) = importedGlassOverSquare(skipping: "testGlassShapeInputsGetNoImage") else {
+            return
+        }
+        let backdropLayerClass: AnyClass? = NSClassFromString("CABackdropLayer")
+        let shapeInputIdentifiers = tree.layers.enumerated().compactMap { index, layer -> UInt? in
+            guard NSStringFromClass(type(of: layer)).hasPrefix("CASDF") else { return nil }
+            var ancestor = layer.superlayer
+            while let current = ancestor {
+                if let backdropLayerClass, current.isKind(of: backdropLayerClass) {
+                    return UInt(index + 1)
+                }
+                ancestor = current.superlayer
+            }
+            return nil
+        }
+        expect(!shapeInputIdentifiers.isEmpty, "the glass should read its shape from distance-field layers under its backdrop")
+        for objectIdentifier in shapeInputIdentifiers {
+            expect(
+                screenshots.groupByObjectIdentifier[objectIdentifier] == nil && screenshots.soloByObjectIdentifier[objectIdentifier] == nil,
+                "the glass's shape input #\(objectIdentifier) should get no image"
+            )
+        }
+    }
+
+    /// A dark window whose transparent container holds a blue square and,
+    /// drawn after it, a real NSGlassEffectView over the square's left part,
+    /// dumped and imported: the container's own image has nothing behind the
+    /// glass but the square. Nil, after saying the test was skipped, where
+    /// there is no Liquid Glass or no GPU to draw it.
+    @MainActor
+    private static func importedGlassOverSquare(
+        skipping testName: String
+    ) -> (CoreAnimationArchiveLayerTree, CoreAnimationArchiveScreenshots)? {
+        guard #available(macOS 26.0, *) else {
+            print("skipped \(testName): NSGlassEffectView needs macOS 26")
+            return nil
+        }
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped \(testName): no Metal device")
+            return nil
+        }
+        let (contentView, window) = makingLayerBackedContentView()
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.setContentSize(NSSize(width: 300, height: 100))
+        contentView.layer?.backgroundColor = CGColor(srgbRed: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        let containerView = NSView(frame: NSRect(x: 20, y: 20, width: 260, height: 60))
+        containerView.wantsLayer = true
+        contentView.addSubview(containerView)
+        let squareView = NSView(frame: NSRect(x: 110, y: 15, width: 30, height: 30))
+        squareView.wantsLayer = true
+        squareView.layer?.backgroundColor = CGColor(srgbRed: 0, green: 0.4, blue: 1, alpha: 1)
+        containerView.addSubview(squareView)
+        let glassView = NSGlassEffectView(frame: NSRect(x: 10, y: 10, width: 120, height: 40))
+        glassView.cornerRadius = 20
+        containerView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        // The window owns the views being dumped: kept alive until they are.
+        let contents = withExtendedLifetime(window) { decodedContents(of: contentLayer) }
+        let tree = CoreAnimationArchiveLayerTree(contents: contents)
+        return (tree, recoveredScreenshots(of: tree))
     }
 
     /// Text and icons on a sidebar or a toolbar are composited through a

@@ -112,6 +112,8 @@ enum CoreAnimationArchivePixelRecovery {
             if isCancelled() {
                 throw CancellationError()
             }
+            // Liquid Glass's shape inputs show nothing of their own on screen.
+            guard !Renderer.isGlassShapeInput(layer) else { continue }
             let objectIdentifier = UInt(index + 1)
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)

@@ -50,7 +50,10 @@
 // opaque behind, shows plain glass. Such a subtree is drawn a second time
 // over a stand-in for the window, its average colour, which the backdrops
 // capture instead; the stand-in is then taken back out of each pixel by how
-// much of it the subtree covers in the first render.
+// much of it the subtree covers in the first render. Liquid Glass's shape
+// inputs, the signed-distance-field layers under its backdrop, get no image
+// at all: on screen only that backdrop reads them, and drawn without it
+// they come out as the raw field.
 
 import Accelerate
 import AppKit
@@ -166,6 +169,8 @@ enum XcodeViewHierarchyPixelRecovery {
                     soloByObjectIdentifier: [:], groupByObjectIdentifier: [:], failedArchiveIdentifiers: failedIdentifiers
                 )
             }
+            // Liquid Glass's shape inputs show nothing of their own on screen.
+            guard !isGlassShapeInput(layer) else { continue }
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)
             // A layer that paints nothing but its background colour needs no
@@ -415,6 +420,23 @@ enum XcodeViewHierarchyPixelRecovery {
     static func isBackdrop(_ layer: CALayer) -> Bool {
         guard let backdropLayerClass = NSClassFromString("CABackdropLayer") else { return false }
         return layer.isKind(of: backdropLayerClass)
+    }
+
+    /// Whether `layer` is part of a Liquid Glass shape: a signed-distance-
+    /// field layer (`CASDFLayer`, `CASDFElementLayer`) under a backdrop,
+    /// whose glass filter reads it as the shape. Such a layer is never drawn
+    /// on screen itself, and drawn without the backdrop above it comes out as
+    /// the raw field, a rainbow-coloured lozenge; it gets no image.
+    static func isGlassShapeInput(_ layer: CALayer) -> Bool {
+        guard NSStringFromClass(type(of: layer)).hasPrefix("CASDF") else { return false }
+        var ancestor = layer.superlayer
+        while let currentAncestor = ancestor {
+            if isBackdrop(currentAncestor) {
+                return true
+            }
+            ancestor = currentAncestor.superlayer
+        }
+        return false
     }
 
     /// Whether a backdrop in `root`'s subtree captures transparency when the
