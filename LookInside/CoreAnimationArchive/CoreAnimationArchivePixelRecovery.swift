@@ -96,8 +96,14 @@ enum CoreAnimationArchivePixelRecovery {
     /// Every layer but the root is drawn without the window behind it; its
     /// backdrops capture, and its vibrant content acts on, the window's
     /// average colour instead (`renderingPNG`'s `materialStandIn`).
+    ///
+    /// The glass layers `isHiddenGlass` picks — the Liquid Glass setting's
+    /// Hide — are left out of every image with what is under them, and they
+    /// and what is under them get no image of their own. Content the glass
+    /// draws through portals still shows where it is.
     static func recovering(
         from tree: CoreAnimationArchiveLayerTree,
+        hidingGlass isHiddenGlass: (CALayer) -> Bool = { _ in false },
         isCancelled: () -> Bool = { false }
     ) throws -> CoreAnimationArchiveScreenshots {
         var screenshots = CoreAnimationArchiveScreenshots()
@@ -107,6 +113,7 @@ enum CoreAnimationArchivePixelRecovery {
         Renderer.removingAnimations(from: tree.rootLayer)
         CATransaction.commit()
         let materialStandIn = Renderer.materialStandInColor(for: tree.rootLayer)
+        let hiddenGlassLayers = tree.layers.filter(isHiddenGlass)
 
         for (index, layer) in tree.layers.enumerated() {
             if isCancelled() {
@@ -114,7 +121,12 @@ enum CoreAnimationArchivePixelRecovery {
             }
             // Liquid Glass's shape inputs, and layers that only cut what is
             // beneath them, show nothing of their own on screen.
-            guard !Renderer.isGlassShapeInput(layer), !Renderer.cutsWhatIsBeneath(layer) else { continue }
+            guard !Renderer.isGlassShapeInput(layer), !Renderer.cutsWhatIsBeneath(layer),
+                  !Renderer.isInside(layer, anyOf: hiddenGlassLayers)
+            else { continue }
+            let glassLeftOut = Renderer.glassLayers(hiddenGlassLayers, below: layer)
+            let reopenedPortals = Renderer.reopeningPortals(inside: glassLeftOut)
+            defer { Renderer.closingPortals(reopenedPortals) }
             let objectIdentifier = UInt(index + 1)
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)
@@ -124,9 +136,9 @@ enum CoreAnimationArchivePixelRecovery {
             let paintsOnlyItsBackground = Renderer.representsPlainColorFill(layer)
             let layerMaterialStandIn = layer === tree.rootLayer ? nil : materialStandIn
             if !paintsOnlyItsBackground || hasSublayers,
-               let region = Renderer.drawingRegion(of: layer, hiding: []),
+               let region = Renderer.drawingRegion(of: layer, hiding: glassLeftOut),
                let groupImage = Renderer.renderingPNG(
-                   of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped,
+                   of: layer, includingSublayers: true, hiding: glassLeftOut, region: region.rect, isFlipped: isFlipped,
                    materialStandIn: layerMaterialStandIn
                )
             {

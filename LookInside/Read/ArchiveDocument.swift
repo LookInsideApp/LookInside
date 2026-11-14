@@ -53,6 +53,23 @@ class ArchiveDocument: NSDocument {
         // An archive holds the tree the server sent; there is nothing to rebuild from.
     }
 
+    /// Whether the document draws its images itself, so that they follow the
+    /// Liquid Glass setting: an imported `.caar` or Xcode capture, whose
+    /// images leave out the glass behind a split view item under Hide. A
+    /// `.lookin` archive's images are the ones the server or the import that
+    /// wrote it drew.
+    func drawsImagesForGlassSetting() -> Bool {
+        false
+    }
+
+    /// Draws the images again, leaving out the glass behind a split view item
+    /// or not, and assigns the new file when it is ready; the window observes
+    /// the property and rebuilds its reader. A no-op unless
+    /// drawsImagesForGlassSetting.
+    func redrawingHierarchyFile(hidingSplitViewGlass _: Bool) {
+        // An archive's images are what was drawn when it was written.
+    }
+
     override func data(ofType typeName: String) throws -> Data {
         guard let hierarchyFile else {
             assertionFailure("No hierarchy to save")

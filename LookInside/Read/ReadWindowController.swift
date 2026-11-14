@@ -66,7 +66,7 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         // view settings: the window's own preference set follows it.
         glassLayerSettingObservation = PreferenceManager.shared.observe(\.glassLayerVisibility, options: [.new]) { [weak self] sharedPreferences, _ in
             MainActor.assumeIsolated {
-                self?.preferenceManager.glassLayerVisibility = sharedPreferences.glassLayerVisibility
+                self?.glassLayerSettingDidChange(sharedPreferences.glassLayerVisibility)
             }
         }
     }
@@ -87,15 +87,32 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         guard let document = document as? ArchiveDocument, document.canRebuildHierarchyFile() else {
             return
         }
-        // Back to the placeholder; the new file's reader replaces it. Toolbar
-        // items belong to one toolbar, so they are made afresh for the new one.
+        showingPlaceholder()
+        document.rebuildHierarchyFile(showingBackingLayers: param.boolValue)
+    }
+
+    /// The Liquid Glass setting changed: this window's preference set
+    /// follows it, and a document that draws its own images draws them again
+    /// when what they leave out changes.
+    private func glassLayerSettingDidChange(_ visibility: GlassLayerVisibility) {
+        let changesImages = visibility.hidesGlassDrawnByLookInside != preferenceManager.glassLayerVisibility.hidesGlassDrawnByLookInside
+        preferenceManager.glassLayerVisibility = visibility
+        guard changesImages, let document = document as? ArchiveDocument, document.drawsImagesForGlassSetting() else {
+            return
+        }
+        showingPlaceholder()
+        document.redrawingHierarchyFile(hidingSplitViewGlass: visibility.hidesGlassDrawnByLookInside)
+    }
+
+    /// Back to the placeholder; the new file's reader replaces it. Toolbar
+    /// items belong to one toolbar, so they are made afresh for the new one.
+    private func showingPlaceholder() {
         contentViewController = nil
         viewController = nil
         selectedItemObservation = nil
         toolbarItemsMap = [:]
         window?.toolbar = nil
         window?.contentView = ReadLoadingView()
-        document.rebuildHierarchyFile(showingBackingLayers: param.boolValue)
     }
 
     /// Builds the reader for `file` in this window: the view controller, the

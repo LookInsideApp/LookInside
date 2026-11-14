@@ -21,6 +21,9 @@
 // `XcodeViewHierarchyImportedCapture`, which the document keeps; shaping it
 // into a tree is cheap and is redone whenever the window's show-backing-layers
 // toggle flips, the way a live session reloads its hierarchy for that toggle.
+// The Liquid Glass setting changes the images themselves — Hide leaves the
+// glass behind a split view item out of them — so it runs the whole import
+// again.
 
 import AppKit
 import Foundation
@@ -40,15 +43,22 @@ enum XcodeViewHierarchyImporter {
     /// one thread because pixel recovery mutates the decoded layer trees while
     /// rendering. `isCancelled` is polled between phases and once per rendered
     /// layer; once it answers true the import throws `CancellationError`.
+    /// `hidingSplitViewGlass` leaves the glass AppKit puts behind a split view
+    /// item out of the images, as the Liquid Glass setting's Hide asks.
     static func importingCapture(
         at url: URL,
+        hidingSplitViewGlass: Bool = false,
         isCancelled: () -> Bool = { false }
     ) throws -> XcodeViewHierarchyImportedCapture {
         let bundle = try XcodeViewHierarchyBundleReader.reading(contentsOf: url)
         if isCancelled() {
             throw CancellationError()
         }
-        let screenshots = XcodeViewHierarchyPixelRecovery.recovering(from: bundle.graph, isCancelled: isCancelled)
+        let screenshots = XcodeViewHierarchyPixelRecovery.recovering(
+            from: bundle.graph,
+            hidingGlass: hidingSplitViewGlass ? CoreAnimationArchiveImporter.isSplitViewBackgroundGlass : { _ in false },
+            isCancelled: isCancelled
+        )
         if isCancelled() {
             throw CancellationError()
         }
@@ -70,9 +80,10 @@ enum XcodeViewHierarchyImporter {
     static func importingHierarchyFile(
         at url: URL,
         showingBackingLayers: Bool = false,
+        hidingSplitViewGlass: Bool = false,
         isCancelled: () -> Bool = { false }
     ) throws -> HierarchyFile {
-        let capture = try importingCapture(at: url, isCancelled: isCancelled)
+        let capture = try importingCapture(at: url, hidingSplitViewGlass: hidingSplitViewGlass, isCancelled: isCancelled)
         if isCancelled() {
             throw CancellationError()
         }
@@ -88,16 +99,37 @@ final class XcodeViewHierarchyDocument: ArchiveDocument {
     /// show-backing-layers toggle flips; the layer archives themselves are
     /// not kept — the rendered images are all a rebuild needs.
     private var importedCapture: XcodeViewHierarchyImportedCapture?
+    /// The capture's package, imported again when the Liquid Glass setting
+    /// changes what the images leave out.
+    private var captureURL: URL?
 
     /// Validates the package and starts the import, returning before the
     /// import finishes so the window can open on its placeholder.
     override func read(from url: URL, ofType _: String) throws {
         try XcodeViewHierarchyBundleReader.validatingBundle(at: url)
+        captureURL = url
+        startingImport(hidingSplitViewGlass: PreferenceManager.shared.glassLayerVisibility.hidesGlassDrawnByLookInside)
+    }
+
+    override func drawsImagesForGlassSetting() -> Bool {
+        captureURL != nil
+    }
+
+    override func redrawingHierarchyFile(hidingSplitViewGlass: Bool) {
+        startingImport(hidingSplitViewGlass: hidingSplitViewGlass)
+    }
+
+    /// Imports the package read, superseding an import still running.
+    private func startingImport(hidingSplitViewGlass: Bool) {
+        guard let url = captureURL else { return }
         importTask?.cancel()
         importTask = Task.detached(priority: .userInitiated) { [weak self] in
             let outcome: Result<XcodeViewHierarchyImportedCapture, Error>
             do {
-                outcome = try .success(XcodeViewHierarchyImporter.importingCapture(at: url) { Task.isCancelled })
+                outcome = try .success(XcodeViewHierarchyImporter.importingCapture(
+                    at: url,
+                    hidingSplitViewGlass: hidingSplitViewGlass
+                ) { Task.isCancelled })
             } catch {
                 outcome = .failure(error)
             }
