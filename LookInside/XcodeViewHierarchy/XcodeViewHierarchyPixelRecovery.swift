@@ -463,17 +463,23 @@ enum XcodeViewHierarchyPixelRecovery {
 
     /// Whether `layer` is part of a Liquid Glass shape: a signed-distance-
     /// field layer (`CASDFLayer`, `CASDFElementLayer`) under a backdrop,
-    /// whose glass filter reads it as the shape. Such a layer is never drawn
-    /// on screen itself, and drawn without the backdrop above it comes out as
-    /// the raw field, a rainbow-coloured lozenge; it gets no image.
+    /// whose glass filter reads it as the shape, or any layer inside one.
+    /// Such a layer is never drawn on screen itself, and drawn without the
+    /// backdrop above it comes out as the raw field — a rainbow-coloured
+    /// lozenge, or black, green and blue blocks for the plain layers inside;
+    /// it gets no image.
     static func isGlassShapeInput(_ layer: CALayer) -> Bool {
-        guard NSStringFromClass(type(of: layer)).hasPrefix("CASDF") else { return false }
-        var ancestor = layer.superlayer
-        while let currentAncestor = ancestor {
-            if isBackdrop(currentAncestor) {
-                return true
+        var isInsideShapeLayer = false
+        var current: CALayer? = layer
+        while let candidate = current {
+            // A backdrop is the glass itself; the shape is below it.
+            if isBackdrop(candidate) {
+                return isInsideShapeLayer
             }
-            ancestor = currentAncestor.superlayer
+            if NSStringFromClass(type(of: candidate)).hasPrefix("CASDF") {
+                isInsideShapeLayer = true
+            }
+            current = candidate.superlayer
         }
         return false
     }
@@ -869,6 +875,28 @@ enum XcodeViewHierarchyPixelRecovery {
         isFlipped: Bool,
         materialStandIn: CGColor? = nil
     ) -> Data? {
+        guard let renderedImage = renderingImage(
+            of: layer,
+            includingSublayers: includingSublayers,
+            hiding: hiddenLayers,
+            region: region,
+            isFlipped: isFlipped,
+            materialStandIn: materialStandIn
+        ) else { return nil }
+        let bitmap = NSBitmapImageRep(cgImage: renderedImage)
+        return bitmap.representation(using: .png, properties: [:])
+    }
+
+    /// `renderingPNG`'s picture before it is encoded: for a live session,
+    /// which hands it to the preview at once and has no file to write.
+    static func renderingImage(
+        of layer: CALayer,
+        includingSublayers: Bool,
+        hiding hiddenLayers: [CALayer] = [],
+        region: CGRect? = nil,
+        isFlipped: Bool,
+        materialStandIn: CGColor? = nil
+    ) -> CGImage? {
         let bounds = region ?? layer.bounds
         guard bounds.width >= minimumRenderedEdgeLength, bounds.height >= minimumRenderedEdgeLength,
               bounds.width.isFinite, bounds.height.isFinite
@@ -897,14 +925,11 @@ enum XcodeViewHierarchyPixelRecovery {
             isFlipped: isFlipped,
             materialStandIn: materialStandIn
         )
-        let renderedImage = if let renderer = CoreAnimationLayerRenderer.shared {
+        return if let renderer = CoreAnimationLayerRenderer.shared {
             renderer.rendering(request)
         } else {
             renderingWithCoreGraphics(request)
         }
-        guard let renderedImage else { return nil }
-        let bitmap = NSBitmapImageRep(cgImage: renderedImage)
-        return bitmap.representation(using: .png, properties: [:])
     }
 
     /// The largest `contentsScale` in `layer`'s subtree, the layer's own

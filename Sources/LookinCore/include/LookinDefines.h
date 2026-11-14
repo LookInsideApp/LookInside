@@ -74,7 +74,17 @@ enum {
     
     /// 请求 attribute group list
     LookinRequestTypeAllAttrGroups = 210,
-    
+
+    /// Encodes one window's whole layer tree with QuartzCore's
+    /// CAEncodeLayerTree, the format AppKit's Dump Layer writes to `.caar`
+    /// files, so the Host can draw the node images itself. Params:
+    /// `LookinParam_LayerArchiveWindowOid`, `LookinParam_LayerArchiveLayerLimit`.
+    /// Reply: `LookinLayerArchive`. Only macOS Servers that report
+    /// `layerArchiveProtocolVersion` 1 answer it; older Servers close the
+    /// connection on a request type they do not know, so the Host checks the
+    /// capability first.
+    LookinRequestTypeLayerArchive = 211,
+
     /// 请求 iOS App 里某个 class 的所有 selector 名字列表（包括 superclass）
     LookinRequestTypeAllSelectorNames = 213,
     
@@ -141,6 +151,15 @@ static NSString * const LookinParam_SwiftUIDisplayMode = @"swiftUIDisplayMode";
 /// one-frame build with SwiftUI details inline, as before. Additive payload,
 /// no version bump.
 static NSString * const LookinParam_AsyncAcquisition = @"asyncAcquisition";
+
+/// Layer archive request (211) param: the oid of the window to encode, as the
+/// hierarchy gave it. NSNumber boxed unsigned long.
+static NSString * const LookinParam_LayerArchiveWindowOid = @"layerArchiveWindowOid";
+
+/// Layer archive request (211) param: the most layers the Server may encode.
+/// A window with more is not encoded; the reply then carries only its layer
+/// count. NSNumber boxed unsigned long.
+static NSString * const LookinParam_LayerArchiveLayerLimit = @"layerArchiveLayerLimit";
 
 static NSString * const LookinStringFlag_VoidReturn = @"LOOKIN_TAG_RETURN_VALUE_VOID";
 

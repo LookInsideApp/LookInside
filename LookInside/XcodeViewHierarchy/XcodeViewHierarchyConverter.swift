@@ -1163,6 +1163,10 @@ enum XcodeViewHierarchyConverter {
         let appInfo = InspectedAppInfo()
         appInfo.appName = bundle.metadata.runnableDisplayName ?? NSLocalizedString("Xcode Capture", comment: "")
         appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        // The images are drawn here from the capture's layer archives, as for
+        // a Server that sends them: the Liquid Glass setting treats the glass
+        // as drawn.
+        appInfo.layerArchiveProtocolVersion = 1
         // The inspector keys view-versus-layer identifier preference off this,
         // and shows the platform's own class names in its copy.
         appInfo.deviceType = vocabulary.isAppKit ? .mac : .others

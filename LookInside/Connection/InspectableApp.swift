@@ -198,6 +198,15 @@ final class InspectableApp: NSObject {
         return parameters
     }
 
+    /// The layer archive request's parameters: the window, and the most
+    /// layers its Server may encode.
+    static func layerArchiveParameters(windowOid: UInt, layerLimit: UInt) -> NSDictionary {
+        NSDictionary(
+            objects: [NSNumber(value: windowOid), NSNumber(value: layerLimit)],
+            forKeys: [LookinParam_LayerArchiveWindowOid as NSString, LookinParam_LayerArchiveLayerLimit as NSString]
+        )
+    }
+
     static func selectorNamesParameters(className: String, hasArg: Bool) -> NSDictionary {
         NSDictionary(
             objects: [className as NSString, NSNumber(value: hasArg)],
@@ -256,6 +265,20 @@ extension InspectableApp {
     /// builds a hierarchy (`LookinParam_AsyncAcquisition`).
     static func isHierarchyProgress(_ value: Any?) -> Bool {
         ((value as? NSDictionary)?["acquiring"] as? NSNumber)?.boolValue == true
+    }
+
+    /// One window's layer tree as its Server encodes it, for the Host to
+    /// draw the window's node images from. Only for a macOS Server that
+    /// reports `layerArchiveProtocolVersion` 1: an older one closes the
+    /// connection on a request type it does not know. A window with more
+    /// than `layerLimit` layers comes back counted, not encoded.
+    @MainActor
+    func layerArchive(windowOid: UInt, layerLimit: UInt) async throws -> LayerArchive {
+        try await response(
+            type: UInt32(LookinRequestTypeLayerArchive),
+            data: Self.layerArchiveParameters(windowOid: windowOid, layerLimit: layerLimit),
+            as: LayerArchive.self
+        )
     }
 
     /// Returns the updated detail of the modified item.

@@ -35,6 +35,7 @@ struct CoreAnimationArchiveConverterTests {
             testGlassRendersAsGlassNotItsShape()
             testGlassDrawnOnItsOwnLooksAsInTheWindow()
             testGlassShapeInputsGetNoImage()
+            testLayersInsideGlassShapesGetNoImage()
         }
         testVibrantContentOnItsOwnLooksAsOverItsMaterial()
         testUnmarkedOrMisnamedLayersStayLayers()
@@ -300,6 +301,45 @@ struct CoreAnimationArchiveConverterTests {
             expect(
                 screenshots.groupByObjectIdentifier[objectIdentifier] == nil && screenshots.soloByObjectIdentifier[objectIdentifier] == nil,
                 "the glass's shape input #\(objectIdentifier) should get no image"
+            )
+        }
+    }
+
+    /// The plain layers inside a distance-field layer under a backdrop are
+    /// as much the glass's shape as the field layer itself: drawn on their
+    /// own they came out as the raw field, black, green and blue blocks.
+    @MainActor
+    private static func testLayersInsideGlassShapesGetNoImage() {
+        guard let (tree, screenshots) = importedGlassOverSquare(skipping: "testLayersInsideGlassShapesGetNoImage") else {
+            return
+        }
+        let backdropLayerClass: AnyClass? = NSClassFromString("CABackdropLayer")
+        func isInsideAGlassShape(_ layer: CALayer) -> Bool {
+            var sawShapeLayer = false
+            var ancestor = layer.superlayer
+            while let current = ancestor {
+                if let backdropLayerClass, current.isKind(of: backdropLayerClass) {
+                    return sawShapeLayer
+                }
+                if NSStringFromClass(type(of: current)).hasPrefix("CASDF") {
+                    sawShapeLayer = true
+                }
+                ancestor = current.superlayer
+            }
+            return false
+        }
+        let insideIdentifiers = tree.layers.enumerated().compactMap { index, layer -> UInt? in
+            guard !NSStringFromClass(type(of: layer)).hasPrefix("CASDF"), isInsideAGlassShape(layer) else { return nil }
+            return UInt(index + 1)
+        }
+        guard !insideIdentifiers.isEmpty else {
+            print("skipped testLayersInsideGlassShapesGetNoImage: this system's glass keeps no plain layers inside its shape")
+            return
+        }
+        for objectIdentifier in insideIdentifiers {
+            expect(
+                screenshots.groupByObjectIdentifier[objectIdentifier] == nil && screenshots.soloByObjectIdentifier[objectIdentifier] == nil,
+                "#\(objectIdentifier), inside the glass's shape, should get no image"
             )
         }
     }

@@ -43,6 +43,34 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     case focus
 }
 
+/// Whether Liquid Glass layers stay out of the preview until the user shows
+/// one. Where the inspected app's Server takes the images — an older Server,
+/// a window too large for its layers to be sent — a capture of the glass is
+/// only its white shape source (see `PreviewGlassLayers`); where LookInside
+/// draws the images from a layer archive, the glass is drawn as on screen.
+@objc enum GlassLayerVisibility: Int, CaseIterable {
+    /// Every glass layer stays in the preview.
+    case show
+    /// Glass layers stay out of the preview where LookInside cannot draw
+    /// them. The default.
+    case hideWhereNotDrawn
+    /// Every glass layer stays out of the preview.
+    case hide
+
+    /// Whether a glass layer stays out of the preview, given whether
+    /// LookInside draws its images (`isDrawnByLookInside`).
+    func hidesGlassLayer(isDrawnByLookInside: Bool) -> Bool {
+        switch self {
+        case .show:
+            false
+        case .hideWhereNotDrawn:
+            !isDrawnByLookInside
+        case .hide:
+            true
+        }
+    }
+}
+
 enum MeasureState: Int {
     /// Not measuring.
     case no
@@ -76,7 +104,10 @@ final class PreferenceManager: NSObject {
         static let receivingConfigTimeColor = "ConfigTime_Color"
         static let receivingConfigTimeClass = "ConfigTime_Class"
         static let rememberExpansionState = "rememberExpansionState"
+        /// The switch the Liquid Glass choice replaced; read once to carry
+        /// its value over, and left in place for a Host that still reads it.
         static let hidesGlassLayersInPreview = "hideGlassLayersInPreview"
+        static let glassLayerVisibility = "glassLayerVisibility"
     }
 
     static let shared: PreferenceManager = {
@@ -164,12 +195,11 @@ final class PreferenceManager: NSObject {
     }
 
     /// Whether Liquid Glass layers stay out of the preview until the user
-    /// shows one: a capture of them is only their white shape source (see
-    /// `PreviewGlassLayers`). Default YES.
-    @objc dynamic var hidesGlassLayersInPreview: Bool {
+    /// shows one. Default `.hideWhereNotDrawn`.
+    @objc dynamic var glassLayerVisibility: GlassLayerVisibility {
         didSet {
-            guard oldValue != hidesGlassLayersInPreview else { return }
-            store(hidesGlassLayersInPreview, forKey: Key.hidesGlassLayersInPreview)
+            guard oldValue != glassLayerVisibility else { return }
+            store(glassLayerVisibility.rawValue, forKey: Key.glassLayerVisibility)
         }
     }
 
@@ -310,7 +340,7 @@ final class PreferenceManager: NSObject {
         receivingConfigTime_Class = defaults.double(forKey: Key.receivingConfigTimeClass)
 
         rememberExpansionState = number(Key.rememberExpansionState, default: true).boolValue
-        hidesGlassLayersInPreview = number(Key.hidesGlassLayersInPreview, default: true).boolValue
+        glassLayerVisibility = Self.storedGlassLayerVisibility(defaults)
 
         super.init()
 
@@ -319,6 +349,22 @@ final class PreferenceManager: NSObject {
         showBackingLayers.subscribe(self, action: #selector(handleShowBackingLayersChange(_:)), relatedObject: nil)
         zInterspace.subscribe(self, action: #selector(handleZInterspaceDidChange(_:)), relatedObject: nil)
         freeRotation.subscribe(self, action: #selector(handleFreeRotationDidChange(_:)), relatedObject: nil)
+    }
+
+    /// The stored Liquid Glass choice. Without one, it is carried over from
+    /// the switch it replaced: on (the default) became hiding where the glass
+    /// cannot be drawn, off became showing every glass layer. The choice is
+    /// then written back like every missing value; the switch is left alone.
+    static func storedGlassLayerVisibility(_ defaults: UserDefaults) -> GlassLayerVisibility {
+        if let stored = storedNumber(defaults.object(forKey: Key.glassLayerVisibility)),
+           let visibility = GlassLayerVisibility(rawValue: stored.intValue)
+        {
+            return visibility
+        }
+        let switchWasOn = storedNumber(defaults.object(forKey: Key.hidesGlassLayersInPreview))?.boolValue ?? true
+        let visibility: GlassLayerVisibility = switchWasOn ? .hideWhereNotDrawn : .show
+        defaults.set(visibility.rawValue, forKey: Key.glassLayerVisibility)
+        return visibility
     }
 
     /// A stored value read the way the Objective-C manager read it, with
