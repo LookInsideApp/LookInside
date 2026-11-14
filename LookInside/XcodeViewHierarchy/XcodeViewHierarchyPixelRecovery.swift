@@ -407,6 +407,30 @@ enum XcodeViewHierarchyPixelRecovery {
         return layersWithNothingBehind
     }
 
+    // MARK: - Blending
+
+    /// Whether `layer` blends with what lies behind it rather than drawing
+    /// over it: an additive or blend-mode compositing filter (`plusL`,
+    /// `plusD`, the `…BlendMode` ones). On screen what lies behind is the
+    /// window; drawn on its own there is nothing, and the layer's picture
+    /// comes out as it is — a table header's backing layer adds a backing
+    /// store that is opaque black where it draws nothing to the window
+    /// through `plusL`, and on its own it was a black band. A subtree with
+    /// such a layer and nothing behind it is drawn over the material stand-in
+    /// as well, as vibrant content is, and the stand-in comes back out by
+    /// coverage.
+    static func blendsWithWhatIsBehind(_ layer: CALayer) -> Bool {
+        guard let type = filterType(of: layer.compositingFilter), !isVibrant(layer.compositingFilter) else { return false }
+        return type == "plusL" || type == "plusD" || (type.hasSuffix("BlendMode") && type != "normalBlendMode")
+    }
+
+    /// The layers of `root`'s subtree that blend with what lies behind them
+    /// (`blendsWithWhatIsBehind`) with nothing drawn behind them inside the
+    /// subtree, measured as `vibrantLayersWithNothingBehind` measures.
+    static func blendingLayersWithNothingBehind(in root: CALayer) -> [CALayer] {
+        layersWithNothingBehind(in: root, matching: blendsWithWhatIsBehind)
+    }
+
     /// Whether a layer's own drawing goes through a vibrant filter that can
     /// be taken off it for a render: its compositing filter, or a vibrant
     /// entry in `filters` on a layer that draws an image (`contents`).
@@ -723,6 +747,7 @@ enum XcodeViewHierarchyPixelRecovery {
             let capturesTransparency = hasBackdropCapturingTransparency(in: layer, region: request.region, hiding: request.hiddenLayers)
             needsStandIn = !vibrantFills.isEmpty
                 || !vibrantLayersWithNothingBehind(in: layer).isEmpty
+                || !blendingLayersWithNothingBehind(in: layer).isEmpty
                 || capturesTransparency
             if capturesTransparency {
                 capturingMaterials = materialBackdrops(in: layer, hiding: request.hiddenLayers)
@@ -730,7 +755,7 @@ enum XcodeViewHierarchyPixelRecovery {
         } else {
             // Drawn without its sublayers, a layer has nothing behind it.
             vibrantFills = !layer.isHidden && isVibrantFill(layer) ? [layer] : []
-            needsStandIn = !vibrantFills.isEmpty || drawsThroughRemovableVibrantFilter(layer)
+            needsStandIn = !vibrantFills.isEmpty || drawsThroughRemovableVibrantFilter(layer) || blendsWithWhatIsBehind(layer)
         }
         guard needsStandIn else { return nil }
         return MaterialStandInUse(
