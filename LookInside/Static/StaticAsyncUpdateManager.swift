@@ -117,7 +117,11 @@ final class StaticAsyncUpdateManager: NSObject {
             layerArchiveStore.reload(
                 windows: dataSource.rawHierarchyInfo?.displayItems ?? [],
                 appInfo: dataSource.rawHierarchyInfo?.appInfo,
-                app: inspectableApp
+                // `self.` is required: a bare `inspectableApp` is this
+                // initializer's parameter, captured as it was here. A live
+                // window builds its manager without an app and sets the app
+                // before it loads a hierarchy.
+                app: self.inspectableApp
             )
         }
         layerArchiveStore.archivesDidSettle = { [weak self] in
