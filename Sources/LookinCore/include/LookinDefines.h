@@ -283,11 +283,20 @@ typedef NS_OPTIONS(NSUInteger, LookinPreviewBitMask) {
 
 #pragma mark - Geometry
 
+/// The largest coordinate or size, in points, of a rect an inspected app
+/// reports that geometry math still takes: 2^24, the largest integer single
+/// precision holds exactly. Core Animation's render server and the host's
+/// GPU work in single precision, so geometry past it is unreliable anyway.
+/// Real views get well past the 100 000 points this used to be: an outline
+/// view 107 829 points tall went out without a frame, left the host's
+/// preview and moved its rows to the window's origin.
+static const double LookinMaximumUsableCoordinate = 16777216;
+
 /// Whether a rect reported by an inspected app is safe to feed into geometry
 /// math. NaN / Inf components poison every CGRect computation they touch and
 /// eventually reach layer and scene-graph geometry on the host, so they are
-/// rejected once here instead of at every call site. The magnitude bound
-/// matches the host's historical LKHelper validation.
+/// rejected once here instead of at every call site, with anything beyond
+/// `LookinMaximumUsableCoordinate`.
 CG_INLINE BOOL LookinIsUsableRect(CGRect rect) {
     if (CGRectIsNull(rect) || CGRectIsInfinite(rect)) {
         return NO;
@@ -298,9 +307,9 @@ CG_INLINE BOOL LookinIsUsableRect(CGRect rect) {
     if (isinf(rect.origin.x) || isinf(rect.origin.y) || isinf(rect.size.width) || isinf(rect.size.height)) {
         return NO;
     }
-    if (ABS(rect.origin.x) > 100000 || ABS(rect.origin.y) > 100000
+    if (ABS(rect.origin.x) > LookinMaximumUsableCoordinate || ABS(rect.origin.y) > LookinMaximumUsableCoordinate
         || rect.size.width < 0 || rect.size.height < 0
-        || rect.size.width > 100000 || rect.size.height > 100000) {
+        || rect.size.width > LookinMaximumUsableCoordinate || rect.size.height > LookinMaximumUsableCoordinate) {
         return NO;
     }
     return YES;
