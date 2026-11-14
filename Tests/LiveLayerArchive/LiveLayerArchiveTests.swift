@@ -22,6 +22,7 @@ struct LiveLayerArchiveTests {
         testGlassShapeGetsNoImage()
         testBackdropKeepsItsGlassShape()
         testPunchOutGetsNoImage()
+        testHiddenGlassLeavesItsContentInPlace()
         print("LiveLayerArchive tests passed")
     }
 
@@ -316,6 +317,65 @@ struct LiveLayerArchiveTests {
         )) else { fail("the icons should have a group image") }
         expect(colour(of: group, atX: 40) == .clear, "the icons' group image should keep the cut under the selection")
         expect(colour(of: group, atX: 160) == .red, "the icons' group image should keep the icon outside the cut")
+    }
+
+    /// With the Liquid Glass setting on Hide, an image drawn from the
+    /// archive leaves the glass out. An `NSGlassEffectView` draws its content
+    /// through a portal inside the glass that hides the content in place, so
+    /// leaving the glass out took the content with it; the portal must stop
+    /// hiding it for the render, and the content shows where it is.
+    ///
+    ///     root (500)
+    ///       content (501)          drawn in place, red on the left
+    ///       glass (502)            a glass layer the setting hides
+    ///         material (503)       grey, the whole width
+    ///         portal (504)         shows the content, hiding it in place
+    private static func testHiddenGlassLeavesItsContentInPlace() {
+        guard let portalClass = NSClassFromString("CAPortalLayer") as? CALayer.Type else {
+            print("skipped testHiddenGlassLeavesItsContentInPlace: no portal layer class")
+            return
+        }
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testHiddenGlassLeavesItsContentInPlace: no Metal device")
+            return
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let root = CALayer()
+        root.frame = CGRect(x: 0, y: 0, width: 200, height: 100)
+        let content = CALayer()
+        content.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        content.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        let glass = CALayer()
+        glass.frame = root.bounds
+        let material = CALayer()
+        material.frame = root.bounds
+        material.backgroundColor = CGColor(srgbRed: 0.5, green: 0.5, blue: 0.5, alpha: 1)
+        let portal = portalClass.init()
+        portal.frame = root.bounds
+        portal.setValue(content, forKey: "sourceLayer")
+        portal.setValue(true, forKey: "hidesSourceLayer")
+        glass.addSublayer(material)
+        glass.addSublayer(portal)
+        root.addSublayer(content)
+        root.addSublayer(glass)
+        CATransaction.commit()
+        let walk = walking(root)
+        let reply = LayerArchive()
+        reply.archiveData = encoding(root)
+        reply.layerOids = walk.indices.map { UInt(500 + $0) }
+        reply.sublayerCounts = walk.map { UInt32($0.sublayers?.count ?? 0) }
+        let archive = decoding(reply)
+        let every = Set<UInt>(500 ... 504)
+        guard let image = archive.image(of: .group, for: LiveLayerArchive.NodeLayers(
+            layerOid: 500, subtreeLayerOids: every, windowNodeLayerOids: every, hiddenGlassLayerOids: [502]
+        )) else { fail("the root should have an image with its glass hidden") }
+        expect(colour(of: image, atX: 50) == .red, "the content should show in place with the glass hidden, got \(colour(of: image, atX: 50))")
+        expect(colour(of: image, atX: 150) == .clear, "the hidden glass's material should not show, got \(colour(of: image, atX: 150))")
+        let portalHides = archive.layer(withOid: 504)?.value(forKey: "hidesSourceLayer") as? Bool
+        expect(portalHides == true, "the portal should hide its source again after the render")
+        let glassNodes = LiveLayerArchive.NodeLayers(layerOid: 503, subtreeLayerOids: [503], windowNodeLayerOids: every, hiddenGlassLayerOids: [502])
+        expect(archive.image(of: .group, for: glassNodes) == nil, "a layer inside hidden glass should get no image")
     }
 
     private enum SampledColour {

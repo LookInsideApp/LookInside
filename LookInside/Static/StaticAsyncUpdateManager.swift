@@ -86,6 +86,7 @@ final class StaticAsyncUpdateManager: NSObject {
     private static let channelCheckInterval: TimeInterval = 0.25
 
     private let dataSourceSignals = SyncSubscriptionBag()
+    private var glassLayerSettingObservation: NSKeyValueObservation?
 
     /// The windows' layer archives, when the Server encodes them: the images
     /// planning asks for are drawn from them where it can, instead of being
@@ -133,6 +134,14 @@ final class StaticAsyncUpdateManager: NSObject {
             dataSource?.previewOrderDidChange.send()
             // The images planned while the archive was on its way.
             updateForDisplayingItems()
+        }
+        if let preferences = hierarchyDataSource?.preferenceManager() {
+            layerArchiveStore.hidesGlassLayers = preferences.glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: true)
+            glassLayerSettingObservation = preferences.observe(\.glassLayerVisibility, options: [.new]) { [weak self] preferences, _ in
+                MainActor.assumeIsolated {
+                    self?.glassLayerSettingDidChange(preferences.glassLayerVisibility)
+                }
+            }
         }
     }
 
@@ -334,6 +343,19 @@ final class StaticAsyncUpdateManager: NSObject {
             completion()
         }
         updateForDisplayingItems()
+    }
+
+    /// The Liquid Glass setting changed. Images drawn from a window's
+    /// archive keep or leave out its glass with it (Hide leaves it out, as
+    /// the Server's group screenshots do): those on screen are drawn again,
+    /// the others dropped.
+    private func glassLayerSettingDidChange(_ visibility: GlassLayerVisibility) {
+        let hidesGlassLayers = visibility.hidesGlassLayer(isDrawnByLookInside: true)
+        guard hidesGlassLayers != layerArchiveStore.hidesGlassLayers else { return }
+        layerArchiveStore.hidesGlassLayers = hidesGlassLayers
+        for window in dataSource?.rawHierarchyInfo?.displayItems ?? [] where layerArchiveStore.readyWindow(containing: window) != nil {
+            redrawFromNewArchive(of: window, succeeded: true) {}
+        }
     }
 
     /// The image the preview shows for `item` in its current state, as

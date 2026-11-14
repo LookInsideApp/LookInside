@@ -34,7 +34,12 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     private var isUsingDanceUI = false
     private var frameSubscription: SyncSubscription?
 
-    override init() {
+    private let livePreferenceManager: PreferenceManager
+
+    /// A live session's tree, following `preferenceManager` — the app's
+    /// settings, or a set of its own in tests, which must not change them.
+    init(preferenceManager: PreferenceManager) {
+        livePreferenceManager = preferenceManager
         super.init()
         let broadcaster = eventBroadcaster
         frameSubscription = itemsDidChangeFrame.observe { [weak broadcaster] item in
@@ -192,8 +197,12 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         }
     }
 
+    override convenience init() {
+        self.init(preferenceManager: .shared)
+    }
+
     override func preferenceManager() -> PreferenceManager {
-        PreferenceManager.shared
+        livePreferenceManager
     }
 
     override func isReadOnly() -> Bool {
