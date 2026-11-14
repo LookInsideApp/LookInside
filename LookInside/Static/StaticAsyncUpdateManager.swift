@@ -386,23 +386,28 @@ final class StaticAsyncUpdateManager: NSObject {
 
     /// `kind` of `item`'s image drawn from its window's layer archive, also
     /// put on the node; nil when the Server draws it. Waits for an archive
-    /// that is on its way.
+    /// that is on its way. A drawing dropped while it waited — the app
+    /// changed, or a refresh replaced the tree — is asked for again, from
+    /// whatever draws the image now.
     func layerArchiveImage(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) async -> LayerArchiveImage? {
-        guard layerArchiveStore.isActive else { return nil }
-        if case .pendingArchive = layerArchiveStore.imageSource(kind, of: item) {
-            await layerArchiveStore.waitForPendingArchives()
-        }
-        guard case let .archive(archive, nodes) = layerArchiveStore.imageSource(kind, of: item) else { return nil }
-        let image: NSImage? = await withCheckedContinuation { continuation in
-            layerArchiveStore.drawImage(kind, of: item, archive: archive, nodes: nodes, priority: .shown) { image in
-                continuation.resume(returning: image)
+        while true {
+            guard layerArchiveStore.isActive else { return nil }
+            if case .pendingArchive = layerArchiveStore.imageSource(kind, of: item) {
+                await layerArchiveStore.waitForPendingArchives()
             }
+            guard case let .archive(archive, nodes) = layerArchiveStore.imageSource(kind, of: item) else { return nil }
+            let outcome = await withCheckedContinuation { continuation in
+                layerArchiveStore.drawImage(kind, of: item, archive: archive, nodes: nodes, priority: .shown) { outcome in
+                    continuation.resume(returning: outcome)
+                }
+            }
+            guard case let .drawn(image) = outcome else { continue }
+            // Drawn before: the node holds it, unless it came out empty.
+            if let image = image ?? (kind == .group ? item.groupScreenshot : item.soloScreenshot) {
+                return .image(image)
+            }
+            return .empty
         }
-        // Drawn before: the node holds it, unless it came out empty.
-        if let image = image ?? (kind == .group ? item.groupScreenshot : item.soloScreenshot) {
-            return .image(image)
-        }
-        return .empty
     }
 
     /// Fetches one item's screenshots and attributes again, not its sub

@@ -731,6 +731,56 @@ extension HostAppTests {
             withExtendedLifetime(session) {}
         }
 
+        /// The MCP bridge asks for a node's image and waits for its drawing.
+        /// A drawing still waiting when the app changed — redrawing from the
+        /// new archive drops the images off screen — or when a refresh
+        /// replaced the tree was dropped with whoever waited on it, and the
+        /// bridge's request never came back. Whoever asked now hears that it
+        /// was dropped, and the bridge asks again.
+        @Test func aDroppedDrawingTellsWhoeverAskedForIt() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                Self.layerArchive(of: inspected, layerLimit: 4000)
+            }
+            let session = await Self.loadingSession(inspected, on: server)
+            let store = session.manager.layerArchiveStore
+            guard case let .archive(redArchive, redNodes) = store.imageSource(.group, of: inspected.redItem),
+                  case let .archive(blueArchive, blueNodes) = store.imageSource(.group, of: inspected.blueItem)
+            else {
+                Issue.record("both views should be drawn from the archive")
+                return
+            }
+            var heard: [String] = []
+            func asking(for name: String) -> @MainActor (LiveLayerArchiveStore.DrawingOutcome) -> Void {
+                { outcome in
+                    if case .dropped = outcome {
+                        heard.append("\(name) dropped")
+                    } else {
+                        heard.append("\(name) drawn")
+                    }
+                }
+            }
+            // In one turn: the red view's drawing goes first, the blue one's
+            // waits behind it.
+            store.drawImage(.group, of: inspected.redItem, archive: redArchive, nodes: redNodes, priority: .shown, again: true, completion: asking(for: "red"))
+            store.drawImage(.group, of: inspected.blueItem, archive: blueArchive, nodes: blueNodes, priority: .shown, again: true, completion: asking(for: "blue"))
+            store.forgetImage(.group, of: inspected.blueItem)
+            #expect(await waitUntil { heard.contains("blue dropped") && heard.contains("red drawn") }, "heard \(heard)")
+
+            heard.removeAll()
+            store.drawImage(.group, of: inspected.redItem, archive: redArchive, nodes: redNodes, priority: .shown, again: true, completion: asking(for: "red"))
+            store.drawImage(.group, of: inspected.blueItem, archive: blueArchive, nodes: blueNodes, priority: .shown, again: true, completion: asking(for: "blue"))
+            session.dataSource.reload(with: inspected.hierarchy, keepState: false)
+            #expect(
+                await waitUntil { heard.contains("blue dropped") && heard.contains("red dropped") },
+                "a refresh should drop both, the one drawing and the one waiting, heard \(heard)"
+            )
+            withExtendedLifetime(session) {}
+        }
+
         @Test func imageForAnotherCallerWaitsForTheArchive() async {
             let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
             defer { inspected.window.close() }
