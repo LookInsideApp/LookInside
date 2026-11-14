@@ -87,6 +87,11 @@ struct XcodeViewHierarchyScreenshots {
     var groupExcludingHostedViewsRegionByObjectIdentifier: [String: CGRect] = [:]
     /// Layer archives that failed to decode; the nodes below them have no pixels.
     let failedArchiveIdentifiers: [String]
+    /// For each layer a portal draws elsewhere while hiding it in place, the
+    /// layer of the portal's node: the portal itself, or the nearest layer
+    /// above it that is a node. The preview orders the source's node there,
+    /// as an `NSGlassEffectView`'s content shows over its glass.
+    var portalLayerIdentifierBySourceLayerIdentifier: [String: String] = [:]
 }
 
 enum XcodeViewHierarchyPixelRecovery {
@@ -173,8 +178,9 @@ enum XcodeViewHierarchyPixelRecovery {
                     soloByObjectIdentifier: [:], groupByObjectIdentifier: [:], failedArchiveIdentifiers: failedIdentifiers
                 )
             }
-            // Liquid Glass's shape inputs show nothing of their own on screen.
-            guard !isGlassShapeInput(layer) else { continue }
+            // Liquid Glass's shape inputs, and layers that only cut what is
+            // beneath them, show nothing of their own on screen.
+            guard !isGlassShapeInput(layer), !cutsWhatIsBeneath(layer) else { continue }
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)
             // A layer that paints nothing but its background colour needs no
@@ -215,9 +221,7 @@ enum XcodeViewHierarchyPixelRecovery {
             // A node with no sublayers renders identically either way; storing
             // the second copy would double the memory for no visible gain.
             guard hasSublayers, !paintsOnlyItsBackground else { continue }
-            if let soloImage = renderingPNG(
-                of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn
-            ) {
+            if let soloImage = renderingOwnPNG(of: layer, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn) {
                 soloByObjectIdentifier[objectIdentifier] = soloImage
             }
         }
@@ -228,8 +232,42 @@ enum XcodeViewHierarchyPixelRecovery {
             groupExcludingHostedViewsByObjectIdentifier: groupExcludingHostedViewsByObjectIdentifier,
             groupRegionByObjectIdentifier: groupRegionByObjectIdentifier,
             groupExcludingHostedViewsRegionByObjectIdentifier: groupExcludingHostedViewsRegionByObjectIdentifier,
-            failedArchiveIdentifiers: failedIdentifiers
+            failedArchiveIdentifiers: failedIdentifiers,
+            portalLayerIdentifierBySourceLayerIdentifier: portalLayerIdentifiers(in: trees, alignment: alignment)
         )
+    }
+
+    /// `XcodeViewHierarchyScreenshots.portalLayerIdentifierBySourceLayerIdentifier`
+    /// for `trees`, whose layers `alignment` names.
+    private static func portalLayerIdentifiers(
+        in trees: [XcodeViewHierarchyLayerTree],
+        alignment: [String: CALayer]
+    ) -> [String: String] {
+        var identifierByLayer: [ObjectIdentifier: String] = [:]
+        for (objectIdentifier, layer) in alignment {
+            identifierByLayer[ObjectIdentifier(layer)] = objectIdentifier
+        }
+        var portalIdentifiers: [String: String] = [:]
+        for tree in trees {
+            var layers: [CALayer] = []
+            var pending = [tree.rootLayer]
+            while let layer = pending.popLast() {
+                layers.append(layer)
+                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
+            }
+            for (source, portal) in portalsHidingTheirSources(in: layers) {
+                guard let sourceIdentifier = identifierByLayer[ObjectIdentifier(source)] else { continue }
+                var holder: CALayer? = portal
+                while let candidate = holder, identifierByLayer[ObjectIdentifier(candidate)] == nil {
+                    holder = candidate.superlayer
+                }
+                guard let holder, let portalIdentifier = identifierByLayer[ObjectIdentifier(holder)],
+                      portalIdentifier != sourceIdentifier
+                else { continue }
+                portalIdentifiers[sourceIdentifier] = portalIdentifier
+            }
+        }
+        return portalIdentifiers
     }
 
     // MARK: - Drawing region
@@ -482,6 +520,72 @@ enum XcodeViewHierarchyPixelRecovery {
             current = candidate.superlayer
         }
         return false
+    }
+
+    /// The layers that portals among `layers` draw elsewhere while hiding
+    /// them in place (`CAPortalLayer`'s `hidesSourceLayer`), each with its
+    /// portal. An `NSGlassEffectView` draws its content over its glass this
+    /// way, twice over: a portal draws the content holder into a group of
+    /// layers, and a SwiftUI portal after the backdrop draws that group. The
+    /// preview orders such a source's plane where its portal draws it; a
+    /// source two portals draw goes with the later one in `layers`, drawn on
+    /// top of the other. The pairs come in the order of `layers`.
+    static func portalsHidingTheirSources(in layers: [CALayer]) -> [(source: CALayer, portal: CALayer)] {
+        guard let portalLayerClass = NSClassFromString("CAPortalLayer") else { return [] }
+        return layers.compactMap { layer in
+            guard layer.isKind(of: portalLayerClass),
+                  (layer.value(forKey: "hidesSourceLayer") as? Bool) == true,
+                  let source = layer.value(forKey: "sourceLayer") as? CALayer,
+                  source !== layer
+            else { return nil }
+            return (source, layer)
+        }
+    }
+
+    /// The compositing filters that keep none of a layer's own pixels and
+    /// only cut what lies beneath it.
+    static let cuttingCompositingFilterTypes: Set<String> = ["destOut", "destIn"]
+
+    /// Whether `layer` only cuts what is beneath it: it, or a layer above
+    /// it, composites through `destOut` or `destIn`. A segmented control
+    /// cuts its plain icon out where the selection is with a black shape in
+    /// such a layer; on screen none of the shape shows, drawn on its own it
+    /// is a black block. Such a layer gets no image, and the cut stays in
+    /// the group image that holds what it cuts.
+    static func cutsWhatIsBeneath(_ layer: CALayer) -> Bool {
+        var current: CALayer? = layer
+        while let candidate = current {
+            if let type = filterType(of: candidate.compositingFilter), cuttingCompositingFilterTypes.contains(type) {
+                return true
+            }
+            current = candidate.superlayer
+        }
+        return false
+    }
+
+    /// The type of a filter as a layer holds it: a filter name, or a
+    /// CAFilter's type.
+    static func filterType(of filter: Any?) -> String? {
+        guard let filter else { return nil }
+        if let name = filter as? String {
+            return name
+        }
+        guard let object = filter as? NSObject, object.responds(to: NSSelectorFromString("type")) else { return nil }
+        return object.value(forKey: "type") as? String
+    }
+
+    /// A node's own image: the layer without its sublayers. A backdrop keeps
+    /// the glass shape layers under it — they draw nothing themselves and
+    /// give the glass its shape — so an expanded glass's plane shows the
+    /// glass; its other sublayers stay out.
+    static func renderingOwnPNG(of layer: CALayer, isFlipped: Bool, materialStandIn: CGColor?) -> Data? {
+        guard isBackdrop(layer) else {
+            return renderingPNG(of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: materialStandIn)
+        }
+        let otherSublayers = (layer.sublayers ?? []).filter { !isGlassShapeInput($0) }
+        return renderingPNG(
+            of: layer, includingSublayers: true, hiding: otherSublayers, isFlipped: isFlipped, materialStandIn: materialStandIn
+        )
     }
 
     /// Whether a backdrop in `root`'s subtree captures transparency when the

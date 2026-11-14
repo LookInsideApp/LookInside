@@ -36,7 +36,10 @@ struct CoreAnimationArchiveConverterTests {
             testGlassDrawnOnItsOwnLooksAsInTheWindow()
             testGlassShapeInputsGetNoImage()
             testLayersInsideGlassShapesGetNoImage()
+            testExpandedGlassPlaneDrawsTheGlass()
+            testGlassContentIsOrderedWhereItsPortalDrawsIt()
         }
+        testPunchOutLayersGetNoImage()
         testVibrantContentOnItsOwnLooksAsOverItsMaterial()
         testUnmarkedOrMisnamedLayersStayLayers()
         testNamedLayersShowTheirNames()
@@ -342,6 +345,120 @@ struct CoreAnimationArchiveConverterTests {
                 "#\(objectIdentifier), inside the glass's shape, should get no image"
             )
         }
+    }
+
+    /// Once its node is expanded, a glass's plane is its backdrop's own
+    /// image. The glass reads its shape from the distance-field layers under
+    /// the backdrop, which get no image of their own; the backdrop's image
+    /// left them out too, came out empty, and fully expanded glass vanished.
+    /// The backdrop's own image keeps its shape layers and shows the glass.
+    @MainActor
+    private static func testExpandedGlassPlaneDrawsTheGlass() {
+        guard let (tree, screenshots) = importedGlassOverSquare(skipping: "testExpandedGlassPlaneDrawsTheGlass") else {
+            return
+        }
+        guard let backdropLayerClass = NSClassFromString("CABackdropLayer"),
+              let backdropIndex = tree.layers.firstIndex(where: { $0.isKind(of: backdropLayerClass) })
+        else { fail("the glass should have a backdrop") }
+        guard let soloData = screenshots.soloByObjectIdentifier[UInt(backdropIndex + 1)],
+              let soloImage = NSBitmapImageRep(data: soloData)?.cgImage
+        else { fail("the glass's backdrop should have an image of its own") }
+        let pixels = premultipliedPixels(of: soloImage)
+        let centre = ((soloImage.height / 2) * soloImage.width + soloImage.width / 2) * 4
+        expect(pixels[centre + 3] > 200, "the backdrop's own image should show the glass, alpha \(pixels[centre + 3]) at its centre")
+    }
+
+    /// An `NSGlassEffectView` lists its content before the view that draws
+    /// its glass, and draws the content over the glass through portals that
+    /// hide it in place. The preview orders planes by the hierarchy, so the
+    /// expanded glass covered the search field it holds. A node a portal
+    /// draws that way knows the portal's node, after which the preview
+    /// orders it.
+    @MainActor
+    private static func testGlassContentIsOrderedWhereItsPortalDrawsIt() {
+        guard #available(macOS 26.0, *) else {
+            print("skipped testGlassContentIsOrderedWhereItsPortalDrawsIt: NSGlassEffectView needs macOS 26")
+            return
+        }
+        let (contentView, window) = makingLayerBackedContentView()
+        window.setContentSize(NSSize(width: 300, height: 100))
+        let glassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+        glassView.contentView = NSTextField(labelWithString: "Filter")
+        contentView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        let contents = withExtendedLifetime(window) { decodedContents(of: contentLayer) }
+        let tree = CoreAnimationArchiveLayerTree(contents: contents)
+        let file = CoreAnimationArchiveConverter.makingHierarchyFile(
+            from: CoreAnimationArchiveCapture(tree: tree, screenshots: CoreAnimationArchiveScreenshots(), origin: nil)
+        )
+        var itemByOid: [UInt: DisplayItem] = [:]
+        for item in flattened(file.hierarchyInfo?.displayItems ?? []) {
+            if let oid = item.layerObject?.oid {
+                itemByOid[oid] = item
+            }
+        }
+        // A layer two portals draw goes with the later one, drawn on top.
+        var lastPortalBySource: [ObjectIdentifier: (source: CALayer, portal: CALayer)] = [:]
+        for pair in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: tree.layers) {
+            lastPortalBySource[ObjectIdentifier(pair.source)] = pair
+        }
+        expect(!lastPortalBySource.isEmpty, "the glass should draw its content through a portal that hides it in place")
+        for (source, portal) in lastPortalBySource.values {
+            let sourceOid = tree.objectIdentifier(of: source)
+            let portalItem = itemByOid[tree.objectIdentifier(of: portal)]
+            expect(portalItem != nil, "the portal drawing #\(sourceOid) should have a node")
+            expect(
+                itemByOid[sourceOid]?.previewPortalItem === portalItem,
+                "#\(sourceOid), which a portal draws over the glass, should know the portal's node"
+            )
+        }
+    }
+
+    /// A layer composited with `destOut` only cuts what is beneath it: a
+    /// segmented control removes its plain icon where the selection is with
+    /// a black rounded rectangle in such a layer. On screen nothing of the
+    /// rectangle shows; drawn on its own it came out as a black capsule in
+    /// front of the selection. The cutting layer and what is under it get
+    /// no image; the cut stays in the group image that holds what it cuts.
+    private static func testPunchOutLayersGetNoImage() {
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let destinationOut = filterClass.perform(
+                  NSSelectorFromString("filterWithType:"), with: "destOut"
+              )?.takeUnretainedValue()
+        else { fail("QuartzCore should make a destOut filter") }
+        let white = CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
+        let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 200, height: 100))
+        let iconsLayer = makingLayer(CGRect(x: 0, y: 0, width: 200, height: 100))
+        let selectedIcon = makingLayer(CGRect(x: 20, y: 30, width: 40, height: 40))
+        selectedIcon.backgroundColor = white
+        let otherIcon = makingLayer(CGRect(x: 140, y: 30, width: 40, height: 40))
+        otherIcon.backgroundColor = white
+        let cuttingLayer = makingLayer(CGRect(x: 0, y: 0, width: 200, height: 100))
+        cuttingLayer.compositingFilter = destinationOut
+        let selectionShape = makingLayer(CGRect(x: 10, y: 20, width: 60, height: 60))
+        selectionShape.backgroundColor = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
+        selectionShape.cornerRadius = 12
+        cuttingLayer.addSublayer(selectionShape)
+        iconsLayer.addSublayer(selectedIcon)
+        iconsLayer.addSublayer(otherIcon)
+        iconsLayer.addSublayer(cuttingLayer)
+        rootLayer.addSublayer(iconsLayer)
+
+        let tree = CoreAnimationArchiveLayerTree(contents: decodedContents(of: rootLayer))
+        let screenshots = recoveredScreenshots(of: tree)
+        // Depth first: root 1, icons 2, selected icon 3, other icon 4,
+        // cutting layer 5, selection shape 6.
+        for objectIdentifier: UInt in [5, 6] {
+            expect(
+                screenshots.groupByObjectIdentifier[objectIdentifier] == nil && screenshots.soloByObjectIdentifier[objectIdentifier] == nil,
+                "#\(objectIdentifier), which only cuts what is beneath it, should get no image"
+            )
+        }
+        let cutAlpha = averageAlpha(of: CGRect(x: 30, y: 40, width: 20, height: 20), inImageOf: 2, tree: tree, screenshots: screenshots)
+        let keptAlpha = averageAlpha(of: CGRect(x: 150, y: 40, width: 20, height: 20), inImageOf: 2, tree: tree, screenshots: screenshots)
+        expect((cutAlpha ?? 1) < 0.05, "the icons' group image should keep the cut, alpha \(String(describing: cutAlpha)) under the selection")
+        expect((keptAlpha ?? 0) > 0.95, "the icons' group image should keep the icon outside the cut, alpha \(String(describing: keptAlpha))")
     }
 
     /// A dark window whose transparent container holds a blue square and,

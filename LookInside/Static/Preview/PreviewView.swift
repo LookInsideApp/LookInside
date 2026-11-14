@@ -248,6 +248,11 @@ final class PreviewView: SCNView {
     /// plane forward and thicken the preview for nothing. The coplanar offset
     /// in `PreviewGeometry.zPositions` then nudges it a hair in front, which
     /// is exactly "drawn on its own view".
+    ///
+    /// A node a portal draws elsewhere while hiding it in place
+    /// (`previewPortalItem`) is visited where the portal draws it, right
+    /// after the portal's node and what is under it: an `NSGlassEffectView`'s
+    /// content sits in front of its glass, as on screen.
     func updateZPosition() {
         #signpostInterval("Update z positions") {
             let items = flatDisplayItems
@@ -256,14 +261,25 @@ final class PreviewView: SCNView {
             for (index, item) in items.enumerated() {
                 indexByItem[ObjectIdentifier(item)] = index
             }
-            let planes = items.map { item -> PreviewZOrdering.Plane in
+            let parents = items.map { item in item.super.flatMap { indexByItem[ObjectIdentifier($0)] } }
+            var drawnAtPortals: [Int: Int] = [:]
+            for (index, item) in items.enumerated() {
+                if let portalItem = item.previewPortalItem, let portalIndex = indexByItem[ObjectIdentifier(portalItem)] {
+                    drawnAtPortals[index] = portalIndex
+                }
+            }
+            let visiting = PreviewZOrdering.visitingOrder(parents: parents, drawnAtPortals: drawnAtPortals)
+            var positionByIndex = [Int](repeating: 0, count: items.count)
+            for (position, index) in visiting.order.enumerated() {
+                positionByIndex[index] = position
+            }
+            let planes = visiting.order.map { index -> PreviewZOrdering.Plane in
+                let item = items[index]
                 let parent: PreviewZOrdering.Parent
-                if let superItem = item.super {
-                    if let parentIndex = indexByItem[ObjectIdentifier(superItem)] {
-                        parent = .plane(index: parentIndex)
-                    } else {
-                        parent = .outside(zIndex: superItem.previewZIndex)
-                    }
+                if let parentIndex = visiting.parents[index] {
+                    parent = .plane(index: positionByIndex[parentIndex])
+                } else if let superItem = item.super {
+                    parent = .outside(zIndex: superItem.previewZIndex)
                 } else {
                     // A top-level item (a folded UIWindowScene, say).
                     parent = .none
@@ -277,8 +293,8 @@ final class PreviewView: SCNView {
                 )
             }
             let zIndexes = PreviewZOrdering.zIndexes(of: planes, showsHiddenItems: showHiddenItems)
-            for (item, zIndex) in zip(items, zIndexes) {
-                item.previewZIndex = zIndex
+            for (position, index) in visiting.order.enumerated() {
+                items[index].previewZIndex = zIndexes[position]
             }
             updateZPositionByZIndex()
         }

@@ -129,6 +129,8 @@ final class StaticAsyncUpdateManager: NSObject {
             // A window without a usable archive shows the Server's capture of
             // its glass again, which the Liquid Glass setting may hide.
             dataSource?.setWindowsWithoutLayerArchive(layerArchiveStore.windowsWithoutArchive)
+            // The archive tells which nodes portals draw over others.
+            dataSource?.previewOrderDidChange.send()
             // The images planned while the archive was on its way.
             updateForDisplayingItems()
         }

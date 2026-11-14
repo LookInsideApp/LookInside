@@ -20,6 +20,8 @@ struct LiveLayerArchiveTests {
         testSoloImageKeepsWhatNoNodeOwns()
         testImagesDrawWhatTheyKeep()
         testGlassShapeGetsNoImage()
+        testBackdropKeepsItsGlassShape()
+        testPunchOutGetsNoImage()
         print("LiveLayerArchive tests passed")
     }
 
@@ -212,6 +214,108 @@ struct LiveLayerArchiveTests {
             let nodes = LiveLayerArchive.NodeLayers(layerOid: layerOid, subtreeLayerOids: [layerOid], windowNodeLayerOids: Set(200 ... 203))
             expect(archive.image(of: .group, for: nodes) == nil, "the glass's shape, oid \(layerOid), should get no image")
         }
+    }
+
+    /// Expanded, a glass's plane is its backdrop's own image. The shape the
+    /// glass reads lies in distance-field layers under the backdrop, nodes
+    /// that never get an image of their own; leaving them out of the
+    /// backdrop's image too left it empty, and fully expanded glass vanished.
+    private static func testBackdropKeepsItsGlassShape() {
+        guard let backdropClass = NSClassFromString("CABackdropLayer") as? CALayer.Type,
+              let shapeClass = NSClassFromString("CASDFLayer") as? CALayer.Type,
+              let elementClass = NSClassFromString("CASDFElementLayer") as? CALayer.Type
+        else {
+            print("skipped testBackdropKeepsItsGlassShape: no backdrop or distance-field layer class")
+            return
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let root = CALayer()
+        root.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        let backdrop = backdropClass.init()
+        backdrop.frame = root.bounds
+        let shape = shapeClass.init()
+        shape.frame = root.bounds
+        let element = elementClass.init()
+        element.frame = CGRect(x: 10, y: 10, width: 80, height: 30)
+        let content = CALayer()
+        content.frame = CGRect(x: 20, y: 60, width: 20, height: 20)
+        content.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        shape.addSublayer(element)
+        backdrop.addSublayer(shape)
+        backdrop.addSublayer(content)
+        root.addSublayer(backdrop)
+        CATransaction.commit()
+        let walk = walking(root)
+        let reply = LayerArchive()
+        reply.archiveData = encoding(root)
+        reply.layerOids = walk.indices.map { UInt(300 + $0) }
+        reply.sublayerCounts = walk.map { UInt32($0.sublayers?.count ?? 0) }
+        let archive = decoding(reply)
+        // root 300, backdrop 301, shape 302, element 303, content 304: every
+        // layer a node, as the Server lists them.
+        let nodes = LiveLayerArchive.NodeLayers(layerOid: 301, subtreeLayerOids: Set(301 ... 304), windowNodeLayerOids: Set(300 ... 304))
+        let leftOut = archive.layersLeftOut(of: .solo, for: nodes).map { archive.oid(of: $0) }
+        expect(leftOut == [304], "the backdrop's own image should keep its glass shape and leave the other node out, left out \(leftOut)")
+    }
+
+    /// A layer composited with `destOut` only cuts what is beneath it, as a
+    /// segmented control cuts its plain icon where the selection is with a
+    /// black rounded rectangle. On its own it came out as a black capsule.
+    /// Neither it nor what is under it gets an image; the cut stays in the
+    /// group image of what it cuts.
+    private static func testPunchOutGetsNoImage() {
+        guard let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let destinationOut = filterClass.perform(NSSelectorFromString("filterWithType:"), with: "destOut")?.takeUnretainedValue()
+        else { fail("QuartzCore should make a destOut filter") }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let root = CALayer()
+        root.frame = CGRect(x: 0, y: 0, width: 200, height: 100)
+        let icons = CALayer()
+        icons.frame = root.bounds
+        let selectedIcon = CALayer()
+        selectedIcon.frame = CGRect(x: 20, y: 30, width: 40, height: 40)
+        selectedIcon.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        let otherIcon = CALayer()
+        otherIcon.frame = CGRect(x: 140, y: 30, width: 40, height: 40)
+        otherIcon.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        let cutting = CALayer()
+        cutting.frame = root.bounds
+        cutting.compositingFilter = destinationOut
+        let selection = CALayer()
+        selection.frame = CGRect(x: 10, y: 20, width: 60, height: 60)
+        selection.backgroundColor = CGColor(srgbRed: 0, green: 0, blue: 0, alpha: 1)
+        cutting.addSublayer(selection)
+        icons.addSublayer(selectedIcon)
+        icons.addSublayer(otherIcon)
+        icons.addSublayer(cutting)
+        root.addSublayer(icons)
+        CATransaction.commit()
+        let walk = walking(root)
+        let reply = LayerArchive()
+        reply.archiveData = encoding(root)
+        reply.layerOids = walk.indices.map { UInt(400 + $0) }
+        reply.sublayerCounts = walk.map { UInt32($0.sublayers?.count ?? 0) }
+        let archive = decoding(reply)
+        // root 400, icons 401, selected icon 402, other icon 403, cutting 404,
+        // selection 405.
+        let every = Set<UInt>(400 ... 405)
+        for layerOid: UInt in [404, 405] {
+            for kind in [LiveLayerArchive.ImageKind.solo, .group] {
+                let nodes = LiveLayerArchive.NodeLayers(layerOid: layerOid, subtreeLayerOids: layerOid == 404 ? [404, 405] : [405], windowNodeLayerOids: every)
+                expect(archive.image(of: kind, for: nodes) == nil, "oid \(layerOid), which only cuts, should get no \(kind) image")
+            }
+        }
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped the cut check of testPunchOutGetsNoImage: no Metal device")
+            return
+        }
+        guard let group = archive.image(of: .group, for: LiveLayerArchive.NodeLayers(
+            layerOid: 401, subtreeLayerOids: Set(401 ... 405), windowNodeLayerOids: every
+        )) else { fail("the icons should have a group image") }
+        expect(colour(of: group, atX: 40) == .clear, "the icons' group image should keep the cut under the selection")
+        expect(colour(of: group, atX: 160) == .red, "the icons' group image should keep the icon outside the cut")
     }
 
     private enum SampledColour {

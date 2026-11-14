@@ -44,6 +44,7 @@ enum CoreAnimationArchiveConverter {
         // The root's frame places it in a superlayer the archive does not
         // have; the tree starts at the origin instead.
         rootItem.frame = CGRect(origin: .zero, size: rootItem.frame.size)
+        session.linkingPortalSources()
 
         let hierarchyInfo = HierarchyInfo()
         hierarchyInfo.displayItems = [rootItem]
@@ -67,9 +68,24 @@ enum CoreAnimationArchiveConverter {
         /// Layers already emitted; the tree numbering visits each once, and
         /// so does this.
         private var convertedLayers: Set<ObjectIdentifier> = []
+        /// The node made for each layer, by the layer's object identifier.
+        private var itemsByObjectIdentifier: [UInt: DisplayItem] = [:]
 
         init(capture: CoreAnimationArchiveCapture) {
             self.capture = capture
+        }
+
+        /// Tells each node that a portal draws elsewhere while hiding it in
+        /// place the portal's node, after which the preview orders it — how
+        /// an `NSGlassEffectView`'s content comes out in front of its glass.
+        /// Every layer is a node here.
+        func linkingPortalSources() {
+            for (source, portal) in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: capture.tree.layers) {
+                guard let sourceItem = itemsByObjectIdentifier[capture.tree.objectIdentifier(of: source)],
+                      let portalItem = itemsByObjectIdentifier[capture.tree.objectIdentifier(of: portal)]
+                else { continue }
+                sourceItem.previewPortalItem = portalItem
+            }
         }
 
         func makingItem(for layer: CALayer) -> DisplayItem {
@@ -77,6 +93,9 @@ enum CoreAnimationArchiveConverter {
             let objectIdentifier = capture.tree.objectIdentifier(of: layer)
 
             let item = DisplayItem()
+            if objectIdentifier != 0 {
+                itemsByObjectIdentifier[objectIdentifier] = item
+            }
             let viewIdentity = CoreAnimationArchiveViewIdentity(layer: layer)
             item.nodeKind = viewIdentity == nil ? .layer : .view
             // A layer other code named reads by that name, as Mica's outline

@@ -46,9 +46,13 @@ extension LiveLayerArchive {
     ///   subview, so its image holds none either.
     /// - solo: the layers of every node but this one. What no node owns
     ///   stays, such as the drawing container AppKit puts a view's drawing
-    ///   in: since macOS 15 a backing layer holds no drawing of its own.
+    ///   in: since macOS 15 a backing layer holds no drawing of its own. A
+    ///   backdrop keeps the glass shape layers under it: they are nodes that
+    ///   draw nothing themselves and give the glass its shape, so an
+    ///   expanded glass's plane shows the glass.
     func layersLeftOut(of kind: ImageKind, for nodes: NodeLayers) -> [CALayer] {
         guard let layer = layer(withOid: nodes.layerOid) else { return [] }
+        let keepsGlassShape = kind == .solo && XcodeViewHierarchyPixelRecovery.isBackdrop(layer)
         var leftOut: [CALayer] = []
         var pending = Array((layer.sublayers ?? []).reversed())
         while let sublayer = pending.popLast() {
@@ -58,7 +62,7 @@ extension LiveLayerArchive {
             case .group:
                 belongsToANode && !nodes.subtreeLayerOids.contains(sublayerOid)
             case .solo:
-                belongsToANode
+                belongsToANode && !(keepsGlassShape && XcodeViewHierarchyPixelRecovery.isGlassShapeInput(sublayer))
             }
             if isLeftOut {
                 leftOut.append(sublayer)
@@ -71,14 +75,16 @@ extension LiveLayerArchive {
 
     /// The node's image, drawn the way the importers draw theirs: the
     /// window's colour behind backdrops and vibrant content of a layer drawn
-    /// on its own, nothing for a glass shape. Nil when the archive has no
-    /// layer for the node or the image would be empty.
+    /// on its own, nothing for a glass shape or a layer that only cuts what
+    /// is beneath it. Nil when the archive has no layer for the node or the
+    /// image would be empty.
     ///
     /// Not to be called inside an explicit CATransaction, nor on two threads
     /// at once: the renderer moves the layer into a container while it draws.
     func image(of kind: ImageKind, for nodes: NodeLayers) -> CGImage? {
         guard let layer = layer(withOid: nodes.layerOid),
-              !XcodeViewHierarchyPixelRecovery.isGlassShapeInput(layer)
+              !XcodeViewHierarchyPixelRecovery.isGlassShapeInput(layer),
+              !XcodeViewHierarchyPixelRecovery.cutsWhatIsBeneath(layer)
         else { return nil }
         return XcodeViewHierarchyPixelRecovery.renderingImage(
             of: layer,

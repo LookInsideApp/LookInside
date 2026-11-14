@@ -21,6 +21,10 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     /// Sends each item whose frame changed. Also reaches `events()` as
     /// `.itemDidChangeFrame`.
     final let itemsDidChangeFrame = SyncSignal<DisplayItem>()
+    /// The preview's front-to-back order changed while the tree did not: a
+    /// window's layer archive told which nodes portals draw elsewhere
+    /// (`DisplayItem.previewPortalItem`).
+    final let previewOrderDidChange = SyncSignal<Void>()
 
     private var storedAppInfo: InspectedAppInfo?
     /// Keeps a detail's subitems rebuild from starting a detail update

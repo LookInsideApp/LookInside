@@ -177,6 +177,13 @@
         @objc private weak var previewLayer: AnyObject?
         @objc(previewZIndex)
         public var previewZIndex: Int = 0
+        /// Client side, not archived: the node whose portal draws this one on
+        /// screen while hiding it in place (`CAPortalLayer`'s
+        /// `hidesSourceLayer`). The preview orders this node's plane just
+        /// after that node and what is under it, where the portal draws it —
+        /// as an `NSGlassEffectView` draws its content over its glass.
+        @objc(previewPortalItem)
+        public weak var previewPortalItem: DisplayItem?
         @objc(preferToBeCollapsed)
         public var preferToBeCollapsed: Bool = false
         @objc(hasDeterminedExpansion)

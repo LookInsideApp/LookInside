@@ -213,6 +213,133 @@ extension HostAppTests {
             return await waitUntil(timeout: .seconds(20)) { isFinished }
         }
 
+        /// An `NSGlassEffectView` lists its content before the view that
+        /// draws its glass, and draws the content over the glass through
+        /// portals that hide it in place; the preview ordered the planes by
+        /// the hierarchy, and the expanded glass hid its content. Once the
+        /// window's archive arrives, each node a portal draws that way knows
+        /// the portal's node, and the preview hears that its order changed.
+        @Test func glassContentIsOrderedWhereItsPortalDrawsIt() async {
+            guard #available(macOS 26.0, *) else { return }
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 300, height: 100),
+                styleMask: [.titled],
+                backing: .buffered,
+                defer: false
+            )
+            window.isReleasedWhenClosed = false
+            defer { window.close() }
+            let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 100))
+            contentView.wantsLayer = true
+            let glassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+            glassView.contentView = NSTextField(labelWithString: "Filter")
+            contentView.addSubview(glassView)
+            window.contentView = contentView
+            window.displayIfNeeded()
+            CATransaction.flush()
+
+            // A node for every layer, as a Server lists them: oid 100 plus the
+            // layer's place in the walk.
+            guard var root = contentView.layer else {
+                Issue.record("the content view should have a layer")
+                return
+            }
+            while let superlayer = root.superlayer {
+                root = superlayer
+            }
+            var layers: [CALayer] = []
+            var pending = [root]
+            while let layer = pending.popLast() {
+                layers.append(layer)
+                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
+            }
+            var oidsByLayer: [ObjectIdentifier: UInt] = [:]
+            for (index, layer) in layers.enumerated() {
+                oidsByLayer[ObjectIdentifier(layer)] = UInt(100 + index)
+            }
+            var itemsByOid: [UInt: DisplayItem] = [:]
+            func item(for layer: CALayer) -> DisplayItem {
+                let layerObject = InspectedObject()
+                layerObject.oid = oidsByLayer[ObjectIdentifier(layer)] ?? 0
+                layerObject.classChainList = ["CALayer", "NSObject"]
+                let item = DisplayItem()
+                item.nodeKind = .layer
+                item.layerObject = layerObject
+                item.frame = layer.frame
+                item.bounds = layer.bounds
+                item.shouldCaptureImage = true
+                item.subitems = (layer.sublayers ?? []).map(item(for:))
+                itemsByOid[layerObject.oid] = item
+                return item
+            }
+            let windowObject = InspectedObject()
+            windowObject.oid = InspectedWindow.windowOid
+            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
+            let windowItem = DisplayItem()
+            windowItem.nodeKind = .window
+            windowItem.windowObject = windowObject
+            windowItem.frame = CGRect(origin: .zero, size: window.frame.size)
+            windowItem.bounds = windowItem.frame
+            windowItem.shouldCaptureImage = true
+            windowItem.subitems = [item(for: root)]
+            let appInfo = InspectedAppInfo()
+            appInfo.appName = "FakeApp"
+            appInfo.deviceType = .mac
+            appInfo.osDescription = "macOS"
+            appInfo.screenScale = 2
+            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
+            appInfo.layerArchiveProtocolVersion = 1
+            let hierarchy = HierarchyInfo()
+            hierarchy.appInfo = appInfo
+            hierarchy.displayItems = [windowItem]
+
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                let reply = LayerArchive()
+                reply.layerCount = UInt(layers.count)
+                reply.layerOids = layers.map { oidsByLayer[ObjectIdentifier($0)] ?? 0 }
+                reply.sublayerCounts = layers.map { UInt32($0.sublayers?.count ?? 0) }
+                typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
+                if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CAEncodeLayerTree") {
+                    let encode = unsafeBitCast(symbol, to: EncodeLayerTreeFunction.self)
+                    reply.archiveData = encode(root)?.takeRetainedValue() as Data?
+                }
+                return reply
+            }
+            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
+            let channel = server.connectChannel()
+            let app = InspectableApp()
+            app.appInfo = appInfo
+            app.channel = channel
+            let dataSource = StaticHierarchyDataSource()
+            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
+            manager.inspectableApp = app
+            var orderChanges = 0
+            let subscription = dataSource.previewOrderDidChange.observe { _ in orderChanges += 1 }
+            dataSource.reload(with: hierarchy, keepState: false)
+            #expect(await waitUntil { !manager.layerArchiveStore.hasPendingArchives })
+
+            // A layer two portals draw goes with the later one, drawn on top.
+            var lastPortalBySource: [ObjectIdentifier: (source: CALayer, portal: CALayer)] = [:]
+            for pair in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: layers) {
+                lastPortalBySource[ObjectIdentifier(pair.source)] = pair
+            }
+            #expect(!lastPortalBySource.isEmpty, "the glass should draw its content through a portal that hides it in place")
+            for (source, portal) in lastPortalBySource.values {
+                let sourceItem = itemsByOid[oidsByLayer[ObjectIdentifier(source)] ?? 0]
+                let portalItem = itemsByOid[oidsByLayer[ObjectIdentifier(portal)] ?? 0]
+                let linked = sourceItem?.previewPortalItem?.layerObject?.oid
+                #expect(
+                    portalItem != nil && sourceItem?.previewPortalItem === portalItem,
+                    "\(NSStringFromClass(type(of: source))) #\(oidsByLayer[ObjectIdentifier(source)] ?? 0), drawn by \(NSStringFromClass(type(of: portal))) #\(oidsByLayer[ObjectIdentifier(portal)] ?? 0), should know the portal's node; linked to \(String(describing: linked))"
+                )
+            }
+            #expect(orderChanges > 0, "the preview should hear that its order changed")
+            withExtendedLifetime((channel, app, dataSource, manager, subscription)) {}
+        }
+
         @Test func imagesComeFromTheWindowsLayerArchive() async {
             let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
             defer { inspected.window.close() }

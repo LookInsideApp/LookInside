@@ -149,6 +149,7 @@ enum XcodeViewHierarchyConverter {
 
         let displayItems = makingRootDisplayItems(session: session)
         guard !displayItems.isEmpty else { throw XcodeViewHierarchyConversionError.noWindowsOrRootViews }
+        session.linkingPortalSources()
 
         let hierarchyInfo = HierarchyInfo()
         hierarchyInfo.displayItems = displayItems
@@ -186,6 +187,9 @@ enum XcodeViewHierarchyConverter {
         var convertedLayerIdentifiers: Set<String> = []
         private(set) var soloScreenshotsByOid: [NSNumber: Data] = [:]
         private(set) var groupScreenshotsByOid: [NSNumber: Data] = [:]
+        /// The node whose images each layer files, the first one filed: a
+        /// view rather than the BackingLayer node under it.
+        private var itemsByLayerIdentifier: [String: DisplayItem] = [:]
 
         init(
             graph: XcodeViewHierarchyObjectGraph,
@@ -205,6 +209,19 @@ enum XcodeViewHierarchyConverter {
             )
         }
 
+        /// Tells each node that a portal draws elsewhere while hiding it in
+        /// place the portal's node, after which the preview orders it — how
+        /// an `NSGlassEffectView`'s content comes out in front of its glass.
+        func linkingPortalSources() {
+            for (sourceIdentifier, portalIdentifier) in screenshots.portalLayerIdentifierBySourceLayerIdentifier {
+                guard let sourceItem = itemsByLayerIdentifier[sourceIdentifier],
+                      let portalItem = itemsByLayerIdentifier[portalIdentifier],
+                      sourceItem !== portalItem
+                else { continue }
+                sourceItem.previewPortalItem = portalItem
+            }
+        }
+
         /// Files the images of the layer `imageIdentifier` under the object the
         /// node routes by, and records on `item` the region a group image
         /// covers when it covers less than the node. With
@@ -220,6 +237,9 @@ enum XcodeViewHierarchyConverter {
             under keyIdentifier: String,
             onto item: DisplayItem
         ) {
+            if let layerIdentifier = groupIdentifier ?? soloIdentifier, itemsByLayerIdentifier[layerIdentifier] == nil {
+                itemsByLayerIdentifier[layerIdentifier] = item
+            }
             let oid = XcodeViewHierarchyConverter.objectIdentifierValue(keyIdentifier)
             guard oid != 0 else { return }
             let key = NSNumber(value: UInt64(oid))

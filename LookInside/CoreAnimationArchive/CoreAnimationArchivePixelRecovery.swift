@@ -112,8 +112,9 @@ enum CoreAnimationArchivePixelRecovery {
             if isCancelled() {
                 throw CancellationError()
             }
-            // Liquid Glass's shape inputs show nothing of their own on screen.
-            guard !Renderer.isGlassShapeInput(layer) else { continue }
+            // Liquid Glass's shape inputs, and layers that only cut what is
+            // beneath them, show nothing of their own on screen.
+            guard !Renderer.isGlassShapeInput(layer), !Renderer.cutsWhatIsBeneath(layer) else { continue }
             let objectIdentifier = UInt(index + 1)
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)
@@ -135,9 +136,7 @@ enum CoreAnimationArchivePixelRecovery {
                 }
             }
             guard hasSublayers, !paintsOnlyItsBackground else { continue }
-            if let soloImage = Renderer.renderingPNG(
-                of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn
-            ) {
+            if let soloImage = Renderer.renderingOwnPNG(of: layer, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn) {
                 screenshots.soloByObjectIdentifier[objectIdentifier] = soloImage
             }
         }
