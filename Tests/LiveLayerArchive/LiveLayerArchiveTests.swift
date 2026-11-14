@@ -23,6 +23,7 @@ struct LiveLayerArchiveTests {
         testBackdropKeepsItsGlassShape()
         testPunchOutGetsNoImage()
         testHiddenGlassLeavesItsContentInPlace()
+        testImageOfAVeryTallLayerFitsThePreview()
         print("LiveLayerArchive tests passed")
     }
 
@@ -376,6 +377,51 @@ struct LiveLayerArchiveTests {
         expect(portalHides == true, "the portal should hide its source again after the render")
         let glassNodes = LiveLayerArchive.NodeLayers(layerOid: 503, subtreeLayerOids: [503], windowNodeLayerOids: every, hiddenGlassLayerOids: [502])
         expect(archive.image(of: .group, for: glassNodes) == nil, "a layer inside hidden glass should get no image")
+    }
+
+    /// RuntimeViewer's sidebar outline is 364.5 × 107829 points with every
+    /// group expanded. The preview takes no image longer than
+    /// `LookinNodeImageMaxLengthInPx` on a side and asserts on one: either
+    /// image drawn from the archive for such a layer is shrunk to fit.
+    private static func testImageOfAVeryTallLayerFitsThePreview() {
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testImageOfAVeryTallLayerFitsThePreview: no Metal device")
+            return
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let root = CALayer()
+        root.frame = CGRect(x: 0, y: 0, width: 400, height: 107_829)
+        let tall = CALayer()
+        tall.frame = CGRect(x: 0, y: 0, width: 364.5, height: 107_829)
+        tall.backgroundColor = CGColor(gray: 1, alpha: 1)
+        tall.contentsScale = 2
+        let row = CALayer()
+        row.frame = CGRect(x: 10, y: 50, width: 200, height: 20)
+        row.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+        row.contentsScale = 2
+        tall.addSublayer(row)
+        root.addSublayer(tall)
+        CATransaction.commit()
+        let walk = walking(root)
+        let reply = LayerArchive()
+        reply.archiveData = encoding(root)
+        reply.layerOids = walk.indices.map { UInt(600 + $0) }
+        reply.sublayerCounts = walk.map { UInt32($0.sublayers?.count ?? 0) }
+        let archive = decoding(reply)
+        let every = Set<UInt>(600 ... 602)
+        for kind in [LiveLayerArchive.ImageKind.group, .solo] {
+            guard let image = archive.image(of: kind, for: LiveLayerArchive.NodeLayers(
+                layerOid: 601, subtreeLayerOids: [601, 602], windowNodeLayerOids: every
+            )) else {
+                fail("the tall layer should have a \(kind) image")
+            }
+            let longestSide = max(image.width, image.height)
+            expect(
+                Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                "the \(kind) image of a 364.5 × 107829 layer should fit the preview, got \(image.width) × \(image.height)"
+            )
+        }
     }
 
     private enum SampledColour {

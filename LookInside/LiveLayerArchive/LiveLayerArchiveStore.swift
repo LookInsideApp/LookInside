@@ -59,6 +59,14 @@ final class LiveLayerArchiveStore {
         let kind: LiveLayerArchive.ImageKind
     }
 
+    /// What came of an image drawn from an archive.
+    private enum DrawnImage {
+        /// It went on the node.
+        case onTheNode
+        /// It came out empty.
+        case empty
+    }
+
     private struct Job {
         let key: ImageKey
         weak var item: DisplayItem?
@@ -101,7 +109,7 @@ final class LiveLayerArchiveStore {
     /// Most urgent first; within a priority, in the order asked for.
     private var waitingJobs: [Job] = []
     private var drawingJob: Job?
-    private var drawnKeys: Set<ImageKey> = []
+    private var drawnImages: [ImageKey: DrawnImage] = [:]
     private var idleWaiters: [@MainActor () -> Void] = []
     private var nodeLayerOidsByWindow: [UInt: Set<UInt>] = [:]
     /// The window nodes of the tree, by window oid.
@@ -306,7 +314,7 @@ final class LiveLayerArchiveStore {
         windowStates.removeAll()
         resumeSettleWaiters()
         waitingJobs.removeAll()
-        drawnKeys.removeAll()
+        drawnImages.removeAll()
         nodeLayerOidsByWindow.removeAll()
         windowItemsByOid.removeAll()
         glassLayerOidsByWindow.removeAll()
@@ -463,8 +471,8 @@ final class LiveLayerArchiveStore {
                 job.completions.append(completion)
             }
             enqueue(job)
-        } else if again || (!drawnKeys.contains(key) && drawingJob?.key != key) {
-            drawnKeys.remove(key)
+        } else if again || (!isDrawn(key, of: item) && drawingJob?.key != key) {
+            drawnImages[key] = nil
             var job = Job(key: key, item: item, archive: archive, nodes: nodes, priority: priority)
             if let completion {
                 job.completions.append(completion)
@@ -487,7 +495,7 @@ final class LiveLayerArchiveStore {
     /// for. A waiting drawing of it is dropped.
     func forgetImage(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) {
         let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
-        drawnKeys.remove(key)
+        drawnImages[key] = nil
         waitingJobs.removeAll { $0.key == key }
     }
 
@@ -495,7 +503,21 @@ final class LiveLayerArchiveStore {
     /// to be.
     func hasDrawnOrQueued(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) -> Bool {
         let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
-        return drawnKeys.contains(key) || drawingJob?.key == key || waitingJobs.contains { $0.key == key }
+        return isDrawn(key, of: item) || drawingJob?.key == key || waitingJobs.contains { $0.key == key }
+    }
+
+    /// Whether `key`'s image of `item` was drawn: it came out empty, or the
+    /// node still holds it. A node that grew too large for images let go of
+    /// them; once it fits, they are drawn again when asked for.
+    private func isDrawn(_ key: ImageKey, of item: DisplayItem) -> Bool {
+        switch drawnImages[key] {
+        case .empty?:
+            true
+        case .onTheNode?:
+            (key.kind == .group ? item.groupScreenshot : item.soloScreenshot) != nil
+        case nil:
+            false
+        }
     }
 
     /// Whether images are waiting or being drawn.
@@ -545,9 +567,13 @@ final class LiveLayerArchiveStore {
         drawingJob = nil
         var screenshot: NSImage?
         if generation == self.generation, let job {
-            drawnKeys.insert(job.key)
-            if let image, let item = job.item {
-                screenshot = NSImage(cgImage: image, size: size)
+            screenshot = image.map { Self.wrapping($0, size: size) }
+            if screenshot == nil {
+                drawnImages[job.key] = .empty
+            } else if let item = job.item, item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
+                // A node too large for an image gets none, as from the
+                // Server; whoever asked for it still hears it.
+                drawnImages[job.key] = .onTheNode
                 switch job.key.kind {
                 case .group:
                     item.groupScreenshot = screenshot
@@ -560,6 +586,19 @@ final class LiveLayerArchiveStore {
             completion(screenshot)
         }
         drawNext()
+    }
+
+    /// `image` at `size` in points, holding the pixels it has.
+    /// `NSImage(cgImage:size:)` reports `size` at the screen's scale as its
+    /// pixel size: an image the renderer shrank to fit
+    /// `LookinNodeImageMaxLengthInPx` claimed the full size, which the
+    /// preview refuses.
+    private static func wrapping(_ image: CGImage, size: CGSize) -> NSImage {
+        let representation = NSBitmapImageRep(cgImage: image)
+        representation.size = size
+        let wrapped = NSImage(size: size)
+        wrapped.addRepresentation(representation)
+        return wrapped
     }
 
     private func runIdleWaiters() {

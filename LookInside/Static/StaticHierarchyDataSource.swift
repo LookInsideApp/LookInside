@@ -55,23 +55,8 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         storedAppInfo = info?.appInfo
 
         assert(info == nil || (info?.appInfo?.screenScale ?? 0) > 0)
-        let screenScale = max(CGFloat(info?.appInfo?.screenScale ?? 0), 1)
-
-        // An SCNNode image is at most 16384 px on each side; keep 100 px
-        // clear of that. Pixels, not points.
-        let maxLengthInPx = CGFloat(LookinNodeImageMaxLengthInPx) - 100
         for item in flatItems ?? [] {
-            guard item.isPixelBearing() else {
-                // Guides, cells and a view's outer layer have no pixels of
-                // their own: a screenshot would draw the owning view's
-                // content a second time. No screenshot task, but they stay
-                // in the preview.
-                item.doNotFetchScreenshotReason = .doNotFetchScreenshotForNoPixels
-                continue
-            }
-            if item.frame.width * screenScale > maxLengthInPx || item.frame.height * screenScale > maxLengthInPx {
-                item.doNotFetchScreenshotReason = .doNotFetchScreenshotForTooLarge
-            }
+            markingImageLimits(of: item)
         }
 
         updateMessageStatus()
@@ -180,6 +165,9 @@ class StaticHierarchyDataSource: HierarchyDataSource {
                     descendant.doNotFetchScreenshotReason = .doNotFetchScreenshotForUserConfig
                 }
             }
+            // The image limits a reload marks, applied after the app's own
+            // opt-out as a reload applies them.
+            self.markingImageLimits(of: node)
             if let source = node.customInfo?.danceuiSource, !source.isEmpty {
                 DanceUIAttributeMaker.makeDanceUIJumpAttribute(node, danceSource: source)
             }
@@ -217,7 +205,48 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         }
         item.frame = frame
         item.bounds = bounds
+        refreshingTooLargeMark(of: item)
         itemsDidChangeFrame.send(item)
+    }
+
+    /// An image the preview takes is at most `LookinNodeImageMaxLengthInPx`
+    /// on each side, an SCNNode's limit; keep 100 px clear of that. Pixels,
+    /// not points.
+    private static let maximumImageLengthInPixels = CGFloat(LookinNodeImageMaxLengthInPx) - 100
+
+    /// Whether `item`'s frame is too large for an image of it.
+    private func isTooLargeForImages(_ item: DisplayItem) -> Bool {
+        let screenScale = max(CGFloat(storedAppInfo?.screenScale ?? 0), 1)
+        return max(item.frame.width, item.frame.height) * screenScale > Self.maximumImageLengthInPixels
+    }
+
+    /// Marks `item` when the preview takes no image of it, for every node a
+    /// reload or a detail brings. Guides, cells and a view's outer layer
+    /// have no pixels of their own: a screenshot would draw the owning
+    /// view's content a second time. No screenshot task, but they stay in
+    /// the preview. A node too large for an image gets none either.
+    private func markingImageLimits(of item: DisplayItem) {
+        if !item.isPixelBearing() {
+            item.doNotFetchScreenshotReason = .doNotFetchScreenshotForNoPixels
+        } else if isTooLargeForImages(item) {
+            item.doNotFetchScreenshotReason = .doNotFetchScreenshotForTooLarge
+        }
+    }
+
+    /// A detail changed `item`'s frame. Grown too large for an image, it is
+    /// marked as a reload would have marked it and lets go of its images:
+    /// they show it at its old size. Fitting again, it gets images again.
+    private func refreshingTooLargeMark(of item: DisplayItem) {
+        switch item.doNotFetchScreenshotReason {
+        case .fetchScreenshotPermitted where isTooLargeForImages(item):
+            item.doNotFetchScreenshotReason = .doNotFetchScreenshotForTooLarge
+            item.groupScreenshot = nil
+            item.soloScreenshot = nil
+        case .doNotFetchScreenshotForTooLarge where !isTooLargeForImages(item):
+            item.doNotFetchScreenshotReason = .fetchScreenshotPermitted
+        default:
+            break
+        }
     }
 
     private func updateMessageStatus() {
