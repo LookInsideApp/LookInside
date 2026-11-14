@@ -52,6 +52,7 @@ swiftc -parse-as-library \
 	"$CORE_ANIMATION_ARCHIVE_DIR/CoreAnimationArchive.swift" \
 	"$CORE_ANIMATION_ARCHIVE_DIR/CoreAnimationArchivePixelRecovery.swift" \
 	"$SOURCE_DIR/LiveLayerArchive.swift" \
+	"$SOURCE_DIR/LiveLayerArchiveImages.swift" \
 	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
 	"$TEST_DIR/LiveLayerArchiveTests.swift" \
 	"$TMPDIR"/lookin-core/*.o \

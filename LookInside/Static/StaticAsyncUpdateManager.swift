@@ -87,6 +87,11 @@ final class StaticAsyncUpdateManager: NSObject {
 
     private let dataSourceSignals = SyncSubscriptionBag()
 
+    /// The windows' layer archives, when the Server encodes them: the images
+    /// planning asks for are drawn from them where it can, instead of being
+    /// asked of the Server.
+    let layerArchiveStore = LiveLayerArchiveStore()
+
     init(hierarchyDataSource: StaticHierarchyDataSource?, inspectableApp: InspectableApp?) {
         self.hierarchyDataSource = hierarchyDataSource
         self.inspectableApp = inspectableApp
@@ -106,6 +111,18 @@ final class StaticAsyncUpdateManager: NSObject {
                 wholeTreeWaiters = waiters
                 updateForDisplayingItems()
             }
+        }
+        dataSourceSignals.observe(hierarchyDataSource?.didReloadHierarchyInfo) { [weak self] in
+            guard let self, let dataSource else { return }
+            layerArchiveStore.reload(
+                windows: dataSource.rawHierarchyInfo?.displayItems ?? [],
+                appInfo: dataSource.rawHierarchyInfo?.appInfo,
+                app: inspectableApp
+            )
+        }
+        layerArchiveStore.archivesDidSettle = { [weak self] in
+            // The images planned while the archive was on its way.
+            self?.updateForDisplayingItems()
         }
     }
 
@@ -310,7 +327,7 @@ final class StaticAsyncUpdateManager: NSObject {
             makeTasks(for: .wholeTree)
         }
         guard !newTasks.isEmpty else {
-            finishWholeTree()
+            finishWholeTree(continuing: true)
             return
         }
         send(newTasks, kind: .wholeTree)
@@ -318,8 +335,29 @@ final class StaticAsyncUpdateManager: NSObject {
 
     /// Hands the tree to whoever waits for `fetchWholeTree(then:)`, on a
     /// later main-queue turn: the request may have ended in the middle of a
-    /// reload.
-    private func finishWholeTree() {
+    /// reload. With windows drawn from layer archives the tree is whole once
+    /// their images are drawn too, and an archive still on its way plans the
+    /// tree again when it arrives. `continuing` after a request that answered
+    /// every task, or when nothing was left to ask: an archive that arrived
+    /// meanwhile left images unplanned, so the tree is planned once more
+    /// (the answered tasks and the drawn images are not planned again). A
+    /// request that failed or was stopped hands over what arrived.
+    private func finishWholeTree(continuing: Bool) {
+        guard !wholeTreeWaiters.isEmpty else { return }
+        if continuing, layerArchiveStore.isActive {
+            guard !layerArchiveStore.hasPendingArchives else { return }
+            let remainingTasks = makeTasks(for: .wholeTree)
+            if !remainingTasks.isEmpty {
+                send(remainingTasks, kind: .wholeTree)
+                return
+            }
+        }
+        if layerArchiveStore.isDrawingImages {
+            layerArchiveStore.whenImagesAreDrawn { [weak self] in
+                self?.finishWholeTree(continuing: false)
+            }
+            return
+        }
         let waiters = wholeTreeWaiters
         wholeTreeWaiters.removeAll()
         guard !waiters.isEmpty else { return }
@@ -402,18 +440,47 @@ final class StaticAsyncUpdateManager: NSObject {
             var tasks: [StaticAsyncUpdateTask] = []
             var taskKeys = Set<DetailTaskKey>()
             for request in requests where !blockedIndexes.contains(request.nodeIndex) {
-                let taskType: LookinStaticAsyncUpdateTaskType = switch request.screenshot {
+                let item = items[request.nodeIndex]
+                let screenshot = self.routingToLayerArchive(request.screenshot, of: item, for: kind)
+                guard screenshot != nil || request.wantsAttributes else { continue }
+                let taskType: LookinStaticAsyncUpdateTaskType = switch screenshot {
                 case .solo: .soloScreenshot
                 case .group: .groupScreenshot
                 case nil: .noScreenshot
                 }
-                guard let task = Self.task(from: items[request.nodeIndex], type: taskType, context: context) else { continue }
+                guard let task = Self.task(from: item, type: taskType, context: context) else { continue }
                 task.attrRequest = request.wantsAttributes ? .need : .notNeed
                 let key = DetailTaskKey(task)
                 guard !self.answeredTasks.contains(key), taskKeys.insert(key).inserted else { continue }
                 tasks.append(task)
             }
             return tasks
+        }
+    }
+
+    /// The screenshot the Server still has to take of `item`: `screenshot`
+    /// itself, or nil when the window's layer archive draws it (it is drawn
+    /// now) or is on its way (it is planned again once the archive arrives).
+    private func routingToLayerArchive(
+        _ screenshot: DetailFetchPlanning.Screenshot?,
+        of item: DisplayItem,
+        for kind: DetailRequestKind
+    ) -> DetailFetchPlanning.Screenshot? {
+        guard let screenshot, layerArchiveStore.isActive else { return screenshot }
+        let imageKind: LiveLayerArchive.ImageKind = screenshot == .solo ? .solo : .group
+        switch layerArchiveStore.imageSource(imageKind, of: item) {
+        case .server:
+            return screenshot
+        case .pendingArchive:
+            return nil
+        case let .archive(archive, nodes):
+            let priority: LiveLayerArchiveStore.Priority = switch kind {
+            case .foreground: .shown
+            case .wholeTree: .wholeTree
+            case .prefetch: .prefetch
+            }
+            layerArchiveStore.drawImage(imageKind, of: item, archive: archive, nodes: nodes, priority: priority)
+            return nil
         }
     }
 
@@ -679,7 +746,7 @@ final class StaticAsyncUpdateManager: NSObject {
         }
         if request.kind == .wholeTree {
             // The file gets what arrived.
-            finishWholeTree()
+            finishWholeTree(continuing: false)
         }
         guard request.kind.isWaitedFor else {
             // A prefetch the user never waited for fails quietly; the items
@@ -732,7 +799,7 @@ final class StaticAsyncUpdateManager: NSObject {
         PerformanceReporter.sharedInstance().didComplete()
         if request.kind == .wholeTree {
             // Answered, or stopped: the file gets what arrived.
-            finishWholeTree()
+            finishWholeTree(continuing: answeredEveryTask)
         }
         return answeredEveryTask
     }

@@ -187,6 +187,8 @@
 				Launch/LaunchWindowController.swift,
 				Launch/ServerVersionAlert.swift,
 				LiveLayerArchive/LiveLayerArchive.swift,
+				LiveLayerArchive/LiveLayerArchiveImages.swift,
+				LiveLayerArchive/LiveLayerArchiveStore.swift,
 				Localizable.xcstrings,
 				LookinArchiveIcon.icns,
 				Manager/AppHelper.swift,

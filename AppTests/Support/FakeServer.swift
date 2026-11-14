@@ -35,9 +35,16 @@ final class FakeServer {
     /// `answerHeldRequests(with:)`.
     var heldRequestTypes: Set<UInt32> = []
     let appInfo: InspectedAppInfo
+    /// How the Server answers request types other than the app info: given
+    /// the request's data, the response's data. Without one, a request is
+    /// answered with no data.
+    var responders: [UInt32: (Any?) -> Any?] = [:]
 
     /// The type of every request received, in order, from every channel.
     private(set) var receivedRequestTypes: [UInt32] = []
+    /// Every request received, in order, with its data as the Server's
+    /// receive path unarchives it.
+    private(set) var receivedRequests: [(type: UInt32, data: Any?)] = []
     /// Server ends of the channels the Host connected, oldest first.
     private(set) var connections: [FrameChannel] = []
     private var heldRequests: [(connection: FrameChannel, type: UInt32, tag: UInt32)] = []
@@ -142,6 +149,8 @@ final class FakeServer {
 
     private func didReceive(_ frame: TransportFrame, on connection: FrameChannel) {
         receivedRequestTypes.append(frame.type)
+        let requestData = Self.requestData(frame.payload)
+        receivedRequests.append((frame.type, requestData))
         if heldRequestTypes.contains(frame.type) {
             heldRequests.append((connection, frame.type, frame.tag))
             return
@@ -154,11 +163,22 @@ final class FakeServer {
         case .inBackground:
             attachment.appIsInBackground = true
         case .answering:
-            if frame.type == UInt32(LookinRequestTypeApp) {
+            if let responder = responders[frame.type] {
+                attachment.data = responder(requestData)
+            } else if frame.type == UInt32(LookinRequestTypeApp) {
                 attachment.data = appInfo
             }
         }
         send(attachment, type: frame.type, tag: frame.tag, on: connection)
+    }
+
+    /// The data a request carries, unarchived without secure coding as the
+    /// Server's receive path does.
+    private static func requestData(_ payload: Data) -> Any? {
+        guard !payload.isEmpty, let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: payload) else { return nil }
+        unarchiver.requiresSecureCoding = false
+        defer { unarchiver.finishDecoding() }
+        return (unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? ConnectionAttachment)?.data
     }
 
     private func send(_ attachment: ConnectionResponseAttachment, type: UInt32, tag: UInt32, on connection: FrameChannel) {
