@@ -21,4 +21,25 @@ public enum PreviewGlassLayers {
     public static func isGlassLayer(classChain: [String]) -> Bool {
         classChain.contains(glassLayerClassName)
     }
+
+    /// The view AppKit wraps each split view item in, and the glass view it
+    /// puts there behind a sidebar or an inspector.
+    public static let splitViewItemWrapperClassName = "_NSSplitViewItemViewWrapper"
+    public static let glassEffectViewClassName = "NSGlassEffectView"
+
+    /// Whether a glass layer is the glass AppKit puts behind a split view
+    /// item — a sidebar's or an inspector's — given the class chains of the
+    /// views above it, nearest first: the nearest `NSGlassEffectView` sits
+    /// right in the item's wrapper view. That glass covers the item's content
+    /// in the preview, and it is what the Liquid Glass setting's Hide leaves
+    /// out where LookInside draws glass; a control's glass stays.
+    public static func isSplitViewBackgroundGlass(viewAncestorClassChains: some Sequence<[String]>) -> Bool {
+        var iterator = viewAncestorClassChains.makeIterator()
+        while let classChain = iterator.next() {
+            if classChain.contains(glassEffectViewClassName) {
+                return iterator.next()?.contains(splitViewItemWrapperClassName) == true
+            }
+        }
+        return false
+    }
 }
