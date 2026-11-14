@@ -154,6 +154,9 @@ final class PreviewController: BaseViewController, NSGestureRecognizerDelegate, 
             dataSourceSignals.observe(staticDataSource.itemsDidChangeFrame) { [weak self] in
                 self?.previewView.setNeedsZPositionUpdate()
             }
+            dataSourceSignals.observe(staticDataSource.previewOrderDidChange) { [weak self] in
+                self?.previewView.setNeedsZPositionUpdate()
+            }
         }
 
         panRecognizer.delegate = self

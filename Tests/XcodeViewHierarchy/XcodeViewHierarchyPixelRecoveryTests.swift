@@ -38,6 +38,7 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testStandInDoesNotOutliveItsRender()
         testArchiveRoundTripsThroughDecoder()
         testMalformedArchiveIsRejected()
+        testPortalSourcesAreNamedWithTheirPortals()
         print("Xcode view hierarchy pixel recovery tests passed")
     }
 
@@ -329,6 +330,47 @@ struct XcodeViewHierarchyPixelRecoveryTests {
 
     /// Most layers in a capture draw nothing. Keeping their empty images would
     /// multiply a document's memory for no visible gain.
+    /// An `NSGlassEffectView` draws its content over its glass through a
+    /// portal that hides the content in place; the preview orders the
+    /// content's node where the portal draws it. The recovery names, for
+    /// each layer drawn that way, the layer of the portal's node.
+    private static func testPortalSourcesAreNamedWithTheirPortals() {
+        guard let portalLayerClass = NSClassFromString("CAPortalLayer") as? CALayer.Type else {
+            print("skipped testPortalSourcesAreNamedWithTheirPortals: no portal layer class")
+            return
+        }
+        let root = CALayer()
+        root.bounds = CGRect(x: 0, y: 0, width: 100, height: 40)
+        let content = CALayer()
+        content.frame = root.bounds
+        let label = CALayer()
+        label.frame = CGRect(x: 10, y: 10, width: 40, height: 20)
+        label.backgroundColor = CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1)
+        content.addSublayer(label)
+        let glassGroup = CALayer()
+        glassGroup.frame = root.bounds
+        let portal = portalLayerClass.init()
+        portal.frame = root.bounds
+        portal.setValue(content, forKey: "sourceLayer")
+        portal.setValue(true, forKey: "hidesSourceLayer")
+        glassGroup.addSublayer(portal)
+        root.addSublayer(content)
+        root.addSublayer(glassGroup)
+        guard let archiveData = archiveData(rootLayer: root, geometryFlipped: false) else {
+            fail("could not build the archive fixture")
+        }
+        let screenshots = XcodeViewHierarchyPixelRecovery.recovering(
+            from: layerCapture(archiveData: archiveData, tree: LayerNodeFixture("0x1", [
+                LayerNodeFixture("0x2", [LayerNodeFixture("0x3")]),
+                LayerNodeFixture("0x4", [LayerNodeFixture("0x5")]),
+            ]))
+        )
+        expect(
+            screenshots.portalLayerIdentifierBySourceLayerIdentifier == ["0x2": "0x5"],
+            "the content should be named with the portal that draws it, got \(screenshots.portalLayerIdentifierBySourceLayerIdentifier)"
+        )
+    }
+
     private static func testEmptyLayerProducesNoImage() {
         let layer = CALayer()
         layer.bounds = CGRect(x: 0, y: 0, width: 40, height: 40)

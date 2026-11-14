@@ -46,6 +46,67 @@ struct PreviewZOrderingTests {
         #expect(PreviewZOrdering.zIndexes(of: planes, showsHiddenItems: true) == [0, 1, 2])
     }
 
+    // MARK: - Planes a portal draws elsewhere
+
+    /// An `NSGlassEffectView` as AppKit builds it: its content holder comes
+    /// before the view that draws the glass. A portal inside a content group
+    /// draws the content holder, a SwiftUI portal after the backdrop draws
+    /// that group over the glass, and both hide what they draw in place.
+    ///
+    ///     0 glass view
+    ///       1 content holder        drawn at 6
+    ///         2 search field
+    ///       3 glass layer
+    ///         4 content group       drawn at 9
+    ///           5 tint
+    ///           6 portal
+    ///         7 glass
+    ///           8 backdrop
+    ///           9 portal
+    private let glassViewParents: [Int?] = [nil, 0, 1, 0, 3, 4, 4, 3, 7, 7]
+    private let glassViewPortals: [Int: Int] = [1: 6, 4: 9]
+
+    @Test func aPlaneAPortalDrawsIsVisitedRightAfterThePortal() {
+        let visiting = PreviewZOrdering.visitingOrder(parents: glassViewParents, drawnAtPortals: glassViewPortals)
+        #expect(visiting.order == [0, 3, 7, 8, 9, 4, 5, 6, 1, 2])
+        #expect(visiting.parents == [nil, 6, 1, 0, 9, 4, 4, 3, 7, 7])
+    }
+
+    @Test func theGlassViewsContentSitsInFrontOfItsGlass() {
+        let frame = CGRect(x: 0, y: 0, width: 300, height: 28)
+        func zIndexByPlane(drawnAtPortals: [Int: Int]) -> [Int: Int] {
+            let visiting = PreviewZOrdering.visitingOrder(parents: glassViewParents, drawnAtPortals: drawnAtPortals)
+            var positionByPlane: [Int: Int] = [:]
+            for (position, index) in visiting.order.enumerated() {
+                positionByPlane[index] = position
+            }
+            let planes = visiting.order.map { index in
+                plane(frame, parent: visiting.parents[index].flatMap { positionByPlane[$0] }.map { .plane(index: $0) } ?? .none)
+            }
+            let zIndexes = PreviewZOrdering.zIndexes(of: planes, showsHiddenItems: false)
+            return Dictionary(uniqueKeysWithValues: zip(visiting.order, zIndexes))
+        }
+        let inTreeOrder = zIndexByPlane(drawnAtPortals: [:])
+        #expect(inTreeOrder[2]! < inTreeOrder[8]!, "in tree order the backdrop covers the search field")
+        let asDrawn = zIndexByPlane(drawnAtPortals: glassViewPortals)
+        #expect(asDrawn[2]! > asDrawn[8]!, "the search field should sit in front of the backdrop")
+        #expect(asDrawn[5]! > asDrawn[8]!, "the tint the content group draws should sit in front of the backdrop")
+    }
+
+    @Test func aPortalInsideWhatItDrawsLeavesTheOrderAlone() {
+        let parents: [Int?] = [nil, 0, 1]
+        let visiting = PreviewZOrdering.visitingOrder(parents: parents, drawnAtPortals: [1: 2])
+        #expect(visiting.order == [0, 1, 2])
+        #expect(visiting.parents == parents)
+    }
+
+    @Test func withoutPortalsPlanesAreVisitedInHierarchyOrder() {
+        let parents: [Int?] = [nil, 0, 0, 2, nil, 4]
+        let visiting = PreviewZOrdering.visitingOrder(parents: parents, drawnAtPortals: [:])
+        #expect(visiting.order == Array(parents.indices))
+        #expect(visiting.parents == parents)
+    }
+
     /// The pass the preview ran before, item by item and pair by pair, on
     /// random trees: the new pass must give every plane the same z index.
     @Test(arguments: 1 ... 40)

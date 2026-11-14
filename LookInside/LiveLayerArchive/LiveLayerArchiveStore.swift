@@ -104,6 +104,8 @@ final class LiveLayerArchiveStore {
     private var drawnKeys: Set<ImageKey> = []
     private var idleWaiters: [@MainActor () -> Void] = []
     private var nodeLayerOidsByWindow: [UInt: Set<UInt>] = [:]
+    /// The window nodes of the tree, by window oid.
+    private var windowItemsByOid: [UInt: DisplayItem] = [:]
     private var serverDrawnDescendantsByItem: [ObjectIdentifier: Bool] = [:]
 
     // MARK: - Archives
@@ -117,6 +119,7 @@ final class LiveLayerArchiveStore {
         isActive = true
         let windowOids = windows.compactMap { window -> UInt? in
             guard window.resolvedNodeKind() == .window, let oid = window.windowObject?.oid, oid != 0 else { return nil }
+            windowItemsByOid[oid] = window
             return oid
         }
         for windowOid in windowOids {
@@ -231,6 +234,9 @@ final class LiveLayerArchiveStore {
         switch outcome {
         case let .success(archive):
             windowStates[windowOid] = .ready(archive)
+            if let window = windowItemsByOid[windowOid] {
+                linkingPortalSources(in: window, from: archive)
+            }
             #log(.default, "LayerArchive - window \(windowOid, privacy: .public): \(archive.layers.count, privacy: .public) layers")
         case let .failure(error):
             windowStates[windowOid] = .unavailable
@@ -241,6 +247,32 @@ final class LiveLayerArchiveStore {
             resumeSettleWaiters()
         }
         archivesDidSettle?()
+    }
+
+    /// Tells each node of `window` that a portal draws elsewhere while
+    /// hiding it in place the portal's node, after which the preview orders
+    /// it — how an `NSGlassEffectView`'s content comes out in front of its
+    /// glass. A portal that is no node of its own counts as the nearest node
+    /// above it; a layer two nodes share (a view and its BackingLayer node)
+    /// counts as the outer one. Links from an older archive go.
+    private func linkingPortalSources(in window: DisplayItem, from archive: LiveLayerArchive) {
+        var itemsByLayerOid: [UInt: DisplayItem] = [:]
+        window.enumerateSelfAndChildren { item in
+            item.previewPortalItem = nil
+            guard let oid = item.layerObject?.oid, oid != 0, itemsByLayerOid[oid] == nil else { return }
+            itemsByLayerOid[oid] = item
+        }
+        for (source, portal) in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: archive.layers) {
+            guard let sourceItem = itemsByLayerOid[archive.oid(of: source)] else { continue }
+            var holder: CALayer? = portal
+            var portalItem: DisplayItem?
+            while let candidate = holder, portalItem == nil {
+                portalItem = itemsByLayerOid[archive.oid(of: candidate)]
+                holder = candidate.superlayer
+            }
+            guard let portalItem, portalItem !== sourceItem else { continue }
+            sourceItem.previewPortalItem = portalItem
+        }
     }
 
     private func resumeSettleWaiters() {
@@ -268,6 +300,7 @@ final class LiveLayerArchiveStore {
         waitingJobs.removeAll()
         drawnKeys.removeAll()
         nodeLayerOidsByWindow.removeAll()
+        windowItemsByOid.removeAll()
         serverDrawnDescendantsByItem.removeAll()
         // A drawing on the work queue finishes into the old generation and
         // is dropped. Whoever waits for the images hears on a later turn,

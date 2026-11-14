@@ -37,6 +37,7 @@ struct CoreAnimationArchiveConverterTests {
             testGlassShapeInputsGetNoImage()
             testLayersInsideGlassShapesGetNoImage()
             testExpandedGlassPlaneDrawsTheGlass()
+            testGlassContentIsOrderedWhereItsPortalDrawsIt()
         }
         testPunchOutLayersGetNoImage()
         testVibrantContentOnItsOwnLooksAsOverItsMaterial()
@@ -365,6 +366,53 @@ struct CoreAnimationArchiveConverterTests {
         let pixels = premultipliedPixels(of: soloImage)
         let centre = ((soloImage.height / 2) * soloImage.width + soloImage.width / 2) * 4
         expect(pixels[centre + 3] > 200, "the backdrop's own image should show the glass, alpha \(pixels[centre + 3]) at its centre")
+    }
+
+    /// An `NSGlassEffectView` lists its content before the view that draws
+    /// its glass, and draws the content over the glass through portals that
+    /// hide it in place. The preview orders planes by the hierarchy, so the
+    /// expanded glass covered the search field it holds. A node a portal
+    /// draws that way knows the portal's node, after which the preview
+    /// orders it.
+    @MainActor
+    private static func testGlassContentIsOrderedWhereItsPortalDrawsIt() {
+        guard #available(macOS 26.0, *) else {
+            print("skipped testGlassContentIsOrderedWhereItsPortalDrawsIt: NSGlassEffectView needs macOS 26")
+            return
+        }
+        let (contentView, window) = makingLayerBackedContentView()
+        window.setContentSize(NSSize(width: 300, height: 100))
+        let glassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+        glassView.contentView = NSTextField(labelWithString: "Filter")
+        contentView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        let contents = withExtendedLifetime(window) { decodedContents(of: contentLayer) }
+        let tree = CoreAnimationArchiveLayerTree(contents: contents)
+        let file = CoreAnimationArchiveConverter.makingHierarchyFile(
+            from: CoreAnimationArchiveCapture(tree: tree, screenshots: CoreAnimationArchiveScreenshots(), origin: nil)
+        )
+        var itemByOid: [UInt: DisplayItem] = [:]
+        for item in flattened(file.hierarchyInfo?.displayItems ?? []) {
+            if let oid = item.layerObject?.oid {
+                itemByOid[oid] = item
+            }
+        }
+        // A layer two portals draw goes with the later one, drawn on top.
+        var lastPortalBySource: [ObjectIdentifier: (source: CALayer, portal: CALayer)] = [:]
+        for pair in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: tree.layers) {
+            lastPortalBySource[ObjectIdentifier(pair.source)] = pair
+        }
+        expect(!lastPortalBySource.isEmpty, "the glass should draw its content through a portal that hides it in place")
+        for (source, portal) in lastPortalBySource.values {
+            let sourceOid = tree.objectIdentifier(of: source)
+            let portalItem = itemByOid[tree.objectIdentifier(of: portal)]
+            expect(portalItem != nil, "the portal drawing #\(sourceOid) should have a node")
+            expect(
+                itemByOid[sourceOid]?.previewPortalItem === portalItem,
+                "#\(sourceOid), which a portal draws over the glass, should know the portal's node"
+            )
+        }
     }
 
     /// A layer composited with `destOut` only cuts what is beneath it: a

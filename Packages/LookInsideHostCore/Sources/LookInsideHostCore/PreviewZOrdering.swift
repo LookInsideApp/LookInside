@@ -97,3 +97,63 @@ public enum PreviewZOrdering {
         return highest
     }
 }
+
+// MARK: - Planes a portal draws elsewhere
+
+public extension PreviewZOrdering {
+    /// The order the pass visits the planes in, and the parent each counts
+    /// there, when portals draw some of them elsewhere on screen.
+    ///
+    /// `parents` lists the planes in hierarchy order, each with its parent's
+    /// index (an earlier one) or nil. `drawnAtPortals` maps a plane that a
+    /// portal draws while hiding it in place (`CAPortalLayer`'s
+    /// `hidesSourceLayer`) to the portal's plane. Such a plane, with
+    /// everything under it, is visited as the portal's last child — right
+    /// after the portal and what is under it — so it comes out in front of
+    /// whatever the portal is drawn over, as an `NSGlassEffectView`'s content
+    /// is drawn over its glass. A portal inside what it draws is left alone.
+    /// With no portals the order is the hierarchy's.
+    static func visitingOrder(parents: [Int?], drawnAtPortals: [Int: Int]) -> (order: [Int], parents: [Int?]) {
+        guard !drawnAtPortals.isEmpty else {
+            return (Array(parents.indices), parents)
+        }
+        var visitingParents = parents
+        var children = [[Int]](repeating: [], count: parents.count)
+        var roots: [Int] = []
+        for (index, parent) in parents.enumerated() {
+            if let parent, children.indices.contains(parent) {
+                children[parent].append(index)
+            } else {
+                roots.append(index)
+            }
+        }
+        func isAncestor(_ candidate: Int, of index: Int) -> Bool {
+            var current: Int? = index
+            while let step = current {
+                if step == candidate { return true }
+                current = visitingParents[step]
+            }
+            return false
+        }
+        for (source, portal) in drawnAtPortals.sorted(by: { $0.key < $1.key }) {
+            guard parents.indices.contains(source), parents.indices.contains(portal),
+                  !isAncestor(source, of: portal)
+            else { continue }
+            if let parent = visitingParents[source], children.indices.contains(parent) {
+                children[parent].removeAll { $0 == source }
+            } else {
+                roots.removeAll { $0 == source }
+            }
+            children[portal].append(source)
+            visitingParents[source] = portal
+        }
+        var order: [Int] = []
+        order.reserveCapacity(parents.count)
+        var pending = Array(roots.reversed())
+        while let index = pending.popLast() {
+            order.append(index)
+            pending.append(contentsOf: children[index].reversed())
+        }
+        return (order, visitingParents)
+    }
+}

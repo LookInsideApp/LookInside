@@ -87,6 +87,11 @@ struct XcodeViewHierarchyScreenshots {
     var groupExcludingHostedViewsRegionByObjectIdentifier: [String: CGRect] = [:]
     /// Layer archives that failed to decode; the nodes below them have no pixels.
     let failedArchiveIdentifiers: [String]
+    /// For each layer a portal draws elsewhere while hiding it in place, the
+    /// layer of the portal's node: the portal itself, or the nearest layer
+    /// above it that is a node. The preview orders the source's node there,
+    /// as an `NSGlassEffectView`'s content shows over its glass.
+    var portalLayerIdentifierBySourceLayerIdentifier: [String: String] = [:]
 }
 
 enum XcodeViewHierarchyPixelRecovery {
@@ -227,8 +232,42 @@ enum XcodeViewHierarchyPixelRecovery {
             groupExcludingHostedViewsByObjectIdentifier: groupExcludingHostedViewsByObjectIdentifier,
             groupRegionByObjectIdentifier: groupRegionByObjectIdentifier,
             groupExcludingHostedViewsRegionByObjectIdentifier: groupExcludingHostedViewsRegionByObjectIdentifier,
-            failedArchiveIdentifiers: failedIdentifiers
+            failedArchiveIdentifiers: failedIdentifiers,
+            portalLayerIdentifierBySourceLayerIdentifier: portalLayerIdentifiers(in: trees, alignment: alignment)
         )
+    }
+
+    /// `XcodeViewHierarchyScreenshots.portalLayerIdentifierBySourceLayerIdentifier`
+    /// for `trees`, whose layers `alignment` names.
+    private static func portalLayerIdentifiers(
+        in trees: [XcodeViewHierarchyLayerTree],
+        alignment: [String: CALayer]
+    ) -> [String: String] {
+        var identifierByLayer: [ObjectIdentifier: String] = [:]
+        for (objectIdentifier, layer) in alignment {
+            identifierByLayer[ObjectIdentifier(layer)] = objectIdentifier
+        }
+        var portalIdentifiers: [String: String] = [:]
+        for tree in trees {
+            var layers: [CALayer] = []
+            var pending = [tree.rootLayer]
+            while let layer = pending.popLast() {
+                layers.append(layer)
+                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
+            }
+            for (source, portal) in portalsHidingTheirSources(in: layers) {
+                guard let sourceIdentifier = identifierByLayer[ObjectIdentifier(source)] else { continue }
+                var holder: CALayer? = portal
+                while let candidate = holder, identifierByLayer[ObjectIdentifier(candidate)] == nil {
+                    holder = candidate.superlayer
+                }
+                guard let holder, let portalIdentifier = identifierByLayer[ObjectIdentifier(holder)],
+                      portalIdentifier != sourceIdentifier
+                else { continue }
+                portalIdentifiers[sourceIdentifier] = portalIdentifier
+            }
+        }
+        return portalIdentifiers
     }
 
     // MARK: - Drawing region
@@ -481,6 +520,26 @@ enum XcodeViewHierarchyPixelRecovery {
             current = candidate.superlayer
         }
         return false
+    }
+
+    /// The layers that portals among `layers` draw elsewhere while hiding
+    /// them in place (`CAPortalLayer`'s `hidesSourceLayer`), each with its
+    /// portal. An `NSGlassEffectView` draws its content over its glass this
+    /// way, twice over: a portal draws the content holder into a group of
+    /// layers, and a SwiftUI portal after the backdrop draws that group. The
+    /// preview orders such a source's plane where its portal draws it; a
+    /// source two portals draw goes with the later one in `layers`, drawn on
+    /// top of the other. The pairs come in the order of `layers`.
+    static func portalsHidingTheirSources(in layers: [CALayer]) -> [(source: CALayer, portal: CALayer)] {
+        guard let portalLayerClass = NSClassFromString("CAPortalLayer") else { return [] }
+        return layers.compactMap { layer in
+            guard layer.isKind(of: portalLayerClass),
+                  (layer.value(forKey: "hidesSourceLayer") as? Bool) == true,
+                  let source = layer.value(forKey: "sourceLayer") as? CALayer,
+                  source !== layer
+            else { return nil }
+            return (source, layer)
+        }
     }
 
     /// The compositing filters that keep none of a layer's own pixels and
