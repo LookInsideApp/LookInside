@@ -299,7 +299,8 @@ final class StaticAsyncUpdateManager: NSObject {
     /// When the new archive did not arrive (`succeeded` false) the window is
     /// the Server's: every image drawn from its old archive is dropped and
     /// asked of the Server. `completion` runs once the images on screen are
-    /// drawn again.
+    /// drawn again. A node the preview takes no image of — without pixels of
+    /// its own, too large — gets none here either.
     private func redrawFromNewArchive(of window: DisplayItem, succeeded: Bool, completion: @escaping @MainActor () -> Void) {
         guard dataSource?.rawHierarchyInfo?.displayItems?.contains(where: { $0 === window }) == true else {
             // A reload replaced the tree meanwhile.
@@ -310,7 +311,7 @@ final class StaticAsyncUpdateManager: NSObject {
         var redrawsLeft = 0
         var droppedOids = Set<UInt>()
         window.enumerateSelfAndChildren { item in
-            guard item !== window else { return }
+            guard item !== window, item.doNotFetchScreenshotReason == .fetchScreenshotPermitted else { return }
             for kind in [LiveLayerArchive.ImageKind.group, .solo] {
                 let wasDrawnFromArchive = self.layerArchiveStore.hasDrawnOrQueued(kind, of: item)
                 let source = succeeded ? self.layerArchiveStore.imageSource(kind, of: item) : .server

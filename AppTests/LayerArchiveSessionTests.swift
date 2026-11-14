@@ -140,12 +140,114 @@ extension HostAppTests {
             guard UInt(layers.count) <= layerLimit else { return reply }
             reply.layerOids = layers.map { inspected.oidsByLayer[ObjectIdentifier($0)] ?? 0 }
             reply.sublayerCounts = layers.map { UInt32($0.sublayers?.count ?? 0) }
-            typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
-            if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CAEncodeLayerTree") {
-                let encode = unsafeBitCast(symbol, to: EncodeLayerTreeFunction.self)
-                reply.archiveData = encode(root)?.takeRetainedValue() as Data?
-            }
+            reply.archiveData = encodingLayerTree(root)
             return reply
+        }
+
+        /// `root`'s layer tree as QuartzCore encodes it for a macOS Server.
+        private static func encodingLayerTree(_ root: CALayer) -> Data? {
+            typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
+            guard let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CAEncodeLayerTree") else { return nil }
+            let encode = unsafeBitCast(symbol, to: EncodeLayerTreeFunction.self)
+            return encode(root)?.takeRetainedValue() as Data?
+        }
+
+        /// A window whose nodes are its layers, one for every layer under
+        /// `rootLayer`, as a Server lists them: oid 100 plus the layer's
+        /// place in the walk, depth first.
+        private struct LayerNodes {
+            let rootLayer: CALayer
+            let layers: [CALayer]
+            let oidsByLayer: [ObjectIdentifier: UInt]
+            let itemsByOid: [UInt: DisplayItem]
+            let hierarchy: HierarchyInfo
+
+            func oid(of layer: CALayer) -> UInt {
+                oidsByLayer[ObjectIdentifier(layer)] ?? 0
+            }
+
+            func item(for layer: CALayer) -> DisplayItem? {
+                itemsByOid[oid(of: layer)]
+            }
+        }
+
+        /// The nodes of a window of `windowSize` whose layers are
+        /// `rootLayer`'s tree, each node with its layer's class — SwiftUI's
+        /// glass layers are what the Liquid Glass setting hides —, geometry,
+        /// opacity and hidden flag.
+        private static func layerNodes(under rootLayer: CALayer, windowSize: CGSize) -> LayerNodes {
+            var layers: [CALayer] = []
+            var pending = [rootLayer]
+            while let layer = pending.popLast() {
+                layers.append(layer)
+                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
+            }
+            var oidsByLayer: [ObjectIdentifier: UInt] = [:]
+            for (index, layer) in layers.enumerated() {
+                oidsByLayer[ObjectIdentifier(layer)] = UInt(100 + index)
+            }
+            var itemsByOid: [UInt: DisplayItem] = [:]
+            func item(for layer: CALayer) -> DisplayItem {
+                let layerObject = InspectedObject()
+                layerObject.oid = oidsByLayer[ObjectIdentifier(layer)] ?? 0
+                layerObject.classChainList = [NSStringFromClass(type(of: layer)), "CALayer", "NSObject"]
+                let item = DisplayItem()
+                item.nodeKind = .layer
+                item.layerObject = layerObject
+                item.frame = layer.frame
+                item.bounds = layer.bounds
+                item.alpha = layer.opacity
+                item.isHidden = layer.isHidden
+                item.shouldCaptureImage = true
+                item.subitems = (layer.sublayers ?? []).map(item(for:))
+                itemsByOid[layerObject.oid] = item
+                return item
+            }
+            let windowObject = InspectedObject()
+            windowObject.oid = InspectedWindow.windowOid
+            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
+            let windowItem = DisplayItem()
+            windowItem.nodeKind = .window
+            windowItem.windowObject = windowObject
+            windowItem.frame = CGRect(origin: .zero, size: windowSize)
+            windowItem.bounds = windowItem.frame
+            windowItem.shouldCaptureImage = true
+            windowItem.subitems = [item(for: rootLayer)]
+            let appInfo = InspectedAppInfo()
+            appInfo.appName = "FakeApp"
+            appInfo.deviceType = .mac
+            appInfo.osDescription = "macOS"
+            appInfo.screenScale = 2
+            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
+            appInfo.layerArchiveProtocolVersion = 1
+            let hierarchy = HierarchyInfo()
+            hierarchy.appInfo = appInfo
+            hierarchy.displayItems = [windowItem]
+            return LayerNodes(rootLayer: rootLayer, layers: layers, oidsByLayer: oidsByLayer, itemsByOid: itemsByOid, hierarchy: hierarchy)
+        }
+
+        /// The topmost layer of `layer`'s tree: a window's whole tree, from
+        /// the layer of one of its views.
+        private static func rootLayer(above layer: CALayer) -> CALayer {
+            var root = layer
+            while let superlayer = root.superlayer {
+                root = superlayer
+            }
+            return root
+        }
+
+        /// Answers the window's archive request with `nodes`' whole layer
+        /// tree.
+        private static func answeringLayerArchive(of nodes: LayerNodes, on server: FakeServer) {
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                let reply = LayerArchive()
+                reply.layerCount = UInt(nodes.layers.count)
+                reply.layerOids = nodes.layers.map(nodes.oid(of:))
+                reply.sublayerCounts = nodes.layers.map { UInt32($0.sublayers?.count ?? 0) }
+                reply.archiveData = encodingLayerTree(nodes.rootLayer)
+                return reply
+            }
         }
 
         /// A detail for every task, without a screenshot: enough for the Host
@@ -194,15 +296,25 @@ extension HostAppTests {
         /// The manager is built the way a live window builds it: without an
         /// app, which the window sets before it loads a hierarchy.
         private static func loadingSession(_ inspected: InspectedWindow, on server: FakeServer) async -> Session {
+            await loadingSession(inspected.hierarchy, on: server)
+        }
+
+        /// Loads `hierarchy` into `dataSource` — one with a settings set of
+        /// its own, or one a test watches from before the load — as
+        /// `loadingSession(_:on:)` loads a window's.
+        private static func loadingSession(
+            _ hierarchy: HierarchyInfo,
+            on server: FakeServer,
+            into dataSource: StaticHierarchyDataSource = StaticHierarchyDataSource()
+        ) async -> Session {
             server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { emptyDetails(for: $0) }
             let channel = server.connectChannel()
             let app = InspectableApp()
-            app.appInfo = inspected.hierarchy.appInfo
+            app.appInfo = hierarchy.appInfo
             app.channel = channel
-            let dataSource = StaticHierarchyDataSource()
             let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
             manager.inspectableApp = app
-            dataSource.reload(with: inspected.hierarchy, keepState: false)
+            dataSource.reload(with: hierarchy, keepState: false)
             _ = await waitUntil { !manager.layerArchiveStore.hasPendingArchives }
             return Session(channel: channel, app: app, dataSource: dataSource, manager: manager)
         }
@@ -237,107 +349,38 @@ extension HostAppTests {
             window.contentView = contentView
             window.displayIfNeeded()
             CATransaction.flush()
-
-            // A node for every layer, as a Server lists them: oid 100 plus the
-            // layer's place in the walk.
-            guard var root = contentView.layer else {
+            guard let contentLayer = contentView.layer else {
                 Issue.record("the content view should have a layer")
                 return
             }
-            while let superlayer = root.superlayer {
-                root = superlayer
-            }
-            var layers: [CALayer] = []
-            var pending = [root]
-            while let layer = pending.popLast() {
-                layers.append(layer)
-                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
-            }
-            var oidsByLayer: [ObjectIdentifier: UInt] = [:]
-            for (index, layer) in layers.enumerated() {
-                oidsByLayer[ObjectIdentifier(layer)] = UInt(100 + index)
-            }
-            var itemsByOid: [UInt: DisplayItem] = [:]
-            func item(for layer: CALayer) -> DisplayItem {
-                let layerObject = InspectedObject()
-                layerObject.oid = oidsByLayer[ObjectIdentifier(layer)] ?? 0
-                layerObject.classChainList = ["CALayer", "NSObject"]
-                let item = DisplayItem()
-                item.nodeKind = .layer
-                item.layerObject = layerObject
-                item.frame = layer.frame
-                item.bounds = layer.bounds
-                item.shouldCaptureImage = true
-                item.subitems = (layer.sublayers ?? []).map(item(for:))
-                itemsByOid[layerObject.oid] = item
-                return item
-            }
-            let windowObject = InspectedObject()
-            windowObject.oid = InspectedWindow.windowOid
-            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
-            let windowItem = DisplayItem()
-            windowItem.nodeKind = .window
-            windowItem.windowObject = windowObject
-            windowItem.frame = CGRect(origin: .zero, size: window.frame.size)
-            windowItem.bounds = windowItem.frame
-            windowItem.shouldCaptureImage = true
-            windowItem.subitems = [item(for: root)]
-            let appInfo = InspectedAppInfo()
-            appInfo.appName = "FakeApp"
-            appInfo.deviceType = .mac
-            appInfo.osDescription = "macOS"
-            appInfo.screenScale = 2
-            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
-            appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
-            appInfo.layerArchiveProtocolVersion = 1
-            let hierarchy = HierarchyInfo()
-            hierarchy.appInfo = appInfo
-            hierarchy.displayItems = [windowItem]
+            let nodes = Self.layerNodes(under: Self.rootLayer(above: contentLayer), windowSize: window.frame.size)
 
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
-                let reply = LayerArchive()
-                reply.layerCount = UInt(layers.count)
-                reply.layerOids = layers.map { oidsByLayer[ObjectIdentifier($0)] ?? 0 }
-                reply.sublayerCounts = layers.map { UInt32($0.sublayers?.count ?? 0) }
-                typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
-                if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CAEncodeLayerTree") {
-                    let encode = unsafeBitCast(symbol, to: EncodeLayerTreeFunction.self)
-                    reply.archiveData = encode(root)?.takeRetainedValue() as Data?
-                }
-                return reply
-            }
-            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
-            let channel = server.connectChannel()
-            let app = InspectableApp()
-            app.appInfo = appInfo
-            app.channel = channel
+            Self.answeringLayerArchive(of: nodes, on: server)
             let dataSource = StaticHierarchyDataSource()
-            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
-            manager.inspectableApp = app
             var orderChanges = 0
             let subscription = dataSource.previewOrderDidChange.observe { _ in orderChanges += 1 }
-            dataSource.reload(with: hierarchy, keepState: false)
-            #expect(await waitUntil { !manager.layerArchiveStore.hasPendingArchives })
+            let session = await Self.loadingSession(nodes.hierarchy, on: server, into: dataSource)
+            #expect(!session.manager.layerArchiveStore.hasPendingArchives)
 
             // A layer two portals draw goes with the later one, drawn on top.
             var lastPortalBySource: [ObjectIdentifier: (source: CALayer, portal: CALayer)] = [:]
-            for pair in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: layers) {
+            for pair in XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: nodes.layers) {
                 lastPortalBySource[ObjectIdentifier(pair.source)] = pair
             }
             #expect(!lastPortalBySource.isEmpty, "the glass should draw its content through a portal that hides it in place")
             for (source, portal) in lastPortalBySource.values {
-                let sourceItem = itemsByOid[oidsByLayer[ObjectIdentifier(source)] ?? 0]
-                let portalItem = itemsByOid[oidsByLayer[ObjectIdentifier(portal)] ?? 0]
+                let sourceItem = nodes.item(for: source)
+                let portalItem = nodes.item(for: portal)
                 let linked = sourceItem?.previewPortalItem?.layerObject?.oid
                 #expect(
                     portalItem != nil && sourceItem?.previewPortalItem === portalItem,
-                    "\(NSStringFromClass(type(of: source))) #\(oidsByLayer[ObjectIdentifier(source)] ?? 0), drawn by \(NSStringFromClass(type(of: portal))) #\(oidsByLayer[ObjectIdentifier(portal)] ?? 0), should know the portal's node; linked to \(String(describing: linked))"
+                    "\(NSStringFromClass(type(of: source))) #\(nodes.oid(of: source)), drawn by \(NSStringFromClass(type(of: portal))) #\(nodes.oid(of: portal)), should know the portal's node; linked to \(String(describing: linked))"
                 )
             }
             #expect(orderChanges > 0, "the preview should hear that its order changed")
-            withExtendedLifetime((channel, app, dataSource, manager, subscription)) {}
+            withExtendedLifetime((session, subscription)) {}
         }
 
         /// With the Liquid Glass setting on Hide, AppKit's glass — a split
@@ -366,92 +409,26 @@ extension HostAppTests {
             window.displayIfNeeded()
             CATransaction.flush()
 
-            guard var root = contentView.layer, let glassViewLayer = glassView.layer else {
+            guard let contentLayer = contentView.layer, let glassViewLayer = glassView.layer else {
                 Issue.record("the views should have layers")
                 return
             }
-            while let superlayer = root.superlayer {
-                root = superlayer
-            }
-            var layers: [CALayer] = []
-            var pending = [root]
-            while let layer = pending.popLast() {
-                layers.append(layer)
-                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
-            }
-            var oidsByLayer: [ObjectIdentifier: UInt] = [:]
-            for (index, layer) in layers.enumerated() {
-                oidsByLayer[ObjectIdentifier(layer)] = UInt(100 + index)
-            }
-            var itemsByOid: [UInt: DisplayItem] = [:]
-            // A node for every layer, with its class: SwiftUI's glass layers
-            // are what the setting hides.
-            func item(for layer: CALayer) -> DisplayItem {
-                let layerObject = InspectedObject()
-                layerObject.oid = oidsByLayer[ObjectIdentifier(layer)] ?? 0
-                layerObject.classChainList = [NSStringFromClass(type(of: layer)), "CALayer", "NSObject"]
-                let item = DisplayItem()
-                item.nodeKind = .layer
-                item.layerObject = layerObject
-                item.frame = layer.frame
-                item.bounds = layer.bounds
-                item.alpha = layer.opacity
-                item.isHidden = layer.isHidden
-                item.shouldCaptureImage = true
-                item.subitems = (layer.sublayers ?? []).map(item(for:))
-                itemsByOid[layerObject.oid] = item
-                return item
-            }
-            let windowObject = InspectedObject()
-            windowObject.oid = InspectedWindow.windowOid
-            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
-            let windowItem = DisplayItem()
-            windowItem.nodeKind = .window
-            windowItem.windowObject = windowObject
-            windowItem.frame = CGRect(origin: .zero, size: window.frame.size)
-            windowItem.bounds = windowItem.frame
-            windowItem.shouldCaptureImage = true
-            windowItem.subitems = [item(for: root)]
-            let appInfo = InspectedAppInfo()
-            appInfo.appName = "FakeApp"
-            appInfo.deviceType = .mac
-            appInfo.osDescription = "macOS"
-            appInfo.screenScale = 2
-            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
-            appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
-            appInfo.layerArchiveProtocolVersion = 1
-            let hierarchy = HierarchyInfo()
-            hierarchy.appInfo = appInfo
-            hierarchy.displayItems = [windowItem]
+            let nodes = Self.layerNodes(under: Self.rootLayer(above: contentLayer), windowSize: window.frame.size)
 
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
-                let reply = LayerArchive()
-                reply.layerCount = UInt(layers.count)
-                reply.layerOids = layers.map { oidsByLayer[ObjectIdentifier($0)] ?? 0 }
-                reply.sublayerCounts = layers.map { UInt32($0.sublayers?.count ?? 0) }
-                typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
-                if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CAEncodeLayerTree") {
-                    let encode = unsafeBitCast(symbol, to: EncodeLayerTreeFunction.self)
-                    reply.archiveData = encode(root)?.takeRetainedValue() as Data?
-                }
-                return reply
-            }
-            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
-            let channel = server.connectChannel()
-            let app = InspectableApp()
-            app.appInfo = appInfo
-            app.channel = channel
+            Self.answeringLayerArchive(of: nodes, on: server)
             // A settings set of the test's own: the app's must not change.
             let preferences = PreferenceManager()
             preferences.glassLayerVisibility = .hide
-            let dataSource = StaticHierarchyDataSource(preferenceManager: preferences)
-            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
-            manager.inspectableApp = app
-            dataSource.reload(with: hierarchy, keepState: false)
-            #expect(await waitUntil { !manager.layerArchiveStore.hasPendingArchives })
-            guard let glassViewItem = itemsByOid[oidsByLayer[ObjectIdentifier(glassViewLayer)] ?? 0] else {
+            let session = await Self.loadingSession(
+                nodes.hierarchy,
+                on: server,
+                into: StaticHierarchyDataSource(preferenceManager: preferences)
+            )
+            #expect(!session.manager.layerArchiveStore.hasPendingArchives)
+            let manager = session.manager
+            guard let glassViewItem = nodes.item(for: glassViewLayer) else {
                 Issue.record("the glass view should have a node")
                 return
             }
@@ -471,7 +448,7 @@ extension HostAppTests {
             }
             let shownCoverage = Self.coverage(of: withGlassShown)
             #expect(shownCoverage.opaque > 0.6, "with the glass shown the glass should cover the view, got \(shownCoverage.opaque)")
-            withExtendedLifetime((channel, app, dataSource, manager)) {}
+            withExtendedLifetime(session) {}
         }
 
         /// The share of `image`'s pixels that are opaque and that show at all.
@@ -495,6 +472,114 @@ extension HostAppTests {
             }
             let count = Double(width * height)
             return (Double(opaque) / count, Double(visible) / count)
+        }
+
+        /// RuntimeViewer's sidebar, cut down: a clip view's layer 1007 points
+        /// tall holding the outline's, 364.5 × 107829 points with every group
+        /// expanded, with one row drawn. The hierarchy has the outline as
+        /// tall as the clip view, as when the Server listed the tree before
+        /// the outline grew.
+        private static func makeSidebar() -> (nodes: LayerNodes, outlineItem: DisplayItem)? {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            let root = CALayer()
+            root.frame = CGRect(x: 0, y: 0, width: 400, height: 1007)
+            let clip = CALayer()
+            clip.frame = CGRect(x: 0, y: 0, width: 364.5, height: 1007)
+            clip.masksToBounds = true
+            let outline = CALayer()
+            outline.frame = CGRect(x: 0, y: 0, width: 364.5, height: 107_829)
+            outline.backgroundColor = CGColor(gray: 1, alpha: 1)
+            outline.contentsScale = 2
+            let row = CALayer()
+            row.frame = CGRect(x: 10, y: 50, width: 200, height: 20)
+            row.backgroundColor = CGColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)
+            row.contentsScale = 2
+            outline.addSublayer(row)
+            clip.addSublayer(outline)
+            root.addSublayer(clip)
+            CATransaction.commit()
+            let nodes = layerNodes(under: root, windowSize: root.bounds.size)
+            guard let outlineItem = nodes.item(for: outline) else { return nil }
+            outlineItem.frame = clip.bounds
+            outlineItem.bounds = clip.bounds
+            return (nodes, outlineItem)
+        }
+
+        /// A detail that gives RuntimeViewer's outline `height`.
+        private static func outlineDetail(of outlineItem: DisplayItem, height: CGFloat) -> DisplayItemDetail {
+            let detail = DisplayItemDetail()
+            detail.displayItemOid = outlineItem.layerObject?.oid ?? 0
+            detail.frameValue = NSValue(rect: CGRect(x: 0, y: 0, width: 364.5, height: height))
+            detail.boundsValue = NSValue(rect: CGRect(x: 0, y: 0, width: 364.5, height: height))
+            return detail
+        }
+
+        /// RuntimeViewer's sidebar outline grew to 364.5 × 107829 points.
+        /// Its image from the archive is shrunk to fit
+        /// `LookinNodeImageMaxLengthInPx`, but was wrapped as though it held
+        /// the full size at the screen's scale, and the preview's check that
+        /// no image is longer than that stopped the Host. The image holds the
+        /// pixels it has, at the layer's size in points.
+        @Test func imageOfALayerTallerThanTheLimitHoldsThePixelsItHas() async {
+            guard let sidebar = Self.makeSidebar() else {
+                Issue.record("the outline should have a node")
+                return
+            }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            Self.answeringLayerArchive(of: sidebar.nodes, on: server)
+            let session = await Self.loadingSession(sidebar.nodes.hierarchy, on: server)
+            guard case let .image(image)? = await session.manager.layerArchiveImage(.group, of: sidebar.outlineItem) else {
+                Issue.record("the outline should have a group image")
+                return
+            }
+            #expect(sidebar.outlineItem.groupScreenshot === image, "the outline fit when the hierarchy listed it: the preview shows the image")
+            let representation = image.representations.first
+            let longestSide = max(representation?.pixelsWide ?? 0, representation?.pixelsHigh ?? 0)
+            #expect(
+                longestSide > 0 && Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                "the image should be no longer than the preview takes, got \(representation?.pixelsWide ?? 0) × \(representation?.pixelsHigh ?? 0) pixels"
+            )
+            #expect(image.size == CGSize(width: 364.5, height: 107_829), "the image should keep the layer's size in points, got \(image.size)")
+            withExtendedLifetime(session) {}
+        }
+
+        /// A detail that grows a node past `LookinNodeImageMaxLengthInPx`
+        /// takes its images away — they showed it at its old size — and, as
+        /// after a reload, the preview takes none of it: an image drawn from
+        /// the archive for another caller stays off the node. A detail that
+        /// shrinks it to fit gives it its images back.
+        @Test func nodeThatGrowsPastTheLimitHoldsNoImageUntilItFitsAgain() async {
+            guard let sidebar = Self.makeSidebar() else {
+                Issue.record("the outline should have a node")
+                return
+            }
+            let outlineItem = sidebar.outlineItem
+            let server = FakeServer()
+            defer { server.shutDown() }
+            Self.answeringLayerArchive(of: sidebar.nodes, on: server)
+            let session = await Self.loadingSession(sidebar.nodes.hierarchy, on: server)
+            _ = await session.manager.layerArchiveImage(.group, of: outlineItem)
+            #expect(outlineItem.groupScreenshot != nil, "the outline fit when the hierarchy listed it")
+
+            session.dataSource.modify(with: Self.outlineDetail(of: outlineItem, height: 107_829))
+            #expect(outlineItem.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge)
+            #expect(outlineItem.groupScreenshot == nil, "the image showed the outline at its old size")
+            guard case .image? = await session.manager.layerArchiveImage(.group, of: outlineItem) else {
+                Issue.record("another caller should still get an image of the outline")
+                return
+            }
+            #expect(outlineItem.groupScreenshot == nil, "the preview takes no image of a node too large for one")
+
+            session.dataSource.modify(with: Self.outlineDetail(of: outlineItem, height: 1007))
+            #expect(outlineItem.doNotFetchScreenshotReason == .fetchScreenshotPermitted)
+            guard case let .image(image)? = await session.manager.layerArchiveImage(.group, of: outlineItem) else {
+                Issue.record("the outline should have a group image again")
+                return
+            }
+            #expect(outlineItem.groupScreenshot === image, "the outline fits again: the preview shows its image")
+            withExtendedLifetime(session) {}
         }
 
         @Test func imagesComeFromTheWindowsLayerArchive() async {
