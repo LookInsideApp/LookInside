@@ -136,7 +136,7 @@ final class StaticAsyncUpdateManager: NSObject {
             updateForDisplayingItems()
         }
         if let preferences = hierarchyDataSource?.preferenceManager() {
-            layerArchiveStore.hidesGlassLayers = preferences.glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: true)
+            layerArchiveStore.glassLayerVisibility = preferences.glassLayerVisibility
             glassLayerSettingObservation = preferences.observe(\.glassLayerVisibility, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated {
                     self?.glassLayerSettingDidChange(preferences.glassLayerVisibility)
@@ -347,13 +347,14 @@ final class StaticAsyncUpdateManager: NSObject {
     }
 
     /// The Liquid Glass setting changed. Images drawn from a window's
-    /// archive keep or leave out its glass with it (Hide leaves it out, as
-    /// the Server's group screenshots do): those on screen are drawn again,
-    /// the others dropped.
+    /// archive keep or leave out the glass it hides (Hide leaves out the
+    /// glass behind split view items, as the Server's group screenshots
+    /// leave glass out): those on screen are drawn again, the others
+    /// dropped.
     private func glassLayerSettingDidChange(_ visibility: GlassLayerVisibility) {
-        let hidesGlassLayers = visibility.hidesGlassLayer(isDrawnByLookInside: true)
-        guard hidesGlassLayers != layerArchiveStore.hidesGlassLayers else { return }
-        layerArchiveStore.hidesGlassLayers = hidesGlassLayers
+        let hidingChanges = visibility.hidesGlassDrawnByLookInside != layerArchiveStore.glassLayerVisibility.hidesGlassDrawnByLookInside
+        layerArchiveStore.glassLayerVisibility = visibility
+        guard hidingChanges else { return }
         for window in dataSource?.rawHierarchyInfo?.displayItems ?? [] where layerArchiveStore.readyWindow(containing: window) != nil {
             redrawFromNewArchive(of: window, succeeded: true) {}
         }

@@ -147,9 +147,14 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         let glassLayerVisibility = preferenceManager().glassLayerVisibility
         item.enumerateSelfAndChildren { node in
             if node !== item, node.isGlassLayer(),
-               glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: glassLayerIsDrawnByLookInside(node))
+               glassLayerVisibility.hidesGlassLayer(
+                   isDrawnByLookInside: glassLayerIsDrawnByLookInside(node),
+                   isSplitViewBackground: node.isSplitViewBackgroundGlass()
+               )
             {
-                // A capture of Liquid Glass is only its white shape source.
+                // A capture of Liquid Glass is only its white shape source;
+                // glass LookInside draws goes where it covers a split view
+                // item's content.
                 node.noPreview = true
             }
         }

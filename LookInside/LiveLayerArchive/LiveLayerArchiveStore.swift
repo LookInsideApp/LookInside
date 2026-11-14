@@ -117,11 +117,16 @@ final class LiveLayerArchiveStore {
     /// The layers of each window's glass layer nodes (`SwiftUI.SDFLayer`).
     private var glassLayerOidsByWindow: [UInt: Set<UInt>] = [:]
 
-    /// Whether the Liquid Glass setting hides the glass of windows drawn
-    /// from archives (Hide): their images then leave the glass layers out,
-    /// as the Server's group screenshots do. The owner sets it, and draws the
-    /// images on screen again when it changes.
-    var hidesGlassLayers = false
+    /// The Liquid Glass setting: the glass layers it hides in windows drawn
+    /// from archives — with Hide, the glass AppKit puts behind a split view
+    /// item — are left out of their images, as the Server's group
+    /// screenshots leave glass out. The owner sets it, and draws the images
+    /// on screen again when what they leave out changes.
+    var glassLayerVisibility: GlassLayerVisibility = .show {
+        didSet {
+            glassLayerOidsByWindow.removeAll()
+        }
+    }
     private var serverDrawnDescendantsByItem: [ObjectIdentifier: Bool] = [:]
 
     // MARK: - Archives
@@ -387,12 +392,16 @@ final class LiveLayerArchiveStore {
             nodeLayerOidsByWindow[windowOid] = windowNodeLayerOids
         }
         var hiddenGlassLayerOids: Set<UInt> = []
-        if hidesGlassLayers {
+        if glassLayerVisibility.hidesGlassDrawnByLookInside {
             if let known = glassLayerOidsByWindow[windowOid] {
                 hiddenGlassLayerOids = known
             } else {
+                let visibility = glassLayerVisibility
                 window.enumerateSelfAndChildren { node in
-                    if node.isGlassLayer(), let oid = node.layerObject?.oid, oid != 0 {
+                    if node.isGlassLayer(),
+                       visibility.hidesGlassLayer(isDrawnByLookInside: true, isSplitViewBackground: node.isSplitViewBackgroundGlass()),
+                       let oid = node.layerObject?.oid, oid != 0
+                    {
                         hiddenGlassLayerOids.insert(oid)
                     }
                 }

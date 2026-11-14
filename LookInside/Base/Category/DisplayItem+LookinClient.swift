@@ -273,6 +273,20 @@ extension DisplayItem {
         PreviewGlassLayers.isGlassLayer(classChain: displayingObject()?.classChainList ?? [])
     }
 
+    /// Whether this glass layer is the glass AppKit puts behind a split view
+    /// item, a sidebar's or an inspector's: the nearest `NSGlassEffectView`
+    /// above it sits right in the item's wrapper view.
+    func isSplitViewBackgroundGlass() -> Bool {
+        var current = self.super
+        while let ancestor = current {
+            if ancestor.itemIsKindOfClass(withName: "NSGlassEffectView") {
+                return ancestor.super?.itemIsKindOfClass(withName: "_NSSplitViewItemViewWrapper") == true
+            }
+            current = ancestor.super
+        }
+        return false
+    }
+
     // MARK: - SwiftUI
 
     func isSwiftUISupportRelated() -> Bool {

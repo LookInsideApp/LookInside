@@ -281,8 +281,13 @@ class HierarchyDataSource: NSObject {
             if item.indentLevel() <= 1, item.itemIsKindOfClasses(withNames: classesWithNoPreview) {
                 item.noPreview = true
             }
-            if item.isGlassLayer(), glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: glassIsDrawnByLookInside) {
-                // A capture of Liquid Glass is only its white shape source.
+            if item.isGlassLayer(), glassLayerVisibility.hidesGlassLayer(
+                isDrawnByLookInside: glassIsDrawnByLookInside,
+                isSplitViewBackground: item.isSplitViewBackgroundGlass()
+            ) {
+                // A capture of Liquid Glass is only its white shape source;
+                // glass LookInside draws goes where it covers a split view
+                // item's content.
                 item.noPreview = true
             }
             if !item.isPixelBearing() {
@@ -1164,7 +1169,10 @@ class HierarchyDataSource: NSObject {
         let glassLayerVisibility = preferenceManager().glassLayerVisibility
         var didChangeNoPreview = false
         for item in rawFlatItems ?? [] where item.isGlassLayer() {
-            let hides = glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: glassLayerIsDrawnByLookInside(item))
+            let hides = glassLayerVisibility.hidesGlassLayer(
+                isDrawnByLookInside: glassLayerIsDrawnByLookInside(item),
+                isSplitViewBackground: item.isSplitViewBackgroundGlass()
+            )
             guard item.noPreview != hides else { continue }
             item.noPreview = hides
             didChangeNoPreview = true

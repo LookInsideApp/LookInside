@@ -54,20 +54,30 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     /// Glass layers stay out of the preview where LookInside cannot draw
     /// them. The default.
     case hideWhereNotDrawn
-    /// Every glass layer stays out of the preview.
+    /// Glass layers stay out of the preview where LookInside cannot draw
+    /// them; where it can, the glass AppKit puts behind a split view item
+    /// does, which covers the item's content in the preview. The glass of
+    /// controls stays.
     case hide
 
     /// Whether a glass layer stays out of the preview, given whether
-    /// LookInside draws its images (`isDrawnByLookInside`).
-    func hidesGlassLayer(isDrawnByLookInside: Bool) -> Bool {
+    /// LookInside draws its images (`isDrawnByLookInside`) and whether it is
+    /// the glass AppKit puts behind a split view item, a sidebar's or an
+    /// inspector's (`isSplitViewBackground`).
+    func hidesGlassLayer(isDrawnByLookInside: Bool, isSplitViewBackground: Bool) -> Bool {
         switch self {
         case .show:
             false
         case .hideWhereNotDrawn:
             !isDrawnByLookInside
         case .hide:
-            true
+            !isDrawnByLookInside || isSplitViewBackground
         }
+    }
+
+    /// Whether images LookInside draws leave any glass out.
+    var hidesGlassDrawnByLookInside: Bool {
+        hidesGlassLayer(isDrawnByLookInside: true, isSplitViewBackground: true)
     }
 }
 
