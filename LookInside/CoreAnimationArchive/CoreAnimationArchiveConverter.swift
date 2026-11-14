@@ -165,6 +165,9 @@ enum CoreAnimationArchiveConverter {
             comment: "App name shown for an opened .caar file (a Core Animation archive) whose file name does not say which app it came from."
         )
         appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        // The images are drawn here from a layer archive, as for a Server
+        // that sends them: the Liquid Glass setting treats the glass as drawn.
+        appInfo.layerArchiveProtocolVersion = 1
         // Dump Layer exists only in the AppKit debug menu, and Mac Catalyst
         // apps run on the Mac too: the archive always comes from a Mac.
         appInfo.deviceType = .mac

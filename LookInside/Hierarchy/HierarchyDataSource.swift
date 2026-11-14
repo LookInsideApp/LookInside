@@ -216,7 +216,7 @@ class HierarchyDataSource: NSObject {
             relatedObject: nil
         )
 
-        glassLayerSettingObservation = preferenceManager().observe(\.hidesGlassLayersInPreview, options: [.new]) { [weak self] _, _ in
+        glassLayerSettingObservation = preferenceManager().observe(\.glassLayerVisibility, options: [.new]) { [weak self] _, _ in
             self?.glassLayerSettingDidChange()
         }
     }
@@ -269,7 +269,9 @@ class HierarchyDataSource: NSObject {
         let items = rawFlatItems ?? []
 
         let collapsedClasses = classesPreferredToCollapse.union(info?.collapsedClassList ?? [])
-        let hidesGlassLayers = preferenceManager().hidesGlassLayersInPreview
+        windowsWithoutLayerArchive = []
+        let glassLayerVisibility = preferenceManager().glassLayerVisibility
+        let glassIsDrawnByLookInside = Self.drawsGlassFromLayerArchives(info)
         for item in items {
             if item.itemIsKindOfClasses(withNames: collapsedClasses) {
                 item.enumerateSelfAndChildren { $0.preferToBeCollapsed = true }
@@ -279,7 +281,7 @@ class HierarchyDataSource: NSObject {
             if item.indentLevel() <= 1, item.itemIsKindOfClasses(withNames: classesWithNoPreview) {
                 item.noPreview = true
             }
-            if hidesGlassLayers, item.isGlassLayer() {
+            if item.isGlassLayer(), glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: glassIsDrawnByLookInside) {
                 // A capture of Liquid Glass is only its white shape source.
                 item.noPreview = true
             }
@@ -1156,18 +1158,56 @@ class HierarchyDataSource: NSObject {
     }
 
     /// The Liquid Glass setting changed: every glass layer of the loaded tree
-    /// follows it at once. Turning it off gives only the glass layers their
+    /// follows it at once. Showing them gives only the glass layers their
     /// preview back; other nodes the user hid stay hidden.
     private func glassLayerSettingDidChange() {
-        let hidesGlassLayers = preferenceManager().hidesGlassLayersInPreview
+        let glassLayerVisibility = preferenceManager().glassLayerVisibility
         var didChangeNoPreview = false
-        for item in rawFlatItems ?? [] where item.isGlassLayer() && item.noPreview != hidesGlassLayers {
-            item.noPreview = hidesGlassLayers
+        for item in rawFlatItems ?? [] where item.isGlassLayer() {
+            let hides = glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: glassLayerIsDrawnByLookInside(item))
+            guard item.noPreview != hides else { continue }
+            item.noPreview = hides
             didChangeNoPreview = true
         }
         if didChangeNoPreview {
             itemDidChangeNoPreview.send()
         }
+    }
+
+    /// Windows of a session drawn from layer archives whose images the
+    /// Server takes after all: no usable archive arrived. Their glass layers
+    /// follow the Liquid Glass setting as the Server's do.
+    private var windowsWithoutLayerArchive: Set<UInt> = []
+
+    /// Tells the data source which windows have no usable layer archive; the
+    /// Liquid Glass setting applies to their glass layers again.
+    func setWindowsWithoutLayerArchive(_ windowOids: Set<UInt>) {
+        guard windowOids != windowsWithoutLayerArchive else { return }
+        windowsWithoutLayerArchive = windowOids
+        glassLayerSettingDidChange()
+    }
+
+    /// Whether LookInside draws the images of `info`'s glass layers: a
+    /// Server that sends layer archives, or a file whose images LookInside
+    /// drew from them (an imported `.caar` or `.viewhierarchy`, or a
+    /// `.lookin` exported from such a session).
+    static func drawsGlassFromLayerArchives(_ info: HierarchyInfo?) -> Bool {
+        (info?.appInfo?.layerArchiveProtocolVersion ?? 0) >= 1
+    }
+
+    /// Whether LookInside draws `item`'s images: the session draws from layer
+    /// archives and `item`'s window has one.
+    func glassLayerIsDrawnByLookInside(_ item: DisplayItem) -> Bool {
+        guard Self.drawsGlassFromLayerArchives(rawHierarchyInfo) else { return false }
+        guard !windowsWithoutLayerArchive.isEmpty else { return true }
+        var current: DisplayItem? = item
+        while let candidate = current {
+            if candidate.resolvedNodeKind() == .window {
+                return !windowsWithoutLayerArchive.contains(candidate.windowObject?.oid ?? 0)
+            }
+            current = candidate.super
+        }
+        return true
     }
 
     private func forwardSignalsToEvents() {

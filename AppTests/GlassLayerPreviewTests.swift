@@ -41,28 +41,33 @@ extension HostAppTests {
             return item
         }
 
-        private func makeGlassTree() -> GlassTree {
+        private func makeGlassTree(drawnFromLayerArchives: Bool = false) -> GlassTree {
             let shapeSource = layerItem(classChain: ["CALayer", "NSObject"], oid: 4)
             let glassLayer = layerItem(classChain: ["SwiftUI.SDFLayer", "CALayer", "NSObject"], oid: 3, subitems: [shapeSource])
             let content = layerItem(classChain: ["CALayer", "NSObject"], oid: 2)
             let root = layerItem(classChain: ["CALayer", "NSObject"], oid: 1, subitems: [content, glassLayer])
             let info = HierarchyInfo()
             info.displayItems = [root]
+            if drawnFromLayerArchives {
+                let appInfo = InspectedAppInfo()
+                appInfo.layerArchiveProtocolVersion = 1
+                info.appInfo = appInfo
+            }
             let file = HierarchyFile()
             file.hierarchyInfo = info
             return GlassTree(file: file, content: content, glassLayer: glassLayer, shapeSource: shapeSource)
         }
 
         /// A document window's preference set, with the setting as given.
-        private func documentPreferences(hidingGlassLayers hidesGlassLayers: Bool) -> PreferenceManager {
+        private func documentPreferences(_ visibility: GlassLayerVisibility) -> PreferenceManager {
             let preferences = PreferenceManager()
-            preferences.hidesGlassLayersInPreview = hidesGlassLayers
+            preferences.glassLayerVisibility = visibility
             return preferences
         }
 
         @Test func glassLayersStayOutOfThePreviewWhileTheSettingIsOn() {
             let tree = makeGlassTree()
-            let dataSource = ReadHierarchyDataSource(file: tree.file, preferenceManager: documentPreferences(hidingGlassLayers: true))
+            let dataSource = ReadHierarchyDataSource(file: tree.file, preferenceManager: documentPreferences(.hide))
 
             #expect(tree.glassLayer.inNoPreviewHierarchy)
             #expect(tree.shapeSource.inNoPreviewHierarchy, "the white shape source goes with its glass layer")
@@ -72,7 +77,7 @@ extension HostAppTests {
 
         @Test func glassLayersStayInThePreviewWhileTheSettingIsOff() {
             let tree = makeGlassTree()
-            let dataSource = ReadHierarchyDataSource(file: tree.file, preferenceManager: documentPreferences(hidingGlassLayers: false))
+            let dataSource = ReadHierarchyDataSource(file: tree.file, preferenceManager: documentPreferences(.show))
 
             #expect(!tree.glassLayer.inNoPreviewHierarchy)
             #expect(!tree.shapeSource.inNoPreviewHierarchy)
@@ -81,14 +86,14 @@ extension HostAppTests {
 
         @Test func turningTheSettingOnHidesTheGlassOfALoadedTree() {
             let tree = makeGlassTree()
-            let preferences = documentPreferences(hidingGlassLayers: false)
+            let preferences = documentPreferences(.show)
             let dataSource = ReadHierarchyDataSource(file: tree.file, preferenceManager: preferences)
             var previewRebuildCount = 0
             let subscription = dataSource.itemDidChangeNoPreview.observe { _ in
                 previewRebuildCount += 1
             }
 
-            preferences.hidesGlassLayersInPreview = true
+            preferences.glassLayerVisibility = .hide
 
             #expect(tree.glassLayer.inNoPreviewHierarchy)
             #expect(tree.shapeSource.inNoPreviewHierarchy)
@@ -98,11 +103,11 @@ extension HostAppTests {
 
         @Test func turningTheSettingOffShowsOnlyTheGlassAgain() {
             let tree = makeGlassTree()
-            let preferences = documentPreferences(hidingGlassLayers: true)
+            let preferences = documentPreferences(.hide)
             let dataSource = ReadHierarchyDataSource(file: tree.file, preferenceManager: preferences)
             tree.content.noPreview = true
 
-            preferences.hidesGlassLayersInPreview = false
+            preferences.glassLayerVisibility = .show
 
             #expect(!tree.glassLayer.inNoPreviewHierarchy)
             #expect(!tree.shapeSource.inNoPreviewHierarchy)
@@ -134,9 +139,73 @@ extension HostAppTests {
             detail.subitems = [glassLayer]
             dataSource.modify(with: detail)
 
-            #expect(glassLayerHiddenWhenThePreviewRenders == PreferenceManager.shared.hidesGlassLayersInPreview)
-            #expect(glassLayer.noPreview == PreferenceManager.shared.hidesGlassLayersInPreview)
+            // The app info says nothing of layer archives: the Server takes
+            // the images.
+            let hidesGlass = PreferenceManager.shared.glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: false)
+            #expect(glassLayerHiddenWhenThePreviewRenders == hidesGlass)
+            #expect(glassLayer.noPreview == hidesGlass)
             withExtendedLifetime(subscription) {}
+        }
+
+        @Test func byDefaultGlassStaysOutOnlyWhereTheServerTakesTheImages() {
+            let serverTree = makeGlassTree()
+            let serverDataSource = ReadHierarchyDataSource(file: serverTree.file, preferenceManager: documentPreferences(.hideWhereNotDrawn))
+            #expect(serverTree.glassLayer.inNoPreviewHierarchy, "a Server's capture of the glass is a white block")
+
+            let drawnTree = makeGlassTree(drawnFromLayerArchives: true)
+            let drawnDataSource = ReadHierarchyDataSource(file: drawnTree.file, preferenceManager: documentPreferences(.hideWhereNotDrawn))
+            #expect(!drawnTree.glassLayer.inNoPreviewHierarchy, "glass drawn from a layer archive stays in the preview")
+            #expect(!drawnTree.shapeSource.inNoPreviewHierarchy)
+            withExtendedLifetime((serverDataSource, drawnDataSource)) {}
+        }
+
+        @Test func aWindowLeftWithoutItsArchiveHidesItsGlassAgain() {
+            let shapeSource = layerItem(classChain: ["CALayer", "NSObject"], oid: 4)
+            let glassLayer = layerItem(classChain: ["SwiftUI.SDFLayer", "CALayer", "NSObject"], oid: 3, subitems: [shapeSource])
+            let windowObject = InspectedObject()
+            windowObject.oid = 1000
+            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
+            let window = DisplayItem()
+            window.nodeKind = .window
+            window.windowObject = windowObject
+            window.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+            window.shouldCaptureImage = true
+            window.subitems = [glassLayer]
+            let appInfo = InspectedAppInfo()
+            appInfo.layerArchiveProtocolVersion = 1
+            let info = HierarchyInfo()
+            info.appInfo = appInfo
+            info.displayItems = [window]
+            let file = HierarchyFile()
+            file.hierarchyInfo = info
+            let dataSource = ReadHierarchyDataSource(file: file, preferenceManager: documentPreferences(.hideWhereNotDrawn))
+            #expect(!glassLayer.inNoPreviewHierarchy)
+
+            dataSource.setWindowsWithoutLayerArchive([1000])
+
+            #expect(glassLayer.inNoPreviewHierarchy, "the window's glass is the Server's white block again")
+        }
+
+        @Test func theChoiceCarriesOverFromTheSwitchItReplaced() throws {
+            func visibility(storedSwitch: Bool?, storedChoice: GlassLayerVisibility? = nil) throws -> (GlassLayerVisibility, Int?) {
+                let suiteName = "LookInsideAppTests.GlassLayerVisibility.\(UUID().uuidString)"
+                let defaults = try #require(UserDefaults(suiteName: suiteName))
+                defer { defaults.removePersistentDomain(forName: suiteName) }
+                if let storedSwitch {
+                    defaults.set(storedSwitch, forKey: "hideGlassLayersInPreview")
+                }
+                if let storedChoice {
+                    defaults.set(storedChoice.rawValue, forKey: "glassLayerVisibility")
+                }
+                let visibility = PreferenceManager.storedGlassLayerVisibility(defaults)
+                return (visibility, defaults.object(forKey: "glassLayerVisibility") as? Int)
+            }
+            let (fresh, writtenBack) = try visibility(storedSwitch: nil)
+            #expect(fresh == .hideWhereNotDrawn, "nothing stored: hide where the glass cannot be drawn")
+            #expect(writtenBack == GlassLayerVisibility.hideWhereNotDrawn.rawValue, "the choice is written back")
+            #expect(try visibility(storedSwitch: true).0 == .hideWhereNotDrawn, "the switch on: hide where the glass cannot be drawn")
+            #expect(try visibility(storedSwitch: false).0 == .show, "the switch off: show the glass")
+            #expect(try visibility(storedSwitch: false, storedChoice: .hide).0 == .hide, "a stored choice wins over the old switch")
         }
     }
 }

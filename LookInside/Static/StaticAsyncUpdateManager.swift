@@ -121,8 +121,12 @@ final class StaticAsyncUpdateManager: NSObject {
             )
         }
         layerArchiveStore.archivesDidSettle = { [weak self] in
+            guard let self else { return }
+            // A window without a usable archive shows the Server's capture of
+            // its glass again, which the Liquid Glass setting may hide.
+            dataSource?.setWindowsWithoutLayerArchive(layerArchiveStore.windowsWithoutArchive)
             // The images planned while the archive was on its way.
-            self?.updateForDisplayingItems()
+            updateForDisplayingItems()
         }
     }
 

@@ -189,6 +189,14 @@ final class LiveLayerArchiveStore {
         }
     }
 
+    /// The windows whose images the Server takes after all: no usable
+    /// archive arrived.
+    var windowsWithoutArchive: Set<UInt> {
+        Set(windowStates.compactMap { windowOid, state in
+            if case .unavailable = state { windowOid } else { nil }
+        })
+    }
+
     /// Whether a window's archive is still on its way.
     var hasPendingArchives: Bool {
         windowStates.values.contains { state in

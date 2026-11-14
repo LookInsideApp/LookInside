@@ -64,9 +64,9 @@ final class ReadWindowController: WindowController, NSToolbarDelegate {
         )
         // The Liquid Glass setting lives in Settings, not in this window's
         // view settings: the window's own preference set follows it.
-        glassLayerSettingObservation = PreferenceManager.shared.observe(\.hidesGlassLayersInPreview, options: [.new]) { [weak self] sharedPreferences, _ in
+        glassLayerSettingObservation = PreferenceManager.shared.observe(\.glassLayerVisibility, options: [.new]) { [weak self] sharedPreferences, _ in
             MainActor.assumeIsolated {
-                self?.preferenceManager.hidesGlassLayersInPreview = sharedPreferences.hidesGlassLayersInPreview
+                self?.preferenceManager.glassLayerVisibility = sharedPreferences.glassLayerVisibility
             }
         }
     }
