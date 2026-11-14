@@ -118,6 +118,7 @@ final class PreferenceManager: NSObject {
         /// its value over, and left in place for a Host that still reads it.
         static let hidesGlassLayersInPreview = "hideGlassLayersInPreview"
         static let glassLayerVisibility = "glassLayerVisibility"
+        static let drawsInspectedAppAsActive = "drawsInspectedAppAsActive"
     }
 
     static let shared: PreferenceManager = {
@@ -210,6 +211,17 @@ final class PreferenceManager: NSObject {
         didSet {
             guard oldValue != glassLayerVisibility else { return }
             store(glassLayerVisibility.rawValue, forKey: Key.glassLayerVisibility)
+        }
+    }
+
+    /// Whether a Mac app's Server draws the window the app would make key as
+    /// the key window while it takes images, though LookInside is in front.
+    /// Sent with the app and hierarchy requests
+    /// (`LookinParam_KeepsKeyAppearance`). Default YES.
+    @objc dynamic var drawsInspectedAppAsActive: Bool {
+        didSet {
+            guard oldValue != drawsInspectedAppAsActive else { return }
+            store(drawsInspectedAppAsActive, forKey: Key.drawsInspectedAppAsActive)
         }
     }
 
@@ -351,6 +363,7 @@ final class PreferenceManager: NSObject {
 
         rememberExpansionState = number(Key.rememberExpansionState, default: true).boolValue
         glassLayerVisibility = Self.storedGlassLayerVisibility(defaults)
+        drawsInspectedAppAsActive = number(Key.drawsInspectedAppAsActive, default: true).boolValue
 
         super.init()
 
