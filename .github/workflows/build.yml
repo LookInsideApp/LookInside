@@ -62,6 +62,9 @@ jobs:
       - name: Test Core Animation Archive
         run: bash Scripts/test-core-animation-archive.sh
 
+      - name: Test Live Layer Archive
+        run: bash Scripts/test-live-layer-archive.sh
+
       - name: Test Security Gates
         run: bash Scripts/test-security-gates.sh
 

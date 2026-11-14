@@ -869,6 +869,28 @@ enum XcodeViewHierarchyPixelRecovery {
         isFlipped: Bool,
         materialStandIn: CGColor? = nil
     ) -> Data? {
+        guard let renderedImage = renderingImage(
+            of: layer,
+            includingSublayers: includingSublayers,
+            hiding: hiddenLayers,
+            region: region,
+            isFlipped: isFlipped,
+            materialStandIn: materialStandIn
+        ) else { return nil }
+        let bitmap = NSBitmapImageRep(cgImage: renderedImage)
+        return bitmap.representation(using: .png, properties: [:])
+    }
+
+    /// `renderingPNG`'s picture before it is encoded: for a live session,
+    /// which hands it to the preview at once and has no file to write.
+    static func renderingImage(
+        of layer: CALayer,
+        includingSublayers: Bool,
+        hiding hiddenLayers: [CALayer] = [],
+        region: CGRect? = nil,
+        isFlipped: Bool,
+        materialStandIn: CGColor? = nil
+    ) -> CGImage? {
         let bounds = region ?? layer.bounds
         guard bounds.width >= minimumRenderedEdgeLength, bounds.height >= minimumRenderedEdgeLength,
               bounds.width.isFinite, bounds.height.isFinite
@@ -897,14 +919,11 @@ enum XcodeViewHierarchyPixelRecovery {
             isFlipped: isFlipped,
             materialStandIn: materialStandIn
         )
-        let renderedImage = if let renderer = CoreAnimationLayerRenderer.shared {
+        return if let renderer = CoreAnimationLayerRenderer.shared {
             renderer.rendering(request)
         } else {
             renderingWithCoreGraphics(request)
         }
-        guard let renderedImage else { return nil }
-        let bitmap = NSBitmapImageRep(cgImage: renderedImage)
-        return bitmap.representation(using: .png, properties: [:])
     }
 
     /// The largest `contentsScale` in `layer`'s subtree, the layer's own
