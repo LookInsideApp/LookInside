@@ -207,7 +207,10 @@ final class StaticAsyncUpdateManager: NSObject {
 
     /// Fetches the screenshots of `displayItem` (solo and group) and the
     /// group screenshots of its ancestors after an attribute was modified.
-    /// Progress goes to `modifyingUpdates`.
+    /// A window drawn from its layer archive is fetched again instead and
+    /// its images drawn again from the new archive; the Server is asked only
+    /// for the images it draws, the window's own among them. Progress goes
+    /// to `modifyingUpdates`.
     func updateAfterModifyingDisplayItem(_ displayItem: DisplayItem?) {
         guard let app = inspectableApp else { return }
         guard let displayItem else {
@@ -215,23 +218,39 @@ final class StaticAsyncUpdateManager: NSObject {
             return
         }
 
+        let archiveWindow = layerArchiveStore.readyWindow(containing: displayItem)
+        func isDrawnFromArchive(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) -> Bool {
+            guard archiveWindow != nil, case .archive = layerArchiveStore.imageSource(kind, of: item) else { return false }
+            return true
+        }
         var tasks: [StaticAsyncUpdateTask] = []
         displayItem.enumerateSelfAndAncestors { item, _ in
             guard item.doNotFetchScreenshotReason == .fetchScreenshotPermitted else { return }
-            if item === displayItem, !(item.subitems ?? []).isEmpty,
+            if item === displayItem, !(item.subitems ?? []).isEmpty, !isDrawnFromArchive(.solo, of: item),
                let task = self.task(from: item, type: .soloScreenshot)
             {
                 tasks.append(task)
             }
-            if let task = self.task(from: item, type: .groupScreenshot) {
+            if !isDrawnFromArchive(.group, of: item), let task = self.task(from: item, type: .groupScreenshot) {
                 tasks.append(task)
             }
         }
 
         modifyingUpdates.yield(.progress(received: 0, total: 0))
 
-        let screenshotsTotalCount = tasks.count
+        // The window's archive counts as one more image to wait for.
+        let screenshotsTotalCount = tasks.count + (archiveWindow == nil ? 0 : 1)
         var receivedScreenshotsCount = 0
+        var archiveRedrawCount = 0
+        if let archiveWindow {
+            layerArchiveStore.refetchArchive(of: archiveWindow) { [weak self] succeeded in
+                self?.redrawFromNewArchive(of: archiveWindow, succeeded: succeeded) { [weak self] in
+                    archiveRedrawCount = 1
+                    self?.modifyingUpdates.yield(.progress(received: receivedScreenshotsCount + archiveRedrawCount, total: screenshotsTotalCount))
+                }
+            }
+            guard !tasks.isEmpty else { return }
+        }
         startRequest(app: app, type: LookinRequestTypeAttrModificationPatch, tasks: tasks) { [weak self] event in
             guard let self else { return }
             switch event {
@@ -244,22 +263,143 @@ final class StaticAsyncUpdateManager: NSObject {
                 if detail.soloScreenshot != nil {
                     receivedScreenshotsCount += 1
                 }
-                modifyingUpdates.yield(.progress(received: receivedScreenshotsCount, total: screenshotsTotalCount))
+                modifyingUpdates.yield(.progress(received: receivedScreenshotsCount + archiveRedrawCount, total: screenshotsTotalCount))
             case let .failure(error):
                 assertionFailure("\(error)")
                 modifyingUpdates.yield(.failure(error))
             case .completion:
-                modifyingUpdates.yield(.progress(received: screenshotsTotalCount, total: screenshotsTotalCount))
+                receivedScreenshotsCount = tasks.count
+                modifyingUpdates.yield(.progress(received: receivedScreenshotsCount + archiveRedrawCount, total: screenshotsTotalCount))
             }
         }
+    }
+
+    /// After the inspected app changed, `window`'s images come from its new
+    /// archive: the images on screen are drawn again and replace the old ones
+    /// once ready, the others are dropped and drawn when next asked for.
+    /// When the new archive did not arrive (`succeeded` false) the window is
+    /// the Server's: every image drawn from its old archive is dropped and
+    /// asked of the Server. `completion` runs once the images on screen are
+    /// drawn again.
+    private func redrawFromNewArchive(of window: DisplayItem, succeeded: Bool, completion: @escaping @MainActor () -> Void) {
+        guard dataSource?.rawHierarchyInfo?.displayItems?.contains(where: { $0 === window }) == true else {
+            // A reload replaced the tree meanwhile.
+            completion()
+            return
+        }
+        let displayedItems = Set((dataSource?.displayingFlatItems ?? []).map(ObjectIdentifier.init))
+        var redrawsLeft = 0
+        var droppedOids = Set<UInt>()
+        window.enumerateSelfAndChildren { item in
+            guard item !== window else { return }
+            for kind in [LiveLayerArchive.ImageKind.group, .solo] {
+                let wasDrawnFromArchive = self.layerArchiveStore.hasDrawnOrQueued(kind, of: item)
+                let source = succeeded ? self.layerArchiveStore.imageSource(kind, of: item) : .server
+                if case let .archive(archive, nodes) = source {
+                    if displayedItems.contains(ObjectIdentifier(item)), Self.shownImageKind(of: item) == kind {
+                        redrawsLeft += 1
+                        self.layerArchiveStore.drawImage(kind, of: item, archive: archive, nodes: nodes, priority: .shown, again: true) { _ in
+                            redrawsLeft -= 1
+                            if redrawsLeft == 0 {
+                                completion()
+                            }
+                        }
+                    } else {
+                        self.layerArchiveStore.forgetImage(kind, of: item)
+                        Self.dropImage(kind, of: item)
+                    }
+                } else if wasDrawnFromArchive {
+                    self.layerArchiveStore.forgetImage(kind, of: item)
+                    Self.dropImage(kind, of: item)
+                    droppedOids.formUnion(item.availableObjectOidsPreferView(false).map(\.uintValue))
+                }
+            }
+        }
+        if !droppedOids.isEmpty {
+            // Asked of the Server now, though it may have answered them
+            // without an image before.
+            answeredTasks.forget { droppedOids.contains($0.oid) }
+        }
+        if redrawsLeft == 0 {
+            completion()
+        }
+        updateForDisplayingItems()
+    }
+
+    /// The image the preview shows for `item` in its current state, as
+    /// `DetailFetchPlanning.Node.shownScreenshot` reads it.
+    private static func shownImageKind(of item: DisplayItem) -> LiveLayerArchive.ImageKind {
+        item.isExpandable && item.isExpanded && item.hasPixelBearingSubitems() ? .solo : .group
+    }
+
+    private static func dropImage(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) {
+        switch kind {
+        case .group:
+            item.groupScreenshot = nil
+        case .solo:
+            item.soloScreenshot = nil
+        }
+    }
+
+    /// What a window's layer archive gives a caller outside the preview —
+    /// the MCP bridge — for one image of a node.
+    enum LayerArchiveImage {
+        case image(NSImage)
+        /// The archive draws nothing for it: the node has no pixels of its
+        /// own there.
+        case empty
+    }
+
+    /// `kind` of `item`'s image drawn from its window's layer archive, also
+    /// put on the node; nil when the Server draws it. Waits for an archive
+    /// that is on its way.
+    func layerArchiveImage(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) async -> LayerArchiveImage? {
+        guard layerArchiveStore.isActive else { return nil }
+        if case .pendingArchive = layerArchiveStore.imageSource(kind, of: item) {
+            await layerArchiveStore.waitForPendingArchives()
+        }
+        guard case let .archive(archive, nodes) = layerArchiveStore.imageSource(kind, of: item) else { return nil }
+        let image: NSImage? = await withCheckedContinuation { continuation in
+            layerArchiveStore.drawImage(kind, of: item, archive: archive, nodes: nodes, priority: .shown) { image in
+                continuation.resume(returning: image)
+            }
+        }
+        // Drawn before: the node holds it, unless it came out empty.
+        if let image = image ?? (kind == .group ? item.groupScreenshot : item.soloScreenshot) {
+            return .image(image)
+        }
+        return .empty
     }
 
     /// Fetches one item's screenshots and attributes again, not its sub
     /// items. The user asked for it: it does not yield to another client's
     /// detail request.
     func reloadSingleDisplayItem(_ item: DisplayItem?) {
-        let tasks = makeReloadSingleItemTasks(item)
+        var tasks = makeReloadSingleItemTasks(item)
         guard !tasks.isEmpty else { return }
+        if let item, let window = layerArchiveStore.readyWindow(containing: item) {
+            // Its window's archive draws its images: fetch the archive again
+            // and ask the Server for the rest only, the basis and attributes
+            // once.
+            var keptTasks: [StaticAsyncUpdateTask] = []
+            for task in tasks {
+                let kind: LiveLayerArchive.ImageKind? = switch task.taskType {
+                case .groupScreenshot: .group
+                case .soloScreenshot: .solo
+                default: nil
+                }
+                if let kind, case .archive = layerArchiveStore.imageSource(kind, of: item) {
+                    guard !keptTasks.contains(where: { $0.taskType == .noScreenshot }) else { continue }
+                    task.taskType = .noScreenshot
+                }
+                keptTasks.append(task)
+            }
+            keptTasks.first?.needBasisVisualInfo = true
+            tasks = keptTasks
+            layerArchiveStore.refetchArchive(of: window) { [weak self] succeeded in
+                self?.redrawFromNewArchive(of: window, succeeded: succeeded) {}
+            }
+        }
         send(tasks, yieldsToOtherRequests: false) { [weak self] in
             self?.startPrefetchIfNeeded()
         }

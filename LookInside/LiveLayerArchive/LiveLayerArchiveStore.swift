@@ -65,6 +65,8 @@ final class LiveLayerArchiveStore {
         let archive: LiveLayerArchive
         let nodes: LiveLayerArchive.NodeLayers
         var priority: Priority
+        /// Called with the image once drawn, nil when it came out empty.
+        var completions: [@MainActor (NSImage?) -> Void] = []
     }
 
     /// What crosses to the work queue and back.
@@ -86,7 +88,16 @@ final class LiveLayerArchiveStore {
     private var windowStates: [UInt: WindowState] = [:]
     /// Bumped by every reload; work started before it is dropped.
     private var generation = 0
-    private var fetchTask: Task<Void, Never>?
+    private weak var app: InspectableApp?
+    /// The windows whose archives are still to be asked for, in order. One
+    /// request at a time: a newer layer archive request on the channel makes
+    /// the connection discard an older one.
+    private var fetchQueue: [UInt] = []
+    private var fetchingWindowOid: UInt?
+    /// Windows the app changed again while their archive was being fetched.
+    private var windowsToFetchAgain: Set<UInt> = []
+    private var refetchCompletions: [UInt: [@MainActor (Bool) -> Void]] = [:]
+    private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     /// Most urgent first; within a priority, in the order asked for.
     private var waitingJobs: [Job] = []
     private var drawingJob: Job?
@@ -111,15 +122,70 @@ final class LiveLayerArchiveStore {
         for windowOid in windowOids {
             windowStates[windowOid] = .pending
         }
+        self.app = app
+        fetchQueue = windowOids
         #log(.default, "LayerArchive - fetching \(windowOids.count, privacy: .public) window archives")
+        fetchNextArchive()
+    }
+
+    /// Fetches the archive of `window` again after the app changed — an
+    /// attribute edit, a node reloaded — ahead of the windows still waiting.
+    /// `completion` hears whether the new archive arrived: true once the
+    /// window is drawn from it, false when the window is the Server's now.
+    func refetchArchive(of window: DisplayItem, completion: @escaping @MainActor (Bool) -> Void) {
+        guard isActive, let windowOid = window.windowObject?.oid, windowStates[windowOid] != nil else {
+            completion(false)
+            return
+        }
+        windowStates[windowOid] = .pending
+        refetchCompletions[windowOid, default: []].append(completion)
+        if fetchingWindowOid == windowOid {
+            windowsToFetchAgain.insert(windowOid)
+        } else {
+            fetchQueue.removeAll { $0 == windowOid }
+            fetchQueue.insert(windowOid, at: 0)
+        }
+        fetchNextArchive()
+    }
+
+    /// The window `item` belongs to, when that window is drawn from an
+    /// archive that arrived.
+    func readyWindow(containing item: DisplayItem) -> DisplayItem? {
+        guard isActive, let window = Self.window(of: item), let windowOid = window.windowObject?.oid,
+              case .ready = windowStates[windowOid]
+        else { return nil }
+        return window
+    }
+
+    /// Returns once no window's archive is on its way.
+    func waitForPendingArchives() async {
+        guard hasPendingArchives else { return }
+        await withCheckedContinuation { continuation in
+            settleWaiters.append(continuation)
+        }
+    }
+
+    private func fetchNextArchive() {
+        guard fetchingWindowOid == nil, let app, !fetchQueue.isEmpty else { return }
+        let windowOid = fetchQueue.removeFirst()
+        fetchingWindowOid = windowOid
         let generation = generation
-        fetchTask = Task { [weak self, weak app] in
-            for windowOid in windowOids {
-                guard let app, self?.generation == generation else { return }
-                let outcome = await Self.fetchingArchive(windowOid: windowOid, from: app)
-                guard let self, self.generation == generation else { return }
+        Task { [weak self] in
+            let outcome = await Self.fetchingArchive(windowOid: windowOid, from: app)
+            guard let self, self.generation == generation else { return }
+            fetchingWindowOid = nil
+            if windowsToFetchAgain.remove(windowOid) != nil {
+                // Changed again while it was being encoded: this archive is
+                // already old.
+                fetchQueue.insert(windowOid, at: 0)
+            } else {
                 settle(windowOid, outcome)
+                let succeeded = if case .success = outcome { true } else { false }
+                for completion in refetchCompletions.removeValue(forKey: windowOid) ?? [] {
+                    completion(succeeded)
+                }
             }
+            fetchNextArchive()
         }
     }
 
@@ -163,15 +229,34 @@ final class LiveLayerArchiveStore {
             #log(.default, "LayerArchive - window \(windowOid, privacy: .public) stays with the Server's screenshots: \(String(describing: error), privacy: .public)")
         }
         serverDrawnDescendantsByItem.removeAll()
+        if !hasPendingArchives {
+            resumeSettleWaiters()
+        }
         archivesDidSettle?()
+    }
+
+    private func resumeSettleWaiters() {
+        let waiters = settleWaiters
+        settleWaiters.removeAll()
+        for waiter in waiters {
+            waiter.resume()
+        }
     }
 
     private func reset() {
         generation += 1
-        fetchTask?.cancel()
-        fetchTask = nil
         isActive = false
+        fetchQueue.removeAll()
+        fetchingWindowOid = nil
+        windowsToFetchAgain.removeAll()
+        // The windows of the old tree are gone; nobody draws from them.
+        let completions = refetchCompletions.values.flatMap { $0 }
+        refetchCompletions.removeAll()
+        for completion in completions {
+            completion(false)
+        }
         windowStates.removeAll()
+        resumeSettleWaiters()
         waitingJobs.removeAll()
         drawnKeys.removeAll()
         nodeLayerOidsByWindow.removeAll()
@@ -291,25 +376,62 @@ final class LiveLayerArchiveStore {
 
     /// Draws `kind` of `item`'s image from `archive` and puts it on the node,
     /// unless it was drawn already or waits to be; a waiting one moves up to
-    /// `priority` when that is sooner.
+    /// `priority` when that is sooner. `again` draws it even so, from this
+    /// archive: the app changed. `completion` hears the image, nil when it
+    /// came out empty or was drawn before.
     func drawImage(
         _ kind: LiveLayerArchive.ImageKind,
         of item: DisplayItem,
         archive: LiveLayerArchive,
         nodes: LiveLayerArchive.NodeLayers,
-        priority: Priority
+        priority: Priority,
+        again: Bool = false,
+        completion: (@MainActor (NSImage?) -> Void)? = nil
     ) {
         let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
-        guard !drawnKeys.contains(key), drawingJob?.key != key else { return }
         if let index = waitingJobs.firstIndex(where: { $0.key == key }) {
-            guard priority < waitingJobs[index].priority else { return }
             var job = waitingJobs.remove(at: index)
-            job.priority = priority
+            if again {
+                job = Job(key: key, item: item, archive: archive, nodes: nodes, priority: priority, completions: job.completions)
+            }
+            job.priority = min(job.priority, priority)
+            if let completion {
+                job.completions.append(completion)
+            }
             enqueue(job)
+        } else if again || (!drawnKeys.contains(key) && drawingJob?.key != key) {
+            drawnKeys.remove(key)
+            var job = Job(key: key, item: item, archive: archive, nodes: nodes, priority: priority)
+            if let completion {
+                job.completions.append(completion)
+            }
+            enqueue(job)
+        } else if let completion {
+            if drawingJob?.key == key {
+                drawingJob?.completions.append(completion)
+            } else {
+                completion(nil)
+            }
+            return
         } else {
-            enqueue(Job(key: key, item: item, archive: archive, nodes: nodes, priority: priority))
+            return
         }
         drawNext()
+    }
+
+    /// Forgets `kind` of `item`'s image: it is drawn again when next asked
+    /// for. A waiting drawing of it is dropped.
+    func forgetImage(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) {
+        let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
+        drawnKeys.remove(key)
+        waitingJobs.removeAll { $0.key == key }
+    }
+
+    /// Whether `kind` of `item`'s image was drawn from an archive, or waits
+    /// to be.
+    func hasDrawnOrQueued(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) -> Bool {
+        let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
+        return drawnKeys.contains(key) || drawingJob?.key == key || waitingJobs.contains { $0.key == key }
     }
 
     /// Whether images are waiting or being drawn.
@@ -357,10 +479,11 @@ final class LiveLayerArchiveStore {
     private func finishDrawing(image: CGImage?, size: CGSize, generation: Int) {
         let job = drawingJob
         drawingJob = nil
+        var screenshot: NSImage?
         if generation == self.generation, let job {
             drawnKeys.insert(job.key)
             if let image, let item = job.item {
-                let screenshot = NSImage(cgImage: image, size: size)
+                screenshot = NSImage(cgImage: image, size: size)
                 switch job.key.kind {
                 case .group:
                     item.groupScreenshot = screenshot
@@ -368,6 +491,9 @@ final class LiveLayerArchiveStore {
                     item.soloScreenshot = screenshot
                 }
             }
+        }
+        for completion in job?.completions ?? [] {
+            completion(screenshot)
         }
         drawNext()
     }

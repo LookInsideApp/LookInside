@@ -24,6 +24,7 @@ extension HostAppTests {
         /// that hierarchy gives the views' layers.
         private struct InspectedWindow {
             let window: NSWindow
+            let redView: NSView
             let hierarchy: HierarchyInfo
             let windowItem: DisplayItem
             let contentItem: DisplayItem
@@ -110,6 +111,7 @@ extension HostAppTests {
             }
             return InspectedWindow(
                 window: window,
+                redView: redView,
                 hierarchy: hierarchy,
                 windowItem: windowItem,
                 contentItem: contentItem,
@@ -235,6 +237,125 @@ extension HostAppTests {
                 "only the window's own screenshot should be asked of the Server, asked for \(Self.screenshotTaskOids(in: server))"
             )
             withExtendedLifetime(session) {}
+        }
+
+        private static func isRed(_ colour: (red: CGFloat, green: CGFloat, blue: CGFloat)?) -> Bool {
+            colour.map { $0.red > 0.8 && $0.green < 0.2 && $0.blue < 0.2 } == true
+        }
+
+        private static func isGreen(_ colour: (red: CGFloat, green: CGFloat, blue: CGFloat)?) -> Bool {
+            colour.map { $0.green > 0.8 && $0.red < 0.2 && $0.blue < 0.2 } == true
+        }
+
+        private static func isBlue(_ colour: (red: CGFloat, green: CGFloat, blue: CGFloat)?) -> Bool {
+            colour.map { $0.blue > 0.8 && $0.red < 0.2 && $0.green < 0.2 } == true
+        }
+
+        @Test func editFetchesTheArchiveAgainAndRedrawsWhatIsShown() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                Self.layerArchive(of: inspected, layerLimit: 4000)
+            }
+            let session = await Self.loadingSession(inspected, on: server)
+            // On screen: the window and the content view expanded, the red
+            // view shown with its group image.
+            inspected.windowItem.isExpanded = true
+            inspected.contentItem.isExpanded = true
+            session.dataSource.buildDisplayingFlatItems()
+            #expect(await Self.fetchingWholeTree(session.manager), "the whole tree should be fetched")
+            #expect(Self.isRed(Self.middleColour(of: inspected.redItem.groupScreenshot)), "the red view should start red")
+
+            // What the edit did in the app.
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            inspected.redView.layer?.backgroundColor = CGColor(srgbRed: 0, green: 1, blue: 0, alpha: 1)
+            CATransaction.commit()
+            CATransaction.flush()
+            let progress = StreamCollector(session.manager.modifyingUpdates.subscribe())
+            defer { progress.stop() }
+            session.manager.updateAfterModifyingDisplayItem(inspected.redItem)
+
+            #expect(
+                await waitUntil(timeout: .seconds(10)) { Self.isGreen(Self.middleColour(of: inspected.redItem.groupScreenshot)) },
+                "the red view's image on screen should be drawn again from the new archive"
+            )
+            #expect(server.receivedRequestTypes.filter { $0 == UInt32(LookinRequestTypeLayerArchive) }.count == 2, "the edit should fetch the window's archive again")
+            var patchedOids = Set<UInt>()
+            for request in server.receivedRequests where request.type == UInt32(LookinRequestTypeAttrModificationPatch) {
+                for task in request.data as? [StaticAsyncUpdateTask] ?? [] {
+                    patchedOids.insert(task.oid)
+                }
+            }
+            #expect(patchedOids == [InspectedWindow.windowOid], "only the window's own screenshot should be patched by the Server, patched \(patchedOids)")
+            #expect(
+                await waitUntil {
+                    guard case let .progress(received, total)? = progress.elements.last else { return false }
+                    return total > 0 && received >= total
+                },
+                "the progress should reach its end, got \(progress.elements)"
+            )
+            withExtendedLifetime(session) {}
+        }
+
+        @Test func imageForAnotherCallerIsDrawnFromTheArchive() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                Self.layerArchive(of: inspected, layerLimit: 4000)
+            }
+            let session = await Self.loadingSession(inspected, on: server)
+
+            guard case let .image(image)? = await session.manager.layerArchiveImage(.group, of: inspected.blueItem) else {
+                Issue.record("the blue view's image should come from the archive")
+                return
+            }
+            #expect(Self.isBlue(Self.middleColour(of: image)))
+            #expect(inspected.blueItem.groupScreenshot === image, "the image should also be put on the node")
+            #expect(await session.manager.layerArchiveImage(.group, of: inspected.windowItem) == nil, "the window's own image is the Server's")
+            withExtendedLifetime(session) {}
+        }
+
+        @Test func imageForAnotherCallerWaitsForTheArchive() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.heldRequestTypes = [UInt32(LookinRequestTypeLayerArchive)]
+            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
+            let channel = server.connectChannel()
+            let app = InspectableApp()
+            app.appInfo = inspected.hierarchy.appInfo
+            app.channel = channel
+            let dataSource = StaticHierarchyDataSource()
+            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: app)
+            dataSource.reload(with: inspected.hierarchy, keepState: false)
+            #expect(await waitUntil { server.receivedRequestTypes.contains(UInt32(LookinRequestTypeLayerArchive)) })
+            #expect(manager.layerArchiveStore.hasPendingArchives)
+
+            var result: StaticAsyncUpdateManager.LayerArchiveImage?
+            var hasResult = false
+            Task { @MainActor in
+                result = await manager.layerArchiveImage(.group, of: inspected.redItem)
+                hasResult = true
+            }
+            try? await Task.sleep(for: .milliseconds(200))
+            #expect(!hasResult, "the image should wait for the archive")
+            let attachment = ConnectionResponseAttachment()
+            attachment.lookinServerVersion = Int32(LOOKIN_SERVER_VERSION)
+            attachment.data = Self.layerArchive(of: inspected, layerLimit: 4000)
+            server.answerHeldRequests(with: attachment)
+            #expect(await waitUntil(timeout: .seconds(10)) { hasResult })
+            if case let .image(image)? = result {
+                #expect(Self.isRed(Self.middleColour(of: image)))
+            } else {
+                Issue.record("the red view's image should come from the archive once it arrives, got \(String(describing: result))")
+            }
+            withExtendedLifetime((channel, app, dataSource, manager)) {}
         }
 
         @Test func serverThatDoesNotEncodeLayerTreesKeepsTakingTheScreenshots() async {

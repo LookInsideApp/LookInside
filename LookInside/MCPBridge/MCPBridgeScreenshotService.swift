@@ -237,6 +237,32 @@ final class MCPBridgeScreenshotService {
             )
         }
 
+        // A window whose Server encodes layer trees: the Host draws the
+        // image from the window's archive, glass and materials included.
+        if let archiveImage = await document.asyncUpdateManager?.layerArchiveImage(mode == .solo ? .solo : .group, of: displayItem) {
+            switch archiveImage {
+            case let .image(image):
+                return encodeResponse(
+                    identifier: identifier,
+                    image: image,
+                    objectIdentifier: resolvedObjectIdentifier,
+                    mode: mode,
+                    displayItem: displayItem,
+                    maximumPixelDimension: maximumPixelDimension,
+                    containsSecureContent: containsSecureContent,
+                    servedFromCache: false
+                )
+            case .empty:
+                return .failure(
+                    identifier: identifier,
+                    error: MCPBridgeErrorPayload(
+                        code: "screenshot.notAvailable",
+                        message: "This object draws nothing of its own in \"\(mode.rawValue)\" mode; retry with mode \"group\"."
+                    )
+                )
+            }
+        }
+
         // Slow path: ask the target app to render it now.
         // A SwiftUI node's screenshot comes by its detail oid.
         guard case let nativeObjectIdentifier = displayItem.detailRequestOid,
