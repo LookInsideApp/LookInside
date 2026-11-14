@@ -249,6 +249,12 @@
         /// every archive an older server made stays byte for byte the same.
         @objc(hierarchyAcquisitionProtocolVersion)
         public var hierarchyAcquisitionProtocolVersion: UInt = 0
+        /// Zero for older servers and for servers that cannot encode layer
+        /// trees; 1 for a macOS server that answers
+        /// `LookinRequestTypeLayerArchive`. Archived only when non-zero, so
+        /// every archive an older server made stays byte for byte the same.
+        @objc(layerArchiveProtocolVersion)
+        public var layerArchiveProtocolVersion: UInt = 0
 
         override public init() {
             super.init()
@@ -262,6 +268,7 @@
             newAppInfo.appIcon = appIcon
             newAppInfo.gestureDebugProtocolVersion = gestureDebugProtocolVersion
             newAppInfo.hierarchyAcquisitionProtocolVersion = hierarchyAcquisitionProtocolVersion
+            newAppInfo.layerArchiveProtocolVersion = layerArchiveProtocolVersion
             newAppInfo.appName = appName
             newAppInfo.deviceDescription = deviceDescription
             newAppInfo.deviceModelIdentifier = deviceModelIdentifier
@@ -285,6 +292,7 @@
             swiftEnabledInLookinServer = aDecoder.decodeCInt(forKey: "swiftEnabledInLookinServer")
             gestureDebugProtocolVersion = UInt(bitPattern: aDecoder.decodeInteger(forKey: "gestureDebugProtocolVersion"))
             hierarchyAcquisitionProtocolVersion = UInt(bitPattern: aDecoder.decodeInteger(forKey: "hierarchyAcquisitionProtocolVersion"))
+            layerArchiveProtocolVersion = UInt(bitPattern: aDecoder.decodeInteger(forKey: "layerArchiveProtocolVersion"))
             let screenshotData = aDecoder.decodeObject(forKey: CodingKey_Screenshot) as? Data
             screenshot = screenshotData.flatMap { PlatformImage(data: $0) }
 
@@ -313,6 +321,9 @@
             aCoder.encode(Int(bitPattern: gestureDebugProtocolVersion), forKey: "gestureDebugProtocolVersion")
             if hierarchyAcquisitionProtocolVersion != 0 {
                 aCoder.encode(Int(bitPattern: hierarchyAcquisitionProtocolVersion), forKey: "hierarchyAcquisitionProtocolVersion")
+            }
+            if layerArchiveProtocolVersion != 0 {
+                aCoder.encode(Int(bitPattern: layerArchiveProtocolVersion), forKey: "layerArchiveProtocolVersion")
             }
 
             #if canImport(UIKit)
