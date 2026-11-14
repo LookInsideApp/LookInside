@@ -101,8 +101,10 @@ extension LiveLayerArchive {
         // glass that hide the content in place; with the glass left out the
         // content would go too. For the render those portals stop hiding it,
         // and it draws where it is.
-        let reopenedPortals = reopeningPortals(inside: leftOut.filter { nodes.hiddenGlassLayerOids.contains(oid(of: $0)) })
-        defer { closing(reopenedPortals) }
+        let reopenedPortals = XcodeViewHierarchyPixelRecovery.reopeningPortals(
+            inside: leftOut.filter { nodes.hiddenGlassLayerOids.contains(oid(of: $0)) }
+        )
+        defer { XcodeViewHierarchyPixelRecovery.closingPortals(reopenedPortals) }
         return XcodeViewHierarchyPixelRecovery.renderingImage(
             of: layer,
             includingSublayers: true,
@@ -110,40 +112,6 @@ extension LiveLayerArchive {
             isFlipped: layer.contentsAreFlipped(),
             materialStandIn: layer === rootLayer ? nil : materialStandIn
         )
-    }
-
-    /// The portals under `glassLayers` that hid what they draw, now drawing
-    /// it without hiding it.
-    private func reopeningPortals(inside glassLayers: [CALayer]) -> [CALayer] {
-        var portals: [CALayer] = []
-        for glassLayer in glassLayers {
-            var pending = [glassLayer]
-            while let candidate = pending.popLast() {
-                if XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: [candidate]).isEmpty == false {
-                    portals.append(candidate)
-                }
-                pending.append(contentsOf: candidate.sublayers ?? [])
-            }
-        }
-        guard !portals.isEmpty else { return [] }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        for portal in portals {
-            portal.setValue(false, forKey: "hidesSourceLayer")
-        }
-        CATransaction.commit()
-        return portals
-    }
-
-    /// Lets `portals` hide what they draw again.
-    private func closing(_ portals: [CALayer]) {
-        guard !portals.isEmpty else { return }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        for portal in portals {
-            portal.setValue(true, forKey: "hidesSourceLayer")
-        }
-        CATransaction.commit()
     }
 
     /// Whether `layer` is a glass layer the setting hides, or under one.

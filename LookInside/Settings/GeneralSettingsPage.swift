@@ -123,7 +123,7 @@ private struct GeneralPreviewSection: View {
         } header: {
             Text("Preview")
         } footer: {
-            Text("LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. To show a hidden glass layer, select it and click Display.")
+            Text("LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. Where LookInside draws the glass, Hide also leaves out the glass behind sidebars and inspectors, which covers their content. To show a hidden glass layer, select it and click Display.")
         }
     }
 }

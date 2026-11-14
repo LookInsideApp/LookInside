@@ -38,6 +38,7 @@ struct CoreAnimationArchiveConverterTests {
             testLayersInsideGlassShapesGetNoImage()
             testExpandedGlassPlaneDrawsTheGlass()
             testGlassContentIsOrderedWhereItsPortalDrawsIt()
+            testHiddenGlassIsLeftOutOfTheImages()
         }
         testPunchOutLayersGetNoImage()
         testVibrantContentOnItsOwnLooksAsOverItsMaterial()
@@ -952,6 +953,83 @@ struct CoreAnimationArchiveConverterTests {
         guard items.count == 3 else { fail("the tree should have three nodes, got \(items.count)") }
         let markerFrame = items[2].calculateFrameToRoot()
         expect(markerFrame == CGRect(x: 0, y: 90, width: 100, height: 10), "the marker should sit at the top of the clip layer, got \(markerFrame)")
+    }
+
+    /// The Liquid Glass setting's Hide leaves the glass behind a split view
+    /// item out of an import's images. A decoded archive has no `SDFLayer`
+    /// to name the glass, so the glass is found by its backdrop in the view
+    /// the glass view draws it in (`CoreAnimationArchiveGlass`), and the
+    /// recovery leaves it out with what is under it: the glass view's image
+    /// then holds no glass, the content the glass draws through its portals
+    /// still shows where it is, and the glass gets no image of its own.
+    @MainActor
+    private static func testHiddenGlassIsLeftOutOfTheImages() {
+        guard #available(macOS 26.0, *) else {
+            print("skipped testHiddenGlassIsLeftOutOfTheImages: NSGlassEffectView needs macOS 26")
+            return
+        }
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testHiddenGlassIsLeftOutOfTheImages: no Metal device")
+            return
+        }
+        let (contentView, window) = makingLayerBackedContentView()
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.setContentSize(NSSize(width: 300, height: 100))
+        let glassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+        glassView.contentView = NSTextField(labelWithString: "Filter")
+        contentView.addSubview(glassView)
+        settlingLayers(of: window)
+        guard let contentLayer = contentView.layer else { fail("the content view should have a layer") }
+        let tree = withExtendedLifetime(window) { CoreAnimationArchiveLayerTree(contents: decodedContents(of: contentLayer)) }
+
+        let glassLayers = tree.layers.filter { CoreAnimationArchiveGlass.viewAncestorClassChains(ofGlassLayer: $0) != nil }
+        guard glassLayers.count == 1, let glassLayer = glassLayers.first,
+              let viewAncestorClassChains = CoreAnimationArchiveGlass.viewAncestorClassChains(ofGlassLayer: glassLayer)
+        else { fail("the glass view should hold one glass layer, got \(glassLayers.count)") }
+        // The view the glass is drawn in, the glass view, the content view.
+        expect(
+            viewAncestorClassChains.count == 3
+                && !viewAncestorClassChains[0].contains("NSGlassEffectView")
+                && viewAncestorClassChains[1].first == "NSGlassEffectView",
+            "the glass should be drawn in a view right under the glass view, got \(viewAncestorClassChains)"
+        )
+        guard let glassViewIndex = tree.layers.firstIndex(where: {
+            CoreAnimationArchiveViewIdentity(layer: $0)?.viewClassChain.first == "NSGlassEffectView"
+        }) else { fail("the archive should hold the glass view") }
+
+        let shown = recoveredScreenshots(of: tree)
+        let hidden: CoreAnimationArchiveScreenshots
+        do {
+            hidden = try CoreAnimationArchivePixelRecovery.recovering(from: tree, hidingGlass: { $0 === glassLayer })
+        } catch {
+            fail("pixel recovery failed: \(error)")
+        }
+        func coverage(of screenshots: CoreAnimationArchiveScreenshots) -> (opaque: Double, visible: Double) {
+            guard let data = screenshots.groupByObjectIdentifier[UInt(glassViewIndex + 1)],
+                  let image = NSBitmapImageRep(data: data)?.cgImage
+            else { return (0, 0) }
+            let pixels = premultipliedPixels(of: image)
+            var opaque = 0
+            var visible = 0
+            for index in stride(from: 3, to: pixels.count, by: 4) {
+                if pixels[index] > 200 { opaque += 1 }
+                if pixels[index] > 16 { visible += 1 }
+            }
+            let count = Double(image.width * image.height)
+            return (Double(opaque) / count, Double(visible) / count)
+        }
+        let shownCoverage = coverage(of: shown)
+        let hiddenCoverage = coverage(of: hidden)
+        expect(shownCoverage.opaque > 0.6, "with the glass shown it should cover the view, got \(shownCoverage.opaque)")
+        expect(hiddenCoverage.opaque < 0.3, "with the glass left out only the label should be opaque, got \(hiddenCoverage.opaque)")
+        expect(hiddenCoverage.visible > 0.005, "the label should still show with the glass left out, got \(hiddenCoverage.visible)")
+        for (index, layer) in tree.layers.enumerated() where XcodeViewHierarchyPixelRecovery.isInside(layer, anyOf: [glassLayer]) {
+            let objectIdentifier = UInt(index + 1)
+            expect(
+                hidden.groupByObjectIdentifier[objectIdentifier] == nil && hidden.soloByObjectIdentifier[objectIdentifier] == nil,
+                "#\(objectIdentifier), in the glass left out, should get no image"
+            )
+        }
     }
 
     // MARK: - Helpers

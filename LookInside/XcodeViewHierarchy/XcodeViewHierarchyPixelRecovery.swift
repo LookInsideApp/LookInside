@@ -129,8 +129,14 @@ enum XcodeViewHierarchyPixelRecovery {
     /// `isCancelled` is polled once per layer. When it answers true the render
     /// stops and nothing is returned: a partial set of images would read as
     /// missing pixels rather than as an abandoned import.
+    ///
+    /// The glass layers `isHiddenGlass` picks — the Liquid Glass setting's
+    /// Hide — are left out of every image with what is under them, and they
+    /// and what is under them get no image of their own. Content the glass
+    /// draws through portals still shows where it is.
     static func recovering(
         from graph: XcodeViewHierarchyObjectGraph,
+        hidingGlass isHiddenGlass: (CALayer) -> Bool = { _ in false },
         isCancelled: () -> Bool = { false }
     ) -> XcodeViewHierarchyScreenshots {
         let (trees, failedIdentifiers) = XcodeViewHierarchyLayerArchive.decodingLayerTrees(in: graph)
@@ -166,6 +172,17 @@ enum XcodeViewHierarchyPixelRecovery {
             return rootLayer === layer ? nil : materialStandInsByRoot[ObjectIdentifier(rootLayer)]
         }
 
+        var hiddenGlassLayers: [CALayer] = []
+        for tree in trees {
+            var pending = [tree.rootLayer]
+            while let layer = pending.popLast() {
+                if isHiddenGlass(layer) {
+                    hiddenGlassLayers.append(layer)
+                }
+                pending.append(contentsOf: layer.sublayers ?? [])
+            }
+        }
+
         var soloByObjectIdentifier: [String: Data] = [:]
         var groupByObjectIdentifier: [String: Data] = [:]
         var groupExcludingHostedViewsByObjectIdentifier: [String: Data] = [:]
@@ -180,7 +197,10 @@ enum XcodeViewHierarchyPixelRecovery {
             }
             // Liquid Glass's shape inputs, and layers that only cut what is
             // beneath them, show nothing of their own on screen.
-            guard !isGlassShapeInput(layer), !cutsWhatIsBeneath(layer) else { continue }
+            guard !isGlassShapeInput(layer), !cutsWhatIsBeneath(layer), !isInside(layer, anyOf: hiddenGlassLayers) else { continue }
+            let glassLeftOut = glassLayers(hiddenGlassLayers, below: layer)
+            let reopenedPortals = reopeningPortals(inside: glassLeftOut)
+            defer { closingPortals(reopenedPortals) }
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)
             // A layer that paints nothing but its background colour needs no
@@ -191,9 +211,9 @@ enum XcodeViewHierarchyPixelRecovery {
             let paintsOnlyItsBackground = representsPlainColorFill(layer)
             let layerMaterialStandIn = materialStandIn(for: layer)
             if !paintsOnlyItsBackground || hasSublayers,
-               let region = drawingRegion(of: layer, hiding: []),
+               let region = drawingRegion(of: layer, hiding: glassLeftOut),
                let groupImage = renderingPNG(
-                   of: layer, includingSublayers: true, region: region.rect, isFlipped: isFlipped,
+                   of: layer, includingSublayers: true, hiding: glassLeftOut, region: region.rect, isFlipped: isFlipped,
                    materialStandIn: layerMaterialStandIn
                )
             {
@@ -206,10 +226,13 @@ enum XcodeViewHierarchyPixelRecovery {
             // a layer node's group therefore leaves their subtrees out.
             let hostedDescendants = topology.hostedDescendantIdentifiers(of: objectIdentifier, graph: graph)
                 .compactMap { alignment[$0] }
+            let leftOutOfExcludingImage = hostedDescendants + glassLeftOut.filter { glassLayer in
+                !hostedDescendants.contains { isInside(glassLayer, anyOf: [$0]) }
+            }
             if !hostedDescendants.isEmpty,
-               let region = drawingRegion(of: layer, hiding: hostedDescendants),
+               let region = drawingRegion(of: layer, hiding: leftOutOfExcludingImage),
                let excludingImage = renderingPNG(
-                   of: layer, includingSublayers: true, hiding: hostedDescendants, region: region.rect, isFlipped: isFlipped,
+                   of: layer, includingSublayers: true, hiding: leftOutOfExcludingImage, region: region.rect, isFlipped: isFlipped,
                    materialStandIn: layerMaterialStandIn
                )
             {
@@ -405,6 +428,96 @@ enum XcodeViewHierarchyPixelRecovery {
         }
         visiting(root)
         return layersWithNothingBehind
+    }
+
+    // MARK: - Glass left out
+
+    /// The layers among `glassLayers` inside `layer`'s subtree, below it.
+    static func glassLayers(_ glassLayers: [CALayer], below layer: CALayer) -> [CALayer] {
+        glassLayers.filter { glassLayer in
+            var ancestor = glassLayer.superlayer
+            while let current = ancestor {
+                if current === layer {
+                    return true
+                }
+                ancestor = current.superlayer
+            }
+            return false
+        }
+    }
+
+    /// Whether `layer` is one of `glassLayers` or inside one.
+    static func isInside(_ layer: CALayer, anyOf glassLayers: [CALayer]) -> Bool {
+        guard !glassLayers.isEmpty else { return false }
+        var current: CALayer? = layer
+        while let candidate = current {
+            if glassLayers.contains(where: { $0 === candidate }) {
+                return true
+            }
+            current = candidate.superlayer
+        }
+        return false
+    }
+
+    /// The portals under `glassLayers` that hid what they draw, now drawing
+    /// it without hiding it, for a render that leaves that glass out: an
+    /// `NSGlassEffectView` draws its content through portals inside the glass
+    /// that hide the content in place, and with the glass left out the
+    /// content would go too. `closingPortals(_:)` puts them back.
+    static func reopeningPortals(inside glassLayers: [CALayer]) -> [CALayer] {
+        var portals: [CALayer] = []
+        for glassLayer in glassLayers {
+            var pending = [glassLayer]
+            while let candidate = pending.popLast() {
+                if !portalsHidingTheirSources(in: [candidate]).isEmpty {
+                    portals.append(candidate)
+                }
+                pending.append(contentsOf: candidate.sublayers ?? [])
+            }
+        }
+        guard !portals.isEmpty else { return [] }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for portal in portals {
+            portal.setValue(false, forKey: "hidesSourceLayer")
+        }
+        CATransaction.commit()
+        return portals
+    }
+
+    /// Lets `portals` hide what they draw again.
+    static func closingPortals(_ portals: [CALayer]) {
+        guard !portals.isEmpty else { return }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for portal in portals {
+            portal.setValue(true, forKey: "hidesSourceLayer")
+        }
+        CATransaction.commit()
+    }
+
+    // MARK: - Blending
+
+    /// Whether `layer` blends with what lies behind it rather than drawing
+    /// over it: an additive or blend-mode compositing filter (`plusL`,
+    /// `plusD`, the `…BlendMode` ones). On screen what lies behind is the
+    /// window; drawn on its own there is nothing, and the layer's picture
+    /// comes out as it is — a table header's backing layer adds a backing
+    /// store that is opaque black where it draws nothing to the window
+    /// through `plusL`, and on its own it was a black band. A subtree with
+    /// such a layer and nothing behind it is drawn over the material stand-in
+    /// as well, as vibrant content is, and the stand-in comes back out by
+    /// coverage.
+    static func blendsWithWhatIsBehind(_ layer: CALayer) -> Bool {
+        guard let type = filterType(of: layer.compositingFilter), !isVibrant(layer.compositingFilter) else { return false }
+        return type == "plusL" || type == "plusD" || (type.hasSuffix("BlendMode") && type != "normalBlendMode")
+    }
+
+    /// The layers of `root`'s subtree that blend with what lies behind them
+    /// (`blendsWithWhatIsBehind`) with nothing drawn behind them inside the
+    /// subtree, measured as `vibrantLayersWithNothingBehind` measures.
+    static func blendingLayersWithNothingBehind(in root: CALayer) -> [CALayer] {
+        layersWithNothingBehind(in: root, matching: blendsWithWhatIsBehind)
     }
 
     /// Whether a layer's own drawing goes through a vibrant filter that can
@@ -705,7 +818,13 @@ enum XcodeViewHierarchyPixelRecovery {
         if (backdrop.value(forKey: "captureOnly") as? Bool) == true || (backdrop.value(forKey: "enabled") as? Bool) == false {
             return false
         }
-        return !(backdrop.sublayers ?? []).contains { NSStringFromClass(type(of: $0)).hasPrefix("CASDF") }
+        return !isGlassBackdrop(backdrop)
+    }
+
+    /// Whether `layer` is the backdrop of Liquid Glass: a backdrop with the
+    /// distance-field layers that give the glass its shape right under it.
+    static func isGlassBackdrop(_ layer: CALayer) -> Bool {
+        isBackdrop(layer) && (layer.sublayers ?? []).contains { NSStringFromClass(type(of: $0)).hasPrefix("CASDF") }
     }
 
     /// Whether `request` is to be drawn over a material stand-in as well,
@@ -723,6 +842,7 @@ enum XcodeViewHierarchyPixelRecovery {
             let capturesTransparency = hasBackdropCapturingTransparency(in: layer, region: request.region, hiding: request.hiddenLayers)
             needsStandIn = !vibrantFills.isEmpty
                 || !vibrantLayersWithNothingBehind(in: layer).isEmpty
+                || !blendingLayersWithNothingBehind(in: layer).isEmpty
                 || capturesTransparency
             if capturesTransparency {
                 capturingMaterials = materialBackdrops(in: layer, hiding: request.hiddenLayers)
@@ -730,7 +850,7 @@ enum XcodeViewHierarchyPixelRecovery {
         } else {
             // Drawn without its sublayers, a layer has nothing behind it.
             vibrantFills = !layer.isHidden && isVibrantFill(layer) ? [layer] : []
-            needsStandIn = !vibrantFills.isEmpty || drawsThroughRemovableVibrantFilter(layer)
+            needsStandIn = !vibrantFills.isEmpty || drawsThroughRemovableVibrantFilter(layer) || blendsWithWhatIsBehind(layer)
         }
         guard needsStandIn else { return nil }
         return MaterialStandInUse(

@@ -25,6 +25,7 @@ struct LiveLayerArchiveTests {
         testHiddenGlassLeavesItsContentInPlace()
         testImageOfAVeryTallLayerFitsThePreview()
         testExpandedMaterialKeepsTheWindowsTone()
+        testBlendingLayerDrawnOnItsOwnKeepsTheWindowsTone()
         print("LiveLayerArchive tests passed")
     }
 
@@ -483,6 +484,50 @@ struct LiveLayerArchiveTests {
         expect(
             archive.image(of: .solo, for: LiveLayerArchive.NodeLayers(layerOid: 702, subtreeLayerOids: [702], windowNodeLayerOids: every)) == nil,
             "a backdrop that only captures should still draw nothing"
+        )
+    }
+
+    /// A layer that blends with what lies behind it — a table header's
+    /// backing layer adds its backing store through `plusL`, opaque black
+    /// where it draws nothing — came out as that backing store on its own: a
+    /// black band where the window shows its background. Drawn over the
+    /// window's tone it looks as in the window.
+    private static func testBlendingLayerDrawnOnItsOwnKeepsTheWindowsTone() {
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testBlendingLayerDrawnOnItsOwnKeepsTheWindowsTone: no Metal device")
+            return
+        }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let root = CALayer()
+        root.frame = CGRect(x: 0, y: 0, width: 200, height: 100)
+        root.backgroundColor = CGColor(srgbRed: 0.2, green: 0.3, blue: 0.4, alpha: 1)
+        let header = CALayer()
+        header.frame = CGRect(x: 0, y: 70, width: 200, height: 30)
+        header.backgroundColor = CGColor(gray: 0, alpha: 1)
+        header.compositingFilter = "plusL"
+        let title = CALayer()
+        title.frame = CGRect(x: 10, y: 10, width: 40, height: 10)
+        title.backgroundColor = CGColor(gray: 0.5, alpha: 1)
+        header.addSublayer(title)
+        root.addSublayer(header)
+        CATransaction.commit()
+        let walk = walking(root)
+        let reply = LayerArchive()
+        reply.archiveData = encoding(root)
+        reply.layerOids = walk.indices.map { UInt(800 + $0) }
+        reply.sublayerCounts = walk.map { UInt32($0.sublayers?.count ?? 0) }
+        let archive = decoding(reply)
+        // root 800, header 801, title 802.
+        guard let headerImage = archive.image(of: .group, for: LiveLayerArchive.NodeLayers(
+            layerOid: 801, subtreeLayerOids: [801, 802], windowNodeLayerOids: Set(800 ... 802)
+        )) else {
+            fail("the header should have an image")
+        }
+        let background = premultipliedPixel(of: headerImage, x: headerImage.width - 10, y: headerImage.height / 2)
+        expect(
+            abs(Int(background.red) - 51) <= 20 && abs(Int(background.green) - 77) <= 20 && abs(Int(background.blue) - 102) <= 20,
+            "where the header draws nothing it should show the window's tone, not black, got \(background)"
         )
     }
 

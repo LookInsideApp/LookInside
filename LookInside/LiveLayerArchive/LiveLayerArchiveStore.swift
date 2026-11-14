@@ -34,6 +34,16 @@ final class LiveLayerArchiveStore {
         case archive(LiveLayerArchive, LiveLayerArchive.NodeLayers)
     }
 
+    /// What whoever asked for an image hears, once.
+    enum DrawingOutcome {
+        /// The image; nil when it came out empty or was drawn before.
+        case drawn(NSImage?)
+        /// The drawing was dropped before it came to be: the tree was
+        /// replaced, or the image is to be drawn from the window's new
+        /// archive. Ask again.
+        case dropped
+    }
+
     /// How soon an image is wanted.
     enum Priority: Int, Comparable {
         /// The preview shows it now.
@@ -73,8 +83,8 @@ final class LiveLayerArchiveStore {
         let archive: LiveLayerArchive
         let nodes: LiveLayerArchive.NodeLayers
         var priority: Priority
-        /// Called with the image once drawn, nil when it came out empty.
-        var completions: [@MainActor (NSImage?) -> Void] = []
+        /// Each told once what came of the drawing.
+        var completions: [@MainActor (DrawingOutcome) -> Void] = []
     }
 
     /// What crosses to the work queue and back.
@@ -318,7 +328,7 @@ final class LiveLayerArchiveStore {
         }
         windowStates.removeAll()
         resumeSettleWaiters()
-        waitingJobs.removeAll()
+        droppingWaitingJobs { _ in true }
         drawnImages.removeAll()
         nodeLayerOidsByWindow.removeAll()
         windowItemsByOid.removeAll()
@@ -458,8 +468,8 @@ final class LiveLayerArchiveStore {
     /// Draws `kind` of `item`'s image from `archive` and puts it on the node,
     /// unless it was drawn already or waits to be; a waiting one moves up to
     /// `priority` when that is sooner. `again` draws it even so, from this
-    /// archive: the app changed. `completion` hears the image, nil when it
-    /// came out empty or was drawn before.
+    /// archive: the app changed. `completion` hears once what came of it
+    /// (`DrawingOutcome`).
     func drawImage(
         _ kind: LiveLayerArchive.ImageKind,
         of item: DisplayItem,
@@ -467,7 +477,7 @@ final class LiveLayerArchiveStore {
         nodes: LiveLayerArchive.NodeLayers,
         priority: Priority,
         again: Bool = false,
-        completion: (@MainActor (NSImage?) -> Void)? = nil
+        completion: (@MainActor (DrawingOutcome) -> Void)? = nil
     ) {
         let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
         if let index = waitingJobs.firstIndex(where: { $0.key == key }) {
@@ -491,7 +501,7 @@ final class LiveLayerArchiveStore {
             if drawingJob?.key == key {
                 drawingJob?.completions.append(completion)
             } else {
-                completion(nil)
+                completion(.drawn(nil))
             }
             return
         } else {
@@ -501,11 +511,29 @@ final class LiveLayerArchiveStore {
     }
 
     /// Forgets `kind` of `item`'s image: it is drawn again when next asked
-    /// for. A waiting drawing of it is dropped.
+    /// for. A waiting drawing of it is dropped, and whoever asked for it
+    /// hears so.
     func forgetImage(_ kind: LiveLayerArchive.ImageKind, of item: DisplayItem) {
         let key = ImageKey(item: ObjectIdentifier(item), kind: kind)
         drawnImages[key] = nil
-        waitingJobs.removeAll { $0.key == key }
+        droppingWaitingJobs { $0.key == key }
+    }
+
+    /// Takes the waiting drawings `isDropped` picks out of the queue. Whoever
+    /// asked for one hears `.dropped` on a later turn, once the caller is
+    /// done; a request that only waited on its drawing — the MCP bridge's —
+    /// would otherwise wait for ever.
+    private func droppingWaitingJobs(where isDropped: (Job) -> Bool) {
+        let completions = waitingJobs.filter(isDropped).flatMap(\.completions)
+        waitingJobs.removeAll(where: isDropped)
+        guard !completions.isEmpty else { return }
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated {
+                for completion in completions {
+                    completion(.dropped)
+                }
+            }
+        }
     }
 
     /// Whether `kind` of `item`'s image was drawn from an archive, or waits
@@ -575,7 +603,8 @@ final class LiveLayerArchiveStore {
         let job = drawingJob
         drawingJob = nil
         var screenshot: NSImage?
-        if generation == self.generation, let job {
+        let isCurrent = generation == self.generation
+        if isCurrent, let job {
             screenshot = image.map { Self.wrapping($0, size: size) }
             if screenshot == nil {
                 drawnImages[job.key] = .empty
@@ -591,8 +620,9 @@ final class LiveLayerArchiveStore {
                 }
             }
         }
+        // A drawing that finished into the tree a reload replaced is dropped.
         for completion in job?.completions ?? [] {
-            completion(screenshot)
+            completion(isCurrent ? .drawn(screenshot) : .dropped)
         }
         drawNext()
     }

@@ -294,6 +294,58 @@ struct CoreAnimationArchiveViewIdentity {
     }
 }
 
+// MARK: - Glass
+
+/// Liquid Glass in a decoded archive.
+///
+/// A live session's node tree names the glass layer, SwiftUI's
+/// `SDFLayer`. Decoding keeps QuartzCore's own classes only, so here it is a
+/// plain `CALayer`; the glass is found by what is kept instead: the views
+/// AppKit wrote onto their layers (`CoreAnimationArchiveViewIdentity`) and
+/// the glass backdrop, a `CABackdropLayer` with distance-field layers
+/// (`CASDFLayer`) under it. An `NSGlassEffectView` draws its glass in a
+/// hosting view of its own: the view's layer holds a root layer, the root
+/// the `SDFLayer`, and the `SDFLayer` the backdrop with the portals that draw
+/// the glass view's content over it (macOS 27.2).
+enum CoreAnimationArchiveGlass {
+    /// The class chains of the views above `layer`, nearest first, when
+    /// `layer` stands for a glass layer: no view's own layer, right under
+    /// one, with a glass backdrop in its subtree and no view in between —
+    /// the topmost layer of the glass in the view that draws it, the root
+    /// above the `SDFLayer`. Nil for every other layer.
+    static func viewAncestorClassChains(ofGlassLayer layer: CALayer) -> [[String]]? {
+        guard CoreAnimationArchiveViewIdentity(layer: layer) == nil,
+              let viewLayer = layer.superlayer,
+              CoreAnimationArchiveViewIdentity(layer: viewLayer) != nil,
+              holdsGlassBackdrop(layer)
+        else { return nil }
+        var viewAncestorClassChains: [[String]] = []
+        var current: CALayer? = viewLayer
+        while let ancestor = current {
+            if let identity = CoreAnimationArchiveViewIdentity(layer: ancestor) {
+                viewAncestorClassChains.append(identity.viewClassChain)
+            }
+            current = ancestor.superlayer
+        }
+        return viewAncestorClassChains
+    }
+
+    /// Whether a glass backdrop is in `layer`'s subtree with no view's layer
+    /// on the way down to it.
+    private static func holdsGlassBackdrop(_ layer: CALayer) -> Bool {
+        var pending = [layer]
+        while let candidate = pending.popLast() {
+            if XcodeViewHierarchyPixelRecovery.isGlassBackdrop(candidate) {
+                return true
+            }
+            for sublayer in candidate.sublayers ?? [] where CoreAnimationArchiveViewIdentity(layer: sublayer) == nil {
+                pending.append(sublayer)
+            }
+        }
+        return false
+    }
+}
+
 // MARK: - Attributes
 
 /// The dashboard rows of one decoded layer: the rows the blueprint aims at a

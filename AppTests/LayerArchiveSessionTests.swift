@@ -621,6 +621,177 @@ extension HostAppTests {
             withExtendedLifetime(session) {}
         }
 
+        /// What a Server lists for a window of real views: a node for every
+        /// layer-backed view, carrying its layer, and the archive's layers
+        /// numbered with those nodes' oids — any other layer, such as the
+        /// drawing container AppKit puts a view's drawing in, has none.
+        private struct ViewNodes {
+            let hierarchy: HierarchyInfo
+            let rootLayer: CALayer
+            let layers: [CALayer]
+            let layerOids: [UInt]
+            let itemsByView: [ObjectIdentifier: DisplayItem]
+
+            func item(for view: NSView) -> DisplayItem? {
+                itemsByView[ObjectIdentifier(view)]
+            }
+        }
+
+        private static func viewNodes(of window: NSWindow) -> ViewNodes? {
+            guard let themeFrame = window.contentView?.superview, let themeFrameLayer = themeFrame.layer else { return nil }
+            var oidsByLayer: [ObjectIdentifier: UInt] = [:]
+            var itemsByView: [ObjectIdentifier: DisplayItem] = [:]
+            var nextOid: UInt = 100
+            func item(for view: NSView) -> DisplayItem {
+                let viewObject = InspectedObject()
+                viewObject.oid = nextOid
+                viewObject.classChainList = CoreAnimationArchiveConverter.classChain(of: type(of: view))
+                let layerObject = InspectedObject()
+                layerObject.oid = nextOid + 1
+                nextOid += 2
+                if let layer = view.layer {
+                    oidsByLayer[ObjectIdentifier(layer)] = layerObject.oid
+                    layerObject.classChainList = CoreAnimationArchiveConverter.classChain(of: layer)
+                }
+                let item = DisplayItem()
+                item.nodeKind = .view
+                item.viewObject = viewObject
+                item.layerObject = layerObject
+                item.frame = view.frame
+                item.bounds = view.bounds
+                item.isFlipped = view.isFlipped
+                item.alpha = Float(view.alphaValue)
+                item.isHidden = view.isHidden
+                item.shouldCaptureImage = true
+                item.subitems = view.subviews.map(item(for:))
+                itemsByView[ObjectIdentifier(view)] = item
+                return item
+            }
+            let themeFrameItem = item(for: themeFrame)
+            let windowObject = InspectedObject()
+            windowObject.oid = InspectedWindow.windowOid
+            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
+            let windowItem = DisplayItem()
+            windowItem.nodeKind = .window
+            windowItem.windowObject = windowObject
+            windowItem.frame = CGRect(origin: .zero, size: window.frame.size)
+            windowItem.bounds = windowItem.frame
+            windowItem.shouldCaptureImage = true
+            windowItem.subitems = [themeFrameItem]
+            let appInfo = InspectedAppInfo()
+            appInfo.appName = "FakeApp"
+            appInfo.deviceType = .mac
+            appInfo.osDescription = "macOS"
+            appInfo.screenScale = 2
+            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
+            appInfo.layerArchiveProtocolVersion = 1
+            let hierarchy = HierarchyInfo()
+            hierarchy.appInfo = appInfo
+            hierarchy.displayItems = [windowItem]
+            let rootLayer = rootLayer(above: themeFrameLayer)
+            var layers: [CALayer] = []
+            var pending = [rootLayer]
+            while let layer = pending.popLast() {
+                layers.append(layer)
+                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
+            }
+            return ViewNodes(
+                hierarchy: hierarchy,
+                rootLayer: rootLayer,
+                layers: layers,
+                layerOids: layers.map { oidsByLayer[ObjectIdentifier($0)] ?? 0 },
+                itemsByView: itemsByView
+            )
+        }
+
+        /// The premultiplied RGBA of the pixel of `image` at `point`, a point
+        /// in a space `size` large whose y axis runs up when `isFlipped` is
+        /// false; the image covers the whole space.
+        private static func pixel(of image: NSImage, at point: CGPoint, in size: CGSize, isFlipped: Bool) -> [UInt8]? {
+            guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }
+            let scale = CGFloat(cgImage.width) / size.width
+            let column = Int(point.x * scale)
+            let row = Int((isFlipped ? point.y : size.height - point.y) * scale)
+            guard (0 ..< cgImage.width).contains(column), (0 ..< cgImage.height).contains(row) else { return nil }
+            var pixel = [UInt8](repeating: 0, count: 4)
+            pixel.withUnsafeMutableBytes { buffer in
+                guard let context = CGContext(
+                    data: buffer.baseAddress, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                    space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                ) else { return }
+                context.draw(cgImage, in: CGRect(x: -column, y: row - cgImage.height + 1, width: cgImage.width, height: cgImage.height))
+            }
+            return pixel
+        }
+
+        /// A table's header drawn on its own came out black where the window
+        /// shows the header's background. Its image matches the window's.
+        @Test func aTableHeaderDrawnOnItsOwnLooksAsInTheWindow() async {
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 300, height: 200),
+                styleMask: [.titled],
+                backing: .buffered,
+                defer: false
+            )
+            window.isReleasedWhenClosed = false
+            window.appearance = NSAppearance(named: .darkAqua)
+            defer { window.close() }
+            let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 200))
+            contentView.wantsLayer = true
+            let scrollView = NSScrollView(frame: contentView.bounds)
+            let tableView = NSTableView(frame: scrollView.bounds)
+            let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("name"))
+            column.title = "Name"
+            column.width = 120
+            tableView.addTableColumn(column)
+            scrollView.documentView = tableView
+            contentView.addSubview(scrollView)
+            window.contentView = contentView
+            window.displayIfNeeded()
+            CATransaction.flush()
+            guard let headerView = tableView.headerView, let headerLayer = headerView.layer, let nodes = Self.viewNodes(of: window),
+                  let headerItem = nodes.item(for: headerView), let contentItem = nodes.item(for: contentView)
+            else {
+                Issue.record("the table should have a layer-backed header with a node")
+                return
+            }
+
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                let reply = LayerArchive()
+                reply.layerCount = UInt(nodes.layers.count)
+                reply.layerOids = nodes.layerOids
+                reply.sublayerCounts = nodes.layers.map { UInt32($0.sublayers?.count ?? 0) }
+                reply.archiveData = Self.encodingLayerTree(nodes.rootLayer)
+                return reply
+            }
+            let session = await Self.loadingSession(nodes.hierarchy, on: server)
+            guard case let .image(headerImage)? = await session.manager.layerArchiveImage(.group, of: headerItem),
+                  case let .image(contentImage)? = await session.manager.layerArchiveImage(.group, of: contentItem)
+            else {
+                Issue.record("the header and the content view should have images from the archive")
+                return
+            }
+            // Right of the column's title, where the header shows only its
+            // background.
+            let pointInHeader = CGPoint(x: headerView.bounds.maxX - 20, y: headerView.bounds.midY)
+            let pointInContent = headerView.convert(pointInHeader, to: contentView)
+            let headerPixel = Self.pixel(of: headerImage, at: pointInHeader, in: headerView.bounds.size, isFlipped: headerView.isFlipped)
+            let windowPixel = Self.pixel(of: contentImage, at: pointInContent, in: contentView.bounds.size, isFlipped: contentView.isFlipped)
+            let layerDescription = ([headerLayer] + (headerLayer.sublayers ?? [])).map { layer in
+                "\(NSStringFromClass(type(of: layer))) opaque=\(layer.isOpaque) background=\(String(describing: layer.backgroundColor?.components)) compositing=\(String(describing: layer.compositingFilter)) filters=\(String(describing: layer.filters)) contents=\(layer.contents != nil)"
+            }.joined(separator: " | ")
+            if let headerPixel, let windowPixel {
+                let difference = zip(headerPixel, windowPixel).map { abs(Int($0) - Int($1)) }.max() ?? 0
+                #expect(difference <= 24, "the header's own image should look as in the window: header \(headerPixel), window \(windowPixel); \(layerDescription)")
+            } else {
+                Issue.record("the sample point should lie in both images; \(layerDescription)")
+            }
+            withExtendedLifetime(session) {}
+        }
+
         @Test func imagesComeFromTheWindowsLayerArchive() async {
             let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
             defer { inspected.window.close() }
@@ -728,6 +899,56 @@ extension HostAppTests {
             #expect(Self.isBlue(Self.middleColour(of: image)))
             #expect(inspected.blueItem.groupScreenshot === image, "the image should also be put on the node")
             #expect(await session.manager.layerArchiveImage(.group, of: inspected.windowItem) == nil, "the window's own image is the Server's")
+            withExtendedLifetime(session) {}
+        }
+
+        /// The MCP bridge asks for a node's image and waits for its drawing.
+        /// A drawing still waiting when the app changed — redrawing from the
+        /// new archive drops the images off screen — or when a refresh
+        /// replaced the tree was dropped with whoever waited on it, and the
+        /// bridge's request never came back. Whoever asked now hears that it
+        /// was dropped, and the bridge asks again.
+        @Test func aDroppedDrawingTellsWhoeverAskedForIt() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                Self.layerArchive(of: inspected, layerLimit: 4000)
+            }
+            let session = await Self.loadingSession(inspected, on: server)
+            let store = session.manager.layerArchiveStore
+            guard case let .archive(redArchive, redNodes) = store.imageSource(.group, of: inspected.redItem),
+                  case let .archive(blueArchive, blueNodes) = store.imageSource(.group, of: inspected.blueItem)
+            else {
+                Issue.record("both views should be drawn from the archive")
+                return
+            }
+            var heard: [String] = []
+            func asking(for name: String) -> @MainActor (LiveLayerArchiveStore.DrawingOutcome) -> Void {
+                { outcome in
+                    if case .dropped = outcome {
+                        heard.append("\(name) dropped")
+                    } else {
+                        heard.append("\(name) drawn")
+                    }
+                }
+            }
+            // In one turn: the red view's drawing goes first, the blue one's
+            // waits behind it.
+            store.drawImage(.group, of: inspected.redItem, archive: redArchive, nodes: redNodes, priority: .shown, again: true, completion: asking(for: "red"))
+            store.drawImage(.group, of: inspected.blueItem, archive: blueArchive, nodes: blueNodes, priority: .shown, again: true, completion: asking(for: "blue"))
+            store.forgetImage(.group, of: inspected.blueItem)
+            #expect(await waitUntil { heard.contains("blue dropped") && heard.contains("red drawn") }, "heard \(heard)")
+
+            heard.removeAll()
+            store.drawImage(.group, of: inspected.redItem, archive: redArchive, nodes: redNodes, priority: .shown, again: true, completion: asking(for: "red"))
+            store.drawImage(.group, of: inspected.blueItem, archive: blueArchive, nodes: blueNodes, priority: .shown, again: true, completion: asking(for: "blue"))
+            session.dataSource.reload(with: inspected.hierarchy, keepState: false)
+            #expect(
+                await waitUntil { heard.contains("blue dropped") && heard.contains("red dropped") },
+                "a refresh should drop both, the one drawing and the one waiting, heard \(heard)"
+            )
             withExtendedLifetime(session) {}
         }
 

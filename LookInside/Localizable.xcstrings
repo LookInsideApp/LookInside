@@ -15002,7 +15002,7 @@
       }
     },
     "Hide" : {
-      "comment" : "Choice of the Liquid Glass layers pop-up button in Settings: every glass layer stays out of the preview.",
+      "comment" : "Choice of the Liquid Glass layers pop-up button in Settings: glass layers stay out of the preview where they cannot be drawn, and so does the glass behind sidebars and inspectors where they can.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -21509,85 +21509,85 @@
         }
       }
     },
-    "LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. To show a hidden glass layer, select it and click Display." : {
-      "comment" : "Footer of the Preview group of the Settings window. Display is the button of the tip shown for a node whose screenshot is hidden.",
+    "LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. Where LookInside draws the glass, Hide also leaves out the glass behind sidebars and inspectors, which covers their content. To show a hidden glass layer, select it and click Display." : {
+      "comment" : "Footer of the Preview group of the Settings window. Hide is a choice of the Liquid Glass layers pop-up button above it. Display is the button of the tip shown for a node whose screenshot is hidden.",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "يرسم LookInside طبقات Liquid Glass عندما يكون LookInside Server في التطبيق حديثًا بما يكفي لإرسال طبقات نوافذه. مع Server أقدم، أو في نافذة كبيرة جدًا، يظهر الزجاج على شكل كتل بيضاء. لإظهار طبقة زجاج مخفية، حدّدها وانقر على “الشاشة”."
+            "value" : "يرسم LookInside طبقات Liquid Glass عندما يكون LookInside Server في التطبيق حديثًا بما يكفي لإرسال طبقات نوافذه. مع Server أقدم، أو في نافذة كبيرة جدًا، يظهر الزجاج على شكل كتل بيضاء. حيث يرسم LookInside الزجاج، يزيل “إخفاء” أيضًا الزجاج خلف الأشرطة الجانبية والمفتشات لأنه يغطي محتواها. لإظهار طبقة زجاج مخفية، حدّدها وانقر على “الشاشة”."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside zeichnet Liquid Glass, wenn der LookInside Server der App neu genug ist, um die Ebenen ihrer Fenster zu senden. Mit einem älteren Server oder in einem sehr großen Fenster erscheint Glas als weiße Flächen. Um eine ausgeblendete Glasebene zu zeigen, wähle sie aus und klicke auf „Anzeige“."
+            "value" : "LookInside zeichnet Liquid Glass, wenn der LookInside Server der App neu genug ist, um die Ebenen ihrer Fenster zu senden. Mit einem älteren Server oder in einem sehr großen Fenster erscheint Glas als weiße Flächen. Wo LookInside das Glas zeichnet, entfernt „Ausblenden“ auch das Glas hinter Seitenleisten und Inspektoren, das deren Inhalt verdeckt. Um eine ausgeblendete Glasebene zu zeigen, wähle sie aus und klicke auf „Anzeige“."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. To show a hidden glass layer, select it and click Display."
+            "value" : "LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. Where LookInside draws the glass, Hide also leaves out the glass behind sidebars and inspectors, which covers their content. To show a hidden glass layer, select it and click Display."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside dibuja Liquid Glass cuando el LookInside Server de la app es lo bastante reciente para enviar las capas de sus ventanas. Con un Server más antiguo, o en una ventana muy grande, el cristal aparece como bloques blancos. Para mostrar una capa de cristal oculta, selecciónala y haz clic en “Pantalla”."
+            "value" : "LookInside dibuja Liquid Glass cuando el LookInside Server de la app es lo bastante reciente para enviar las capas de sus ventanas. Con un Server más antiguo, o en una ventana muy grande, el cristal aparece como bloques blancos. Donde LookInside dibuja el cristal, “Ocultar” también quita el cristal detrás de las barras laterales y los inspectores, que tapa su contenido. Para mostrar una capa de cristal oculta, selecciónala y haz clic en “Pantalla”."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside dessine Liquid Glass lorsque le LookInside Server de l’app est assez récent pour envoyer les calques de ses fenêtres. Avec un Server plus ancien, ou dans une très grande fenêtre, le verre apparaît sous forme de blocs blancs. Pour afficher un calque de verre masqué, sélectionnez-le et cliquez sur « Affichage »."
+            "value" : "LookInside dessine Liquid Glass lorsque le LookInside Server de l’app est assez récent pour envoyer les calques de ses fenêtres. Avec un Server plus ancien, ou dans une très grande fenêtre, le verre apparaît sous forme de blocs blancs. Là où LookInside dessine le verre, « Masquer » retire aussi le verre derrière les barres latérales et les inspecteurs, qui recouvre leur contenu. Pour afficher un calque de verre masqué, sélectionnez-le et cliquez sur « Affichage »."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside disegna Liquid Glass quando il LookInside Server dell’app è abbastanza recente da inviare i livelli delle sue finestre. Con un Server meno recente, o in una finestra molto grande, il vetro appare come blocchi bianchi. Per mostrare un livello di vetro nascosto, selezionalo e fai clic su \"Visualizzazione\"."
+            "value" : "LookInside disegna Liquid Glass quando il LookInside Server dell’app è abbastanza recente da inviare i livelli delle sue finestre. Con un Server meno recente, o in una finestra molto grande, il vetro appare come blocchi bianchi. Dove LookInside disegna il vetro, \"Nascondi\" rimuove anche il vetro dietro le barre laterali e gli inspector, che ne copre il contenuto. Per mostrare un livello di vetro nascosto, selezionalo e fai clic su \"Visualizzazione\"."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリのLookInside Serverがウインドウのレイヤーを送れるほど新しい場合、LookInsideはLiquid Glassを描画します。Serverが古い場合や非常に大きいウインドウでは、ガラスは白いブロックとして表示されます。隠れたガラスのレイヤーを表示するには、選択して“表示”をクリックします。"
+            "value" : "アプリのLookInside Serverがウインドウのレイヤーを送れるほど新しい場合、LookInsideはLiquid Glassを描画します。Serverが古い場合や非常に大きいウインドウでは、ガラスは白いブロックとして表示されます。LookInsideがガラスを描画する場合、“隠す”はサイドバーやインスペクタの背後にあるガラスも取り除き、その内容が隠れないようにします。隠れたガラスのレイヤーを表示するには、選択して“表示”をクリックします。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "앱의 LookInside Server가 윈도우의 레이어를 보낼 수 있을 만큼 최신이면 LookInside가 Liquid Glass를 그립니다. Server가 오래되었거나 윈도우가 매우 크면 유리는 흰색 블록으로 나타납니다. 숨겨진 유리 레이어를 표시하려면 선택하고 \"디스플레이\"를 클릭하십시오."
+            "value" : "앱의 LookInside Server가 윈도우의 레이어를 보낼 수 있을 만큼 최신이면 LookInside가 Liquid Glass를 그립니다. Server가 오래되었거나 윈도우가 매우 크면 유리는 흰색 블록으로 나타납니다. LookInside가 유리를 그리는 경우 \"숨기기\"는 사이드바와 인스펙터 뒤의 유리도 제거하여 그 내용이 가려지지 않게 합니다. 숨겨진 유리 레이어를 표시하려면 선택하고 \"디스플레이\"를 클릭하십시오."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O LookInside desenha o Liquid Glass quando o LookInside Server do app é recente o bastante para enviar as camadas das janelas. Com um Server mais antigo, ou em uma janela muito grande, o vidro aparece como blocos brancos. Para mostrar uma camada de vidro oculta, selecione-a e clique em \"Exibição\"."
+            "value" : "O LookInside desenha o Liquid Glass quando o LookInside Server do app é recente o bastante para enviar as camadas das janelas. Com um Server mais antigo, ou em uma janela muito grande, o vidro aparece como blocos brancos. Onde o LookInside desenha o vidro, \"Ocultar\" também remove o vidro atrás das barras laterais e dos inspetores, que cobre o conteúdo deles. Para mostrar uma camada de vidro oculta, selecione-a e clique em \"Exibição\"."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside рисует Liquid Glass, если LookInside Server приложения достаточно новый, чтобы передавать слои его окон. Со старым Server или в очень большом окне стекло выглядит как белые блоки. Чтобы показать скрытый слой стекла, выберите его и нажмите «Дисплей»."
+            "value" : "LookInside рисует Liquid Glass, если LookInside Server приложения достаточно новый, чтобы передавать слои его окон. Со старым Server или в очень большом окне стекло выглядит как белые блоки. Там, где LookInside рисует стекло, «Скрывать» также убирает стекло за боковыми панелями и инспекторами, закрывающее их содержимое. Чтобы показать скрытый слой стекла, выберите его и нажмите «Дисплей»."
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "LookInside vẽ Liquid Glass khi LookInside Server của ứng dụng đủ mới để gửi các lớp của cửa sổ. Với Server cũ hơn, hoặc trong cửa sổ rất lớn, kính hiện thành các khối trắng. Để hiện một lớp kính bị ẩn, hãy chọn lớp đó và bấm \"Hiển thị\"."
+            "value" : "LookInside vẽ Liquid Glass khi LookInside Server của ứng dụng đủ mới để gửi các lớp của cửa sổ. Với Server cũ hơn, hoặc trong cửa sổ rất lớn, kính hiện thành các khối trắng. Ở những chỗ LookInside vẽ kính, \"Ẩn\" còn bỏ lớp kính phía sau thanh bên và trình kiểm tra, vốn che mất nội dung của chúng. Để hiện một lớp kính bị ẩn, hãy chọn lớp đó và bấm \"Hiển thị\"."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "被检查 App 的 LookInside Server 足够新、能传来窗口的图层时，LookInside 会画出液态玻璃。Server 较旧或窗口特别大时，玻璃会显示成白块。要显示被隐藏的玻璃图层，选中它并点按“显示”。"
+            "value" : "被检查 App 的 LookInside Server 足够新、能传来窗口的图层时，LookInside 会画出液态玻璃。Server 较旧或窗口特别大时，玻璃会显示成白块。在 LookInside 画玻璃的地方，“隐藏”还会去掉边栏和检查器背后的玻璃，以免它盖住其中的内容。要显示被隐藏的玻璃图层，选中它并点按“显示”。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "被檢查 App 的 LookInside Server 夠新、能傳來視窗的圖層時，LookInside 會畫出液態玻璃。Server 較舊或視窗特別大時，玻璃會顯示成白塊。若要顯示被隱藏的玻璃圖層，請選取它並按一下「顯示」。"
+            "value" : "被檢查 App 的 LookInside Server 夠新、能傳來視窗的圖層時，LookInside 會畫出液態玻璃。Server 較舊或視窗特別大時，玻璃會顯示成白塊。在 LookInside 畫玻璃的地方，「隱藏」還會移除側邊欄和檢閱器後方的玻璃，以免它蓋住其中的內容。若要顯示被隱藏的玻璃圖層，請選取它並按一下「顯示」。"
           }
         }
       }
