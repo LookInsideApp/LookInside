@@ -400,6 +400,11 @@
 
             let info = InspectedAppInfo()
             info.hierarchyAcquisitionProtocolVersion = 1
+            #if os(macOS)
+                // AppKit Servers answer LookinRequestTypeLayerArchive. Mac
+                // Catalyst builds the UIKit Server, which does not.
+                info.layerArchiveProtocolVersion = 1
+            #endif
             if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
                 info.gestureDebugProtocolVersion = NSClassFromString("LKS_GestureDebugService") != nil ? 1 : 0
             }
