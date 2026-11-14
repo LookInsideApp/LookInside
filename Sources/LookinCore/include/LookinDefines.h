@@ -161,6 +161,16 @@ static NSString * const LookinParam_LayerArchiveWindowOid = @"layerArchiveWindow
 /// count. NSNumber boxed unsigned long.
 static NSString * const LookinParam_LayerArchiveLayerLimit = @"layerArchiveLayerLimit";
 
+/// App (201) and hierarchy (202) request param: whether a macOS Server draws
+/// the window the inactive app would make key as the key window while it
+/// takes images, so they show the app as it looks in front. The Server keeps
+/// the last value it received for the connection; the requests after a 202
+/// (203, 211, attribute edits) follow it.
+///
+/// NSNumber boxed BOOL. Missing (older Hosts, upstream Lookin) → on. Other
+/// platforms ignore it. Additive payload, no version bump.
+static NSString * const LookinParam_KeepsKeyAppearance = @"keepsKeyAppearance";
+
 static NSString * const LookinStringFlag_VoidReturn = @"LOOKIN_TAG_RETURN_VALUE_VOID";
 
 #pragma mark - Error

@@ -23,6 +23,7 @@ struct GeneralSettingsPage: View {
             GeneralColorFormatSection(model: model)
             GeneralImageContrastSection(model: model)
             GeneralPreviewSection(model: model)
+            GeneralInspectedAppSection(model: model)
             GeneralHierarchySection(model: model)
             GeneralTimeoutSection(model: model)
             GeneralFilesSection(defaultApplication: coreAnimationArchiveDefaultApplication)
@@ -123,6 +124,20 @@ private struct GeneralPreviewSection: View {
             Text("Preview")
         } footer: {
             Text("LookInside draws Liquid Glass when the app’s LookInside Server is recent enough to send its windows’ layers. With an older Server, or in a very large window, glass shows up as white blocks. Where LookInside draws the glass, Hide also leaves out the glass behind sidebars and inspectors, which covers their content. To show a hidden glass layer, select it and click Display.")
+        }
+    }
+}
+
+/// Whether an inspected Mac app is drawn as active while LookInside takes
+/// its images, though LookInside is the app in front.
+private struct GeneralInspectedAppSection: View {
+    @Bindable var model: GeneralSettingsModel
+
+    var body: some View {
+        Section {
+            Toggle("Show Mac apps as active", isOn: $model.drawsInspectedAppAsActive)
+        } footer: {
+            Text("A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. When on, its front window is drawn as active while its images are taken, and briefly looks active on screen too. Older LookInside Servers always show the inactive look.")
         }
     }
 }
@@ -401,6 +416,7 @@ final class GeneralSettingsModel {
     private var currentDoubleClickBehavior: DoubleClickBehavior
     private var currentRemembersExpansionState: Bool
     private var currentGlassLayerVisibility: GlassLayerVisibility
+    private var currentDrawsInspectedAppAsActive: Bool
     private var currentHierarchyRequestTimeout: TimeInterval
     private var currentLicenseHandshakeTimeout: TimeInterval
 
@@ -412,6 +428,7 @@ final class GeneralSettingsModel {
         currentDoubleClickBehavior = preferences.doubleClickBehavior
         currentRemembersExpansionState = preferences.rememberExpansionState
         currentGlassLayerVisibility = preferences.glassLayerVisibility
+        currentDrawsInspectedAppAsActive = preferences.drawsInspectedAppAsActive
         currentHierarchyRequestTimeout = preferences.hierarchyRequestTimeoutInterval
         currentLicenseHandshakeTimeout = preferences.licenseHandshakeTimeoutInterval
 
@@ -433,6 +450,9 @@ final class GeneralSettingsModel {
             },
             preferences.observe(\.glassLayerVisibility, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated { self?.currentGlassLayerVisibility = preferences.glassLayerVisibility }
+            },
+            preferences.observe(\.drawsInspectedAppAsActive, options: [.new]) { [weak self] preferences, _ in
+                MainActor.assumeIsolated { self?.currentDrawsInspectedAppAsActive = preferences.drawsInspectedAppAsActive }
             },
             preferences.observe(\.hierarchyRequestTimeoutInterval, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated { self?.currentHierarchyRequestTimeout = preferences.hierarchyRequestTimeoutInterval }
@@ -473,6 +493,11 @@ final class GeneralSettingsModel {
         set { preferences.glassLayerVisibility = newValue }
     }
 
+    var drawsInspectedAppAsActive: Bool {
+        get { currentDrawsInspectedAppAsActive }
+        set { preferences.drawsInspectedAppAsActive = newValue }
+    }
+
     var hierarchyRequestTimeout: TimeInterval {
         get { currentHierarchyRequestTimeout }
         set {
@@ -500,6 +525,7 @@ final class GeneralSettingsModel {
         doubleClickBehavior = .collapse
         remembersExpansionState = true
         glassLayerVisibility = .hideWhereNotDrawn
+        drawsInspectedAppAsActive = true
         hierarchyRequestTimeout = defaultHierarchyRequestTimeoutInterval
 
         #if DEBUG

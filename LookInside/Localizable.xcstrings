@@ -1913,6 +1913,88 @@
         }
       }
     },
+    "A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. When on, its front window is drawn as active while its images are taken, and briefly looks active on screen too. Older LookInside Servers always show the inactive look." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "أثناء تحديث LookInside يكون تطبيق Mac الذي تفحصه في الخلفية، لذا تبدو نوافذه غير نشطة. عند التشغيل، تُرسم نافذته الأمامية كأنها نشطة أثناء التقاط صورها، وتبدو نشطة لفترة وجيزة على الشاشة أيضًا. تعرض الإصدارات الأقدم من LookInside Server المظهر غير النشط دائمًا."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Während LookInside aktualisiert, ist die untersuchte Mac-App im Hintergrund, daher wirken ihre Fenster inaktiv. Wenn aktiviert, wird ihr vorderstes Fenster beim Aufnehmen der Bilder als aktiv gezeichnet und wirkt auch auf dem Bildschirm kurz aktiv. Ältere LookInside Server zeigen immer das inaktive Aussehen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. When on, its front window is drawn as active while its images are taken, and briefly looks active on screen too. Older LookInside Servers always show the inactive look."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mientras LookInside actualiza, la app de Mac que inspeccionas está en segundo plano, por lo que sus ventanas se ven inactivas. Si se activa, su ventana frontal se dibuja como activa mientras se capturan sus imágenes y también se ve activa brevemente en pantalla. Las versiones anteriores de LookInside Server siempre muestran el aspecto inactivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pendant que LookInside actualise, l’app Mac inspectée est en arrière-plan et ses fenêtres paraissent inactives. Si cette option est activée, sa fenêtre au premier plan est dessinée comme active pendant la capture de ses images et paraît aussi brièvement active à l’écran. Les anciennes versions de LookInside Server affichent toujours l’aspect inactif."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mentre LookInside aggiorna, l’app Mac che stai ispezionando è in background, quindi le sue finestre appaiono inattive. Se attivo, la sua finestra in primo piano viene disegnata come attiva mentre se ne acquisiscono le immagini e appare brevemente attiva anche sullo schermo. Le versioni precedenti di LookInside Server mostrano sempre l’aspetto inattivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInsideが更新している間、検査中のMac Appはバックグラウンドにあるため、ウインドウは非アクティブな外観になります。オンにすると、画像を取得する間は最前面のウインドウがアクティブな外観で描画され、画面上でも一時的にアクティブに見えます。古いLookInside Serverでは常に非アクティブな外観になります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside가 새로 고치는 동안 검사 중인 Mac 앱은 백그라운드에 있으므로 윈도우가 비활성 상태로 보입니다. 켜면 이미지를 가져오는 동안 맨 앞 윈도우가 활성 상태로 그려지며, 화면에서도 잠시 활성 상태로 보입니다. 이전 버전의 LookInside Server에서는 항상 비활성 상태로 표시됩니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enquanto o LookInside atualiza, o app do Mac inspecionado fica em segundo plano, por isso suas janelas parecem inativas. Quando ativado, a janela da frente é desenhada como ativa enquanto as imagens são capturadas e também parece ativa por um instante na tela. Versões anteriores do LookInside Server sempre mostram a aparência inativa."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пока LookInside обновляет данные, проверяемое приложение Mac находится в фоне, и его окна выглядят неактивными. Если включено, переднее окно приложения отрисовывается активным на время съёмки изображений и ненадолго выглядит активным и на экране. Старые версии LookInside Server всегда показывают неактивный вид."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi LookInside làm mới, ứng dụng Mac đang được kiểm tra nằm ở chế độ nền nên các cửa sổ của nó trông như không hoạt động. Khi bật, cửa sổ phía trước của ứng dụng sẽ được vẽ ở trạng thái hoạt động trong lúc chụp ảnh và cũng trông như hoạt động trong chốc lát trên màn hình. Các phiên bản LookInside Server cũ luôn hiển thị giao diện không hoạt động."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 刷新时，被检查的 Mac App 处于后台，窗口会显示为非活跃样式。开启后，取图期间会把它最前面的窗口绘制成活跃样式，屏幕上的窗口也会短暂显示为活跃。旧版 LookInside Server 始终显示非活跃样式。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LookInside 重新整理時，被檢查的 Mac App 位於背景，視窗會顯示為非使用中的樣式。開啟後，擷取影像期間會將其最前方的視窗繪製為使用中的樣式，螢幕上的視窗也會短暫顯示為使用中。舊版 LookInside Server 一律顯示非使用中的樣式。"
+          }
+        }
+      }
+    },
     "A public project website is not configured for this build yet." : {
       "localizations" : {
         "ar" : {
@@ -34123,6 +34205,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "顯示圖層外框"
+          }
+        }
+      }
+    },
+    "Show Mac apps as active" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إظهار تطبيقات Mac كأنها نشطة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac-Apps als aktiv anzeigen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Mac apps as active"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar las apps de Mac como activas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher les apps Mac comme actives"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra le app Mac come attive"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac Appをアクティブとして表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac 앱을 활성 상태로 표시"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar apps do Mac como ativos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать приложения Mac активными"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiển thị ứng dụng Mac ở trạng thái hoạt động"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 Mac App 显示为活跃状态"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將 Mac App 顯示為使用中"
           }
         }
       }

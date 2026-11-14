@@ -43,6 +43,20 @@ final class AppsManager: NSObject {
         await scanApps(needImages: needImages, localInfos: localInfos, includingUnresponsiveApps: includingUnresponsiveApps).apps
     }
 
+    /// The app request's parameters: whether to send icons and screenshots,
+    /// the cached infos the Server need not resend, and whether a Mac app
+    /// draws as active in those screenshots (older Servers ignore the key).
+    static func appRequestParameters(needImages: Bool, localIdentifiers: NSArray) -> NSDictionary {
+        NSDictionary(
+            objects: [
+                NSNumber(value: needImages),
+                localIdentifiers,
+                NSNumber(value: PreferenceManager.shared.drawsInspectedAppAsActive),
+            ],
+            forKeys: ["needImages" as NSString, "local" as NSString, LookinParam_KeepsKeyAppearance as NSString]
+        )
+    }
+
     /// `fetchAppInfos` plus how many channels were connected.
     func scanApps(needImages: Bool, localInfos: [InspectedAppInfo]?, includingUnresponsiveApps: Bool = false) async -> (apps: [InspectableApp], channelCount: Int) {
         let now = Date().timeIntervalSince1970
@@ -50,10 +64,7 @@ final class AppsManager: NSObject {
             AppInfoCachePolicy.isFresh(cachedTimestamp: $0.cachedTimestamp, now: now)
         }
         let localIdentifiers = NSArray(array: validAppInfos.map { NSNumber(value: $0.appInfoIdentifier) })
-        let parameters = NSDictionary(
-            objects: [NSNumber(value: needImages), localIdentifiers],
-            forKeys: ["needImages" as NSString, "local" as NSString]
-        )
+        let parameters = Self.appRequestParameters(needImages: needImages, localIdentifiers: localIdentifiers)
 
         let channels = await ConnectionManager.shared.connectAllPorts()
         guard !channels.isEmpty else {
