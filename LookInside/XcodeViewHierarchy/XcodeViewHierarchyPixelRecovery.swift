@@ -173,8 +173,9 @@ enum XcodeViewHierarchyPixelRecovery {
                     soloByObjectIdentifier: [:], groupByObjectIdentifier: [:], failedArchiveIdentifiers: failedIdentifiers
                 )
             }
-            // Liquid Glass's shape inputs show nothing of their own on screen.
-            guard !isGlassShapeInput(layer) else { continue }
+            // Liquid Glass's shape inputs, and layers that only cut what is
+            // beneath them, show nothing of their own on screen.
+            guard !isGlassShapeInput(layer), !cutsWhatIsBeneath(layer) else { continue }
             let isFlipped = layer.contentsAreFlipped()
             let hasSublayers = !(layer.sublayers?.isEmpty ?? true)
             // A layer that paints nothing but its background colour needs no
@@ -215,9 +216,7 @@ enum XcodeViewHierarchyPixelRecovery {
             // A node with no sublayers renders identically either way; storing
             // the second copy would double the memory for no visible gain.
             guard hasSublayers, !paintsOnlyItsBackground else { continue }
-            if let soloImage = renderingPNG(
-                of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn
-            ) {
+            if let soloImage = renderingOwnPNG(of: layer, isFlipped: isFlipped, materialStandIn: layerMaterialStandIn) {
                 soloByObjectIdentifier[objectIdentifier] = soloImage
             }
         }
@@ -482,6 +481,52 @@ enum XcodeViewHierarchyPixelRecovery {
             current = candidate.superlayer
         }
         return false
+    }
+
+    /// The compositing filters that keep none of a layer's own pixels and
+    /// only cut what lies beneath it.
+    static let cuttingCompositingFilterTypes: Set<String> = ["destOut", "destIn"]
+
+    /// Whether `layer` only cuts what is beneath it: it, or a layer above
+    /// it, composites through `destOut` or `destIn`. A segmented control
+    /// cuts its plain icon out where the selection is with a black shape in
+    /// such a layer; on screen none of the shape shows, drawn on its own it
+    /// is a black block. Such a layer gets no image, and the cut stays in
+    /// the group image that holds what it cuts.
+    static func cutsWhatIsBeneath(_ layer: CALayer) -> Bool {
+        var current: CALayer? = layer
+        while let candidate = current {
+            if let type = filterType(of: candidate.compositingFilter), cuttingCompositingFilterTypes.contains(type) {
+                return true
+            }
+            current = candidate.superlayer
+        }
+        return false
+    }
+
+    /// The type of a filter as a layer holds it: a filter name, or a
+    /// CAFilter's type.
+    static func filterType(of filter: Any?) -> String? {
+        guard let filter else { return nil }
+        if let name = filter as? String {
+            return name
+        }
+        guard let object = filter as? NSObject, object.responds(to: NSSelectorFromString("type")) else { return nil }
+        return object.value(forKey: "type") as? String
+    }
+
+    /// A node's own image: the layer without its sublayers. A backdrop keeps
+    /// the glass shape layers under it — they draw nothing themselves and
+    /// give the glass its shape — so an expanded glass's plane shows the
+    /// glass; its other sublayers stay out.
+    static func renderingOwnPNG(of layer: CALayer, isFlipped: Bool, materialStandIn: CGColor?) -> Data? {
+        guard isBackdrop(layer) else {
+            return renderingPNG(of: layer, includingSublayers: false, isFlipped: isFlipped, materialStandIn: materialStandIn)
+        }
+        let otherSublayers = (layer.sublayers ?? []).filter { !isGlassShapeInput($0) }
+        return renderingPNG(
+            of: layer, includingSublayers: true, hiding: otherSublayers, isFlipped: isFlipped, materialStandIn: materialStandIn
+        )
     }
 
     /// Whether a backdrop in `root`'s subtree captures transparency when the
