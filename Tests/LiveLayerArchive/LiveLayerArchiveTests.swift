@@ -24,6 +24,7 @@ struct LiveLayerArchiveTests {
         testPunchOutGetsNoImage()
         testHiddenGlassLeavesItsContentInPlace()
         testImageOfAVeryTallLayerFitsThePreview()
+        testExpandedMaterialKeepsTheWindowsTone()
         print("LiveLayerArchive tests passed")
     }
 
@@ -422,6 +423,80 @@ struct LiveLayerArchiveTests {
                 "the \(kind) image of a 364.5 × 107829 layer should fit the preview, got \(image.width) × \(image.height)"
             )
         }
+    }
+
+    /// A blur material — a toolbar's scroll edge effect, an
+    /// NSVisualEffectView — drawn on its own captured the window's tone and
+    /// gave all of it back: the stand-in came out wherever nothing else
+    /// covered it, and an expanded toolbar plane was transparent. The
+    /// material keeps the window's tone, at its opacity. A backdrop that only
+    /// captures, for another layer to draw, still draws nothing.
+    private static func testExpandedMaterialKeepsTheWindowsTone() {
+        guard MTLCreateSystemDefaultDevice() != nil else {
+            print("skipped testExpandedMaterialKeepsTheWindowsTone: no Metal device")
+            return
+        }
+        guard let backdropClass = NSClassFromString("CABackdropLayer") as? CALayer.Type,
+              let filterClass = NSClassFromString("CAFilter") as? NSObject.Type,
+              let blur = filterClass.perform(NSSelectorFromString("filterWithType:"), with: "gaussianBlur")?.takeUnretainedValue()
+        else { fail("QuartzCore should make a backdrop and a blur filter") }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let root = CALayer()
+        root.frame = CGRect(x: 0, y: 0, width: 200, height: 100)
+        root.backgroundColor = CGColor(srgbRed: 0.2, green: 0.3, blue: 0.4, alpha: 1)
+        let material = backdropClass.init()
+        material.frame = CGRect(x: 0, y: 60, width: 200, height: 40)
+        material.filters = [blur]
+        material.opacity = 0.8
+        let captureOnly = backdropClass.init()
+        captureOnly.frame = CGRect(x: 0, y: 0, width: 200, height: 40)
+        captureOnly.filters = [blur]
+        captureOnly.setValue(true, forKey: "captureOnly")
+        root.addSublayer(material)
+        root.addSublayer(captureOnly)
+        CATransaction.commit()
+        let walk = walking(root)
+        let reply = LayerArchive()
+        reply.archiveData = encoding(root)
+        reply.layerOids = walk.indices.map { UInt(700 + $0) }
+        reply.sublayerCounts = walk.map { UInt32($0.sublayers?.count ?? 0) }
+        let archive = decoding(reply)
+        // root 700, material 701, captureOnly 702.
+        let every = Set<UInt>(700 ... 702)
+        guard let materialImage = archive.image(of: .solo, for: LiveLayerArchive.NodeLayers(
+            layerOid: 701, subtreeLayerOids: [701], windowNodeLayerOids: every
+        )) else {
+            fail("the expanded material should keep the window's tone, not come out empty")
+        }
+        let middle = premultipliedPixel(of: materialImage, x: materialImage.width / 2, y: materialImage.height / 2)
+        expect(abs(Int(middle.alpha) - 204) <= 26, "the material should cover its plane at its opacity, alpha \(middle.alpha)")
+        if middle.alpha > 0 {
+            let red = Int(middle.red) * 255 / Int(middle.alpha)
+            let green = Int(middle.green) * 255 / Int(middle.alpha)
+            let blue = Int(middle.blue) * 255 / Int(middle.alpha)
+            expect(
+                abs(red - 51) <= 20 && abs(green - 77) <= 20 && abs(blue - 102) <= 20,
+                "the material should show the window's tone, got \(red), \(green), \(blue)"
+            )
+        }
+        expect(
+            archive.image(of: .solo, for: LiveLayerArchive.NodeLayers(layerOid: 702, subtreeLayerOids: [702], windowNodeLayerOids: every)) == nil,
+            "a backdrop that only captures should still draw nothing"
+        )
+    }
+
+    /// The premultiplied RGBA of one pixel of `image`, top row first.
+    private static func premultipliedPixel(of image: CGImage, x: Int, y: Int) -> (red: UInt8, green: UInt8, blue: UInt8, alpha: UInt8) {
+        var pixel = [UInt8](repeating: 0, count: 4)
+        pixel.withUnsafeMutableBytes { buffer in
+            guard let context = CGContext(
+                data: buffer.baseAddress, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            ) else { return }
+            context.draw(image, in: CGRect(x: -x, y: y - image.height + 1, width: image.width, height: image.height))
+        }
+        return (pixel[0], pixel[1], pixel[2], pixel[3])
     }
 
     private enum SampledColour {

@@ -671,6 +671,41 @@ enum XcodeViewHierarchyPixelRecovery {
         /// pixels, top row first (`removingMaterialStandIn`'s
         /// `uncoveredRegions`).
         let vibrantFillRegions: [CGRect]
+        /// The blur materials in the render (`materialBackdrops(in:hiding:)`),
+        /// whose part of the stand-in stays.
+        let materialBackdrops: [CALayer]
+    }
+
+    /// The blur materials in `root`'s subtree as it is drawn: the visible
+    /// backdrops that draw what they capture — not capture-only, not
+    /// disabled — and are no glass. On screen a material covers what lies
+    /// behind it with the blur of it; drawn on its own it captures the
+    /// stand-in, the window's tone, and that part of the stand-in stays in
+    /// the picture rather than coming back out, so an expanded toolbar or
+    /// scroll edge plane is the band it is on screen. Glass gets its shape
+    /// from the distance-field layers under it and keeps what its filter
+    /// draws. `hiddenLayers` count as hidden.
+    static func materialBackdrops(in root: CALayer, hiding hiddenLayers: [CALayer] = []) -> [CALayer] {
+        let hidden = Set(hiddenLayers.map(ObjectIdentifier.init))
+        var backdrops: [CALayer] = []
+        var pending = [root]
+        while let layer = pending.popLast() {
+            guard !layer.isHidden, layer.opacity > 0, !hidden.contains(ObjectIdentifier(layer)) else { continue }
+            if isBackdrop(layer), drawsMaterial(layer) {
+                backdrops.append(layer)
+            }
+            pending.append(contentsOf: layer.sublayers ?? [])
+        }
+        return backdrops
+    }
+
+    /// Whether `backdrop` draws a blur material: it draws what it captures
+    /// (`enabled`, not `captureOnly`) and holds no glass shape.
+    private static func drawsMaterial(_ backdrop: CALayer) -> Bool {
+        if (backdrop.value(forKey: "captureOnly") as? Bool) == true || (backdrop.value(forKey: "enabled") as? Bool) == false {
+            return false
+        }
+        return !(backdrop.sublayers ?? []).contains { NSStringFromClass(type(of: $0)).hasPrefix("CASDF") }
     }
 
     /// Whether `request` is to be drawn over a material stand-in as well,
@@ -682,18 +717,26 @@ enum XcodeViewHierarchyPixelRecovery {
         let layer = request.layer
         let vibrantFills: [CALayer]
         let needsStandIn: Bool
+        var capturingMaterials: [CALayer] = []
         if request.includingSublayers {
             vibrantFills = vibrantFillsWithNothingBehind(in: layer)
+            let capturesTransparency = hasBackdropCapturingTransparency(in: layer, region: request.region, hiding: request.hiddenLayers)
             needsStandIn = !vibrantFills.isEmpty
                 || !vibrantLayersWithNothingBehind(in: layer).isEmpty
-                || hasBackdropCapturingTransparency(in: layer, region: request.region, hiding: request.hiddenLayers)
+                || capturesTransparency
+            if capturesTransparency {
+                capturingMaterials = materialBackdrops(in: layer, hiding: request.hiddenLayers)
+            }
         } else {
             // Drawn without its sublayers, a layer has nothing behind it.
             vibrantFills = !layer.isHidden && isVibrantFill(layer) ? [layer] : []
             needsStandIn = !vibrantFills.isEmpty || drawsThroughRemovableVibrantFilter(layer)
         }
         guard needsStandIn else { return nil }
-        return MaterialStandInUse(vibrantFillRegions: vibrantFills.compactMap { pixelRegion(of: $0, in: request) })
+        return MaterialStandInUse(
+            vibrantFillRegions: vibrantFills.compactMap { pixelRegion(of: $0, in: request) },
+            materialBackdrops: capturingMaterials
+        )
     }
 
     /// Where `sublayer` — `request.layer` itself or a layer of its subtree —
@@ -1233,7 +1276,9 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
     /// (`materialStandInUse(for:)`) is drawn twice — over transparency for
     /// each pixel's coverage, vibrant content drawn plain; over the stand-in
     /// for its colour, vibrant filters acting on it — and the stand-in is
-    /// taken back out (`removingMaterialStandIn`).
+    /// taken back out (`removingMaterialStandIn`), except where a blur
+    /// material lies: its coverage comes from a third render, with every
+    /// material filled.
     func rendering(_ request: XcodeViewHierarchyPixelRecovery.RenderRequest) -> CGImage? {
         lock.lock()
         defer { lock.unlock() }
@@ -1245,7 +1290,9 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
            XcodeViewHierarchyPixelRecovery.removingMaterialStandIn(
                standInBytes,
                from: &pixelsOverStandIn,
-               coverage: pixels,
+               coverage: standInUse.materialBackdrops.isEmpty
+                   ? pixels
+                   : renderingPixels(request, filling: standInUse.materialBackdrops) ?? pixels,
                width: request.pixelWidth,
                height: request.pixelHeight,
                uncoveredRegions: standInUse.vibrantFillRegions
@@ -1308,9 +1355,13 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
     /// the render behind the layer and stands in for the material of its
     /// vibrant content; without it, vibrant images and text with nothing
     /// behind them are drawn plain.
+    /// `request` drawn over `background`, or over transparency. `filledLayers`
+    /// get an opaque background for the render, which says how much of each
+    /// pixel they cover however little they draw.
     private func renderingPixels(
         _ request: XcodeViewHierarchyPixelRecovery.RenderRequest,
-        background: CGColor? = nil
+        background: CGColor? = nil,
+        filling filledLayers: [CALayer] = []
     ) -> [UInt8]? {
         let width = request.pixelWidth
         let height = request.pixelHeight
@@ -1332,6 +1383,11 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         }
         for hiddenLayer in request.hiddenLayers {
             hiddenLayer.isHidden = true
+        }
+        let filledLayerBackgrounds = filledLayers.map(\.backgroundColor)
+        let fillColor = CGColor(gray: 0, alpha: 1)
+        for filledLayer in filledLayers {
+            filledLayer.backgroundColor = fillColor
         }
         // Vibrant images and text whose material an ancestor or a sibling
         // draws would vanish with it. Over transparency their vibrant
@@ -1401,6 +1457,9 @@ final class CoreAnimationLayerRenderer: @unchecked Sendable {
         }
         for hiddenLayer in request.hiddenLayers {
             hiddenLayer.isHidden = false
+        }
+        for (index, filledLayer) in filledLayers.enumerated() {
+            filledLayer.backgroundColor = filledLayerBackgrounds[index]
         }
         for (index, vibrantLayer) in plainVibrantLayers.enumerated() {
             vibrantLayer.compositingFilter = vibrantCompositingFilters[index]
