@@ -106,6 +106,14 @@ final class LiveLayerArchiveStore {
     private var nodeLayerOidsByWindow: [UInt: Set<UInt>] = [:]
     /// The window nodes of the tree, by window oid.
     private var windowItemsByOid: [UInt: DisplayItem] = [:]
+    /// The layers of each window's glass layer nodes (`SwiftUI.SDFLayer`).
+    private var glassLayerOidsByWindow: [UInt: Set<UInt>] = [:]
+
+    /// Whether the Liquid Glass setting hides the glass of windows drawn
+    /// from archives (Hide): their images then leave the glass layers out,
+    /// as the Server's group screenshots do. The owner sets it, and draws the
+    /// images on screen again when it changes.
+    var hidesGlassLayers = false
     private var serverDrawnDescendantsByItem: [ObjectIdentifier: Bool] = [:]
 
     // MARK: - Archives
@@ -301,6 +309,7 @@ final class LiveLayerArchiveStore {
         drawnKeys.removeAll()
         nodeLayerOidsByWindow.removeAll()
         windowItemsByOid.removeAll()
+        glassLayerOidsByWindow.removeAll()
         serverDrawnDescendantsByItem.removeAll()
         // A drawing on the work queue finishes into the old generation and
         // is dropped. Whoever waits for the images hears on a later turn,
@@ -369,10 +378,24 @@ final class LiveLayerArchiveStore {
             windowNodeLayerOids = Self.layerOids(under: window)
             nodeLayerOidsByWindow[windowOid] = windowNodeLayerOids
         }
+        var hiddenGlassLayerOids: Set<UInt> = []
+        if hidesGlassLayers {
+            if let known = glassLayerOidsByWindow[windowOid] {
+                hiddenGlassLayerOids = known
+            } else {
+                window.enumerateSelfAndChildren { node in
+                    if node.isGlassLayer(), let oid = node.layerObject?.oid, oid != 0 {
+                        hiddenGlassLayerOids.insert(oid)
+                    }
+                }
+                glassLayerOidsByWindow[windowOid] = hiddenGlassLayerOids
+            }
+        }
         return LiveLayerArchive.NodeLayers(
             layerOid: layerOid,
             subtreeLayerOids: Self.layerOids(under: item),
-            windowNodeLayerOids: windowNodeLayerOids
+            windowNodeLayerOids: windowNodeLayerOids,
+            hiddenGlassLayerOids: hiddenGlassLayerOids
         )
     }
 

@@ -340,6 +340,163 @@ extension HostAppTests {
             withExtendedLifetime((channel, app, dataSource, manager, subscription)) {}
         }
 
+        /// With the Liquid Glass setting on Hide, AppKit's glass — a split
+        /// view's sidebar glass included — stayed in every image drawn from
+        /// the archive that holds it: hiding the glass layer nodes took only
+        /// their own planes away. Those images now leave the glass out, the
+        /// content still showing where it is, and changing the setting draws
+        /// them again.
+        @Test func hiddenGlassLeavesTheGlassViewsContentInPlace() async {
+            guard #available(macOS 26.0, *) else { return }
+            let window = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 300, height: 100),
+                styleMask: [.titled],
+                backing: .buffered,
+                defer: false
+            )
+            window.isReleasedWhenClosed = false
+            window.appearance = NSAppearance(named: .darkAqua)
+            defer { window.close() }
+            let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 100))
+            contentView.wantsLayer = true
+            let glassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+            glassView.contentView = NSTextField(labelWithString: "Filter")
+            contentView.addSubview(glassView)
+            window.contentView = contentView
+            window.displayIfNeeded()
+            CATransaction.flush()
+
+            guard var root = contentView.layer, let glassViewLayer = glassView.layer else {
+                Issue.record("the views should have layers")
+                return
+            }
+            while let superlayer = root.superlayer {
+                root = superlayer
+            }
+            var layers: [CALayer] = []
+            var pending = [root]
+            while let layer = pending.popLast() {
+                layers.append(layer)
+                pending.append(contentsOf: (layer.sublayers ?? []).reversed())
+            }
+            var oidsByLayer: [ObjectIdentifier: UInt] = [:]
+            for (index, layer) in layers.enumerated() {
+                oidsByLayer[ObjectIdentifier(layer)] = UInt(100 + index)
+            }
+            var itemsByOid: [UInt: DisplayItem] = [:]
+            // A node for every layer, with its class: SwiftUI's glass layers
+            // are what the setting hides.
+            func item(for layer: CALayer) -> DisplayItem {
+                let layerObject = InspectedObject()
+                layerObject.oid = oidsByLayer[ObjectIdentifier(layer)] ?? 0
+                layerObject.classChainList = [NSStringFromClass(type(of: layer)), "CALayer", "NSObject"]
+                let item = DisplayItem()
+                item.nodeKind = .layer
+                item.layerObject = layerObject
+                item.frame = layer.frame
+                item.bounds = layer.bounds
+                item.alpha = layer.opacity
+                item.isHidden = layer.isHidden
+                item.shouldCaptureImage = true
+                item.subitems = (layer.sublayers ?? []).map(item(for:))
+                itemsByOid[layerObject.oid] = item
+                return item
+            }
+            let windowObject = InspectedObject()
+            windowObject.oid = InspectedWindow.windowOid
+            windowObject.classChainList = ["NSWindow", "NSResponder", "NSObject"]
+            let windowItem = DisplayItem()
+            windowItem.nodeKind = .window
+            windowItem.windowObject = windowObject
+            windowItem.frame = CGRect(origin: .zero, size: window.frame.size)
+            windowItem.bounds = windowItem.frame
+            windowItem.shouldCaptureImage = true
+            windowItem.subitems = [item(for: root)]
+            let appInfo = InspectedAppInfo()
+            appInfo.appName = "FakeApp"
+            appInfo.deviceType = .mac
+            appInfo.osDescription = "macOS"
+            appInfo.screenScale = 2
+            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
+            appInfo.layerArchiveProtocolVersion = 1
+            let hierarchy = HierarchyInfo()
+            hierarchy.appInfo = appInfo
+            hierarchy.displayItems = [windowItem]
+
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                let reply = LayerArchive()
+                reply.layerCount = UInt(layers.count)
+                reply.layerOids = layers.map { oidsByLayer[ObjectIdentifier($0)] ?? 0 }
+                reply.sublayerCounts = layers.map { UInt32($0.sublayers?.count ?? 0) }
+                typealias EncodeLayerTreeFunction = @convention(c) (CALayer) -> Unmanaged<NSData>?
+                if let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CAEncodeLayerTree") {
+                    let encode = unsafeBitCast(symbol, to: EncodeLayerTreeFunction.self)
+                    reply.archiveData = encode(root)?.takeRetainedValue() as Data?
+                }
+                return reply
+            }
+            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
+            let channel = server.connectChannel()
+            let app = InspectableApp()
+            app.appInfo = appInfo
+            app.channel = channel
+            // A settings set of the test's own: the app's must not change.
+            let preferences = PreferenceManager()
+            preferences.glassLayerVisibility = .hide
+            let dataSource = StaticHierarchyDataSource(preferenceManager: preferences)
+            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
+            manager.inspectableApp = app
+            dataSource.reload(with: hierarchy, keepState: false)
+            #expect(await waitUntil { !manager.layerArchiveStore.hasPendingArchives })
+            guard let glassViewItem = itemsByOid[oidsByLayer[ObjectIdentifier(glassViewLayer)] ?? 0] else {
+                Issue.record("the glass view should have a node")
+                return
+            }
+
+            guard case let .image(withGlassHidden)? = await manager.layerArchiveImage(.group, of: glassViewItem) else {
+                Issue.record("the glass view should have a group image with its glass hidden")
+                return
+            }
+            let hiddenCoverage = Self.coverage(of: withGlassHidden)
+            #expect(hiddenCoverage.opaque < 0.3, "with the glass hidden only the label should be opaque, got \(hiddenCoverage.opaque)")
+            #expect(hiddenCoverage.visible > 0.005, "the label should still show with the glass hidden, got \(hiddenCoverage.visible)")
+
+            preferences.glassLayerVisibility = .show
+            guard case let .image(withGlassShown)? = await manager.layerArchiveImage(.group, of: glassViewItem) else {
+                Issue.record("the glass view should have a group image with its glass shown")
+                return
+            }
+            let shownCoverage = Self.coverage(of: withGlassShown)
+            #expect(shownCoverage.opaque > 0.6, "with the glass shown the glass should cover the view, got \(shownCoverage.opaque)")
+            withExtendedLifetime((channel, app, dataSource, manager)) {}
+        }
+
+        /// The share of `image`'s pixels that are opaque and that show at all.
+        private static func coverage(of image: NSImage) -> (opaque: Double, visible: Double) {
+            guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return (0, 0) }
+            let width = cgImage.width
+            let height = cgImage.height
+            var pixels = [UInt8](repeating: 0, count: width * height * 4)
+            pixels.withUnsafeMutableBytes { buffer in
+                guard let context = CGContext(
+                    data: buffer.baseAddress, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4,
+                    space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                ) else { return }
+                context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+            }
+            var opaque = 0
+            var visible = 0
+            for index in stride(from: 3, to: pixels.count, by: 4) {
+                if pixels[index] > 200 { opaque += 1 }
+                if pixels[index] > 16 { visible += 1 }
+            }
+            let count = Double(width * height)
+            return (Double(opaque) / count, Double(visible) / count)
+        }
+
         @Test func imagesComeFromTheWindowsLayerArchive() async {
             let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
             defer { inspected.window.close() }

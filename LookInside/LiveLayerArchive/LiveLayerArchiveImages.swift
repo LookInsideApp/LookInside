@@ -37,6 +37,9 @@ extension LiveLayerArchive {
         let subtreeLayerOids: Set<UInt>
         /// The layers of every node of the window.
         let windowNodeLayerOids: Set<UInt>
+        /// The layers of the window's glass layer nodes (`SwiftUI.SDFLayer`)
+        /// that the Liquid Glass setting hides; images leave them out.
+        var hiddenGlassLayerOids: Set<UInt> = []
     }
 
     /// The layers under the node's layer that its image leaves out, each
@@ -50,6 +53,8 @@ extension LiveLayerArchive {
     ///   backdrop keeps the glass shape layers under it: they are nodes that
     ///   draw nothing themselves and give the glass its shape, so an
     ///   expanded glass's plane shows the glass.
+    /// Either kind leaves out the glass layers the Liquid Glass setting
+    /// hides, with what is under them.
     func layersLeftOut(of kind: ImageKind, for nodes: NodeLayers) -> [CALayer] {
         guard let layer = layer(withOid: nodes.layerOid) else { return [] }
         let keepsGlassShape = kind == .solo && XcodeViewHierarchyPixelRecovery.isBackdrop(layer)
@@ -57,6 +62,10 @@ extension LiveLayerArchive {
         var pending = Array((layer.sublayers ?? []).reversed())
         while let sublayer = pending.popLast() {
             let sublayerOid = oid(of: sublayer)
+            if sublayerOid != 0, nodes.hiddenGlassLayerOids.contains(sublayerOid) {
+                leftOut.append(sublayer)
+                continue
+            }
             let belongsToANode = sublayerOid != 0 && nodes.windowNodeLayerOids.contains(sublayerOid)
             let isLeftOut = switch kind {
             case .group:
@@ -84,14 +93,69 @@ extension LiveLayerArchive {
     func image(of kind: ImageKind, for nodes: NodeLayers) -> CGImage? {
         guard let layer = layer(withOid: nodes.layerOid),
               !XcodeViewHierarchyPixelRecovery.isGlassShapeInput(layer),
-              !XcodeViewHierarchyPixelRecovery.cutsWhatIsBeneath(layer)
+              !XcodeViewHierarchyPixelRecovery.cutsWhatIsBeneath(layer),
+              !isInsideHiddenGlass(layer, hiddenGlassLayerOids: nodes.hiddenGlassLayerOids)
         else { return nil }
+        let leftOut = layersLeftOut(of: kind, for: nodes)
+        // An NSGlassEffectView draws its content through portals inside the
+        // glass that hide the content in place; with the glass left out the
+        // content would go too. For the render those portals stop hiding it,
+        // and it draws where it is.
+        let reopenedPortals = reopeningPortals(inside: leftOut.filter { nodes.hiddenGlassLayerOids.contains(oid(of: $0)) })
+        defer { closing(reopenedPortals) }
         return XcodeViewHierarchyPixelRecovery.renderingImage(
             of: layer,
             includingSublayers: true,
-            hiding: layersLeftOut(of: kind, for: nodes),
+            hiding: leftOut,
             isFlipped: layer.contentsAreFlipped(),
             materialStandIn: layer === rootLayer ? nil : materialStandIn
         )
+    }
+
+    /// The portals under `glassLayers` that hid what they draw, now drawing
+    /// it without hiding it.
+    private func reopeningPortals(inside glassLayers: [CALayer]) -> [CALayer] {
+        var portals: [CALayer] = []
+        for glassLayer in glassLayers {
+            var pending = [glassLayer]
+            while let candidate = pending.popLast() {
+                if XcodeViewHierarchyPixelRecovery.portalsHidingTheirSources(in: [candidate]).isEmpty == false {
+                    portals.append(candidate)
+                }
+                pending.append(contentsOf: candidate.sublayers ?? [])
+            }
+        }
+        guard !portals.isEmpty else { return [] }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for portal in portals {
+            portal.setValue(false, forKey: "hidesSourceLayer")
+        }
+        CATransaction.commit()
+        return portals
+    }
+
+    /// Lets `portals` hide what they draw again.
+    private func closing(_ portals: [CALayer]) {
+        guard !portals.isEmpty else { return }
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for portal in portals {
+            portal.setValue(true, forKey: "hidesSourceLayer")
+        }
+        CATransaction.commit()
+    }
+
+    /// Whether `layer` is a glass layer the setting hides, or under one.
+    private func isInsideHiddenGlass(_ layer: CALayer, hiddenGlassLayerOids: Set<UInt>) -> Bool {
+        guard !hiddenGlassLayerOids.isEmpty else { return false }
+        var current: CALayer? = layer
+        while let candidate = current {
+            if hiddenGlassLayerOids.contains(oid(of: candidate)) {
+                return true
+            }
+            current = candidate.superlayer
+        }
+        return false
     }
 }
