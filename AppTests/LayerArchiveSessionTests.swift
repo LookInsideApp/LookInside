@@ -191,6 +191,8 @@ extension HostAppTests {
 
         /// Connects a document's update manager to `server` and loads the
         /// window's hierarchy; returns once every window's archive settled.
+        /// The manager is built the way a live window builds it: without an
+        /// app, which the window sets before it loads a hierarchy.
         private static func loadingSession(_ inspected: InspectedWindow, on server: FakeServer) async -> Session {
             server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { emptyDetails(for: $0) }
             let channel = server.connectChannel()
@@ -198,7 +200,8 @@ extension HostAppTests {
             app.appInfo = inspected.hierarchy.appInfo
             app.channel = channel
             let dataSource = StaticHierarchyDataSource()
-            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: app)
+            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
+            manager.inspectableApp = app
             dataSource.reload(with: inspected.hierarchy, keepState: false)
             _ = await waitUntil { !manager.layerArchiveStore.hasPendingArchives }
             return Session(channel: channel, app: app, dataSource: dataSource, manager: manager)
@@ -332,7 +335,8 @@ extension HostAppTests {
             app.appInfo = inspected.hierarchy.appInfo
             app.channel = channel
             let dataSource = StaticHierarchyDataSource()
-            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: app)
+            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
+            manager.inspectableApp = app
             dataSource.reload(with: inspected.hierarchy, keepState: false)
             #expect(await waitUntil { server.receivedRequestTypes.contains(UInt32(LookinRequestTypeLayerArchive)) })
             #expect(manager.layerArchiveStore.hasPendingArchives)
