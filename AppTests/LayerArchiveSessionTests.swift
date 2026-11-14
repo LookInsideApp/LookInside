@@ -174,8 +174,14 @@ extension HostAppTests {
         /// The nodes of a window of `windowSize` whose layers are
         /// `rootLayer`'s tree, each node with its layer's class — SwiftUI's
         /// glass layers are what the Liquid Glass setting hides —, geometry,
-        /// opacity and hidden flag.
-        private static func layerNodes(under rootLayer: CALayer, windowSize: CGSize) -> LayerNodes {
+        /// opacity and hidden flag. The layers in `viewClassChains` are the
+        /// backing layers of views with those class chains, and their nodes
+        /// view nodes, as a Server lists a view.
+        private static func layerNodes(
+            under rootLayer: CALayer,
+            windowSize: CGSize,
+            viewClassChains: [ObjectIdentifier: [String]] = [:]
+        ) -> LayerNodes {
             var layers: [CALayer] = []
             var pending = [rootLayer]
             while let layer = pending.popLast() {
@@ -194,6 +200,13 @@ extension HostAppTests {
                 let item = DisplayItem()
                 item.nodeKind = .layer
                 item.layerObject = layerObject
+                if let viewClassChain = viewClassChains[ObjectIdentifier(layer)] {
+                    let viewObject = InspectedObject()
+                    viewObject.oid = layerObject.oid + 10000
+                    viewObject.classChainList = viewClassChain
+                    item.nodeKind = .view
+                    item.viewObject = viewObject
+                }
                 item.frame = layer.frame
                 item.bounds = layer.bounds
                 item.alpha = layer.opacity
@@ -383,16 +396,18 @@ extension HostAppTests {
             withExtendedLifetime((session, subscription)) {}
         }
 
-        /// With the Liquid Glass setting on Hide, AppKit's glass — a split
-        /// view's sidebar glass included — stayed in every image drawn from
-        /// the archive that holds it: hiding the glass layer nodes took only
-        /// their own planes away. Those images now leave the glass out, the
-        /// content still showing where it is, and changing the setting draws
-        /// them again.
-        @Test func hiddenGlassLeavesTheGlassViewsContentInPlace() async {
+        /// With the Liquid Glass setting on Hide, AppKit's glass stayed in
+        /// every image drawn from the archive that holds it: hiding the glass
+        /// layer nodes took only their own planes away. Those images now
+        /// leave out the glass Hide is for, the glass AppKit puts behind a
+        /// split view item, which covered the sidebar's content — the content
+        /// still showing where it is. A control's glass, a filter field's
+        /// capsule, stays as on screen. Changing the setting draws the images
+        /// again.
+        @Test func hideLeavesOutTheSplitViewGlassButNotAControlsGlass() async {
             guard #available(macOS 26.0, *) else { return }
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 300, height: 100),
+                contentRect: NSRect(x: 0, y: 0, width: 300, height: 200),
                 styleMask: [.titled],
                 backing: .buffered,
                 defer: false
@@ -400,20 +415,38 @@ extension HostAppTests {
             window.isReleasedWhenClosed = false
             window.appearance = NSAppearance(named: .darkAqua)
             defer { window.close() }
-            let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 100))
+            let contentView = NSView(frame: NSRect(x: 0, y: 0, width: 300, height: 200))
             contentView.wantsLayer = true
-            let glassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
-            glassView.contentView = NSTextField(labelWithString: "Filter")
-            contentView.addSubview(glassView)
+            // Stands for the wrapper a split view puts around an item.
+            let wrapperView = NSView(frame: NSRect(x: 0, y: 100, width: 300, height: 100))
+            wrapperView.wantsLayer = true
+            let sidebarGlassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+            sidebarGlassView.contentView = NSTextField(labelWithString: "Filter")
+            wrapperView.addSubview(sidebarGlassView)
+            let controlGlassView = NSGlassEffectView(frame: NSRect(x: 20, y: 30, width: 200, height: 40))
+            controlGlassView.contentView = NSTextField(labelWithString: "Search")
+            contentView.addSubview(wrapperView)
+            contentView.addSubview(controlGlassView)
             window.contentView = contentView
             window.displayIfNeeded()
             CATransaction.flush()
 
-            guard let contentLayer = contentView.layer, let glassViewLayer = glassView.layer else {
+            guard let contentLayer = contentView.layer, let wrapperLayer = wrapperView.layer,
+                  let sidebarGlassLayer = sidebarGlassView.layer, let controlGlassLayer = controlGlassView.layer
+            else {
                 Issue.record("the views should have layers")
                 return
             }
-            let nodes = Self.layerNodes(under: Self.rootLayer(above: contentLayer), windowSize: window.frame.size)
+            let glassViewClassChain = ["NSGlassEffectView", "NSView", "NSResponder", "NSObject"]
+            let nodes = Self.layerNodes(
+                under: Self.rootLayer(above: contentLayer),
+                windowSize: window.frame.size,
+                viewClassChains: [
+                    ObjectIdentifier(wrapperLayer): ["_NSSplitViewItemViewWrapper", "NSView", "NSResponder", "NSObject"],
+                    ObjectIdentifier(sidebarGlassLayer): glassViewClassChain,
+                    ObjectIdentifier(controlGlassLayer): glassViewClassChain,
+                ]
+            )
 
             let server = FakeServer()
             defer { server.shutDown() }
@@ -428,25 +461,31 @@ extension HostAppTests {
             )
             #expect(!session.manager.layerArchiveStore.hasPendingArchives)
             let manager = session.manager
-            guard let glassViewItem = nodes.item(for: glassViewLayer) else {
-                Issue.record("the glass view should have a node")
+            guard let sidebarGlassItem = nodes.item(for: sidebarGlassLayer), let controlGlassItem = nodes.item(for: controlGlassLayer) else {
+                Issue.record("the glass views should have nodes")
                 return
             }
 
-            guard case let .image(withGlassHidden)? = await manager.layerArchiveImage(.group, of: glassViewItem) else {
-                Issue.record("the glass view should have a group image with its glass hidden")
+            guard case let .image(sidebarWithGlassHidden)? = await manager.layerArchiveImage(.group, of: sidebarGlassItem) else {
+                Issue.record("the sidebar's glass view should have a group image with its glass hidden")
                 return
             }
-            let hiddenCoverage = Self.coverage(of: withGlassHidden)
+            let hiddenCoverage = Self.coverage(of: sidebarWithGlassHidden)
             #expect(hiddenCoverage.opaque < 0.3, "with the glass hidden only the label should be opaque, got \(hiddenCoverage.opaque)")
             #expect(hiddenCoverage.visible > 0.005, "the label should still show with the glass hidden, got \(hiddenCoverage.visible)")
-
-            preferences.glassLayerVisibility = .show
-            guard case let .image(withGlassShown)? = await manager.layerArchiveImage(.group, of: glassViewItem) else {
-                Issue.record("the glass view should have a group image with its glass shown")
+            guard case let .image(controlImage)? = await manager.layerArchiveImage(.group, of: controlGlassItem) else {
+                Issue.record("the control's glass view should have a group image")
                 return
             }
-            let shownCoverage = Self.coverage(of: withGlassShown)
+            let controlCoverage = Self.coverage(of: controlImage)
+            #expect(controlCoverage.opaque > 0.6, "a control's glass should stay with Hide, got \(controlCoverage.opaque)")
+
+            preferences.glassLayerVisibility = .show
+            guard case let .image(sidebarWithGlassShown)? = await manager.layerArchiveImage(.group, of: sidebarGlassItem) else {
+                Issue.record("the sidebar's glass view should have a group image with its glass shown")
+                return
+            }
+            let shownCoverage = Self.coverage(of: sidebarWithGlassShown)
             #expect(shownCoverage.opaque > 0.6, "with the glass shown the glass should cover the view, got \(shownCoverage.opaque)")
             withExtendedLifetime(session) {}
         }

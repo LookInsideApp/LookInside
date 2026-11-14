@@ -58,6 +58,48 @@ extension HostAppTests {
             return GlassTree(file: file, content: content, glassLayer: glassLayer, shapeSource: shapeSource)
         }
 
+        private func viewItem(classChain: [String], oid: UInt, subitems: [DisplayItem] = []) -> DisplayItem {
+            let viewObject = InspectedObject()
+            viewObject.oid = oid
+            viewObject.classChainList = classChain
+            let item = DisplayItem()
+            item.nodeKind = .view
+            item.viewObject = viewObject
+            item.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+            item.shouldCaptureImage = true
+            item.subitems = subitems
+            return item
+        }
+
+        /// The glass AppKit puts behind a split view's sidebar, in the item's
+        /// wrapper view, beside a control's glass elsewhere in the window.
+        private struct SplitViewGlassTree {
+            let file: HierarchyFile
+            let sidebarGlass: DisplayItem
+            let controlGlass: DisplayItem
+        }
+
+        private func makeSplitViewGlassTree(drawnFromLayerArchives: Bool) -> SplitViewGlassTree {
+            let glassViewChain = ["NSGlassEffectView", "NSView", "NSResponder", "NSObject"]
+            let sidebarGlass = layerItem(classChain: ["SwiftUI.SDFLayer", "CALayer", "NSObject"], oid: 13)
+            let sidebarHostingView = viewItem(classChain: ["_NSCoreHostingView", "NSView", "NSResponder", "NSObject"], oid: 12, subitems: [sidebarGlass])
+            let sidebarGlassView = viewItem(classChain: glassViewChain, oid: 11, subitems: [sidebarHostingView])
+            let wrapper = viewItem(classChain: ["_NSSplitViewItemViewWrapper", "NSView", "NSResponder", "NSObject"], oid: 10, subitems: [sidebarGlassView])
+            let controlGlass = layerItem(classChain: ["SwiftUI.SDFLayer", "CALayer", "NSObject"], oid: 21)
+            let controlGlassView = viewItem(classChain: glassViewChain, oid: 20, subitems: [controlGlass])
+            let root = layerItem(classChain: ["CALayer", "NSObject"], oid: 1, subitems: [wrapper, controlGlassView])
+            let info = HierarchyInfo()
+            info.displayItems = [root]
+            if drawnFromLayerArchives {
+                let appInfo = InspectedAppInfo()
+                appInfo.layerArchiveProtocolVersion = 1
+                info.appInfo = appInfo
+            }
+            let file = HierarchyFile()
+            file.hierarchyInfo = info
+            return SplitViewGlassTree(file: file, sidebarGlass: sidebarGlass, controlGlass: controlGlass)
+        }
+
         /// A document window's preference set, with the setting as given.
         private func documentPreferences(_ visibility: GlassLayerVisibility) -> PreferenceManager {
             let preferences = PreferenceManager()
@@ -141,7 +183,7 @@ extension HostAppTests {
 
             // The app info says nothing of layer archives: the Server takes
             // the images.
-            let hidesGlass = PreferenceManager.shared.glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: false)
+            let hidesGlass = PreferenceManager.shared.glassLayerVisibility.hidesGlassLayer(isDrawnByLookInside: false, isSplitViewBackground: false)
             #expect(glassLayerHiddenWhenThePreviewRenders == hidesGlass)
             #expect(glassLayer.noPreview == hidesGlass)
             withExtendedLifetime(subscription) {}
@@ -157,6 +199,25 @@ extension HostAppTests {
             #expect(!drawnTree.glassLayer.inNoPreviewHierarchy, "glass drawn from a layer archive stays in the preview")
             #expect(!drawnTree.shapeSource.inNoPreviewHierarchy)
             withExtendedLifetime((serverDataSource, drawnDataSource)) {}
+        }
+
+        /// Hide is for the glass AppKit puts behind a split view's sidebar or
+        /// inspector, which covers the item's content in the preview. Where
+        /// LookInside draws glass it left out every piece, a toolbar button's
+        /// or a filter field's capsule too; now only that background glass
+        /// goes. Where LookInside cannot draw glass, every piece is a white
+        /// block and all of it goes.
+        @Test func hideLeavesOutOnlyTheSplitViewGlassWhereLookInsideDrawsGlass() {
+            let drawn = makeSplitViewGlassTree(drawnFromLayerArchives: true)
+            let drawnDataSource = ReadHierarchyDataSource(file: drawn.file, preferenceManager: documentPreferences(.hide))
+            #expect(drawn.sidebarGlass.inNoPreviewHierarchy, "the glass behind the sidebar goes")
+            #expect(!drawn.controlGlass.inNoPreviewHierarchy, "a control's glass stays")
+
+            let captured = makeSplitViewGlassTree(drawnFromLayerArchives: false)
+            let capturedDataSource = ReadHierarchyDataSource(file: captured.file, preferenceManager: documentPreferences(.hide))
+            #expect(captured.sidebarGlass.inNoPreviewHierarchy)
+            #expect(captured.controlGlass.inNoPreviewHierarchy, "the Server's capture of a control's glass is a white block")
+            withExtendedLifetime((drawnDataSource, capturedDataSource)) {}
         }
 
         @Test func aWindowLeftWithoutItsArchiveHidesItsGlassAgain() {
