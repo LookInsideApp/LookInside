@@ -81,6 +81,44 @@ let NotificationName_DidChangeSectionShowing = "NotificationName_DidChangeSectio
     }
 }
 
+/// How far an inspected Mac app's Server goes to show the app as it looks in
+/// front while LookInside, in front itself, takes its images. Each level does
+/// what the one before it does, and more.
+@objc enum InspectedAppKeyAppearanceLevel: Int, CaseIterable {
+    /// The app's windows keep their inactive look.
+    case off
+    /// The window the app would make key is drawn as key, so AppKit's own
+    /// views look active; the app is told nothing. The default.
+    case drawsAsKey
+    /// As `drawsAsKey`, and the app is told that window is key, so views it
+    /// draws itself from `isKeyWindow` look active too; the app's own
+    /// become-key and resign-key code runs on every refresh.
+    case treatsAsKey
+
+    /// The level on the wire.
+    var serverLevel: LookinKeyAppearanceLevel {
+        switch self {
+        case .off:
+            .off
+        case .drawsAsKey:
+            .drawsAsKey
+        case .treatsAsKey:
+            .treatsAsKey
+        }
+    }
+
+    /// The app and hierarchy request parameters that carry the level: the
+    /// level for Servers that know it, and the switch older Servers read, on
+    /// at any level but off — so an older Server draws the window as key when
+    /// it is to be treated as key.
+    var requestParameters: [NSString: NSNumber] {
+        [
+            LookinParam_KeyAppearanceLevel as NSString: NSNumber(value: serverLevel.rawValue),
+            LookinParam_KeepsKeyAppearance as NSString: NSNumber(value: self != .off),
+        ]
+    }
+}
+
 enum MeasureState: Int {
     /// Not measuring.
     case no
@@ -118,7 +156,10 @@ final class PreferenceManager: NSObject {
         /// its value over, and left in place for a Host that still reads it.
         static let hidesGlassLayersInPreview = "hideGlassLayersInPreview"
         static let glassLayerVisibility = "glassLayerVisibility"
+        /// The switch the key appearance level replaced; read once to carry
+        /// its value over, and left in place for a Host that still reads it.
         static let drawsInspectedAppAsActive = "drawsInspectedAppAsActive"
+        static let inspectedAppKeyAppearanceLevel = "inspectedAppKeyAppearanceLevel"
     }
 
     static let shared: PreferenceManager = {
@@ -214,14 +255,14 @@ final class PreferenceManager: NSObject {
         }
     }
 
-    /// Whether a Mac app's Server draws the window the app would make key as
-    /// the key window while it takes images, though LookInside is in front.
-    /// Sent with the app and hierarchy requests
-    /// (`LookinParam_KeepsKeyAppearance`). Default YES.
-    @objc dynamic var drawsInspectedAppAsActive: Bool {
+    /// How far a Mac app's Server goes to show the app as it looks in front
+    /// while it takes images, though LookInside is in front. Sent with the app
+    /// and hierarchy requests (`InspectedAppKeyAppearanceLevel.requestParameters`).
+    /// Default `.drawsAsKey`.
+    @objc dynamic var inspectedAppKeyAppearanceLevel: InspectedAppKeyAppearanceLevel {
         didSet {
-            guard oldValue != drawsInspectedAppAsActive else { return }
-            store(drawsInspectedAppAsActive, forKey: Key.drawsInspectedAppAsActive)
+            guard oldValue != inspectedAppKeyAppearanceLevel else { return }
+            store(inspectedAppKeyAppearanceLevel.rawValue, forKey: Key.inspectedAppKeyAppearanceLevel)
         }
     }
 
@@ -363,7 +404,7 @@ final class PreferenceManager: NSObject {
 
         rememberExpansionState = number(Key.rememberExpansionState, default: true).boolValue
         glassLayerVisibility = Self.storedGlassLayerVisibility(defaults)
-        drawsInspectedAppAsActive = number(Key.drawsInspectedAppAsActive, default: true).boolValue
+        inspectedAppKeyAppearanceLevel = Self.storedInspectedAppKeyAppearanceLevel(defaults)
 
         super.init()
 
@@ -388,6 +429,22 @@ final class PreferenceManager: NSObject {
         let visibility: GlassLayerVisibility = switchWasOn ? .hideWhereNotDrawn : .show
         defaults.set(visibility.rawValue, forKey: Key.glassLayerVisibility)
         return visibility
+    }
+
+    /// The stored key appearance level. Without one, it is carried over from
+    /// the switch it replaced: on (the default) became drawing as key, off
+    /// became off. The level is then written back like every missing value;
+    /// the switch is left alone.
+    static func storedInspectedAppKeyAppearanceLevel(_ defaults: UserDefaults) -> InspectedAppKeyAppearanceLevel {
+        if let stored = storedNumber(defaults.object(forKey: Key.inspectedAppKeyAppearanceLevel)),
+           let level = InspectedAppKeyAppearanceLevel(rawValue: stored.intValue)
+        {
+            return level
+        }
+        let switchWasOn = storedNumber(defaults.object(forKey: Key.drawsInspectedAppAsActive))?.boolValue ?? true
+        let level: InspectedAppKeyAppearanceLevel = switchWasOn ? .drawsAsKey : .off
+        defaults.set(level.rawValue, forKey: Key.inspectedAppKeyAppearanceLevel)
+        return level
     }
 
     /// A stored value read the way the Objective-C manager read it, with

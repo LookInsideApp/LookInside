@@ -188,7 +188,7 @@ final class InspectableApp: NSObject {
     /// The hierarchy request's parameters: the Host version (since Lookin
     /// 1.0.4), the SwiftUI display mode, whether to include backing layers,
     /// that the tree comes in rounds with SwiftUI details fetched later, and
-    /// whether a Mac app draws as active while the refresh takes its images
+    /// how far a Mac app is shown as active while the refresh takes its images
     /// (old Servers ignore the keys they do not know; this Host does not
     /// inspect them, see `HierarchyAcquisitionSupport`).
     static func hierarchyRequestParameters() -> NSDictionary {
@@ -196,7 +196,7 @@ final class InspectableApp: NSObject {
         parameters[LookinParam_SwiftUIDisplayMode] = NSNumber(value: SwiftUIHierarchyDisplayModeStore.currentMode().rawValue)
         parameters["showBackingLayers"] = NSNumber(value: PreferenceManager.shared.showBackingLayers.currentBOOLValue)
         parameters[LookinParam_AsyncAcquisition] = NSNumber(value: true)
-        parameters[LookinParam_KeepsKeyAppearance] = NSNumber(value: PreferenceManager.shared.drawsInspectedAppAsActive)
+        parameters.addEntries(from: PreferenceManager.shared.inspectedAppKeyAppearanceLevel.requestParameters)
         return parameters
     }
 

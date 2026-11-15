@@ -10,8 +10,8 @@
 //
 
 import Foundation
-import LookInsideHostCore
 import FoundationToolbox
+import LookInsideHostCore
 
 @Loggable(subsystem: "com.lookinside.app")
 @MainActor
@@ -44,17 +44,15 @@ final class AppsManager: NSObject {
     }
 
     /// The app request's parameters: whether to send icons and screenshots,
-    /// the cached infos the Server need not resend, and whether a Mac app
-    /// draws as active in those screenshots (older Servers ignore the key).
+    /// the cached infos the Server need not resend, and how far a Mac app is
+    /// shown as active in those screenshots (older Servers ignore the keys).
     static func appRequestParameters(needImages: Bool, localIdentifiers: NSArray) -> NSDictionary {
-        NSDictionary(
-            objects: [
-                NSNumber(value: needImages),
-                localIdentifiers,
-                NSNumber(value: PreferenceManager.shared.drawsInspectedAppAsActive),
-            ],
-            forKeys: ["needImages" as NSString, "local" as NSString, LookinParam_KeepsKeyAppearance as NSString]
+        let parameters = NSMutableDictionary(
+            objects: [NSNumber(value: needImages), localIdentifiers],
+            forKeys: ["needImages" as NSString, "local" as NSString]
         )
+        parameters.addEntries(from: PreferenceManager.shared.inspectedAppKeyAppearanceLevel.requestParameters)
+        return parameters
     }
 
     /// `fetchAppInfos` plus how many channels were connected.
