@@ -19,6 +19,7 @@ import RunningApplicationKit
 /// leaves the foreground, so the ordinary path stops running into them. They
 /// are still bugs and still need fixing; this just stops them being hit every
 /// single time.
+@MainActor
 final class DeviceInjectionFlow: NSObject {
     static let shared = DeviceInjectionFlow()
 
@@ -50,7 +51,6 @@ final class DeviceInjectionFlow: NSObject {
         }
     }
 
-    @MainActor
     private func runFlow(presentingWindow window: NSWindow?) async {
         await AttachedDeviceMonitor.shared.startAndWaitForInitialDevices()
         let attachedDevices = AttachedDeviceMonitor.shared.devices
@@ -130,7 +130,6 @@ final class DeviceInjectionFlow: NSObject {
     /// each probe is a connect plus one round trip over a cable — making the
     /// rare two-device case marginally faster is not worth running several
     /// `@MainActor` clients through a task group for.
-    @MainActor
     private func probe(
         _ attachedDevices: [AttachedDeviceMonitor.Device]
     ) async -> (reachable: [ReachableDevice], unreachable: [AttachedDeviceMonitor.Device]) {
@@ -185,7 +184,6 @@ final class DeviceInjectionFlow: NSObject {
     }
 
     /// Which device to use, asking only when there is a choice to make.
-    @MainActor
     private func chooseDevice(among usable: [ReachableDevice], window: NSWindow?) async -> ReachableDevice? {
         guard usable.count > 1 else { return usable.first }
 
@@ -223,7 +221,6 @@ final class DeviceInjectionFlow: NSObject {
         let name: String
     }
 
-    @MainActor
     private func pickTarget(on device: ReachableDevice, window: NSWindow?) async -> Target? {
         let client = device.client
         // What the device last said, kept for two things the picker needs: an
@@ -308,7 +305,6 @@ final class DeviceInjectionFlow: NSObject {
 
     // MARK: - Alerts
 
-    @MainActor
     private func presentMessage(title: String, body: String, window: NSWindow?) {
         let alert = NSAlert()
         alert.messageText = title
@@ -321,7 +317,6 @@ final class DeviceInjectionFlow: NSObject {
         }
     }
 
-    @MainActor
     private func presentAlert(error: any Error, window: NSWindow?) {
         let alert = NSAlert(error: error)
         if let window {

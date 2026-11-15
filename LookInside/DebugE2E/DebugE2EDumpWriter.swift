@@ -47,7 +47,7 @@
                     nodesWithAttributes += 1
                 }
                 var host: [String: Any] = [
-                    "title": item.title() ?? NSNull(),
+                    "title": item.title(),
                     "subtitle": normalizedSubtitle(item.subtitle()),
                     "indentLevel": item.indentLevel(),
                     "isExpandable": item.isExpandable,

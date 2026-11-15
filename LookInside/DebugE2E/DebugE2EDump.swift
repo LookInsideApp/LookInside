@@ -630,6 +630,11 @@
 
         /// One of this app's own windows from the window server; capturing
         /// the process's own windows needs no screen recording permission.
+        /// CGWindowListCreateImage has been deprecated since macOS 14, this
+        /// app's deployment target; compilers before Swift 6.4 still warn.
+        #if hasAttribute(diagnose)
+            @diagnose(DeprecatedDeclaration, as: ignored, reason: "A synchronous capture of this app's own window, which needs no ScreenCaptureKit")
+        #endif
         private static func windowServerPNGData(of window: NSWindow) -> Data? {
             guard window.windowNumber > 0,
                   let image = CGWindowListCreateImage(.null, .optionIncludingWindow, CGWindowID(window.windowNumber), [.boundsIgnoreFraming, .bestResolution]),

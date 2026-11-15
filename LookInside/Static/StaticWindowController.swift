@@ -713,20 +713,15 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         guard let hierarchyInfo = hierarchyDataSource.rawHierarchyInfo else {
             return
         }
-        var fileName: NSString?
-        var exportedData: Data?
+        let pendingExport = PendingExport(hierarchyInfo: hierarchyInfo)
 
         let accessoryView = ExportAccessoryView()
         // The data is rebuilt whenever the accessory view changes the
         // compression, for as long as the panel is up.
         let compressionObservation = PreferenceManager.shared.observe(\.preferredExportCompression, options: [.initial, .new]) { manager, _ in
             MainActor.assumeIsolated {
-                exportedData = ExportManager.sharedInstance().data(
-                    from: hierarchyInfo,
-                    imageCompression: manager.preferredExportCompression,
-                    fileName: &fileName
-                )
-                accessoryView.dataSize = UInt(exportedData?.count ?? 0)
+                pendingExport.rebuild(imageCompression: manager.preferredExportCompression)
+                accessoryView.dataSize = UInt(pendingExport.data?.count ?? 0)
             }
         }
 
@@ -736,7 +731,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
         let panel = NSSavePanel()
         panel.accessoryView = accessoryView
-        panel.nameFieldStringValue = (fileName as String?) ?? ""
+        panel.nameFieldStringValue = (pendingExport.fileName as String?) ?? ""
         panel.allowsOtherFileTypes = false
         panel.allowedContentTypes = [UTType("com.lookin.lookin") ?? .data]
         panel.isExtensionHidden = true
@@ -745,7 +740,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         panel.beginSheetModal(for: window) { response in
             compressionObservation.invalidate()
             guard response == .OK, let url = panel.url else { return }
-            guard let exportedData else {
+            guard let exportedData = pendingExport.data else {
                 assertionFailure("LookinClient - write fail, no data")
                 return
             }
@@ -904,5 +899,27 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
                 toast.removeFromSuperview()
             }
         }
+    }
+}
+
+/// What the export panel would write, rebuilt each time the accessory view
+/// changes the compression while the panel is up. Main-actor isolated so the
+/// `@Sendable` change handler of the compression observation can hold it.
+@MainActor
+private final class PendingExport {
+    private let hierarchyInfo: HierarchyInfo
+    private(set) var fileName: NSString?
+    private(set) var data: Data?
+
+    init(hierarchyInfo: HierarchyInfo) {
+        self.hierarchyInfo = hierarchyInfo
+    }
+
+    func rebuild(imageCompression: CGFloat) {
+        data = ExportManager.sharedInstance().data(
+            from: hierarchyInfo,
+            imageCompression: imageCompression,
+            fileName: &fileName
+        )
     }
 }

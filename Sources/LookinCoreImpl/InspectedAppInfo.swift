@@ -191,14 +191,17 @@
     }
 
     #if os(macOS)
-        @available(macOS, deprecated: 14.0)
-        private func deprecatedWindowListImage(_ windowID: CGWindowID) -> CGImage? {
+        /// CGWindowListCreateImage has been deprecated since macOS 14, the
+        /// Host's deployment target, so only the Host's copy of this file
+        /// warns. The Objective-C original silenced -Wdeprecated-declarations
+        /// here; Swift 6.4 does the same for this one function, and older
+        /// compilers still warn.
+        #if hasAttribute(diagnose)
+            @diagnose(DeprecatedDeclaration, as: ignored, reason: "Captures only this app's own window, which needs no ScreenCaptureKit")
+        #endif
+        private func windowListImage(_ windowID: CGWindowID) -> CGImage? {
             CGWindowListCreateImage(.zero, .optionIncludingWindow, windowID, .boundsIgnoreFraming)
         }
-
-        /// Calls the deprecated CGWindowListCreateImage without a warning at
-        /// every use site (the original silenced -Wdeprecated-declarations).
-        private let windowListImage: (CGWindowID) -> CGImage? = deprecatedWindowListImage
     #endif
 
     @objc(LookinAppInfo)
