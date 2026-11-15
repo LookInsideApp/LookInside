@@ -1672,6 +1672,334 @@
         }
       }
     },
+    "A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. Draw Windows as Active draws its front window as active while its images are taken; it briefly looks active on screen too. Treat Windows as Key also tells the app that window is key, so views the app draws itself look active as well, and the app’s own code for a window becoming key runs on every refresh. Older LookInside Servers draw windows as active at most." : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يكون تطبيق Mac الذي تفحصه في الخلفية أثناء تحديث LookInside، لذا تبدو نوافذه غير نشطة. يرسم خيار ”رسم النوافذ كأنها نشطة“ نافذته الأمامية كأنها نشطة أثناء التقاط صورها، وتبدو نشطة على الشاشة أيضًا لوهلة. أما خيار ”معاملة النوافذ كنوافذ رئيسية“ فيُبلغ التطبيق أيضًا بأن تلك النافذة هي النافذة الرئيسية، فتبدو العروض التي يرسمها التطبيق بنفسه نشطة كذلك، ويعمل كود التطبيق الخاص بتحوّل النافذة إلى رئيسية عند كل تحديث. لا تستطيع الإصدارات الأقدم من LookInside Server إلا رسم النوافذ كأنها نشطة."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Mac-App, die du untersuchst, ist im Hintergrund, während LookInside aktualisiert, daher sehen ihre Fenster inaktiv aus. „Fenster als aktiv zeichnen“ zeichnet ihr vorderstes Fenster als aktiv, während ihre Bilder aufgenommen werden; auf dem Bildschirm sieht es dabei kurz aktiv aus. „Fenster als Key-Fenster behandeln“ teilt der App außerdem mit, dass dieses Fenster das Key-Fenster ist, sodass auch Ansichten, die die App selbst zeichnet, aktiv aussehen, und der eigene Code der App für ein Fenster, das zum Key-Fenster wird, läuft bei jeder Aktualisierung. Ältere LookInside Server zeichnen Fenster höchstens als aktiv."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. Draw Windows as Active draws its front window as active while its images are taken; it briefly looks active on screen too. Treat Windows as Key also tells the app that window is key, so views the app draws itself look active as well, and the app’s own code for a window becoming key runs on every refresh. Older LookInside Servers draw windows as active at most."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una app de Mac que inspeccionas está en segundo plano mientras LookInside se actualiza, por lo que sus ventanas parecen inactivas. «Dibujar las ventanas como activas» dibuja su ventana frontal como activa mientras se toman sus imágenes; en pantalla también se ve activa por un momento. «Tratar las ventanas como ventanas clave» además le indica a la app que esa ventana es la ventana clave, de modo que las vistas que la app dibuja por sí misma también se ven activas, y el código propio de la app para cuando una ventana pasa a ser clave se ejecuta en cada actualización. Las versiones anteriores de LookInside Server solo pueden dibujar las ventanas como activas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une app Mac que vous inspectez est en arrière-plan pendant l’actualisation de LookInside, ses fenêtres semblent donc inactives. « Dessiner les fenêtres comme actives » dessine sa fenêtre au premier plan comme active pendant la capture de ses images ; elle paraît aussi brièvement active à l’écran. « Traiter les fenêtres comme fenêtres clés » indique en plus à l’app que cette fenêtre est la fenêtre clé, de sorte que les vues que l’app dessine elle-même paraissent aussi actives, et le code propre à l’app pour une fenêtre qui devient clé s’exécute à chaque actualisation. Les versions plus anciennes de LookInside Server ne peuvent au mieux que dessiner les fenêtres comme actives."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un’app per Mac che ispezioni è in background mentre LookInside si aggiorna, quindi le sue finestre sembrano inattive. «Disegna le finestre come attive» disegna la finestra in primo piano come attiva mentre vengono acquisite le immagini; anche sullo schermo appare attiva per un istante. «Tratta le finestre come finestre chiave» comunica inoltre all’app che quella finestra è la finestra chiave, così anche le viste che l’app disegna da sé appaiono attive, e il codice dell’app per una finestra che diventa chiave viene eseguito a ogni aggiornamento. Le versioni precedenti di LookInside Server possono al massimo disegnare le finestre come attive."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "検査中のMac AppはLookInsideの更新中はバックグラウンドにあるため、ウインドウが非アクティブに見えます。「ウインドウをアクティブとして描画」は、画像の取得中に最前面のウインドウをアクティブとして描画します。画面上でも一瞬アクティブに見えます。「ウインドウをキーウインドウとして扱う」は、そのウインドウがキーウインドウであることをAppにも伝えるため、Appが独自に描画するビューもアクティブに見えます。また、ウインドウがキーになったときのApp独自のコードが更新のたびに実行されます。古いLookInside Serverでは、ウインドウをアクティブとして描画するところまでしかできません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "검사 중인 Mac 앱은 LookInside가 새로 고치는 동안 백그라운드에 있으므로 윈도우가 비활성 상태로 보입니다. ‘윈도우를 활성 상태로 그리기’는 이미지를 가져오는 동안 앞쪽 윈도우를 활성 상태로 그리며, 화면에서도 잠깐 활성 상태로 보입니다. ‘윈도우를 키 윈도우로 취급’은 해당 윈도우가 키 윈도우라는 사실을 앱에도 알려, 앱이 직접 그리는 보기도 활성 상태로 보이게 합니다. 이때 윈도우가 키가 될 때의 앱 자체 코드가 새로 고칠 때마다 실행됩니다. 이전 LookInside Server는 윈도우를 활성 상태로 그리는 데까지만 지원합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um app do Mac que você inspeciona fica em segundo plano enquanto o LookInside atualiza, por isso suas janelas parecem inativas. “Desenhar janelas como ativas” desenha a janela da frente como ativa enquanto as imagens são capturadas; na tela, ela também parece ativa por um instante. “Tratar janelas como janela-chave” também informa ao app que essa janela é a janela-chave, assim as visualizações que o app desenha por conta própria também parecem ativas, e o código do próprio app para quando uma janela se torna chave é executado a cada atualização. Versões anteriores do LookInside Server só conseguem desenhar as janelas como ativas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложение Mac, которое вы исследуете, находится в фоне, пока LookInside обновляет данные, поэтому его окна выглядят неактивными. «Рисовать окна активными» рисует переднее окно приложения активным, пока снимаются изображения; на экране оно тоже ненадолго выглядит активным. «Считать окна ключевыми» дополнительно сообщает приложению, что это окно ключевое, поэтому виды, которые приложение рисует само, тоже выглядят активными, а собственный код приложения для перехода окна в ключевое выполняется при каждом обновлении. Более старые версии LookInside Server могут только рисовать окна активными."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ứng dụng Mac bạn đang kiểm tra nằm ở nền trong khi LookInside làm mới, nên các cửa sổ của nó trông như không hoạt động. “Vẽ cửa sổ ở trạng thái hoạt động” vẽ cửa sổ phía trước của ứng dụng ở trạng thái hoạt động trong lúc chụp ảnh; trên màn hình, nó cũng trông như đang hoạt động trong chốc lát. “Coi cửa sổ là cửa sổ key” còn báo cho ứng dụng biết cửa sổ đó là cửa sổ key, nên các chế độ xem do ứng dụng tự vẽ cũng trông như đang hoạt động, và mã riêng của ứng dụng cho lúc một cửa sổ trở thành key sẽ chạy mỗi lần làm mới. Các phiên bản LookInside Server cũ hơn chỉ có thể vẽ cửa sổ ở trạng thái hoạt động."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你检查的 Mac App 在 LookInside 刷新时处于后台，所以它的窗口看起来是非活跃的。「将窗口画成活跃状态」会在取图期间把它的前台窗口画成活跃的样子，屏幕上也会短暂显示为活跃。「将窗口当成 key 窗口」还会告诉 App 该窗口是 key 窗口，这样 App 自己绘制的视图也会显示为活跃，而 App 自己处理窗口成为 key 的代码在每次刷新时都会运行。较旧的 LookInside Server 最多只能把窗口画成活跃状态。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你檢查的 Mac App 在 LookInside 重新整理時位於背景，因此它的視窗看起來未在使用中。「將視窗繪製為使用中」會在擷取影像期間把它的前方視窗繪製為使用中，螢幕上也會短暫顯示為使用中。「將視窗當成 key 視窗」還會告訴 App 該視窗是 key 視窗，讓 App 自行繪製的視圖也顯示為使用中，而 App 處理視窗成為 key 的程式碼在每次重新整理時都會執行。較舊的 LookInside Server 最多只能將視窗繪製為使用中。"
+          }
+        }
+      }
+    },
+    "Draw Windows as Active" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رسم النوافذ كأنها نشطة"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fenster als aktiv zeichnen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draw Windows as Active"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dibujar las ventanas como activas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dessiner les fenêtres comme actives"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disegna le finestre come attive"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウインドウをアクティブとして描画"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "윈도우를 활성 상태로 그리기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desenhar janelas como ativas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рисовать окна активными"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vẽ cửa sổ ở trạng thái hoạt động"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将窗口画成活跃状态"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將視窗繪製為使用中"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "إيقاف"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disattivato"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "끔"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выкл."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tắt"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
+          }
+        }
+      }
+    },
+    "Treat Windows as Key" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "معاملة النوافذ كنوافذ رئيسية"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fenster als Key-Fenster behandeln"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Treat Windows as Key"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratar las ventanas como ventanas clave"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traiter les fenêtres comme fenêtres clés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratta le finestre come finestre chiave"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウインドウをキーウインドウとして扱う"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "윈도우를 키 윈도우로 취급"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratar janelas como janela-chave"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Считать окна ключевыми"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coi cửa sổ là cửa sổ key"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将窗口当成 key 窗口"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將視窗當成 key 視窗"
+          }
+        }
+      }
+    },
     "© %lld LookInside-App. Released under GPL-3.0." : {
       "comment" : "About window copyright line, year",
       "localizations" : {
@@ -2075,88 +2403,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "此視窗已在重新載入階層。"
-          }
-        }
-      }
-    },
-    "A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. When on, its front window is drawn as active while its images are taken, and briefly looks active on screen too. Older LookInside Servers always show the inactive look." : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "أثناء تحديث LookInside يكون تطبيق Mac الذي تفحصه في الخلفية، لذا تبدو نوافذه غير نشطة. عند التشغيل، تُرسم نافذته الأمامية كأنها نشطة أثناء التقاط صورها، وتبدو نشطة لفترة وجيزة على الشاشة أيضًا. تعرض الإصدارات الأقدم من LookInside Server المظهر غير النشط دائمًا."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Während LookInside aktualisiert, ist die untersuchte Mac-App im Hintergrund, daher wirken ihre Fenster inaktiv. Wenn aktiviert, wird ihr vorderstes Fenster beim Aufnehmen der Bilder als aktiv gezeichnet und wirkt auch auf dem Bildschirm kurz aktiv. Ältere LookInside Server zeigen immer das inaktive Aussehen."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. When on, its front window is drawn as active while its images are taken, and briefly looks active on screen too. Older LookInside Servers always show the inactive look."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mientras LookInside actualiza, la app de Mac que inspeccionas está en segundo plano, por lo que sus ventanas se ven inactivas. Si se activa, su ventana frontal se dibuja como activa mientras se capturan sus imágenes y también se ve activa brevemente en pantalla. Las versiones anteriores de LookInside Server siempre muestran el aspecto inactivo."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pendant que LookInside actualise, l’app Mac inspectée est en arrière-plan et ses fenêtres paraissent inactives. Si cette option est activée, sa fenêtre au premier plan est dessinée comme active pendant la capture de ses images et paraît aussi brièvement active à l’écran. Les anciennes versions de LookInside Server affichent toujours l’aspect inactif."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mentre LookInside aggiorna, l’app Mac che stai ispezionando è in background, quindi le sue finestre appaiono inattive. Se attivo, la sua finestra in primo piano viene disegnata come attiva mentre se ne acquisiscono le immagini e appare brevemente attiva anche sullo schermo. Le versioni precedenti di LookInside Server mostrano sempre l’aspetto inattivo."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInsideが更新している間、検査中のMac Appはバックグラウンドにあるため、ウインドウは非アクティブな外観になります。オンにすると、画像を取得する間は最前面のウインドウがアクティブな外観で描画され、画面上でも一時的にアクティブに見えます。古いLookInside Serverでは常に非アクティブな外観になります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside가 새로 고치는 동안 검사 중인 Mac 앱은 백그라운드에 있으므로 윈도우가 비활성 상태로 보입니다. 켜면 이미지를 가져오는 동안 맨 앞 윈도우가 활성 상태로 그려지며, 화면에서도 잠시 활성 상태로 보입니다. 이전 버전의 LookInside Server에서는 항상 비활성 상태로 표시됩니다."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enquanto o LookInside atualiza, o app do Mac inspecionado fica em segundo plano, por isso suas janelas parecem inativas. Quando ativado, a janela da frente é desenhada como ativa enquanto as imagens são capturadas e também parece ativa por um instante na tela. Versões anteriores do LookInside Server sempre mostram a aparência inativa."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пока LookInside обновляет данные, проверяемое приложение Mac находится в фоне, и его окна выглядят неактивными. Если включено, переднее окно приложения отрисовывается активным на время съёмки изображений и ненадолго выглядит активным и на экране. Старые версии LookInside Server всегда показывают неактивный вид."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Khi LookInside làm mới, ứng dụng Mac đang được kiểm tra nằm ở chế độ nền nên các cửa sổ của nó trông như không hoạt động. Khi bật, cửa sổ phía trước của ứng dụng sẽ được vẽ ở trạng thái hoạt động trong lúc chụp ảnh và cũng trông như hoạt động trong chốc lát trên màn hình. Các phiên bản LookInside Server cũ luôn hiển thị giao diện không hoạt động."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 刷新时，被检查的 Mac App 处于后台，窗口会显示为非活跃样式。开启后，取图期间会把它最前面的窗口绘制成活跃样式，屏幕上的窗口也会短暂显示为活跃。旧版 LookInside Server 始终显示非活跃样式。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "LookInside 重新整理時，被檢查的 Mac App 位於背景，視窗會顯示為非使用中的樣式。開啟後，擷取影像期間會將其最前方的視窗繪製為使用中的樣式，螢幕上的視窗也會短暫顯示為使用中。舊版 LookInside Server 一律顯示非使用中的樣式。"
           }
         }
       }

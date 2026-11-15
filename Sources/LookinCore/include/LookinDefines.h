@@ -169,7 +169,37 @@ static NSString * const LookinParam_LayerArchiveLayerLimit = @"layerArchiveLayer
 ///
 /// NSNumber boxed BOOL. Missing (older Hosts, upstream Lookin) → on. Other
 /// platforms ignore it. Additive payload, no version bump.
+///
+/// Servers that know `LookinParam_KeyAppearanceLevel` read that first and
+/// this only when it is missing or a level they do not know: YES draws as key,
+/// NO is off. A Host sends both, so an older Server falls back to drawing as
+/// key when the Host asks to treat the window as key.
 static NSString * const LookinParam_KeepsKeyAppearance = @"keepsKeyAppearance";
+
+/// App (201) and hierarchy (202) request param: how far a macOS Server goes
+/// to show the inactive app as it looks in front while it takes images. As
+/// with `LookinParam_KeepsKeyAppearance`, which the Host sends alongside, the
+/// Server keeps the last value it received for the connection.
+///
+/// NSNumber boxed `LookinKeyAppearanceLevel`. Missing → read
+/// `LookinParam_KeepsKeyAppearance`; both missing → `DrawsAsKey`. Other
+/// platforms ignore it. Additive payload, no version bump.
+static NSString * const LookinParam_KeyAppearanceLevel = @"keyAppearanceLevel";
+
+/// Each level does what the one below it does, and more.
+typedef NS_ENUM(NSInteger, LookinKeyAppearanceLevel) {
+    /// The window keeps the inactive look.
+    LookinKeyAppearanceLevelOff = 0,
+    /// The would-be key window is drawn as key (AppKit's private
+    /// -acquireKeyAppearance): AppKit's own views look active; the window does
+    /// not become key and the app is not told anything.
+    LookinKeyAppearanceLevelDrawsAsKey = 1,
+    /// As DrawsAsKey, and the window answers YES from -isKeyWindow and the app
+    /// gets NSWindowDidBecomeKeyNotification / NSWindowDidResignKeyNotification,
+    /// so views the app draws from -isKeyWindow look active too. The app's own
+    /// become-key and resign-key code runs on every refresh.
+    LookinKeyAppearanceLevelTreatsAsKey = 2,
+};
 
 static NSString * const LookinStringFlag_VoidReturn = @"LOOKIN_TAG_RETURN_VALUE_VOID";
 

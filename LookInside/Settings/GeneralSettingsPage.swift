@@ -128,16 +128,20 @@ private struct GeneralPreviewSection: View {
     }
 }
 
-/// Whether an inspected Mac app is drawn as active while LookInside takes
+/// How far an inspected Mac app is shown as active while LookInside takes
 /// its images, though LookInside is the app in front.
 private struct GeneralInspectedAppSection: View {
     @Bindable var model: GeneralSettingsModel
 
     var body: some View {
         Section {
-            Toggle("Show Mac apps as active", isOn: $model.drawsInspectedAppAsActive)
+            Picker("Show Mac apps as active", selection: $model.inspectedAppKeyAppearanceLevel) {
+                Text("Off").tag(InspectedAppKeyAppearanceLevel.off)
+                Text("Draw Windows as Active").tag(InspectedAppKeyAppearanceLevel.drawsAsKey)
+                Text("Treat Windows as Key").tag(InspectedAppKeyAppearanceLevel.treatsAsKey)
+            }
         } footer: {
-            Text("A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. When on, its front window is drawn as active while its images are taken, and briefly looks active on screen too. Older LookInside Servers always show the inactive look.")
+            Text("A Mac app you inspect is in the background while LookInside refreshes, so its windows look inactive. Draw Windows as Active draws its front window as active while its images are taken; it briefly looks active on screen too. Treat Windows as Key also tells the app that window is key, so views the app draws itself look active as well, and the app’s own code for a window becoming key runs on every refresh. Older LookInside Servers draw windows as active at most.")
         }
     }
 }
@@ -416,7 +420,7 @@ final class GeneralSettingsModel {
     private var currentDoubleClickBehavior: DoubleClickBehavior
     private var currentRemembersExpansionState: Bool
     private var currentGlassLayerVisibility: GlassLayerVisibility
-    private var currentDrawsInspectedAppAsActive: Bool
+    private var currentInspectedAppKeyAppearanceLevel: InspectedAppKeyAppearanceLevel
     private var currentHierarchyRequestTimeout: TimeInterval
     private var currentLicenseHandshakeTimeout: TimeInterval
 
@@ -428,7 +432,7 @@ final class GeneralSettingsModel {
         currentDoubleClickBehavior = preferences.doubleClickBehavior
         currentRemembersExpansionState = preferences.rememberExpansionState
         currentGlassLayerVisibility = preferences.glassLayerVisibility
-        currentDrawsInspectedAppAsActive = preferences.drawsInspectedAppAsActive
+        currentInspectedAppKeyAppearanceLevel = preferences.inspectedAppKeyAppearanceLevel
         currentHierarchyRequestTimeout = preferences.hierarchyRequestTimeoutInterval
         currentLicenseHandshakeTimeout = preferences.licenseHandshakeTimeoutInterval
 
@@ -451,8 +455,10 @@ final class GeneralSettingsModel {
             preferences.observe(\.glassLayerVisibility, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated { self?.currentGlassLayerVisibility = preferences.glassLayerVisibility }
             },
-            preferences.observe(\.drawsInspectedAppAsActive, options: [.new]) { [weak self] preferences, _ in
-                MainActor.assumeIsolated { self?.currentDrawsInspectedAppAsActive = preferences.drawsInspectedAppAsActive }
+            preferences.observe(\.inspectedAppKeyAppearanceLevel, options: [.new]) { [weak self] preferences, _ in
+                MainActor.assumeIsolated {
+                    self?.currentInspectedAppKeyAppearanceLevel = preferences.inspectedAppKeyAppearanceLevel
+                }
             },
             preferences.observe(\.hierarchyRequestTimeoutInterval, options: [.new]) { [weak self] preferences, _ in
                 MainActor.assumeIsolated { self?.currentHierarchyRequestTimeout = preferences.hierarchyRequestTimeoutInterval }
@@ -493,9 +499,9 @@ final class GeneralSettingsModel {
         set { preferences.glassLayerVisibility = newValue }
     }
 
-    var drawsInspectedAppAsActive: Bool {
-        get { currentDrawsInspectedAppAsActive }
-        set { preferences.drawsInspectedAppAsActive = newValue }
+    var inspectedAppKeyAppearanceLevel: InspectedAppKeyAppearanceLevel {
+        get { currentInspectedAppKeyAppearanceLevel }
+        set { preferences.inspectedAppKeyAppearanceLevel = newValue }
     }
 
     var hierarchyRequestTimeout: TimeInterval {
@@ -525,7 +531,7 @@ final class GeneralSettingsModel {
         doubleClickBehavior = .collapse
         remembersExpansionState = true
         glassLayerVisibility = .hideWhereNotDrawn
-        drawsInspectedAppAsActive = true
+        inspectedAppKeyAppearanceLevel = .drawsAsKey
         hierarchyRequestTimeout = defaultHierarchyRequestTimeoutInterval
 
         #if DEBUG
