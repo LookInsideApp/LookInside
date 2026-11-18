@@ -100,7 +100,10 @@ final class LiveLayerArchive: @unchecked Sendable {
     }
 
     /// Where the decoded tree first differs from the walk the Server listed:
-    /// nil when every layer has the sublayer count the Server counted.
+    /// nil when every layer has the sublayer count the Server counted and
+    /// the Server listed exactly one count and one oid per layer. The oids
+    /// index the decoded layers, so a list longer than the tree is refused
+    /// here rather than read past its end.
     static func firstShapeMismatch(between layers: [CALayer], and reply: LayerArchive) -> Int? {
         let walkLength = min(reply.sublayerCounts.count, reply.layerOids.count)
         for (index, layer) in layers.enumerated() {
@@ -109,6 +112,7 @@ final class LiveLayerArchive: @unchecked Sendable {
                 return index
             }
         }
-        return layers.count == walkLength ? nil : layers.count
+        let listsTheWholeTree = reply.sublayerCounts.count == layers.count && reply.layerOids.count == layers.count
+        return listsTheWholeTree ? nil : layers.count
     }
 }

@@ -13,6 +13,8 @@ struct LiveLayerArchiveTests {
         testLayersAreFoundByTheirOids()
         testTreeOfAnotherShapeIsRefused()
         testWalkThatEndsEarlyIsRefused()
+        testWalkWithMoreOidsThanLayersIsRefused()
+        testWalkWithMoreSublayerCountsThanOidsIsRefused()
         testWindowOverTheLimitIsNotDrawnFrom()
         testUndecodableArchiveIsRefused()
         testWindowColourIsMeasured()
@@ -62,6 +64,21 @@ struct LiveLayerArchiveTests {
         reply.sublayerCounts.removeLast()
         reply.layerOids.removeLast()
         expectFailure(.shapeMismatch(layerIndex: 5), decodingReply: reply)
+    }
+
+    /// The Server lists one sublayer count and one oid per layer it walked.
+    /// An oid past the end of the tree once indexed past the decoded layers
+    /// and crashed the Host; lists of different lengths are not a walk.
+    private static func testWalkWithMoreOidsThanLayersIsRefused() {
+        let reply = reply(for: makingTree())
+        reply.layerOids.append(99)
+        expectFailure(.shapeMismatch(layerIndex: 6), decodingReply: reply)
+    }
+
+    private static func testWalkWithMoreSublayerCountsThanOidsIsRefused() {
+        let reply = reply(for: makingTree())
+        reply.sublayerCounts.append(0)
+        expectFailure(.shapeMismatch(layerIndex: 6), decodingReply: reply)
     }
 
     private static func testWindowOverTheLimitIsNotDrawnFrom() {
