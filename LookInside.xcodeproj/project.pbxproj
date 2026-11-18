@@ -223,6 +223,7 @@
 				PrivateDiscriminator/PrivateDiscriminatorStore.swift,
 				Read/ArchiveCoding.swift,
 				Read/ArchiveDocument.swift,
+				Read/KeyedArchiveClassAllowList.swift,
 				Read/ReadHierarchyController.swift,
 				Read/ReadHierarchyDataSource.swift,
 				Read/ReadScreenshotLookup.swift,

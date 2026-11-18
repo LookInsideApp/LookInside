@@ -69,6 +69,7 @@ swiftc -parse-as-library \
 	-Xcc -I"$LOOKIN_CORE_DIR" -Xcc -I"$LOOKIN_CORE_DIR/include" \
 	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
 	"$SOURCE_DIR/Read/ArchiveCoding.swift" \
+	"$ROOT/LookInside/Read/KeyedArchiveClassAllowList.swift" \
 	"$SOURCE_DIR/Read/ReadScreenshotLookup.swift" \
 	"$SOURCE_DIR/Toolbar/ToolbarRules.swift" \
 	"$SOURCE_DIR/Launch/LaunchRules.swift" \

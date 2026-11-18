@@ -37,6 +37,7 @@ xcrun swiftc \
 	"$VIEW_HIERARCHY_DIR/XcodeViewHierarchyValue.swift" \
 	"$VIEW_HIERARCHY_DIR/XcodeViewHierarchyObjectGraph.swift" \
 	"$VIEW_HIERARCHY_DIR/XcodeViewHierarchyLayerArchive.swift" \
+	"$ROOT/LookInside/Read/KeyedArchiveClassAllowList.swift" \
 	"$VIEW_HIERARCHY_DIR/XcodeViewHierarchyLayerTopology.swift" \
 	"$VIEW_HIERARCHY_DIR/XcodeViewHierarchyPixelRecovery.swift" \
 	"$VIEW_HIERARCHY_DIR/XcodeViewHierarchyAttributeCatalog.swift" \

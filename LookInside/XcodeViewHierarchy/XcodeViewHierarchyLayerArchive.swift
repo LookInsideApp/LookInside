@@ -15,7 +15,13 @@
 // QuartzCore's private `LKNSArrayCodingProxy`. Those private classes live in
 // QuartzCore itself, so an ordinary process decodes them without help — but
 // only with secure coding switched off, because the archive names classes no
-// allow-list can be written for in advance.
+// allow-list can be written for in advance. QuartzCore's own secure reader,
+// `CAPackage` (what `.caar` files go through), does not stand in for it: it
+// drops the position of a text layer whose font is an `NSFont`. A capture can
+// come from anyone, so the classes an archive names are checked before it is
+// decoded (`KeyedArchiveClassAllowList`): Core Animation's, Foundation's
+// values, and the font a text layer keeps — every class the captures
+// measured so far name.
 //
 // Pairing archived layers back to captured objects has to be structural: an
 // archived CALayer carries no object identifier. Two shapes occur, and both
@@ -46,6 +52,14 @@ enum XcodeViewHierarchyLayerArchive {
     private static let rootLayerKey = "rootLayer"
     private static let geometryFlippedKey = "geometryFlipped"
 
+    /// The classes a layer archive may name: anything QuartzCore defines
+    /// (layers, filters, its coding proxies), Foundation's values, and the
+    /// font a text layer keeps.
+    static let classAllowList = KeyedArchiveClassAllowList(
+        classNames: KeyedArchiveClassAllowList.foundationValueClassNames.union(["NSFont", "NSFontDescriptor"]),
+        imagePathFragments: ["/QuartzCore.framework/"]
+    )
+
     /// Decodes every layer archive the capture carries, in a stable order.
     static func decodingLayerTrees(
         in graph: XcodeViewHierarchyObjectGraph
@@ -69,7 +83,10 @@ enum XcodeViewHierarchyLayerArchive {
     }
 
     static func decodingLayerTree(from archiveData: Data, rootObjectIdentifier: String) -> XcodeViewHierarchyLayerTree? {
-        guard let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: archiveData) else { return nil }
+        // Checked before the unarchiver below instantiates anything it names.
+        guard classAllowList.admitsEveryClass(in: archiveData),
+              let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: archiveData)
+        else { return nil }
         // The archive names QuartzCore's private coding proxies, which cannot
         // be declared to a secure unarchiver ahead of time.
         unarchiver.requiresSecureCoding = false

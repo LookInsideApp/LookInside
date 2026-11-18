@@ -27,6 +27,8 @@ struct LaunchToolbarReadTests {
         testArchiveRoundTrips(fixture)
         testUnreadableArchiveFailsAsInnerError()
         testArchiveOfAnotherClassFailsAsInnerError()
+        testArchiveNamingAnUnexpectedClassIsRefusedUndecoded()
+        testArchiveOfAFullHierarchyOpens()
         testArchiveVersionLimits()
         testScreenshotLookupTakesBothFromOneOid()
         testToolbarIdentifiersKeepTheirValues()
@@ -108,6 +110,75 @@ struct LaunchToolbarReadTests {
     private static func testArchiveOfAnotherClassFailsAsInnerError() {
         let data = try! NSKeyedArchiver.archivedData(withRootObject: "text" as NSString, requiringSecureCoding: true)
         expectError(data, code: LookinErrCode_Inner, "a string archive")
+    }
+
+    /// A `.lookin` file is decoded without secure coding, which instantiates
+    /// any class this process has that the file names. A file can come from
+    /// anyone, so one naming a class outside the model and the value types
+    /// it stores is refused before that class's -initWithCoder: runs.
+    private static func testArchiveNamingAnUnexpectedClassIsRefusedUndecoded() {
+        ArchiveDecodingCanary.decodedCount = 0
+        let data = try! NSKeyedArchiver.archivedData(
+            withRootObject: [ArchiveDecodingCanary()] as NSArray,
+            requiringSecureCoding: false
+        )
+        expectError(data, code: LookinErrCode_Inner, "an archive naming an unexpected class")
+        expect(ArchiveDecodingCanary.decodedCount == 0, "a class outside the model should never be decoded")
+    }
+
+    /// The classes the reader admits have to cover a whole file, not only the
+    /// fixture's few: attribute groups, event handlers, and screenshots
+    /// archived as images, the way older hosts wrote them.
+    private static func testArchiveOfAFullHierarchyOpens() {
+        guard let representation = NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: 4, pixelsHigh: 4, bitsPerSample: 8, samplesPerPixel: 4,
+            hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ) else {
+            fail("could not make a bitmap")
+        }
+        let image = NSImage(size: NSSize(width: 4, height: 4))
+        image.addRepresentation(representation)
+
+        let frameAttribute = InspectedAttribute()
+        frameAttribute.identifier = "frame"
+        frameAttribute.value = NSValue(rect: NSRect(x: 1, y: 2, width: 3, height: 4))
+        let colourAttribute = InspectedAttribute()
+        colourAttribute.identifier = "backgroundColor"
+        colourAttribute.value = [1, 0, 0, 1].map { NSNumber(value: $0) } as NSArray
+        let section = AttributesSection()
+        section.identifier = "frame"
+        section.attributes = [frameAttribute, colourAttribute]
+        let group = AttributesGroup()
+        group.identifier = "layout"
+        group.attrSections = [section]
+
+        let targetAction = StringTwoTuple()
+        targetAction.first = "target"
+        targetAction.second = "action:"
+        let handler = EventHandlerDescription()
+        handler.eventName = "touchUpInside"
+        handler.targetActions = [targetAction]
+
+        let item = DisplayItem()
+        item.viewObject = InspectedObject()
+        item.attributesGroupList = [group]
+        item.eventHandlers = [handler]
+        item.screenshotEncodeType = .image
+        item.soloScreenshot = image
+        item.groupScreenshot = image
+        let info = HierarchyInfo()
+        info.displayItems = [item]
+        let file = HierarchyFile()
+        file.serverVersion = LOOKIN_SERVER_VERSION
+        file.hierarchyInfo = info
+
+        let opened = decode(encode(file)).hierarchyInfo?.displayItems?.first
+        expect(
+            opened?.attributesGroupList?.first?.attrSections?.first?.attributes?.count == 2,
+            "a full file's attributes should open"
+        )
+        expect(opened?.eventHandlers?.first?.targetActions?.first?.second == "action:", "a full file's event handlers should open")
+        expect(opened?.soloScreenshot != nil, "a screenshot archived as an image should open")
     }
 
     private static func testArchiveVersionLimits() {
@@ -440,4 +511,22 @@ struct LaunchToolbarReadTests {
         FileHandle.standardError.write(Data("FAIL: \(message)\n".utf8))
         exit(1)
     }
+}
+
+/// A class no `.lookin` file has any business naming; counts the times a
+/// file got it decoded.
+@objc(ReadArchiveDecodingCanary)
+private final class ArchiveDecodingCanary: NSObject, NSCoding {
+    nonisolated(unsafe) static var decodedCount = 0
+
+    override init() {
+        super.init()
+    }
+
+    init?(coder _: NSCoder) {
+        Self.decodedCount += 1
+        super.init()
+    }
+
+    func encode(with _: NSCoder) {}
 }

@@ -9,11 +9,26 @@
 //  older hosts.
 //
 
+import AppKit
 import Foundation
 
 enum ArchiveCoding {
     /// The document type `ArchiveDocument` reads and writes.
     static let typeIdentifier = "com.lookin.lookin"
+
+    /// The classes a `.lookin` file may name: the LookinCore model (every
+    /// archived model class keeps its `Lookin` Objective-C name), Foundation's
+    /// values, and the AppKit values older hosts archived with it — images
+    /// with their representations, colours, fonts and text styles.
+    static let classAllowList = KeyedArchiveClassAllowList(
+        classNames: KeyedArchiveClassAllowList.foundationValueClassNames.union([
+            "NSImage", "NSColor", "NSColorSpace", "NSFont", "NSFontDescriptor",
+            "NSParagraphStyle", "NSMutableParagraphStyle", "NSShadow",
+            "NSAttributedString", "NSMutableAttributedString",
+        ]),
+        rootClasses: [NSImageRep.self, NSColor.self],
+        classNamePrefixes: ["Lookin"]
+    )
 
     /// Archives `file` with secure coding, as the Objective-C reader did.
     static func data(of file: HierarchyFile) throws -> Data {
@@ -24,10 +39,16 @@ enum ArchiveCoding {
     ///
     /// Older archives are not secure-coding clean, so the unarchiver does
     /// not require it; that also keeps the "allowed classes" warnings out of
-    /// the log. A root object of another class fails the same way as an
+    /// the log. Such an unarchiver instantiates any class the file names, and
+    /// a file can come from anyone, so a file naming a class outside
+    /// `classAllowList` is refused before anything is decoded. A root object
+    /// of another class, or a refused class, fails the same way as an
     /// unreadable archive. A file outside the supported server versions
     /// fails with the version error from `+verifyHierarchyFile:`.
     static func hierarchyFile(from data: Data) throws -> HierarchyFile {
+        guard classAllowList.admitsEveryClass(in: data) else {
+            throw innerError
+        }
         let unarchiver: NSKeyedUnarchiver
         do {
             unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)

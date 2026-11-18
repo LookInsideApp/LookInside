@@ -46,6 +46,7 @@ swiftc -parse-as-library \
 	"$SOURCE_DIR/XcodeViewHierarchyValue.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyObjectGraph.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyLayerArchive.swift" \
+	"$ROOT/LookInside/Read/KeyedArchiveClassAllowList.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyLayerTopology.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyPixelRecovery.swift" \
 	"$TEST_DIR/XcodeViewHierarchyPixelRecoveryTests.swift" \
@@ -87,6 +88,7 @@ swiftc -parse-as-library \
 	"$SOURCE_DIR/XcodeViewHierarchyObjectGraph.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyBundleReader.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyLayerArchive.swift" \
+	"$ROOT/LookInside/Read/KeyedArchiveClassAllowList.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyLayerTopology.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyPixelRecovery.swift" \
 	"$SOURCE_DIR/XcodeViewHierarchyAttributeCatalog.swift" \

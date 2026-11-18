@@ -38,6 +38,7 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         testStandInDoesNotOutliveItsRender()
         testArchiveRoundTripsThroughDecoder()
         testMalformedArchiveIsRejected()
+        testArchiveNamingAClassOutsideCoreAnimationIsRefusedUndecoded()
         testPortalSourcesAreNamedWithTheirPortals()
         print("Xcode view hierarchy pixel recovery tests passed")
     }
@@ -645,6 +646,30 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         ) == nil, "a malformed archive must be rejected rather than trapping")
     }
 
+    /// The layer archives are decoded without secure coding, which
+    /// instantiates any class this process has that the archive names. A
+    /// `.viewhierarchy` can come from anyone, so an archive naming a class
+    /// outside Core Animation and Foundation's values is refused before its
+    /// -initWithCoder: runs.
+    private static func testArchiveNamingAClassOutsideCoreAnimationIsRefusedUndecoded() {
+        ArchiveDecodingCanary.decodedCount = 0
+        let archiver = NSKeyedArchiver(requiringSecureCoding: false)
+        archiver.encode(
+            [
+                "rootLayer": orientationFixture(),
+                "geometryFlipped": NSNumber(value: false),
+                "canary": ArchiveDecodingCanary(),
+            ] as NSDictionary,
+            forKey: NSKeyedArchiveRootObjectKey
+        )
+        archiver.finishEncoding()
+        let tree = XcodeViewHierarchyLayerArchive.decodingLayerTree(
+            from: archiver.encodedData, rootObjectIdentifier: "0x1"
+        )
+        expect(ArchiveDecodingCanary.decodedCount == 0, "a class outside Core Animation should never be decoded")
+        expect(tree == nil, "an archive naming a class outside Core Animation should be refused")
+    }
+
     // MARK: - Fixtures
 
     /// A 100×100 root holding a 100×20 band pinned at the coordinate origin,
@@ -883,4 +908,22 @@ struct XcodeViewHierarchyPixelRecoveryTests {
         FileHandle.standardError.write(Data("FAIL: \(message)\n".utf8))
         Foundation.exit(1)
     }
+}
+
+/// A class no layer archive has any business naming; counts the times an
+/// archive got it decoded.
+@objc(XcodeViewHierarchyArchiveDecodingCanary)
+private final class ArchiveDecodingCanary: NSObject, NSCoding {
+    nonisolated(unsafe) static var decodedCount = 0
+
+    override init() {
+        super.init()
+    }
+
+    init?(coder _: NSCoder) {
+        Self.decodedCount += 1
+        super.init()
+    }
+
+    func encode(with _: NSCoder) {}
 }
