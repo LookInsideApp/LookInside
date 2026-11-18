@@ -47,6 +47,39 @@ extension HostAppTests {
             #expect(endedChannelDocument.applicationInBackgroundBannerMessage == nil)
         }
 
+        /// Entering an app that is already open — from the launch window, the
+        /// window's app picker, the auto-connect — hands its window the
+        /// `InspectableApp` a scan just made. The window and its update
+        /// manager hold the app weakly; the document is what keeps it alive.
+        /// The window used to lose its app as soon as the scan's copy was let
+        /// go, and Reload then said it was attached to none.
+        @Test func aWindowHandedAnotherAppKeepsItOnceTheCallerLetsItGo() throws {
+            let server = FakeServer()
+            defer { server.shutDown() }
+            let channel = server.connectChannel()
+            let document = LiveDocument(inspectableApp: makeApp(server, channel: channel))
+            defer { document.close() }
+            document.makeWindowControllers()
+            let windowController = try #require(document.staticWindowController)
+
+            let hierarchy = HierarchyInfo()
+            hierarchy.appInfo = server.appInfo
+            hierarchy.appInfo?.screenScale = 2
+            hierarchy.displayItems = []
+            weak var scannedAppReference: InspectableApp?
+            do {
+                let scannedApp = makeApp(server, channel: channel)
+                scannedAppReference = scannedApp
+                windowController.applyHierarchyInfo(hierarchy, for: scannedApp, keepState: true)
+            }
+
+            #expect(scannedAppReference != nil, "the document should keep the app its window was handed")
+            #expect(windowController.inspectableApp != nil, "the window should keep its app")
+            #expect(windowController.inspectableApp === document.inspectableApp)
+            #expect(windowController.asyncUpdateManager.inspectableApp === document.inspectableApp)
+            #expect(document.connectionLossBannerMessage == nil, "the same channel should stay watched")
+        }
+
         @Test func onlyTheWatchedChannelsEndShowsConnectionLost() async {
             let watchedServer = FakeServer()
             let otherServer = FakeServer()

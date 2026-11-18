@@ -69,6 +69,33 @@ struct ReconnectTargetSelectionTests {
         #expect(ReconnectTargetSelection.candidateIndex(for: Self.identity(), among: candidates) == nil)
     }
 
+    /// Two devices of one model and OS report the same app identically:
+    /// "iPhone" is all iOS 16 and later report as the device name. When the
+    /// lost app's device has no app left, the other device's copy used to be
+    /// the only candidate, and the window took over a different device.
+    @Test("the same app on another physical device is not taken over")
+    func theSameAppOnAnotherDeviceIsNotTakenOver() {
+        let candidates = [ReconnectCandidate(identity: Self.identity(), canBeInspected: true, physicalDevice: "usb:SECOND-DEVICE")]
+        #expect(ReconnectTargetSelection.candidateIndex(for: Self.identity(), onPhysicalDevice: "usb:FIRST-DEVICE", among: candidates) == nil)
+    }
+
+    @Test("the same app back on its own device is taken over, with a twin on another device")
+    func theSameAppOnItsOwnDeviceIsTakenOver() {
+        let candidates = [
+            ReconnectCandidate(identity: Self.identity(), canBeInspected: true, physicalDevice: "usb:SECOND-DEVICE"),
+            ReconnectCandidate(identity: Self.identity(), canBeInspected: true, physicalDevice: "usb:FIRST-DEVICE"),
+        ]
+        #expect(ReconnectTargetSelection.candidateIndex(for: Self.identity(), onPhysicalDevice: "usb:FIRST-DEVICE", among: candidates) == 1)
+    }
+
+    @Test("a device the Host cannot tell on either side does not decide")
+    func anUnknownDeviceDoesNotDecide() {
+        let unknownCandidate = [ReconnectCandidate(identity: Self.identity(), canBeInspected: true, physicalDevice: nil)]
+        #expect(ReconnectTargetSelection.candidateIndex(for: Self.identity(), onPhysicalDevice: "usb:FIRST-DEVICE", among: unknownCandidate) == 0)
+        let knownCandidate = [ReconnectCandidate(identity: Self.identity(), canBeInspected: true, physicalDevice: "usb:FIRST-DEVICE")]
+        #expect(ReconnectTargetSelection.candidateIndex(for: Self.identity(), onPhysicalDevice: nil, among: knownCandidate) == 0)
+    }
+
     @Test("an app on another device model is not taken over")
     func anotherDeviceModelIsNotTakenOver() {
         let candidates = [Self.inspectable(Self.identity(deviceModelIdentifier: "iPhone15,3"))]

@@ -808,6 +808,10 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
         viewController.progressView.finish(completion: nil)
         inspectableApp = app
         asyncUpdateManager.inspectableApp = app
+        // Both hold the app weakly; the document keeps it alive, so it has
+        // to take the app on too, or the window loses it once the caller —
+        // the launch window, the app picker — lets its scan's copy go.
+        (document as? LiveDocument)?.bind(to: app)
         hierarchyDataSource.reload(with: info, keepState: keepState)
 
         // Move this bundle id to the front of the expansion-state LRU, so

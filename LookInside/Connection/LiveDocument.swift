@@ -49,6 +49,10 @@ final class LiveDocument: NSDocument {
     /// The app info from before the channel ended, matched against the
     /// apps found while reconnecting.
     private var lastKnownAppInfo: InspectedAppInfo?
+    /// The physical device the app ran on when its channel ended
+    /// (`ConnectionManager.physicalDevice(of:)`): a reconnect takes over
+    /// the same app on the same device only.
+    private var lastKnownPhysicalDevice: String?
     private var channelEndTask: Task<Void, Never>?
     private var applicationStateTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
@@ -247,6 +251,9 @@ final class LiveDocument: NSDocument {
                 if let appInfo = inspectableApp.appInfo {
                     lastKnownAppInfo = appInfo
                 }
+                if let origin = inspectableApp.origin {
+                    lastKnownPhysicalDevice = ConnectionManager.shared.physicalDevice(of: origin.kind)
+                }
                 automaticRefreshTask?.cancel()
                 automaticRefreshTask = nil
                 attemptAutoReconnect()
@@ -309,16 +316,36 @@ final class LiveDocument: NSDocument {
     /// hierarchy again (`LiveSessionState`), since the tree on screen belongs
     /// to the old process.
     private func adoptReconnectedApp(_ newApp: InspectableApp) {
-        inspectableApp = newApp
-        // The window controller and its async update manager hold the app
-        // weakly and rely on this document to keep it alive; replacing it
-        // here would leave them with nil, so they get the new app too.
-        for case let windowController as StaticWindowController in windowControllers {
-            windowController.inspectableApp = newApp
-            windowController.asyncUpdateManager.inspectableApp = newApp
-        }
+        replaceApp(with: newApp)
         reconnectTask = nil
         watchCurrentChannel()
+    }
+
+    /// Makes `app` the one this document inspects: its window was just
+    /// handed a hierarchy fetched from it, by the launch window, the
+    /// window's app picker or the auto-connect, each with an
+    /// `InspectableApp` a scan made. On another channel, that channel is
+    /// watched from now on, and a reconnect still looking for the old app
+    /// stops.
+    func bind(to app: InspectableApp) {
+        guard app !== inspectableApp else { return }
+        let isOnAnotherChannel = app.channel !== inspectableApp.channel
+        replaceApp(with: app)
+        guard isOnAnotherChannel else { return }
+        reconnectTask?.cancel()
+        reconnectTask = nil
+        watchCurrentChannel()
+    }
+
+    /// The window controller and its async update manager hold the app
+    /// weakly and rely on this document to keep it alive; replacing it
+    /// here alone would leave them with nil, so they get the new app too.
+    private func replaceApp(with app: InspectableApp) {
+        inspectableApp = app
+        for case let windowController as StaticWindowController in windowControllers {
+            windowController.inspectableApp = app
+            windowController.asyncUpdateManager.inspectableApp = app
+        }
     }
 
     private func fetchInspectableAppMatchingLastKnown() async -> InspectableApp? {
@@ -329,10 +356,15 @@ final class LiveDocument: NSDocument {
                 identity: app.appInfo.map(Self.identity(of:)) ?? Self.unidentifiedApp,
                 // An app listed without a channel (its Server is too old for
                 // this Host, for one) cannot be inspected.
-                canBeInspected: app.channel?.isConnected == true && app.serverVersionError == nil && app.appInfo != nil
+                canBeInspected: app.channel?.isConnected == true && app.serverVersionError == nil && app.appInfo != nil,
+                physicalDevice: app.origin.map { ConnectionManager.shared.physicalDevice(of: $0.kind) }
             )
         }
-        guard let index = ReconnectTargetSelection.candidateIndex(for: Self.identity(of: targetInfo), among: candidates) else {
+        guard let index = ReconnectTargetSelection.candidateIndex(
+            for: Self.identity(of: targetInfo),
+            onPhysicalDevice: lastKnownPhysicalDevice,
+            among: candidates
+        ) else {
             return nil
         }
         let match = apps[index]

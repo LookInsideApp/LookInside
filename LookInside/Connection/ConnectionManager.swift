@@ -95,6 +95,11 @@ final class ConnectionManager: NSObject {
     private let macPorts: [ConnectionPort]
     private var usbPorts: [ConnectionPort] = []
     private let usbMuxClient = USBMuxClient(queue: .main)
+    /// The serial numbers (UDIDs) of USB devices by usbmuxd device ID. A
+    /// device gets a new device ID each time it is attached; its serial
+    /// number stays. Kept after a device detaches, so a window whose device
+    /// was unplugged still knows which device to find its app on again.
+    private var usbSerialNumbersByDeviceID: [Int: String] = [:]
 
     private let channelWillEndBroadcaster = AsyncBroadcaster<ServerChannel>()
     private let pushBroadcaster = AsyncBroadcaster<ConnectionPush>()
@@ -253,7 +258,10 @@ final class ConnectionManager: NSObject {
             MainActor.assumeIsolated {
                 guard let self else { return }
                 switch event {
-                case let .attached(deviceID, _):
+                case let .attached(deviceID, properties):
+                    if let serialNumber = (properties["Properties"] as? [String: Any])?["SerialNumber"] as? String {
+                        self.usbSerialNumbersByDeviceID[deviceID] = serialNumber
+                    }
                     // Each device has its own port range; see the file comment.
                     for number in Int32(LookinUSBDeviceIPv4PortNumberStart) ... Int32(LookinUSBDeviceIPv4PortNumberEnd) {
                         self.usbPorts.append(ConnectionPort(number: number, kind: .usb(deviceID: deviceID)))
@@ -269,6 +277,21 @@ final class ConnectionManager: NSObject {
                     #log(.default, "Lookin - USB device detached, DeviceID: \(NSNumber(value: deviceID), privacy: .public)")
                 }
             }
+        }
+    }
+
+    /// The physical device behind channels of `kind`, as a reconnect
+    /// compares it (`ReconnectTargetSelection`): a USB device by its serial
+    /// number, which survives unplugging it; all Simulator apps, and all
+    /// apps on this Mac, as one device each.
+    func physicalDevice(of kind: ServerChannelKind) -> String {
+        switch kind {
+        case .simulator:
+            "simulator"
+        case .mac:
+            "mac"
+        case let .usb(deviceID):
+            usbSerialNumbersByDeviceID[deviceID].map { "usb:\($0)" } ?? "usb-device-identifier:\(deviceID)"
         }
     }
 

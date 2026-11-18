@@ -75,10 +75,14 @@ public struct ReconnectCandidate: Equatable, Sendable {
     /// clear the connection-loss banner and leave the window with nothing to
     /// watch, so it would never reconnect again.
     public var canBeInspected: Bool
+    /// The physical device the app was found on, as the Host knows it from
+    /// the channel (`InspectedPhysicalDevice`); nil when the Host cannot tell.
+    public var physicalDevice: String?
 
-    public init(identity: InspectedAppIdentity, canBeInspected: Bool) {
+    public init(identity: InspectedAppIdentity, canBeInspected: Bool, physicalDevice: String? = nil) {
         self.identity = identity
         self.canBeInspected = canBeInspected
+        self.physicalDevice = physicalDevice
     }
 }
 
@@ -93,10 +97,21 @@ public enum ReconnectTargetSelection {
     /// Objective-C string semantics (a nil string matches nothing). The
     /// bundle identifier and the device model identifier must also match when
     /// both sides report one; Servers that predate a field report nil.
-    public static func candidateIndex(for target: InspectedAppIdentity, among candidates: [ReconnectCandidate]) -> Int? {
+    ///
+    /// The app must also be on the physical device the lost app was on
+    /// (`targetPhysicalDevice`), when the Host knows both: two devices of one
+    /// model and OS report the same app identically, since iOS 16 and later
+    /// name every iPhone "iPhone".
+    public static func candidateIndex(
+        for target: InspectedAppIdentity,
+        onPhysicalDevice targetPhysicalDevice: String? = nil,
+        among candidates: [ReconnectCandidate]
+    ) -> Int? {
         let matchingIndices = candidates.indices.filter { index in
             let candidate = candidates[index]
-            return candidate.canBeInspected && isSameApp(target, candidate.identity)
+            return candidate.canBeInspected
+                && isSameApp(target, candidate.identity)
+                && optionalFieldsMatch(targetPhysicalDevice, candidate.physicalDevice)
         }
         guard matchingIndices.count == 1 else {
             return nil
