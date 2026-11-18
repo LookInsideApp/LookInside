@@ -952,6 +952,84 @@ extension HostAppTests {
             withExtendedLifetime(session) {}
         }
 
+        /// An edit or the Liquid Glass setting forgets the images of nodes
+        /// off screen. One being drawn at that moment, from the old archive or
+        /// the old setting, used to land on its node anyway and count as
+        /// drawn, so the node kept its old look until the next refresh.
+        @Test func aForgottenImageBeingDrawnDoesNotLandOnItsNode() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                Self.layerArchive(of: inspected, layerLimit: 4000)
+            }
+            let session = await Self.loadingSession(inspected, on: server)
+            let store = session.manager.layerArchiveStore
+            guard case let .archive(redArchive, redNodes) = store.imageSource(.group, of: inspected.redItem) else {
+                Issue.record("the red view should be drawn from the archive")
+                return
+            }
+            #expect(await waitUntil { !store.isDrawingImages }, "the drawings the load asked for should finish first")
+            store.forgetImage(.group, of: inspected.redItem)
+            inspected.redItem.groupScreenshot = nil
+
+            var heard: [String] = []
+            store.drawImage(.group, of: inspected.redItem, archive: redArchive, nodes: redNodes, priority: .shown, again: true) { outcome in
+                if case .dropped = outcome {
+                    heard.append("dropped")
+                } else {
+                    heard.append("drawn")
+                }
+            }
+            // In the same turn, while it is being drawn: what an edit or the
+            // setting does to a node off screen.
+            store.forgetImage(.group, of: inspected.redItem)
+            inspected.redItem.groupScreenshot = nil
+
+            #expect(await waitUntil { !store.isDrawingImages && !heard.isEmpty }, "the drawing should finish")
+            #expect(inspected.redItem.groupScreenshot == nil, "a forgotten image should not land on its node")
+            #expect(!store.hasDrawnOrQueued(.group, of: inspected.redItem), "a forgotten image should not count as drawn")
+            #expect(heard == ["dropped"], "whoever asked should hear it was dropped, heard \(heard)")
+            withExtendedLifetime(session) {}
+        }
+
+        /// The store holds the app weakly. Once the app went away — its window
+        /// was handed another one — a window whose archive was asked for again
+        /// stayed pending for ever: whoever waited for the archives (the
+        /// whole-tree fetch, the MCP bridge) never heard back.
+        @Test func anArchiveAskedForAfterTheAppWentAwaySettles() async {
+            let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
+            defer { inspected.window.close() }
+            let server = FakeServer()
+            defer { server.shutDown() }
+            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+                Self.layerArchive(of: inspected, layerLimit: 4000)
+            }
+            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
+            let channel = server.connectChannel()
+            let dataSource = StaticHierarchyDataSource()
+            let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
+            weak var appReference: InspectableApp?
+            do {
+                let app = InspectableApp()
+                app.appInfo = inspected.hierarchy.appInfo
+                app.channel = channel
+                appReference = app
+                manager.inspectableApp = app
+                dataSource.reload(with: inspected.hierarchy, keepState: false)
+                #expect(await waitUntil { !manager.layerArchiveStore.hasPendingArchives }, "the window's archive should arrive")
+            }
+            #expect(await waitUntil { appReference == nil }, "the app should be gone")
+
+            var refetchSucceeded: Bool?
+            manager.layerArchiveStore.refetchArchive(of: inspected.windowItem) { refetchSucceeded = $0 }
+            #expect(await waitUntil { refetchSucceeded != nil }, "asking for an archive with no app to ask should settle")
+            #expect(refetchSucceeded == false)
+            #expect(!manager.layerArchiveStore.hasPendingArchives, "no window should stay pending")
+            withExtendedLifetime((channel, dataSource, manager)) {}
+        }
+
         @Test func imageForAnotherCallerWaitsForTheArchive() async {
             let inspected = Self.makeInspectedWindow(encodesLayerTrees: true)
             defer { inspected.window.close() }
