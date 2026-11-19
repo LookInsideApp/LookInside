@@ -26,15 +26,21 @@ assert_absent() {
 
 assert_contains "parent-app-release"
 assert_contains 'run-name: ${{ github.event.client_payload.release_id }}'
-assert_contains 'SOURCE_REF="${{ github.event.client_payload.source_ref }}"'
+assert_contains 'SOURCE_REF="${{ github.event.client_payload.refs.source_ref }}"'
 assert_contains 'BUILD_NUMBER="${{ github.event.client_payload.build_number }}"'
-assert_contains 'INJECTOR_REF="${{ github.event.client_payload.injector_ref }}"'
-assert_contains 'RELEASE_REF="${{ github.event.client_payload.release_ref }}"'
+# GitHub rejects a repository_dispatch whose client_payload has more than 10
+# top-level properties, so the parent sends the pinned component commits in
+# one refs object; reading them from the top level would find nothing.
+for component_ref in source_ref injector_ref mcp_ref release_ref server_ref; do
+	assert_absent "github.event.client_payload.${component_ref}"
+done
+assert_contains 'INJECTOR_REF="${{ github.event.client_payload.refs.injector_ref }}"'
+assert_contains 'RELEASE_REF="${{ github.event.client_payload.refs.release_ref }}"'
 assert_contains 'ref: ${{ needs.prepare.outputs.source_ref }}'
 assert_contains 'checkout --detach "${{ needs.prepare.outputs.injector_ref }}"'
-assert_contains 'MCP_REF="${{ github.event.client_payload.mcp_ref }}"'
+assert_contains 'MCP_REF="${{ github.event.client_payload.refs.mcp_ref }}"'
 assert_contains 'checkout --detach "${{ needs.prepare.outputs.mcp_ref }}"'
-assert_contains 'SERVER_REF="${{ github.event.client_payload.server_ref }}"'
+assert_contains 'SERVER_REF="${{ github.event.client_payload.refs.server_ref }}"'
 assert_contains 'checkout --detach "${{ needs.prepare.outputs.server_ref }}"'
 assert_contains 'mise exec -- bash Scripts/package-injector.sh "$output_dir"'
 assert_contains 'AD_HOC_SIGNER: ldid'
