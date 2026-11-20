@@ -27,6 +27,14 @@
         public var groupScreenshot: PlatformImage?
         @objc(soloScreenshot)
         public var soloScreenshot: PlatformImage?
+        /// Where `groupScreenshot` lies in the node's bounds space when it does
+        /// not span the bounds: a container of no size that does not clip gets
+        /// an image of what its sublayers draw, outside its empty bounds. nil
+        /// when the image spans the bounds, and from every Server that predates
+        /// the field. Archived only when set, so a reply without it keeps the
+        /// key set Tests/WireFormatGolden pins.
+        @objc(groupScreenshotRegionValue)
+        public var groupScreenshotRegionValue: NSValue?
         @objc(frameValue)
         public var frameValue: NSValue?
         @objc(boundsValue)
@@ -59,6 +67,9 @@
             aCoder.encode(NSNumber(value: displayItemOid), forKey: "displayItemOid")
             aCoder.encode(screenshotData(groupScreenshot), forKey: "groupScreenshot")
             aCoder.encode(screenshotData(soloScreenshot), forKey: "soloScreenshot")
+            if let groupScreenshotRegionValue {
+                aCoder.encode(groupScreenshotRegionValue, forKey: "groupScreenshotRegionValue")
+            }
             aCoder.encode(frameValue, forKey: "frameValue")
             aCoder.encode(boundsValue, forKey: "boundsValue")
             aCoder.encode(hiddenValue, forKey: "hiddenValue")
@@ -78,6 +89,7 @@
             displayItemOid = (aDecoder.decodeObject(forKey: "displayItemOid") as? NSNumber)?.uintValue ?? 0
             groupScreenshot = (aDecoder.decodeObject(forKey: "groupScreenshot") as? Data).flatMap { PlatformImage(data: $0) }
             soloScreenshot = (aDecoder.decodeObject(forKey: "soloScreenshot") as? Data).flatMap { PlatformImage(data: $0) }
+            groupScreenshotRegionValue = aDecoder.decodeObject(forKey: "groupScreenshotRegionValue") as? NSValue
             frameValue = aDecoder.decodeObject(forKey: "frameValue") as? NSValue
             boundsValue = aDecoder.decodeObject(forKey: "boundsValue") as? NSValue
             hiddenValue = aDecoder.decodeObject(forKey: "hiddenValue") as? NSNumber
