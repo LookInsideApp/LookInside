@@ -32,9 +32,19 @@ final class DashboardAttributeRowsCountView: DashboardAttributeView {
     }
 
     override func renderWithAttribute() {
-        guard let numbers = attribute?.value as? [Any] else {
-            assertionFailure()
-            return
+        // A table view with no sections has no rows to count: the Server's
+        // lks_numberOfRows answers nil and the attribute comes without a
+        // value, as upstream Lookin sends it. That is no rows — and the rows
+        // a previously shown table left in this reused view must go.
+        let numbers: [Any]
+        switch attribute?.value {
+        case nil:
+            numbers = []
+        case let array as [Any]:
+            numbers = array
+        default:
+            assertionFailure("rows count of unexpected type: \(String(describing: attribute?.value))")
+            numbers = []
         }
         while inputViews.count > numbers.count {
             inputViews.removeLast().removeFromSuperview()
