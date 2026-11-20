@@ -40,11 +40,14 @@ jobs:
           set -euo pipefail
           VERSION="${{ github.event.client_payload.version }}"
           BUILD_NUMBER="${{ github.event.client_payload.build_number }}"
-          SOURCE_REF="${{ github.event.client_payload.source_ref }}"
-          INJECTOR_REF="${{ github.event.client_payload.injector_ref }}"
-          MCP_REF="${{ github.event.client_payload.mcp_ref }}"
-          SERVER_REF="${{ github.event.client_payload.server_ref }}"
-          RELEASE_REF="${{ github.event.client_payload.release_ref }}"
+          # The parent sends the pinned component commits in one refs object:
+          # GitHub rejects a client_payload with more than 10 top-level
+          # properties.
+          SOURCE_REF="${{ github.event.client_payload.refs.source_ref }}"
+          INJECTOR_REF="${{ github.event.client_payload.refs.injector_ref }}"
+          MCP_REF="${{ github.event.client_payload.refs.mcp_ref }}"
+          SERVER_REF="${{ github.event.client_payload.refs.server_ref }}"
+          RELEASE_REF="${{ github.event.client_payload.refs.release_ref }}"
           PARENT_REPOSITORY="${{ github.event.client_payload.parent_repository }}"
           PARENT_REF="${{ github.event.client_payload.parent_ref }}"
           PARENT_SHA="${{ github.event.client_payload.parent_sha }}"
