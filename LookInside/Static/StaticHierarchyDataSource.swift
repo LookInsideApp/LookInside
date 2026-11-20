@@ -80,6 +80,11 @@ class StaticHierarchyDataSource: HierarchyDataSource {
             isUsingDanceUI = true
         }
         if let screenshot = detail.groupScreenshot {
+            // A node of no size that does not clip gets an image of what its
+            // subtree draws and where that lies; a detail without a region
+            // means the image spans the bounds again. Set first: the preview
+            // places the image by the region when it hears of the image.
+            item.groupScreenshotRegion = detail.groupScreenshotRegionValue?.rectValue ?? .zero
             item.groupScreenshot = screenshot
         }
         if let screenshot = detail.soloScreenshot {
