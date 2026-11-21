@@ -99,6 +99,9 @@
         var groupTitles: [String: String] = [:]
         var sectionTitles: [String: String] = [:]
         var attributeInfo: [String: DashboardBlueprintTables.AttributeInfo] = [:]
+        /// The class of a section whose attributes on this platform all belong
+        /// to one class.
+        var sectionClassNames: [String: String] = [:]
 
         init(catalog: [BlueprintGroup], platform: BlueprintPlatforms) {
             assert(Self.duplicateIdentifiers(in: catalog).isEmpty, "duplicate identifiers in the blueprint catalog: \(Self.duplicateIdentifiers(in: catalog))")
@@ -123,6 +126,10 @@
                     if sectionPlatforms.contains(platform) {
                         sectionIDs.append(section.identifier)
                         attrIDsBySectionID[section.identifier] = attrIDs
+                        let classNames = Set(attrIDs.map { attributeInfo[$0]?.className })
+                        if classNames.count == 1, let className = classNames.first ?? nil {
+                            sectionClassNames[section.identifier] = className
+                        }
                     }
                 }
                 if !sectionIDs.isEmpty {
@@ -172,6 +179,7 @@
         static let sectionTitles: [String: String] = derived.sectionTitles
         /// The per-attribute information behind the attribute queries.
         static let attributeInfo: [String: AttributeInfo] = derived.attributeInfo
+        static let sectionClassNames: [String: String] = derived.sectionClassNames
     }
 
 #endif

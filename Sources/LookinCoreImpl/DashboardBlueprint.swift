@@ -172,16 +172,28 @@
 
         @objc(targetKindForAttrID:)
         public class func targetKind(forAttrID attrID: String?) -> LookinAttrTargetKind {
-            switch className(withAttrID: attrID) {
-            case "CALayer":
-                .layer
-            case "UIWindowScene", "NSWindow":
-                .window
-            case "NSCell", "NSButtonCell", "NSTextFieldCell":
-                .cell
-            default:
-                .view
+            targetKind(forClassName: className(withAttrID: attrID))
+        }
+
+        /// The object an attribute of `className` is read from. Decided by the
+        /// name alone, so the Host (which cannot load UIKit classes) and every
+        /// Server agree: Core Animation classes are layers, AppKit classes
+        /// ending in "Cell" are cells (NSTableCellView ends in "CellView" and
+        /// stays a view), the window classes are windows, the rest views.
+        static func targetKind(forClassName className: String?) -> LookinAttrTargetKind {
+            guard let className else {
+                return .view
             }
+            if className == "UIWindowScene" || className == "NSWindow" {
+                return .window
+            }
+            if className.hasPrefix("CA") {
+                return .layer
+            }
+            if className.hasPrefix("NS"), className.hasSuffix("Cell") {
+                return .cell
+            }
+            return .view
         }
 
         @objc(isWindowPropertyWithAttrID:)
@@ -268,6 +280,13 @@
         /// identifier. Swift only, like `catalogRevision(ofAttrID:)`.
         public static func presentation(ofAttrID attrID: String) -> AttributePresentation {
             DashboardBlueprintTables.info(attrID)?.presentation ?? .value
+        }
+
+        /// The class every attribute of `sectionID` belongs to, when they all
+        /// belong to the same one; the Server skips the whole section for a
+        /// target of another class. Swift only.
+        public static func uniformClassName(ofSectionID sectionID: String) -> String? {
+            DashboardBlueprintTables.sectionClassNames[sectionID]
         }
     }
 
