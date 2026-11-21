@@ -828,5 +828,79 @@ final class PreferenceManager: NSObject {
         LookinAttrSec_UITraitCollection_Device,
         LookinAttrSec_UITraitCollection_Layout,
         LookinAttrSec_UITraitCollection_Content,
+        // UISlider
+        LookinAttrSec_UISlider_BehavioralStyle,
+        LookinAttrSec_UISlider_PreferredBehavioralStyle,
+        LookinAttrSec_UISlider_Value,
+        LookinAttrSec_UISlider_Images,
+        LookinAttrSec_UISlider_Continuous,
+        LookinAttrSec_UISlider_SliderStyle,
+        LookinAttrSec_UISlider_Colors,
+        // UIStepper
+        LookinAttrSec_UIStepper_Behavior,
+        LookinAttrSec_UIStepper_Value,
+        // UISwitch
+        LookinAttrSec_UISwitch_Colors,
+        LookinAttrSec_UISwitch_Images,
+        LookinAttrSec_UISwitch_Title,
+        LookinAttrSec_UISwitch_Style,
+        LookinAttrSec_UISwitch_PreferredStyle,
+        LookinAttrSec_UISwitch_On,
+        // UISegmentedControl
+        LookinAttrSec_UISegmentedControl_Behavior,
+        LookinAttrSec_UISegmentedControl_NumberOfSegments,
+        LookinAttrSec_UISegmentedControl_SelectedSegmentIndex,
+        LookinAttrSec_UISegmentedControl_SelectedSegmentTintColor,
+        // UIProgressView
+        LookinAttrSec_UIProgressView_ProgressViewStyle,
+        LookinAttrSec_UIProgressView_Progress,
+        LookinAttrSec_UIProgressView_Colors,
+        LookinAttrSec_UIProgressView_Images,
+        // UIActivityIndicatorView
+        LookinAttrSec_UIActivityIndicatorView_ActivityIndicatorViewStyle,
+        LookinAttrSec_UIActivityIndicatorView_Behavior,
+        LookinAttrSec_UIActivityIndicatorView_Color,
+        // UIPageControl
+        LookinAttrSec_UIPageControl_NumberOfPages,
+        LookinAttrSec_UIPageControl_CurrentPage,
+        LookinAttrSec_UIPageControl_Behavior,
+        LookinAttrSec_UIPageControl_Colors,
+        LookinAttrSec_UIPageControl_BackgroundStyle,
+        LookinAttrSec_UIPageControl_Direction,
+        LookinAttrSec_UIPageControl_InteractionState,
+        LookinAttrSec_UIPageControl_Images,
+        // UIDatePicker
+        LookinAttrSec_UIDatePicker_DatePickerMode,
+        LookinAttrSec_UIDatePicker_Locale,
+        LookinAttrSec_UIDatePicker_Calendar,
+        LookinAttrSec_UIDatePicker_TimeZone,
+        LookinAttrSec_UIDatePicker_Date,
+        LookinAttrSec_UIDatePicker_MinimumDate,
+        LookinAttrSec_UIDatePicker_MaximumDate,
+        LookinAttrSec_UIDatePicker_CountDownDuration,
+        LookinAttrSec_UIDatePicker_MinuteInterval,
+        LookinAttrSec_UIDatePicker_PreferredDatePickerStyle,
+        LookinAttrSec_UIDatePicker_DatePickerStyle,
+        LookinAttrSec_UIDatePicker_RoundsToMinuteInterval,
+        // UIColorWell
+        LookinAttrSec_UIColorWell_Title,
+        LookinAttrSec_UIColorWell_Behavior,
+        LookinAttrSec_UIColorWell_SelectedColor,
+        LookinAttrSec_UIColorWell_MaximumLinearExposure,
+        // UIRefreshControl
+        LookinAttrSec_UIRefreshControl_Refreshing,
+        LookinAttrSec_UIRefreshControl_AttributedTitle,
+        // UIPickerView
+        LookinAttrSec_UIPickerView_NumberOfComponents,
+        // UICalendarView
+        LookinAttrSec_UICalendarView_Locale,
+        LookinAttrSec_UICalendarView_Calendar,
+        LookinAttrSec_UICalendarView_TimeZone,
+        LookinAttrSec_UICalendarView_FontDesign,
+        LookinAttrSec_UICalendarView_WantsDateDecorations,
+        // UIPasteControl
+        LookinAttrSec_UIPasteControl_Configuration,
+        // UIControl (added sections)
+        LookinAttrSec_UIControl_Behavior,
     ] as [NSString]).map { $0 as String })
 }

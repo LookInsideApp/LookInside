@@ -86,6 +86,26 @@
             BlueprintSection(LookinAttrSec_UIControl_HorAlignment, title: "HorizontalAlignment", attributes: [
                 BlueprintAttribute(LookinAttr_UIControl_HorAlignment_Alignment, AttributeInfo(className: "UIControl", fullTitle: "ContentHorizontalAlignment", enumList: "UIControlContentHorizontalAlignment", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_UIControl_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIControl_Behavior_Highlighted, AttributeInfo(className: "UIControl", fullTitle: "Highlighted", getterString: "isHighlighted", setterString: "setHighlighted:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIControl_Behavior_Tracking, AttributeInfo(className: "UIControl", fullTitle: "Tracking", getterString: "isTracking", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIControl_Behavior_TouchInside, AttributeInfo(className: "UIControl", fullTitle: "TouchInside", getterString: "isTouchInside", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIControl_Behavior_ContextMenuInteractionEnabled, AttributeInfo(className: "UIControl", fullTitle: "ContextMenuInteractionEnabled", getterString: "isContextMenuInteractionEnabled", setterString: "setContextMenuInteractionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIControl_Behavior_ShowsMenuAsPrimaryAction, AttributeInfo(className: "UIControl", fullTitle: "ShowsMenuAsPrimaryAction", getterString: "showsMenuAsPrimaryAction", setterString: "setShowsMenuAsPrimaryAction:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIControl_Behavior_SymbolAnimationEnabled, AttributeInfo(className: "UIControl", fullTitle: "SymbolAnimationEnabled", getterString: "isSymbolAnimationEnabled", setterString: "setSymbolAnimationEnabled:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIControl_EffectiveContentHorizontalAlignment, title: "EffectiveContentHorizontalAlignment", attributes: [
+                BlueprintAttribute(LookinAttr_UIControl_EffectiveContentHorizontalAlignment_EffectiveContentHorizontalAlignment, AttributeInfo(className: "UIControl", fullTitle: "EffectiveContentHorizontalAlignment", getterString: "effectiveContentHorizontalAlignment", setterString: "", enumList: "UIControlContentHorizontalAlignment", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIControl_State, title: "State", attributes: [
+                BlueprintAttribute(LookinAttr_UIControl_State_State, AttributeInfo(className: "UIControl", fullTitle: "State", getterString: "state", setterString: "", revision: 1, presentation: .optionNames("UIControlState"))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIControl_AllControlEvents, title: "AllControlEvents", attributes: [
+                BlueprintAttribute(LookinAttr_UIControl_AllControlEvents_AllControlEvents, AttributeInfo(className: "UIControl", fullTitle: "AllControlEvents", getterString: "allControlEvents", setterString: "", revision: 1, presentation: .optionNames("UIControlEvents"))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIControl_ToolTip, title: "ToolTip", attributes: [
+                BlueprintAttribute(LookinAttr_UIControl_ToolTip_ToolTip, AttributeInfo(className: "UIControl", fullTitle: "ToolTip", getterString: "toolTip", setterString: "setToolTip:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
         ])
 
         static let uiButtonGroup = BlueprintGroup(LookinAttrGroup_UIButton, title: "UIButton", on: .uiKit, sections: [
@@ -336,6 +356,257 @@
             BlueprintSection(LookinAttrSec_UITraitCollection_Content, title: "Content", attributes: [
                 BlueprintAttribute(LookinAttr_UITraitCollection_Content_PreferredContentSizeCategory, AttributeInfo(className: "UIView", fullTitle: "PreferredContentSizeCategory", getterString: "lks_traitCollection_preferredContentSizeCategory", setterString: "", typeIfObj: .nsString, patch: false, osVersion: 10)),
                 BlueprintAttribute(LookinAttr_UITraitCollection_Content_TypesettingLanguage, AttributeInfo(className: "UIView", fullTitle: "TypesettingLanguage", getterString: "lks_traitCollection_typesettingLanguage", setterString: "", typeIfObj: .nsString, patch: false, hideIfNil: true, osVersion: 17)),
+            ]),
+        ])
+
+        static let uiSliderGroup = BlueprintGroup(LookinAttrGroup_UISlider, title: "UISlider", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UISlider_BehavioralStyle, title: "BehavioralStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_BehavioralStyle_BehavioralStyle, AttributeInfo(className: "UISlider", fullTitle: "BehavioralStyle", getterString: "behavioralStyle", setterString: "", enumList: "UIBehavioralStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISlider_PreferredBehavioralStyle, title: "PreferredBehavioralStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_PreferredBehavioralStyle_PreferredBehavioralStyle, AttributeInfo(className: "UISlider", fullTitle: "PreferredBehavioralStyle", getterString: "preferredBehavioralStyle", setterString: "setPreferredBehavioralStyle:", enumList: "UIBehavioralStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISlider_Value, title: "Value", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_Value_Value, AttributeInfo(className: "UISlider", fullTitle: "Value", getterString: "value", setterString: "setValue:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISlider_Value_MinimumValue, AttributeInfo(className: "UISlider", fullTitle: "MinimumValue", getterString: "minimumValue", setterString: "setMinimumValue:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISlider_Value_MaximumValue, AttributeInfo(className: "UISlider", fullTitle: "MaximumValue", getterString: "maximumValue", setterString: "setMaximumValue:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISlider_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_Images_MinimumValueImage, AttributeInfo(className: "UISlider", fullTitle: "MinimumValueImage", getterString: "minimumValueImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UISlider_Images_MaximumValueImage, AttributeInfo(className: "UISlider", fullTitle: "MaximumValueImage", getterString: "maximumValueImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UISlider_Images_CurrentThumbImage, AttributeInfo(className: "UISlider", fullTitle: "CurrentThumbImage", getterString: "currentThumbImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UISlider_Images_CurrentMinimumTrackImage, AttributeInfo(className: "UISlider", fullTitle: "CurrentMinimumTrackImage", getterString: "currentMinimumTrackImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UISlider_Images_CurrentMaximumTrackImage, AttributeInfo(className: "UISlider", fullTitle: "CurrentMaximumTrackImage", getterString: "currentMaximumTrackImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UISlider_Continuous, title: "Continuous", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_Continuous_Continuous, AttributeInfo(className: "UISlider", fullTitle: "Continuous", getterString: "isContinuous", setterString: "setContinuous:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISlider_SliderStyle, title: "SliderStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_SliderStyle_SliderStyle, AttributeInfo(className: "UISlider", fullTitle: "SliderStyle", getterString: "sliderStyle", setterString: "setSliderStyle:", enumList: "UISliderStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISlider_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UISlider_Colors_MinimumTrackTintColor, AttributeInfo(className: "UISlider", fullTitle: "MinimumTrackTintColor", getterString: "minimumTrackTintColor", setterString: "setMinimumTrackTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISlider_Colors_MaximumTrackTintColor, AttributeInfo(className: "UISlider", fullTitle: "MaximumTrackTintColor", getterString: "maximumTrackTintColor", setterString: "setMaximumTrackTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISlider_Colors_ThumbTintColor, AttributeInfo(className: "UISlider", fullTitle: "ThumbTintColor", getterString: "thumbTintColor", setterString: "setThumbTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiStepperGroup = BlueprintGroup(LookinAttrGroup_UIStepper, title: "UIStepper", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIStepper_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIStepper_Behavior_Continuous, AttributeInfo(className: "UIStepper", fullTitle: "Continuous", getterString: "isContinuous", setterString: "setContinuous:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIStepper_Behavior_Autorepeat, AttributeInfo(className: "UIStepper", fullTitle: "Autorepeat", getterString: "autorepeat", setterString: "setAutorepeat:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIStepper_Behavior_Wraps, AttributeInfo(className: "UIStepper", fullTitle: "Wraps", getterString: "wraps", setterString: "setWraps:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIStepper_Value, title: "Value", attributes: [
+                BlueprintAttribute(LookinAttr_UIStepper_Value_Value, AttributeInfo(className: "UIStepper", fullTitle: "Value", getterString: "value", setterString: "setValue:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIStepper_Value_MinimumValue, AttributeInfo(className: "UIStepper", fullTitle: "MinimumValue", getterString: "minimumValue", setterString: "setMinimumValue:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIStepper_Value_MaximumValue, AttributeInfo(className: "UIStepper", fullTitle: "MaximumValue", getterString: "maximumValue", setterString: "setMaximumValue:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIStepper_Value_StepValue, AttributeInfo(className: "UIStepper", fullTitle: "StepValue", getterString: "stepValue", setterString: "setStepValue:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiSwitchGroup = BlueprintGroup(LookinAttrGroup_UISwitch, title: "UISwitch", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UISwitch_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UISwitch_Colors_OnTintColor, AttributeInfo(className: "UISwitch", fullTitle: "OnTintColor", getterString: "onTintColor", setterString: "setOnTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISwitch_Colors_ThumbTintColor, AttributeInfo(className: "UISwitch", fullTitle: "ThumbTintColor", getterString: "thumbTintColor", setterString: "setThumbTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISwitch_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UISwitch_Images_OnImage, AttributeInfo(className: "UISwitch", fullTitle: "OnImage", getterString: "onImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UISwitch_Images_OffImage, AttributeInfo(className: "UISwitch", fullTitle: "OffImage", getterString: "offImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UISwitch_Title, title: "Title", attributes: [
+                BlueprintAttribute(LookinAttr_UISwitch_Title_Title, AttributeInfo(className: "UISwitch", fullTitle: "Title", getterString: "title", setterString: "setTitle:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISwitch_Style, title: "Style", attributes: [
+                BlueprintAttribute(LookinAttr_UISwitch_Style_Style, AttributeInfo(className: "UISwitch", fullTitle: "Style", getterString: "style", setterString: "", enumList: "UISwitchStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISwitch_PreferredStyle, title: "PreferredStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UISwitch_PreferredStyle_PreferredStyle, AttributeInfo(className: "UISwitch", fullTitle: "PreferredStyle", getterString: "preferredStyle", setterString: "setPreferredStyle:", enumList: "UISwitchStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISwitch_On, title: "On", attributes: [
+                BlueprintAttribute(LookinAttr_UISwitch_On_On, AttributeInfo(className: "UISwitch", fullTitle: "On", getterString: "isOn", setterString: "setOn:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiSegmentedControlGroup = BlueprintGroup(LookinAttrGroup_UISegmentedControl, title: "UISegmentedControl", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UISegmentedControl_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UISegmentedControl_Behavior_Momentary, AttributeInfo(className: "UISegmentedControl", fullTitle: "Momentary", getterString: "isMomentary", setterString: "setMomentary:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISegmentedControl_Behavior_ApportionsSegmentWidthsByContent, AttributeInfo(className: "UISegmentedControl", fullTitle: "ApportionsSegmentWidthsByContent", getterString: "apportionsSegmentWidthsByContent", setterString: "setApportionsSegmentWidthsByContent:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISegmentedControl_NumberOfSegments, title: "NumberOfSegments", attributes: [
+                BlueprintAttribute(LookinAttr_UISegmentedControl_NumberOfSegments_NumberOfSegments, AttributeInfo(className: "UISegmentedControl", fullTitle: "NumberOfSegments", getterString: "numberOfSegments", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISegmentedControl_SelectedSegmentIndex, title: "SelectedSegmentIndex", attributes: [
+                BlueprintAttribute(LookinAttr_UISegmentedControl_SelectedSegmentIndex_SelectedSegmentIndex, AttributeInfo(className: "UISegmentedControl", fullTitle: "SelectedSegmentIndex", getterString: "selectedSegmentIndex", setterString: "setSelectedSegmentIndex:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISegmentedControl_SelectedSegmentTintColor, title: "SelectedSegmentTintColor", attributes: [
+                BlueprintAttribute(LookinAttr_UISegmentedControl_SelectedSegmentTintColor_SelectedSegmentTintColor, AttributeInfo(className: "UISegmentedControl", fullTitle: "SelectedSegmentTintColor", getterString: "selectedSegmentTintColor", setterString: "setSelectedSegmentTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiProgressViewGroup = BlueprintGroup(LookinAttrGroup_UIProgressView, title: "UIProgressView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIProgressView_ProgressViewStyle, title: "ProgressViewStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIProgressView_ProgressViewStyle_ProgressViewStyle, AttributeInfo(className: "UIProgressView", fullTitle: "ProgressViewStyle", getterString: "progressViewStyle", setterString: "setProgressViewStyle:", enumList: "UIProgressViewStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIProgressView_Progress, title: "Progress", attributes: [
+                BlueprintAttribute(LookinAttr_UIProgressView_Progress_Progress, AttributeInfo(className: "UIProgressView", fullTitle: "Progress", getterString: "progress", setterString: "setProgress:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIProgressView_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UIProgressView_Colors_ProgressTintColor, AttributeInfo(className: "UIProgressView", fullTitle: "ProgressTintColor", getterString: "progressTintColor", setterString: "setProgressTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIProgressView_Colors_TrackTintColor, AttributeInfo(className: "UIProgressView", fullTitle: "TrackTintColor", getterString: "trackTintColor", setterString: "setTrackTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIProgressView_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UIProgressView_Images_ProgressImage, AttributeInfo(className: "UIProgressView", fullTitle: "ProgressImage", getterString: "progressImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UIProgressView_Images_TrackImage, AttributeInfo(className: "UIProgressView", fullTitle: "TrackImage", getterString: "trackImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+        ])
+
+
+        static let uiActivityIndicatorViewGroup = BlueprintGroup(LookinAttrGroup_UIActivityIndicatorView, title: "UIActivityIndicatorView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIActivityIndicatorView_ActivityIndicatorViewStyle, title: "ActivityIndicatorViewStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIActivityIndicatorView_ActivityIndicatorViewStyle_ActivityIndicatorViewStyle, AttributeInfo(className: "UIActivityIndicatorView", fullTitle: "ActivityIndicatorViewStyle", getterString: "activityIndicatorViewStyle", setterString: "setActivityIndicatorViewStyle:", enumList: "UIActivityIndicatorViewStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIActivityIndicatorView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIActivityIndicatorView_Behavior_HidesWhenStopped, AttributeInfo(className: "UIActivityIndicatorView", fullTitle: "HidesWhenStopped", getterString: "hidesWhenStopped", setterString: "setHidesWhenStopped:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIActivityIndicatorView_Behavior_Animating, AttributeInfo(className: "UIActivityIndicatorView", fullTitle: "Animating", getterString: "isAnimating", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIActivityIndicatorView_Color, title: "Color", attributes: [
+                BlueprintAttribute(LookinAttr_UIActivityIndicatorView_Color_Color, AttributeInfo(className: "UIActivityIndicatorView", fullTitle: "Color", getterString: "color", setterString: "setColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiPageControlGroup = BlueprintGroup(LookinAttrGroup_UIPageControl, title: "UIPageControl", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIPageControl_NumberOfPages, title: "NumberOfPages", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_NumberOfPages_NumberOfPages, AttributeInfo(className: "UIPageControl", fullTitle: "NumberOfPages", getterString: "numberOfPages", setterString: "setNumberOfPages:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_CurrentPage, title: "CurrentPage", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_CurrentPage_CurrentPage, AttributeInfo(className: "UIPageControl", fullTitle: "CurrentPage", getterString: "currentPage", setterString: "setCurrentPage:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_Behavior_HidesForSinglePage, AttributeInfo(className: "UIPageControl", fullTitle: "HidesForSinglePage", getterString: "hidesForSinglePage", setterString: "setHidesForSinglePage:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIPageControl_Behavior_AllowsContinuousInteraction, AttributeInfo(className: "UIPageControl", fullTitle: "AllowsContinuousInteraction", getterString: "allowsContinuousInteraction", setterString: "setAllowsContinuousInteraction:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_Colors_PageIndicatorTintColor, AttributeInfo(className: "UIPageControl", fullTitle: "PageIndicatorTintColor", getterString: "pageIndicatorTintColor", setterString: "setPageIndicatorTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIPageControl_Colors_CurrentPageIndicatorTintColor, AttributeInfo(className: "UIPageControl", fullTitle: "CurrentPageIndicatorTintColor", getterString: "currentPageIndicatorTintColor", setterString: "setCurrentPageIndicatorTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_BackgroundStyle, title: "BackgroundStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_BackgroundStyle_BackgroundStyle, AttributeInfo(className: "UIPageControl", fullTitle: "BackgroundStyle", getterString: "backgroundStyle", setterString: "setBackgroundStyle:", enumList: "UIPageControlBackgroundStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_Direction, title: "Direction", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_Direction_Direction, AttributeInfo(className: "UIPageControl", fullTitle: "Direction", getterString: "direction", setterString: "setDirection:", enumList: "UIPageControlDirection", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_InteractionState, title: "InteractionState", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_InteractionState_InteractionState, AttributeInfo(className: "UIPageControl", fullTitle: "InteractionState", getterString: "interactionState", setterString: "", enumList: "UIPageControlInteractionState", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIPageControl_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UIPageControl_Images_PreferredIndicatorImage, AttributeInfo(className: "UIPageControl", fullTitle: "PreferredIndicatorImage", getterString: "preferredIndicatorImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UIPageControl_Images_PreferredCurrentPageIndicatorImage, AttributeInfo(className: "UIPageControl", fullTitle: "PreferredCurrentPageIndicatorImage", getterString: "preferredCurrentPageIndicatorImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+        ])
+
+
+        static let uiDatePickerGroup = BlueprintGroup(LookinAttrGroup_UIDatePicker, title: "UIDatePicker", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIDatePicker_DatePickerMode, title: "DatePickerMode", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_DatePickerMode_DatePickerMode, AttributeInfo(className: "UIDatePicker", fullTitle: "DatePickerMode", getterString: "datePickerMode", setterString: "setDatePickerMode:", enumList: "UIDatePickerMode", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_Locale, title: "Locale", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_Locale_Locale, AttributeInfo(className: "UIDatePicker", fullTitle: "Locale", getterString: "locale", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.locale))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_Calendar, title: "Calendar", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_Calendar_Calendar, AttributeInfo(className: "UIDatePicker", fullTitle: "Calendar", getterString: "calendar", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.calendar))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_TimeZone, title: "TimeZone", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_TimeZone_TimeZone, AttributeInfo(className: "UIDatePicker", fullTitle: "TimeZone", getterString: "timeZone", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.timeZone))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_Date, title: "Date", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_Date_Date, AttributeInfo(className: "UIDatePicker", fullTitle: "Date", getterString: "date", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.date))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_MinimumDate, title: "MinimumDate", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_MinimumDate_MinimumDate, AttributeInfo(className: "UIDatePicker", fullTitle: "MinimumDate", getterString: "minimumDate", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.date))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_MaximumDate, title: "MaximumDate", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_MaximumDate_MaximumDate, AttributeInfo(className: "UIDatePicker", fullTitle: "MaximumDate", getterString: "maximumDate", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.date))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_CountDownDuration, title: "CountDownDuration", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_CountDownDuration_CountDownDuration, AttributeInfo(className: "UIDatePicker", fullTitle: "CountDownDuration", getterString: "countDownDuration", setterString: "setCountDownDuration:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_MinuteInterval, title: "MinuteInterval", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_MinuteInterval_MinuteInterval, AttributeInfo(className: "UIDatePicker", fullTitle: "MinuteInterval", getterString: "minuteInterval", setterString: "setMinuteInterval:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_PreferredDatePickerStyle, title: "PreferredDatePickerStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_PreferredDatePickerStyle_PreferredDatePickerStyle, AttributeInfo(className: "UIDatePicker", fullTitle: "PreferredDatePickerStyle", getterString: "preferredDatePickerStyle", setterString: "setPreferredDatePickerStyle:", enumList: "UIDatePickerStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_DatePickerStyle, title: "DatePickerStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_DatePickerStyle_DatePickerStyle, AttributeInfo(className: "UIDatePicker", fullTitle: "DatePickerStyle", getterString: "datePickerStyle", setterString: "", enumList: "UIDatePickerStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIDatePicker_RoundsToMinuteInterval, title: "RoundsToMinuteInterval", attributes: [
+                BlueprintAttribute(LookinAttr_UIDatePicker_RoundsToMinuteInterval_RoundsToMinuteInterval, AttributeInfo(className: "UIDatePicker", fullTitle: "RoundsToMinuteInterval", getterString: "roundsToMinuteInterval", setterString: "setRoundsToMinuteInterval:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiColorWellGroup = BlueprintGroup(LookinAttrGroup_UIColorWell, title: "UIColorWell", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIColorWell_Title, title: "Title", attributes: [
+                BlueprintAttribute(LookinAttr_UIColorWell_Title_Title, AttributeInfo(className: "UIColorWell", fullTitle: "Title", getterString: "title", setterString: "setTitle:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIColorWell_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIColorWell_Behavior_SupportsAlpha, AttributeInfo(className: "UIColorWell", fullTitle: "SupportsAlpha", getterString: "supportsAlpha", setterString: "setSupportsAlpha:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIColorWell_Behavior_SupportsEyedropper, AttributeInfo(className: "UIColorWell", fullTitle: "SupportsEyedropper", getterString: "supportsEyedropper", setterString: "setSupportsEyedropper:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIColorWell_SelectedColor, title: "SelectedColor", attributes: [
+                BlueprintAttribute(LookinAttr_UIColorWell_SelectedColor_SelectedColor, AttributeInfo(className: "UIColorWell", fullTitle: "SelectedColor", getterString: "selectedColor", setterString: "setSelectedColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIColorWell_MaximumLinearExposure, title: "MaximumLinearExposure", attributes: [
+                BlueprintAttribute(LookinAttr_UIColorWell_MaximumLinearExposure_MaximumLinearExposure, AttributeInfo(className: "UIColorWell", fullTitle: "MaximumLinearExposure", getterString: "maximumLinearExposure", setterString: "setMaximumLinearExposure:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiRefreshControlGroup = BlueprintGroup(LookinAttrGroup_UIRefreshControl, title: "UIRefreshControl", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIRefreshControl_Refreshing, title: "Refreshing", attributes: [
+                BlueprintAttribute(LookinAttr_UIRefreshControl_Refreshing_Refreshing, AttributeInfo(className: "UIRefreshControl", fullTitle: "Refreshing", getterString: "isRefreshing", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIRefreshControl_AttributedTitle, title: "AttributedTitle", attributes: [
+                BlueprintAttribute(LookinAttr_UIRefreshControl_AttributedTitle_AttributedTitle, AttributeInfo(className: "UIRefreshControl", fullTitle: "AttributedTitle", getterString: "attributedTitle", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+            ]),
+        ])
+
+
+        static let uiPickerViewGroup = BlueprintGroup(LookinAttrGroup_UIPickerView, title: "UIPickerView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIPickerView_NumberOfComponents, title: "NumberOfComponents", attributes: [
+                BlueprintAttribute(LookinAttr_UIPickerView_NumberOfComponents_NumberOfComponents, AttributeInfo(className: "UIPickerView", fullTitle: "NumberOfComponents", getterString: "numberOfComponents", setterString: "", revision: 1)),
+            ]),
+        ])
+
+
+        static let uiCalendarViewGroup = BlueprintGroup(LookinAttrGroup_UICalendarView, title: "UICalendarView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UICalendarView_Locale, title: "Locale", attributes: [
+                BlueprintAttribute(LookinAttr_UICalendarView_Locale_Locale, AttributeInfo(className: "UICalendarView", fullTitle: "Locale", getterString: "locale", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.locale))),
+            ]),
+            BlueprintSection(LookinAttrSec_UICalendarView_Calendar, title: "Calendar", attributes: [
+                BlueprintAttribute(LookinAttr_UICalendarView_Calendar_Calendar, AttributeInfo(className: "UICalendarView", fullTitle: "Calendar", getterString: "calendar", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.calendar))),
+            ]),
+            BlueprintSection(LookinAttrSec_UICalendarView_TimeZone, title: "TimeZone", attributes: [
+                BlueprintAttribute(LookinAttr_UICalendarView_TimeZone_TimeZone, AttributeInfo(className: "UICalendarView", fullTitle: "TimeZone", getterString: "timeZone", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.timeZone))),
+            ]),
+            BlueprintSection(LookinAttrSec_UICalendarView_FontDesign, title: "FontDesign", attributes: [
+                BlueprintAttribute(LookinAttr_UICalendarView_FontDesign_FontDesign, AttributeInfo(className: "UICalendarView", fullTitle: "FontDesign", getterString: "fontDesign", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICalendarView_WantsDateDecorations, title: "WantsDateDecorations", attributes: [
+                BlueprintAttribute(LookinAttr_UICalendarView_WantsDateDecorations_WantsDateDecorations, AttributeInfo(className: "UICalendarView", fullTitle: "WantsDateDecorations", getterString: "wantsDateDecorations", setterString: "setWantsDateDecorations:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiPasteControlGroup = BlueprintGroup(LookinAttrGroup_UIPasteControl, title: "UIPasteControl", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIPasteControl_Configuration, title: "Configuration", attributes: [
+                BlueprintAttribute(LookinAttr_UIPasteControl_Configuration_Configuration, AttributeInfo(className: "UIPasteControl", fullTitle: "Configuration", getterString: "configuration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
             ]),
         ])
     }
