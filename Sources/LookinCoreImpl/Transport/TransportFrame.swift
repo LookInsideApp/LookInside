@@ -12,7 +12,7 @@
 //      12      4     payloadSize   big-endian
 //      16      n     payload       n = payloadSize, absent when 0
 //
-//  The type is the Lookin request or push type (LookinDefines.h). A reply
+//  The type is the Lookin request or push type (LookinDefines.swift). A reply
 //  carries the tag of its request; a push and a frame that wants no reply use
 //  tag 0. There is no ping, close or handshake frame at this layer: ping is
 //  the application request 200, and a connection ends by closing the socket.

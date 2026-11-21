@@ -153,7 +153,7 @@ public enum ReconnectTargetSelection {
 /// (`LookinPush_ApplicationStateChanged`, 307): a dictionary whose
 /// `LookinParam_ApplicationIsActive` ("active") entry is a boxed BOOL.
 public enum ApplicationStatePush {
-    /// `LookinParam_ApplicationIsActive` in LookinDefines.h.
+    /// `LookinParam_ApplicationIsActive` in LookinDefines.swift.
     public static let isActiveKey = "active"
 
     /// Whether the push says the app is active; nil for a payload without
