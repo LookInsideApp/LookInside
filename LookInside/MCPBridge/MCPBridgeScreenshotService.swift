@@ -287,6 +287,7 @@ final class MCPBridgeScreenshotService {
         task.needBasisVisualInfo = false
         task.needSubitems = false
         task.clientReadableVersion = AppHelper.readableVersion()
+        task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
 
         let package = StaticAsyncUpdateTasksPackage()
         package.tasks = [task]

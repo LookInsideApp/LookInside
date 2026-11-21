@@ -188,6 +188,7 @@ final class MCPBridgeDetailsService {
             task.needBasisVisualInfo = false
             task.needSubitems = false
             task.clientReadableVersion = clientReadableVersion
+            task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
             return task
         }
         let package = StaticAsyncUpdateTasksPackage()

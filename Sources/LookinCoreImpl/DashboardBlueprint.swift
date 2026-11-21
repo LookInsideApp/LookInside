@@ -56,6 +56,11 @@
             var hideIfNil: Bool?
             /// Minimum OS major version; nil means no limit.
             var osVersion: Int?
+            /// The attribute catalog revision that introduced the attribute
+            /// (`LookinAttributeCatalogRevisionCurrent`); a Host that declares an
+            /// older revision does not get it. Everything before revisions
+            /// existed is 0.
+            var revision: Int = 0
         }
 
         /// `%@` of a possibly nil string, as `+[NSString stringWithFormat:]`
@@ -247,6 +252,13 @@
         @objc(minAvailableOSVersionWithAttrID:)
         public class func minAvailableOSVersion(withAttrID attrID: String?) -> Int {
             DashboardBlueprintTables.info(attrID)?.osVersion ?? 0
+        }
+
+        /// The attribute catalog revision that introduced `attrID`, 0 for an
+        /// unknown identifier. Swift only, so the Objective-C surface of the
+        /// class stays as recorded.
+        public static func catalogRevision(ofAttrID attrID: String) -> Int {
+            DashboardBlueprintTables.info(attrID)?.revision ?? 0
         }
     }
 
