@@ -61,6 +61,9 @@
             /// older revision does not get it. Everything before revisions
             /// existed is 0.
             var revision: Int = 0
+            /// How the value reaches the Host (AttributePresentation.swift).
+            /// Anything but `.value` is read-only, so give it `setterString: ""`.
+            var presentation: AttributePresentation = .value
         }
 
         /// `%@` of a possibly nil string, as `+[NSString stringWithFormat:]`
@@ -259,6 +262,12 @@
         /// class stays as recorded.
         public static func catalogRevision(ofAttrID attrID: String) -> Int {
             DashboardBlueprintTables.info(attrID)?.revision ?? 0
+        }
+
+        /// How the value of `attrID` reaches the Host; `.value` for an unknown
+        /// identifier. Swift only, like `catalogRevision(ofAttrID:)`.
+        public static func presentation(ofAttrID attrID: String) -> AttributePresentation {
+            DashboardBlueprintTables.info(attrID)?.presentation ?? .value
         }
     }
 

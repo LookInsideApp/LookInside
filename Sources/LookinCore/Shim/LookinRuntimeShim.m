@@ -10,6 +10,7 @@
 #import "LookinRuntimeShim.h"
 #import <TargetConditionals.h>
 #import <objc/runtime.h>
+#import <QuartzCore/QuartzCore.h>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 typedef UIEdgeInsets LookinShimEdgeInsets;
@@ -197,6 +198,16 @@ NSString *LookinEncoding(LookinEncodedType type) {
             return @(@encode(CGAffineTransform));
         case LookinEncodedTypeLookinInsets:
             return @(@encode(LookinShimEdgeInsets));
+        case LookinEncodedTypeCATransform3D:
+            return @(@encode(CATransform3D));
+        case LookinEncodedTypeNSRange:
+            return @(@encode(NSRange));
+        case LookinEncodedTypeNSDirectionalEdgeInsets:
+            return @(@encode(NSDirectionalEdgeInsets));
+        case LookinEncodedTypeCGColorRef:
+            return @(@encode(CGColorRef));
+        case LookinEncodedTypeCGPathRef:
+            return @(@encode(CGPathRef));
 #if TARGET_OS_IPHONE
         case LookinEncodedTypeUIOffset:
             return @(@encode(UIOffset));
