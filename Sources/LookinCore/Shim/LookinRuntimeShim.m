@@ -11,6 +11,7 @@
 #import <TargetConditionals.h>
 #import <objc/runtime.h>
 #import <QuartzCore/QuartzCore.h>
+#import <os/lock.h>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 typedef UIEdgeInsets LookinShimEdgeInsets;
@@ -31,19 +32,68 @@ NSException *LookinCatchException(NS_NOESCAPE void (^block)(void)) {
     return nil;
 }
 
-NSString *LookinMethodReturnType(id target, SEL selector, NSUInteger *outArgumentCount) {
+/// A method's signature and its return type as a string, kept once looked up.
+@interface LookinShimMethodSignature : NSObject
+@property(nonatomic, strong) NSMethodSignature *signature;
+@property(nonatomic, copy) NSString *returnType;
+@end
+
+@implementation LookinShimMethodSignature
+@end
+
+/// `[target methodSignatureForSelector:selector]` with its return type.
+/// -methodSignatureForSelector: is slow (NSObject's walks every adopted
+/// protocol for a method description) and the Server asks for every attribute
+/// of every node, so the answer for a method the target's class implements is
+/// kept per method; a method's types never change while its class exists. A
+/// selector the class has no method for (one it forwards) is looked up every
+/// time, since its signature may depend on the instance.
+static LookinShimMethodSignature *LookinShimSignature(id target, SEL selector) {
+    Class targetClass = object_getClass(target);
+    Method method = (targetClass && selector) ? class_getInstanceMethod(targetClass, selector) : NULL;
+    // Keys are the Method pointers themselves (not retained); values are
+    // retained by the dictionary.
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+    static CFMutableDictionaryRef signaturesByMethod;
+    if (method) {
+        os_unfair_lock_lock(&lock);
+        LookinShimMethodSignature *cached = signaturesByMethod ? (__bridge LookinShimMethodSignature *)CFDictionaryGetValue(signaturesByMethod, method) : nil;
+        os_unfair_lock_unlock(&lock);
+        if (cached) {
+            return cached;
+        }
+    }
     NSMethodSignature *signature = [target methodSignatureForSelector:selector];
     if (!signature) {
         return nil;
     }
-    if (outArgumentCount) {
-        *outArgumentCount = signature.numberOfArguments;
+    LookinShimMethodSignature *result = [LookinShimMethodSignature new];
+    result.signature = signature;
+    result.returnType = [NSString stringWithUTF8String:signature.methodReturnType];
+    if (method) {
+        os_unfair_lock_lock(&lock);
+        if (!signaturesByMethod) {
+            signaturesByMethod = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
+        }
+        CFDictionarySetValue(signaturesByMethod, method, (__bridge const void *)result);
+        os_unfair_lock_unlock(&lock);
     }
-    return [NSString stringWithUTF8String:signature.methodReturnType];
+    return result;
+}
+
+NSString *LookinMethodReturnType(id target, SEL selector, NSUInteger *outArgumentCount) {
+    LookinShimMethodSignature *cached = LookinShimSignature(target, selector);
+    if (!cached) {
+        return nil;
+    }
+    if (outArgumentCount) {
+        *outArgumentCount = cached.signature.numberOfArguments;
+    }
+    return cached.returnType;
 }
 
 NSString *LookinMethodArgumentType(id target, SEL selector, NSUInteger index) {
-    NSMethodSignature *signature = [target methodSignatureForSelector:selector];
+    NSMethodSignature *signature = LookinShimSignature(target, selector).signature;
     if (!signature || index + 2 >= signature.numberOfArguments) {
         return nil;
     }
@@ -66,7 +116,7 @@ static BOOL LookinIsObjectType(const char *type) {
 }
 
 id LookinInvoke(id target, SEL selector, NSArray *arguments, NSError **outError) {
-    NSMethodSignature *signature = [target methodSignatureForSelector:selector];
+    NSMethodSignature *signature = LookinShimSignature(target, selector).signature;
     if (!signature) {
         if (outError) {
             *outError = LookinInvokeError([NSString stringWithFormat:@"%@ does not respond to %@", [target class], NSStringFromSelector(selector)]);

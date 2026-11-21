@@ -14,6 +14,12 @@
 
     public extension AttributeOptionNames {
         static let tables: [String: [AttributeOptionName]] = [
+            "NSLineBreakStrategy": [
+                AttributeOptionName("none", 0x0),
+                AttributeOptionName("pushOut", 0x1),
+                AttributeOptionName("hangulWordPriority", 0x2),
+                AttributeOptionName("standard", 0xFFFF),
+            ],
             "UIControlEvents": [
                 AttributeOptionName("touchDown", 0x1),
                 AttributeOptionName("touchDownRepeat", 0x2),
@@ -45,6 +51,40 @@
                 AttributeOptionName("focused", 0x8),
                 AttributeOptionName("application", 0xFF0000),
                 AttributeOptionName("reserved", 0xFF000000),
+            ],
+            "UIDataDetectorTypes": [
+                AttributeOptionName("phoneNumber", 0x1),
+                AttributeOptionName("link", 0x2),
+                AttributeOptionName("address", 0x4),
+                AttributeOptionName("calendarEvent", 0x8),
+                AttributeOptionName("shipmentTrackingNumber", 0x10),
+                AttributeOptionName("flightNumber", 0x20),
+                AttributeOptionName("lookupSuggestion", 0x40),
+                AttributeOptionName("money", 0x80),
+                AttributeOptionName("physicalValue", 0x100),
+                AttributeOptionName("none", 0x0),
+                AttributeOptionName("all", 0xFFFFFFFFFFFFFFFF),
+            ],
+            "UITableViewContentHuggingElements": [
+                AttributeOptionName("none", 0x0),
+                AttributeOptionName("sectionHeaders", 0x1),
+            ],
+            "UIViewAutoresizing": [
+                AttributeOptionName("none", 0x0),
+                AttributeOptionName("flexibleLeftMargin", 0x1),
+                AttributeOptionName("flexibleWidth", 0x2),
+                AttributeOptionName("flexibleRightMargin", 0x4),
+                AttributeOptionName("flexibleTopMargin", 0x8),
+                AttributeOptionName("flexibleHeight", 0x10),
+                AttributeOptionName("flexibleBottomMargin", 0x20),
+            ],
+            "UIWritingToolsResultOptions": [
+                AttributeOptionName("default", 0x0),
+                AttributeOptionName("plainText", 0x1),
+                AttributeOptionName("richText", 0x2),
+                AttributeOptionName("list", 0x4),
+                AttributeOptionName("table", 0x8),
+                AttributeOptionName("presentationIntent", 0x10),
             ],
         ]
     }

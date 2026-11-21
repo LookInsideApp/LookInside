@@ -356,6 +356,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             LookinAttrGroup_UIContentUnavailableView: "dashboard_view",
             LookinAttrGroup_UIBackgroundExtensionView: "dashboard_effectview",
             LookinAttrGroup_UIWindow: "dashboard_window",
+            LookinAttrGroup_UIView: "dashboard_view",
             LookinAttrGroup_UserCustom: "dashboard_custom",
         ]
         #if DEBUG

@@ -24,6 +24,7 @@
             layoutGroup,
             autoLayoutGroup,
             viewLayerGroup,
+            uiViewGroup,
             uiStackViewGroup,
             uiVisualEffectViewGroup,
             uiImageViewGroup,

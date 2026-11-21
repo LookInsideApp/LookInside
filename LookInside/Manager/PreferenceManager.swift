@@ -976,5 +976,29 @@ final class PreferenceManager: NSObject {
         LookinAttrSec_UIWindow_Behavior,
         LookinAttrSec_UIWindow_WindowLevel,
         LookinAttrSec_UIWindow_RootViewController,
+        // UIView
+        LookinAttrSec_UIView_Behavior,
+        LookinAttrSec_UIView_Transform,
+        LookinAttrSec_UIView_LayoutMargins,
+        // UIButton (added sections)
+        LookinAttrSec_UIButton_Configuration,
+        LookinAttrSec_UIButton_ButtonType,
+        LookinAttrSec_UIButton_CurrentTitle,
+        // UILabel (added sections)
+        LookinAttrSec_UILabel_Behavior,
+        // UIImageView (added sections)
+        LookinAttrSec_UIImageView_Behavior,
+        // UIScrollView (added sections)
+        LookinAttrSec_UIScrollView_Flags,
+        // UITableView (added sections)
+        LookinAttrSec_UITableView_Behavior,
+        LookinAttrSec_UITableView_RowHeight,
+        LookinAttrSec_UITableView_EstimatedRowHeight,
+        // UITextField (added sections)
+        LookinAttrSec_UITextField_BorderStyle,
+        // UIStackView (added sections)
+        LookinAttrSec_UIStackView_Behavior,
+        // UIVisualEffectView (added sections)
+        LookinAttrSec_UIVisualEffectView_Effect,
     ] as [NSString]).map { $0 as String })
 }

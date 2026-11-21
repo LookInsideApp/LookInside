@@ -26,10 +26,33 @@ extension EnumListRegistry {
             item("UIBarStyleBlackTranslucent", 2, 2),
         ]
 
+        data["UIBaselineAdjustment"] = [
+            item("UIBaselineAdjustmentAlignBaselines", 0),
+            item("UIBaselineAdjustmentAlignCenters", 1),
+            item("UIBaselineAdjustmentNone", 2),
+        ]
+
         data["UIBehavioralStyle"] = [
             item("UIBehavioralStyleAutomatic", 0),
             item("UIBehavioralStylePad", 1),
             item("UIBehavioralStyleMac", 2),
+        ]
+
+        data["UIButtonRole"] = [
+            item("UIButtonRoleNormal", 0),
+            item("UIButtonRolePrimary", 1),
+            item("UIButtonRoleCancel", 2),
+            item("UIButtonRoleDestructive", 3),
+        ]
+
+        data["UIButtonType"] = [
+            item("UIButtonTypeCustom", 0),
+            item("UIButtonTypeSystem", 1, 7),
+            item("UIButtonTypeDetailDisclosure", 2),
+            item("UIButtonTypeInfoLight", 3),
+            item("UIButtonTypeInfoDark", 4),
+            item("UIButtonTypeContactAdd", 5),
+            item("UIButtonTypeClose", 7, 13),
         ]
 
         data["UICollectionViewReorderingCadence"] = [
@@ -64,6 +87,11 @@ extension EnumListRegistry {
             item("UIInputViewStyleKeyboard", 1),
         ]
 
+        data["UILabelVibrancy"] = [
+            item("UILabelVibrancyNone", 0),
+            item("UILabelVibrancyAutomatic", 1),
+        ]
+
         data["UINavigationBarNSToolbarSection"] = [
             item("UINavigationBarNSToolbarSectionNone", 0),
             item("UINavigationBarNSToolbarSectionSidebar", 1),
@@ -96,10 +124,37 @@ extension EnumListRegistry {
             item("UIProgressViewStyleBar", 1),
         ]
 
+        data["UIScrollViewIndexDisplayMode"] = [
+            item("UIScrollViewIndexDisplayModeAutomatic", 0),
+            item("UIScrollViewIndexDisplayModeAlwaysHidden", 1),
+        ]
+
+        data["UIScrollViewIndicatorStyle"] = [
+            item("UIScrollViewIndicatorStyleDefault", 0),
+            item("UIScrollViewIndicatorStyleBlack", 1),
+            item("UIScrollViewIndicatorStyleWhite", 2),
+        ]
+
+        data["UIScrollViewKeyboardDismissMode"] = [
+            item("UIScrollViewKeyboardDismissModeNone", 0),
+            item("UIScrollViewKeyboardDismissModeOnDrag", 1),
+            item("UIScrollViewKeyboardDismissModeInteractive", 2),
+            item("UIScrollViewKeyboardDismissModeOnDragWithAccessory", 3),
+            item("UIScrollViewKeyboardDismissModeInteractiveWithAccessory", 4),
+        ]
+
         data["UISearchBarStyle"] = [
             item("UISearchBarStyleDefault", 0),
             item("UISearchBarStyleProminent", 1),
             item("UISearchBarStyleMinimal", 2),
+        ]
+
+        data["UISemanticContentAttribute"] = [
+            item("UISemanticContentAttributeUnspecified", 0),
+            item("UISemanticContentAttributePlayback", 1),
+            item("UISemanticContentAttributeSpatial", 2),
+            item("UISemanticContentAttributeForceLeftToRight", 3),
+            item("UISemanticContentAttributeForceRightToLeft", 4),
         ]
 
         data["UISliderStyle"] = [
@@ -143,6 +198,40 @@ extension EnumListRegistry {
             item("UITableViewCellSelectionStyleBlue", 1),
             item("UITableViewCellSelectionStyleGray", 2),
             item("UITableViewCellSelectionStyleDefault", 3, 7),
+        ]
+
+        data["UITableViewSelfSizingInvalidation"] = [
+            item("UITableViewSelfSizingInvalidationDisabled", 0),
+            item("UITableViewSelfSizingInvalidationEnabled", 1),
+            item("UITableViewSelfSizingInvalidationEnabledIncludingConstraints", 2),
+        ]
+
+        data["UITableViewSeparatorInsetReference"] = [
+            item("UITableViewSeparatorInsetFromCellEdges", 0),
+            item("UITableViewSeparatorInsetFromAutomaticInsets", 1),
+        ]
+
+        data["UITextBorderStyle"] = [
+            item("UITextBorderStyleNone", 0),
+            item("UITextBorderStyleLine", 1),
+            item("UITextBorderStyleBezel", 2),
+            item("UITextBorderStyleRoundedRect", 3),
+        ]
+
+        data["UITextViewBorderStyle"] = [
+            item("UITextViewBorderStyleNone", 0),
+        ]
+
+        data["UIUserInterfaceLayoutDirection"] = [
+            item("UIUserInterfaceLayoutDirectionLeftToRight", 0),
+            item("UIUserInterfaceLayoutDirectionRightToLeft", 1),
+        ]
+
+        data["UIWritingToolsBehavior"] = [
+            item("UIWritingToolsBehaviorNone", -1),
+            item("UIWritingToolsBehaviorDefault", 0),
+            item("UIWritingToolsBehaviorComplete", 1),
+            item("UIWritingToolsBehaviorLimited", 2),
         ]
     }
 }

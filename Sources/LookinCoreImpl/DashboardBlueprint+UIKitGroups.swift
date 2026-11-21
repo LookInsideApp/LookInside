@@ -27,6 +27,10 @@
             BlueprintSection(LookinAttrSec_UIStackView_Spacing, attributes: [
                 BlueprintAttribute(LookinAttr_UIStackView_Spacing_Spacing, AttributeInfo(className: "UIStackView", fullTitle: "Spacing", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_UIStackView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIStackView_Behavior_BaselineRelativeArrangement, AttributeInfo(className: "UIStackView", fullTitle: "BaselineRelativeArrangement", getterString: "isBaselineRelativeArrangement", setterString: "setBaselineRelativeArrangement:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIStackView_Behavior_LayoutMarginsRelativeArrangement, AttributeInfo(className: "UIStackView", fullTitle: "LayoutMarginsRelativeArrangement", getterString: "isLayoutMarginsRelativeArrangement", setterString: "setLayoutMarginsRelativeArrangement:", patch: true, revision: 1)),
+            ]),
         ])
 
         static let uiVisualEffectViewGroup = BlueprintGroup(LookinAttrGroup_UIVisualEffectView, title: "UIVisualEffectView", on: .uiKit, sections: [
@@ -36,6 +40,9 @@
             BlueprintSection(LookinAttrSec_UIVisualEffectView_QMUIForegroundColor, title: "ForegroundColor", attributes: [
                 BlueprintAttribute(LookinAttr_UIVisualEffectView_QMUIForegroundColor_Color, AttributeInfo(className: "QMUIVisualEffectView", fullTitle: "ForegroundColor", typeIfObj: .uiColor, patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_UIVisualEffectView_Effect, title: "Effect", attributes: [
+                BlueprintAttribute(LookinAttr_UIVisualEffectView_Effect_Effect, AttributeInfo(className: "UIVisualEffectView", fullTitle: "Effect", getterString: "effect", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
+            ]),
         ])
 
         static let uiImageViewGroup = BlueprintGroup(LookinAttrGroup_UIImageView, title: "UIImageView", on: .uiKit, sections: [
@@ -44,6 +51,34 @@
             ]),
             BlueprintSection(LookinAttrSec_UIImageView_Open, attributes: [
                 BlueprintAttribute(LookinAttr_UIImageView_Open_Open, AttributeInfo(className: "UIImageView", getterString: "lks_imageViewOidIfHasImage", setterString: "", typeIfObj: .customObj, hideIfNil: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_HighlightedImage, title: "HighlightedImage", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_HighlightedImage_HighlightedImage, AttributeInfo(className: "UIImageView", fullTitle: "HighlightedImage", getterString: "highlightedImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_PreferredSymbolConfiguration, title: "PreferredSymbolConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_PreferredSymbolConfiguration_PreferredSymbolConfiguration, AttributeInfo(className: "UIImageView", fullTitle: "PreferredSymbolConfiguration", getterString: "preferredSymbolConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.description))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_Behavior_Highlighted, AttributeInfo(className: "UIImageView", fullTitle: "Highlighted", getterString: "isHighlighted", setterString: "setHighlighted:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIImageView_Behavior_Animating, AttributeInfo(className: "UIImageView", fullTitle: "Animating", getterString: "isAnimating", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_AnimationImages, title: "AnimationImages", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_AnimationImages_AnimationImages, AttributeInfo(className: "UIImageView", fullTitle: "AnimationImages", getterString: "animationImages", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_HighlightedAnimationImages, title: "HighlightedAnimationImages", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_HighlightedAnimationImages_HighlightedAnimationImages, AttributeInfo(className: "UIImageView", fullTitle: "HighlightedAnimationImages", getterString: "highlightedAnimationImages", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_AnimationDuration, title: "AnimationDuration", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_AnimationDuration_AnimationDuration, AttributeInfo(className: "UIImageView", fullTitle: "AnimationDuration", getterString: "animationDuration", setterString: "setAnimationDuration:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_AnimationRepeatCount, title: "AnimationRepeatCount", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_AnimationRepeatCount_AnimationRepeatCount, AttributeInfo(className: "UIImageView", fullTitle: "AnimationRepeatCount", getterString: "animationRepeatCount", setterString: "setAnimationRepeatCount:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_PreferredImageDynamicRange, title: "PreferredImageDynamicRange", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_PreferredImageDynamicRange_PreferredImageDynamicRange, AttributeInfo(className: "UIImageView", fullTitle: "PreferredImageDynamicRange", getterString: "preferredImageDynamicRange", setterString: "setPreferredImageDynamicRange:", enumList: "UIImageDynamicRange", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIImageView_ImageDynamicRange, title: "ImageDynamicRange", attributes: [
+                BlueprintAttribute(LookinAttr_UIImageView_ImageDynamicRange_ImageDynamicRange, AttributeInfo(className: "UIImageView", fullTitle: "ImageDynamicRange", getterString: "imageDynamicRange", setterString: "", enumList: "UIImageDynamicRange", revision: 1)),
             ]),
         ])
 
@@ -69,6 +104,34 @@
             ]),
             BlueprintSection(LookinAttrSec_UILabel_CanAdjustFont, attributes: [
                 BlueprintAttribute(LookinAttr_UILabel_CanAdjustFont_CanAdjustFont, AttributeInfo(className: "UILabel", fullTitle: "AdjustsFontSizeToFitWidth", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_PreferredVibrancy, title: "PreferredVibrancy", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_PreferredVibrancy_PreferredVibrancy, AttributeInfo(className: "UILabel", fullTitle: "PreferredVibrancy", getterString: "preferredVibrancy", setterString: "setPreferredVibrancy:", enumList: "UILabelVibrancy", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_Colors_ShadowColor, AttributeInfo(className: "UILabel", fullTitle: "ShadowColor", getterString: "shadowColor", setterString: "setShadowColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UILabel_Colors_HighlightedTextColor, AttributeInfo(className: "UILabel", fullTitle: "HighlightedTextColor", getterString: "highlightedTextColor", setterString: "setHighlightedTextColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_ShadowOffset, title: "ShadowOffset", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_ShadowOffset_ShadowOffset, AttributeInfo(className: "UILabel", fullTitle: "ShadowOffset", getterString: "shadowOffset", setterString: "setShadowOffset:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_Behavior_Highlighted, AttributeInfo(className: "UILabel", fullTitle: "Highlighted", getterString: "isHighlighted", setterString: "setHighlighted:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UILabel_Behavior_Enabled, AttributeInfo(className: "UILabel", fullTitle: "Enabled", getterString: "isEnabled", setterString: "setEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UILabel_Behavior_AllowsDefaultTighteningForTruncation, AttributeInfo(className: "UILabel", fullTitle: "AllowsDefaultTighteningForTruncation", getterString: "allowsDefaultTighteningForTruncation", setterString: "setAllowsDefaultTighteningForTruncation:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UILabel_Behavior_ShowsExpansionTextWhenTruncated, AttributeInfo(className: "UILabel", fullTitle: "ShowsExpansionTextWhenTruncated", getterString: "showsExpansionTextWhenTruncated", setterString: "setShowsExpansionTextWhenTruncated:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_BaselineAdjustment, title: "BaselineAdjustment", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_BaselineAdjustment_BaselineAdjustment, AttributeInfo(className: "UILabel", fullTitle: "BaselineAdjustment", getterString: "baselineAdjustment", setterString: "setBaselineAdjustment:", enumList: "UIBaselineAdjustment", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_MinimumScaleFactor, title: "MinimumScaleFactor", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_MinimumScaleFactor_MinimumScaleFactor, AttributeInfo(className: "UILabel", fullTitle: "MinimumScaleFactor", getterString: "minimumScaleFactor", setterString: "setMinimumScaleFactor:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_LineBreakStrategy, title: "LineBreakStrategy", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_LineBreakStrategy_LineBreakStrategy, AttributeInfo(className: "UILabel", fullTitle: "LineBreakStrategy", getterString: "lineBreakStrategy", setterString: "", revision: 1, presentation: .optionNames("NSLineBreakStrategy"))),
+            ]),
+            BlueprintSection(LookinAttrSec_UILabel_PreferredMaxLayoutWidth, title: "PreferredMaxLayoutWidth", attributes: [
+                BlueprintAttribute(LookinAttr_UILabel_PreferredMaxLayoutWidth_PreferredMaxLayoutWidth, AttributeInfo(className: "UILabel", fullTitle: "PreferredMaxLayoutWidth", getterString: "preferredMaxLayoutWidth", setterString: "setPreferredMaxLayoutWidth:", patch: true, revision: 1)),
             ]),
         ])
 
@@ -118,6 +181,45 @@
             BlueprintSection(LookinAttrSec_UIButton_ImageInsets, title: "ImageInsets", attributes: [
                 BlueprintAttribute(LookinAttr_UIButton_ImageInsets_Insets, AttributeInfo(className: "UIButton", fullTitle: "ImageEdgeInsets", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_UIButton_BehavioralStyle, title: "BehavioralStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_BehavioralStyle_BehavioralStyle, AttributeInfo(className: "UIButton", fullTitle: "BehavioralStyle", getterString: "behavioralStyle", setterString: "", enumList: "UIBehavioralStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_PreferredBehavioralStyle, title: "PreferredBehavioralStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_PreferredBehavioralStyle_PreferredBehavioralStyle, AttributeInfo(className: "UIButton", fullTitle: "PreferredBehavioralStyle", getterString: "preferredBehavioralStyle", setterString: "setPreferredBehavioralStyle:", enumList: "UIBehavioralStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_Configuration, title: "Configuration", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_Configuration_Configuration, AttributeInfo(className: "UIButton", fullTitle: "Configuration", getterString: "configuration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_Behavior_AutomaticallyUpdatesConfiguration, AttributeInfo(className: "UIButton", fullTitle: "AutomaticallyUpdatesConfiguration", getterString: "automaticallyUpdatesConfiguration", setterString: "setAutomaticallyUpdatesConfiguration:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIButton_Behavior_Hovered, AttributeInfo(className: "UIButton", fullTitle: "Hovered", getterString: "isHovered", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIButton_Behavior_Held, AttributeInfo(className: "UIButton", fullTitle: "Held", getterString: "isHeld", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIButton_Behavior_PointerInteractionEnabled, AttributeInfo(className: "UIButton", fullTitle: "PointerInteractionEnabled", getterString: "isPointerInteractionEnabled", setterString: "setPointerInteractionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIButton_Behavior_ChangesSelectionAsPrimaryAction, AttributeInfo(className: "UIButton", fullTitle: "ChangesSelectionAsPrimaryAction", getterString: "changesSelectionAsPrimaryAction", setterString: "setChangesSelectionAsPrimaryAction:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_ButtonType, title: "ButtonType", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_ButtonType_ButtonType, AttributeInfo(className: "UIButton", fullTitle: "ButtonType", getterString: "buttonType", setterString: "", enumList: "UIButtonType", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_Role, title: "Role", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_Role_Role, AttributeInfo(className: "UIButton", fullTitle: "Role", getterString: "role", setterString: "setRole:", enumList: "UIButtonRole", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_Menu, title: "Menu", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_Menu_Menu, AttributeInfo(className: "UIButton", fullTitle: "Menu", getterString: "menu", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.menu))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_CurrentTitle, title: "CurrentTitle", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_CurrentTitle_CurrentTitle, AttributeInfo(className: "UIButton", fullTitle: "CurrentTitle", getterString: "currentTitle", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_Colors_CurrentTitleColor, AttributeInfo(className: "UIButton", fullTitle: "CurrentTitleColor", getterString: "currentTitleColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIButton_Colors_CurrentTitleShadowColor, AttributeInfo(className: "UIButton", fullTitle: "CurrentTitleShadowColor", getterString: "currentTitleShadowColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_Images_CurrentImage, AttributeInfo(className: "UIButton", fullTitle: "CurrentImage", getterString: "currentImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UIButton_Images_CurrentBackgroundImage, AttributeInfo(className: "UIButton", fullTitle: "CurrentBackgroundImage", getterString: "currentBackgroundImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIButton_CurrentPreferredSymbolConfiguration, title: "CurrentPreferredSymbolConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_UIButton_CurrentPreferredSymbolConfiguration_CurrentPreferredSymbolConfiguration, AttributeInfo(className: "UIButton", fullTitle: "CurrentPreferredSymbolConfiguration", getterString: "currentPreferredSymbolConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.description))),
+            ]),
         ])
 
         static let uiScrollViewGroup = BlueprintGroup(LookinAttrGroup_UIScrollView, title: "UIScrollView", on: .uiKit, sections: [
@@ -164,6 +266,45 @@
                 BlueprintAttribute(LookinAttr_UIScrollView_Zoom_MinScale, AttributeInfo(className: "UIScrollView", fullTitle: "MinimumZoomScale", briefTitle: "MinScale", patch: false)),
                 BlueprintAttribute(LookinAttr_UIScrollView_Zoom_MaxScale, AttributeInfo(className: "UIScrollView", fullTitle: "MaximumZoomScale", briefTitle: "MaxScale", patch: false)),
             ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_ContentAlignmentPoint, title: "ContentAlignmentPoint", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_ContentAlignmentPoint_ContentAlignmentPoint, AttributeInfo(className: "UIScrollView", fullTitle: "ContentAlignmentPoint", getterString: "contentAlignmentPoint", setterString: "setContentAlignmentPoint:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_Flags, title: "Flags", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_AutomaticallyAdjustsScrollIndicatorInsets, AttributeInfo(className: "UIScrollView", fullTitle: "AutomaticallyAdjustsScrollIndicatorInsets", getterString: "automaticallyAdjustsScrollIndicatorInsets", setterString: "setAutomaticallyAdjustsScrollIndicatorInsets:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_DirectionalLockEnabled, AttributeInfo(className: "UIScrollView", fullTitle: "DirectionalLockEnabled", getterString: "isDirectionalLockEnabled", setterString: "setDirectionalLockEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_Bounces, AttributeInfo(className: "UIScrollView", fullTitle: "Bounces", getterString: "bounces", setterString: "setBounces:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_BouncesHorizontally, AttributeInfo(className: "UIScrollView", fullTitle: "BouncesHorizontally", getterString: "bouncesHorizontally", setterString: "setBouncesHorizontally:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_BouncesVertically, AttributeInfo(className: "UIScrollView", fullTitle: "BouncesVertically", getterString: "bouncesVertically", setterString: "setBouncesVertically:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_TransfersHorizontalScrollingToParent, AttributeInfo(className: "UIScrollView", fullTitle: "TransfersHorizontalScrollingToParent", getterString: "transfersHorizontalScrollingToParent", setterString: "setTransfersHorizontalScrollingToParent:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_TransfersVerticalScrollingToParent, AttributeInfo(className: "UIScrollView", fullTitle: "TransfersVerticalScrollingToParent", getterString: "transfersVerticalScrollingToParent", setterString: "setTransfersVerticalScrollingToParent:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_Tracking, AttributeInfo(className: "UIScrollView", fullTitle: "Tracking", getterString: "isTracking", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_Dragging, AttributeInfo(className: "UIScrollView", fullTitle: "Dragging", getterString: "isDragging", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_Decelerating, AttributeInfo(className: "UIScrollView", fullTitle: "Decelerating", getterString: "isDecelerating", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_ScrollAnimating, AttributeInfo(className: "UIScrollView", fullTitle: "ScrollAnimating", getterString: "isScrollAnimating", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_Zooming, AttributeInfo(className: "UIScrollView", fullTitle: "Zooming", getterString: "isZooming", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_ZoomBouncing, AttributeInfo(className: "UIScrollView", fullTitle: "ZoomBouncing", getterString: "isZoomBouncing", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_ZoomAnimating, AttributeInfo(className: "UIScrollView", fullTitle: "ZoomAnimating", getterString: "isZoomAnimating", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_ScrollsToTop, AttributeInfo(className: "UIScrollView", fullTitle: "ScrollsToTop", getterString: "scrollsToTop", setterString: "setScrollsToTop:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIScrollView_Flags_AllowsKeyboardScrolling, AttributeInfo(className: "UIScrollView", fullTitle: "AllowsKeyboardScrolling", getterString: "allowsKeyboardScrolling", setterString: "setAllowsKeyboardScrolling:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_IndicatorStyle, title: "IndicatorStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_IndicatorStyle_IndicatorStyle, AttributeInfo(className: "UIScrollView", fullTitle: "IndicatorStyle", getterString: "indicatorStyle", setterString: "setIndicatorStyle:", enumList: "UIScrollViewIndicatorStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_VerticalScrollIndicatorInsets, title: "VerticalScrollIndicatorInsets", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_VerticalScrollIndicatorInsets_VerticalScrollIndicatorInsets, AttributeInfo(className: "UIScrollView", fullTitle: "VerticalScrollIndicatorInsets", getterString: "verticalScrollIndicatorInsets", setterString: "setVerticalScrollIndicatorInsets:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_HorizontalScrollIndicatorInsets, title: "HorizontalScrollIndicatorInsets", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_HorizontalScrollIndicatorInsets_HorizontalScrollIndicatorInsets, AttributeInfo(className: "UIScrollView", fullTitle: "HorizontalScrollIndicatorInsets", getterString: "horizontalScrollIndicatorInsets", setterString: "setHorizontalScrollIndicatorInsets:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_DecelerationRate, title: "DecelerationRate", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_DecelerationRate_DecelerationRate, AttributeInfo(className: "UIScrollView", fullTitle: "DecelerationRate", getterString: "decelerationRate", setterString: "setDecelerationRate:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_IndexDisplayMode, title: "IndexDisplayMode", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_IndexDisplayMode_IndexDisplayMode, AttributeInfo(className: "UIScrollView", fullTitle: "IndexDisplayMode", getterString: "indexDisplayMode", setterString: "setIndexDisplayMode:", enumList: "UIScrollViewIndexDisplayMode", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIScrollView_KeyboardDismissMode, title: "KeyboardDismissMode", attributes: [
+                BlueprintAttribute(LookinAttr_UIScrollView_KeyboardDismissMode_KeyboardDismissMode, AttributeInfo(className: "UIScrollView", fullTitle: "KeyboardDismissMode", getterString: "keyboardDismissMode", setterString: "setKeyboardDismissMode:", enumList: "UIScrollViewKeyboardDismissMode", patch: true, revision: 1)),
+            ]),
         ])
 
         static let uiTableViewGroup = BlueprintGroup(LookinAttrGroup_UITableView, title: "UITableView", on: .uiKit, sections: [
@@ -184,6 +325,71 @@
             ]),
             BlueprintSection(LookinAttrSec_UITableView_SeparatorInset, title: "SeparatorInset", attributes: [
                 BlueprintAttribute(LookinAttr_UITableView_SeparatorInset_Inset, AttributeInfo(className: "UITableView", fullTitle: "SeparatorInset", patch: false)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_PrefetchingEnabled, AttributeInfo(className: "UITableView", fullTitle: "PrefetchingEnabled", getterString: "isPrefetchingEnabled", setterString: "setPrefetchingEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_HasUncommittedUpdates, AttributeInfo(className: "UITableView", fullTitle: "HasUncommittedUpdates", getterString: "hasUncommittedUpdates", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_Editing, AttributeInfo(className: "UITableView", fullTitle: "Editing", getterString: "isEditing", setterString: "setEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_AllowsSelection, AttributeInfo(className: "UITableView", fullTitle: "AllowsSelection", getterString: "allowsSelection", setterString: "setAllowsSelection:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_AllowsSelectionDuringEditing, AttributeInfo(className: "UITableView", fullTitle: "AllowsSelectionDuringEditing", getterString: "allowsSelectionDuringEditing", setterString: "setAllowsSelectionDuringEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_AllowsMultipleSelection, AttributeInfo(className: "UITableView", fullTitle: "AllowsMultipleSelection", getterString: "allowsMultipleSelection", setterString: "setAllowsMultipleSelection:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_AllowsMultipleSelectionDuringEditing, AttributeInfo(className: "UITableView", fullTitle: "AllowsMultipleSelectionDuringEditing", getterString: "allowsMultipleSelectionDuringEditing", setterString: "setAllowsMultipleSelectionDuringEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_CellLayoutMarginsFollowReadableWidth, AttributeInfo(className: "UITableView", fullTitle: "CellLayoutMarginsFollowReadableWidth", getterString: "cellLayoutMarginsFollowReadableWidth", setterString: "setCellLayoutMarginsFollowReadableWidth:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_InsetsContentViewsToSafeArea, AttributeInfo(className: "UITableView", fullTitle: "InsetsContentViewsToSafeArea", getterString: "insetsContentViewsToSafeArea", setterString: "setInsetsContentViewsToSafeArea:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_RemembersLastFocusedIndexPath, AttributeInfo(className: "UITableView", fullTitle: "RemembersLastFocusedIndexPath", getterString: "remembersLastFocusedIndexPath", setterString: "setRemembersLastFocusedIndexPath:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_SelectionFollowsFocus, AttributeInfo(className: "UITableView", fullTitle: "SelectionFollowsFocus", getterString: "selectionFollowsFocus", setterString: "setSelectionFollowsFocus:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_AllowsFocus, AttributeInfo(className: "UITableView", fullTitle: "AllowsFocus", getterString: "allowsFocus", setterString: "setAllowsFocus:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_AllowsFocusDuringEditing, AttributeInfo(className: "UITableView", fullTitle: "AllowsFocusDuringEditing", getterString: "allowsFocusDuringEditing", setterString: "setAllowsFocusDuringEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_DragInteractionEnabled, AttributeInfo(className: "UITableView", fullTitle: "DragInteractionEnabled", getterString: "dragInteractionEnabled", setterString: "setDragInteractionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_HasActiveDrag, AttributeInfo(className: "UITableView", fullTitle: "HasActiveDrag", getterString: "hasActiveDrag", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Behavior_HasActiveDrop, AttributeInfo(className: "UITableView", fullTitle: "HasActiveDrop", getterString: "hasActiveDrop", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_RowHeight, title: "RowHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_RowHeight_RowHeight, AttributeInfo(className: "UITableView", fullTitle: "RowHeight", getterString: "rowHeight", setterString: "setRowHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SectionHeaderHeight, title: "SectionHeaderHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SectionHeaderHeight_SectionHeaderHeight, AttributeInfo(className: "UITableView", fullTitle: "SectionHeaderHeight", getterString: "sectionHeaderHeight", setterString: "setSectionHeaderHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SectionFooterHeight, title: "SectionFooterHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SectionFooterHeight_SectionFooterHeight, AttributeInfo(className: "UITableView", fullTitle: "SectionFooterHeight", getterString: "sectionFooterHeight", setterString: "setSectionFooterHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_EstimatedRowHeight, title: "EstimatedRowHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_EstimatedRowHeight_EstimatedRowHeight, AttributeInfo(className: "UITableView", fullTitle: "EstimatedRowHeight", getterString: "estimatedRowHeight", setterString: "setEstimatedRowHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_EstimatedSectionHeaderHeight, title: "EstimatedSectionHeaderHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_EstimatedSectionHeaderHeight_EstimatedSectionHeaderHeight, AttributeInfo(className: "UITableView", fullTitle: "EstimatedSectionHeaderHeight", getterString: "estimatedSectionHeaderHeight", setterString: "setEstimatedSectionHeaderHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_EstimatedSectionFooterHeight, title: "EstimatedSectionFooterHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_EstimatedSectionFooterHeight_EstimatedSectionFooterHeight, AttributeInfo(className: "UITableView", fullTitle: "EstimatedSectionFooterHeight", getterString: "estimatedSectionFooterHeight", setterString: "setEstimatedSectionFooterHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_FillerRowHeight, title: "FillerRowHeight", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_FillerRowHeight_FillerRowHeight, AttributeInfo(className: "UITableView", fullTitle: "FillerRowHeight", getterString: "fillerRowHeight", setterString: "setFillerRowHeight:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SectionHeaderTopPadding, title: "SectionHeaderTopPadding", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SectionHeaderTopPadding_SectionHeaderTopPadding, AttributeInfo(className: "UITableView", fullTitle: "SectionHeaderTopPadding", getterString: "sectionHeaderTopPadding", setterString: "setSectionHeaderTopPadding:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SeparatorInsetReference, title: "SeparatorInsetReference", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SeparatorInsetReference_SeparatorInsetReference, AttributeInfo(className: "UITableView", fullTitle: "SeparatorInsetReference", getterString: "separatorInsetReference", setterString: "setSeparatorInsetReference:", enumList: "UITableViewSeparatorInsetReference", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SelfSizingInvalidation, title: "SelfSizingInvalidation", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SelfSizingInvalidation_SelfSizingInvalidation, AttributeInfo(className: "UITableView", fullTitle: "SelfSizingInvalidation", getterString: "selfSizingInvalidation", setterString: "setSelfSizingInvalidation:", enumList: "UITableViewSelfSizingInvalidation", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_IndexPathsForSelectedRows, title: "IndexPathsForSelectedRows", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_IndexPathsForSelectedRows_IndexPathsForSelectedRows, AttributeInfo(className: "UITableView", fullTitle: "IndexPathsForSelectedRows", getterString: "indexPathsForSelectedRows", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SectionIndexMinimumDisplayRowCount, title: "SectionIndexMinimumDisplayRowCount", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SectionIndexMinimumDisplayRowCount_SectionIndexMinimumDisplayRowCount, AttributeInfo(className: "UITableView", fullTitle: "SectionIndexMinimumDisplayRowCount", getterString: "sectionIndexMinimumDisplayRowCount", setterString: "setSectionIndexMinimumDisplayRowCount:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_Colors_SectionIndexColor, AttributeInfo(className: "UITableView", fullTitle: "SectionIndexColor", getterString: "sectionIndexColor", setterString: "setSectionIndexColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Colors_SectionIndexBackgroundColor, AttributeInfo(className: "UITableView", fullTitle: "SectionIndexBackgroundColor", getterString: "sectionIndexBackgroundColor", setterString: "setSectionIndexBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableView_Colors_SectionIndexTrackingBackgroundColor, AttributeInfo(className: "UITableView", fullTitle: "SectionIndexTrackingBackgroundColor", getterString: "sectionIndexTrackingBackgroundColor", setterString: "setSectionIndexTrackingBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_SeparatorEffect, title: "SeparatorEffect", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_SeparatorEffect_SeparatorEffect, AttributeInfo(className: "UITableView", fullTitle: "SeparatorEffect", getterString: "separatorEffect", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableView_ContentHuggingElements, title: "ContentHuggingElements", attributes: [
+                BlueprintAttribute(LookinAttr_UITableView_ContentHuggingElements_ContentHuggingElements, AttributeInfo(className: "UITableView", fullTitle: "ContentHuggingElements", getterString: "contentHuggingElements", setterString: "", revision: 1, presentation: .optionNames("UITableViewContentHuggingElements"))),
             ]),
         ])
 
@@ -207,6 +413,25 @@
             ]),
             BlueprintSection(LookinAttrSec_UITextView_ContainerInset, title: "ContainerInset", attributes: [
                 BlueprintAttribute(LookinAttr_UITextView_ContainerInset_Inset, AttributeInfo(className: "UITextView", fullTitle: "TextContainerInset", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextView_DataDetectorTypes, title: "DataDetectorTypes", attributes: [
+                BlueprintAttribute(LookinAttr_UITextView_DataDetectorTypes_DataDetectorTypes, AttributeInfo(className: "UITextView", fullTitle: "DataDetectorTypes", getterString: "dataDetectorTypes", setterString: "", revision: 1, presentation: .optionNames("UIDataDetectorTypes"))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITextView_Behavior_AllowsEditingTextAttributes, AttributeInfo(className: "UITextView", fullTitle: "AllowsEditingTextAttributes", getterString: "allowsEditingTextAttributes", setterString: "setAllowsEditingTextAttributes:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextView_Behavior_ClearsOnInsertion, AttributeInfo(className: "UITextView", fullTitle: "ClearsOnInsertion", getterString: "clearsOnInsertion", setterString: "setClearsOnInsertion:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextView_Behavior_UsesStandardTextScaling, AttributeInfo(className: "UITextView", fullTitle: "UsesStandardTextScaling", getterString: "usesStandardTextScaling", setterString: "setUsesStandardTextScaling:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextView_Behavior_FindInteractionEnabled, AttributeInfo(className: "UITextView", fullTitle: "FindInteractionEnabled", getterString: "isFindInteractionEnabled", setterString: "setFindInteractionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextView_Behavior_WritingToolsActive, AttributeInfo(className: "UITextView", fullTitle: "WritingToolsActive", getterString: "isWritingToolsActive", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextView_BorderStyle, title: "BorderStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UITextView_BorderStyle_BorderStyle, AttributeInfo(className: "UITextView", fullTitle: "BorderStyle", getterString: "borderStyle", setterString: "setBorderStyle:", enumList: "UITextViewBorderStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextView_WritingToolsBehavior, title: "WritingToolsBehavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITextView_WritingToolsBehavior_WritingToolsBehavior, AttributeInfo(className: "UITextView", fullTitle: "WritingToolsBehavior", getterString: "writingToolsBehavior", setterString: "setWritingToolsBehavior:", enumList: "UIWritingToolsBehavior", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextView_AllowedWritingToolsResultOptions, title: "AllowedWritingToolsResultOptions", attributes: [
+                BlueprintAttribute(LookinAttr_UITextView_AllowedWritingToolsResultOptions_AllowedWritingToolsResultOptions, AttributeInfo(className: "UITextView", fullTitle: "AllowedWritingToolsResultOptions", getterString: "allowedWritingToolsResultOptions", setterString: "", revision: 1, presentation: .optionNames("UIWritingToolsResultOptions"))),
             ]),
         ])
 
@@ -244,6 +469,23 @@
                 BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_AllowsDeletingTokens, AttributeInfo(className: "UISearchTextField", fullTitle: "AllowsDeletingTokens", getterString: "allowsDeletingTokens", setterString: "setAllowsDeletingTokens:", patch: true, revision: 1)),
                 BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_AllowsCopyingTokens, AttributeInfo(className: "UISearchTextField", fullTitle: "AllowsCopyingTokens", getterString: "allowsCopyingTokens", setterString: "setAllowsCopyingTokens:", patch: true, revision: 1)),
                 BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_SearchSuggestions, AttributeInfo(className: "UISearchTextField", fullTitle: "SearchSuggestions", getterString: "searchSuggestions", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextField_BorderStyle, title: "BorderStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UITextField_BorderStyle_BorderStyle, AttributeInfo(className: "UITextField", fullTitle: "BorderStyle", getterString: "borderStyle", setterString: "setBorderStyle:", enumList: "UITextBorderStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextField_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UITextField_Images_Background, AttributeInfo(className: "UITextField", fullTitle: "Background", getterString: "background", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UITextField_Images_DisabledBackground, AttributeInfo(className: "UITextField", fullTitle: "DisabledBackground", getterString: "disabledBackground", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextField_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITextField_Behavior_Editing, AttributeInfo(className: "UITextField", fullTitle: "Editing", getterString: "isEditing", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextField_Behavior_AllowsEditingTextAttributes, AttributeInfo(className: "UITextField", fullTitle: "AllowsEditingTextAttributes", getterString: "allowsEditingTextAttributes", setterString: "setAllowsEditingTextAttributes:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextField_LeftViewMode, title: "LeftViewMode", attributes: [
+                BlueprintAttribute(LookinAttr_UITextField_LeftViewMode_LeftViewMode, AttributeInfo(className: "UITextField", fullTitle: "LeftViewMode", getterString: "leftViewMode", setterString: "setLeftViewMode:", enumList: "UITextFieldViewMode", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITextField_RightViewMode, title: "RightViewMode", attributes: [
+                BlueprintAttribute(LookinAttr_UITextField_RightViewMode_RightViewMode, AttributeInfo(className: "UITextField", fullTitle: "RightViewMode", getterString: "rightViewMode", setterString: "setRightViewMode:", enumList: "UITextFieldViewMode", patch: true, revision: 1)),
             ]),
         ])
 
@@ -893,6 +1135,77 @@
             ]),
             BlueprintSection(LookinAttrSec_UIWindow_RootViewController, title: "RootViewController", attributes: [
                 BlueprintAttribute(LookinAttr_UIWindow_RootViewController_RootViewController, AttributeInfo(className: "UIWindow", fullTitle: "RootViewController", getterString: "rootViewController", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
+            ]),
+        ])
+
+        static let uiViewGroup = BlueprintGroup(LookinAttrGroup_UIView, title: "UIView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_Behavior_AccessibilityIgnoresInvertColors, AttributeInfo(className: "UIView", fullTitle: "AccessibilityIgnoresInvertColors", getterString: "accessibilityIgnoresInvertColors", setterString: "setAccessibilityIgnoresInvertColors:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_ShowsLargeContentViewer, AttributeInfo(className: "UIView", fullTitle: "ShowsLargeContentViewer", getterString: "showsLargeContentViewer", setterString: "setShowsLargeContentViewer:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_ScalesLargeContentImage, AttributeInfo(className: "UIView", fullTitle: "ScalesLargeContentImage", getterString: "scalesLargeContentImage", setterString: "setScalesLargeContentImage:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_CanBecomeFocused, AttributeInfo(className: "UIView", fullTitle: "CanBecomeFocused", getterString: "canBecomeFocused", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_Focused, AttributeInfo(className: "UIView", fullTitle: "Focused", getterString: "isFocused", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_MultipleTouchEnabled, AttributeInfo(className: "UIView", fullTitle: "MultipleTouchEnabled", getterString: "isMultipleTouchEnabled", setterString: "setMultipleTouchEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_ExclusiveTouch, AttributeInfo(className: "UIView", fullTitle: "ExclusiveTouch", getterString: "isExclusiveTouch", setterString: "setExclusiveTouch:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_AutoresizesSubviews, AttributeInfo(className: "UIView", fullTitle: "AutoresizesSubviews", getterString: "autoresizesSubviews", setterString: "setAutoresizesSubviews:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_PreservesSuperviewLayoutMargins, AttributeInfo(className: "UIView", fullTitle: "PreservesSuperviewLayoutMargins", getterString: "preservesSuperviewLayoutMargins", setterString: "setPreservesSuperviewLayoutMargins:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_InsetsLayoutMarginsFromSafeArea, AttributeInfo(className: "UIView", fullTitle: "InsetsLayoutMarginsFromSafeArea", getterString: "insetsLayoutMarginsFromSafeArea", setterString: "setInsetsLayoutMarginsFromSafeArea:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_ClearsContextBeforeDrawing, AttributeInfo(className: "UIView", fullTitle: "ClearsContextBeforeDrawing", getterString: "clearsContextBeforeDrawing", setterString: "setClearsContextBeforeDrawing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIView_Behavior_TranslatesAutoresizingMaskIntoConstraints, AttributeInfo(className: "UIView", fullTitle: "TranslatesAutoresizingMaskIntoConstraints", getterString: "translatesAutoresizingMaskIntoConstraints", setterString: "setTranslatesAutoresizingMaskIntoConstraints:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_LargeContentTitle, title: "LargeContentTitle", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_LargeContentTitle_LargeContentTitle, AttributeInfo(className: "UIView", fullTitle: "LargeContentTitle", getterString: "largeContentTitle", setterString: "setLargeContentTitle:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_LargeContentImageInsets, title: "LargeContentImageInsets", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_LargeContentImageInsets_LargeContentImageInsets, AttributeInfo(className: "UIView", fullTitle: "LargeContentImageInsets", getterString: "largeContentImageInsets", setterString: "setLargeContentImageInsets:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_FocusGroupIdentifier, title: "FocusGroupIdentifier", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_FocusGroupIdentifier_FocusGroupIdentifier, AttributeInfo(className: "UIView", fullTitle: "FocusGroupIdentifier", getterString: "focusGroupIdentifier", setterString: "setFocusGroupIdentifier:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_SemanticContentAttribute, title: "SemanticContentAttribute", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_SemanticContentAttribute_SemanticContentAttribute, AttributeInfo(className: "UIView", fullTitle: "SemanticContentAttribute", getterString: "semanticContentAttribute", setterString: "setSemanticContentAttribute:", enumList: "UISemanticContentAttribute", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_EffectiveUserInterfaceLayoutDirection, title: "EffectiveUserInterfaceLayoutDirection", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_EffectiveUserInterfaceLayoutDirection_EffectiveUserInterfaceLayoutDirection, AttributeInfo(className: "UIView", fullTitle: "EffectiveUserInterfaceLayoutDirection", getterString: "effectiveUserInterfaceLayoutDirection", setterString: "", enumList: "UIUserInterfaceLayoutDirection", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_Transform, title: "Transform", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_Transform_Transform, AttributeInfo(className: "UIView", fullTitle: "Transform", getterString: "transform", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_Transform3D, title: "Transform3D", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_Transform3D_Transform3D, AttributeInfo(className: "UIView", fullTitle: "Transform3D", getterString: "transform3D", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_ContentScaleFactor, title: "ContentScaleFactor", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_ContentScaleFactor_ContentScaleFactor, AttributeInfo(className: "UIView", fullTitle: "ContentScaleFactor", getterString: "contentScaleFactor", setterString: "setContentScaleFactor:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_AutoresizingMask, title: "AutoresizingMask", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_AutoresizingMask_AutoresizingMask, AttributeInfo(className: "UIView", fullTitle: "AutoresizingMask", getterString: "autoresizingMask", setterString: "", revision: 1, presentation: .optionNames("UIViewAutoresizing"))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_LayoutMargins, title: "LayoutMargins", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_LayoutMargins_LayoutMargins, AttributeInfo(className: "UIView", fullTitle: "LayoutMargins", getterString: "layoutMargins", setterString: "setLayoutMargins:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_DirectionalLayoutMargins, title: "DirectionalLayoutMargins", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_DirectionalLayoutMargins_DirectionalLayoutMargins, AttributeInfo(className: "UIView", fullTitle: "DirectionalLayoutMargins", getterString: "directionalLayoutMargins", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_AlignmentRectInsets, title: "AlignmentRectInsets", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_AlignmentRectInsets_AlignmentRectInsets, AttributeInfo(className: "UIView", fullTitle: "AlignmentRectInsets", getterString: "alignmentRectInsets", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_RestorationIdentifier, title: "RestorationIdentifier", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_RestorationIdentifier_RestorationIdentifier, AttributeInfo(className: "UIView", fullTitle: "RestorationIdentifier", getterString: "restorationIdentifier", setterString: "setRestorationIdentifier:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_OverrideUserInterfaceStyle, title: "OverrideUserInterfaceStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_OverrideUserInterfaceStyle_OverrideUserInterfaceStyle, AttributeInfo(className: "UIView", fullTitle: "OverrideUserInterfaceStyle", getterString: "overrideUserInterfaceStyle", setterString: "setOverrideUserInterfaceStyle:", enumList: "UIUserInterfaceStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_MinimumContentSizeCategory, title: "MinimumContentSizeCategory", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_MinimumContentSizeCategory_MinimumContentSizeCategory, AttributeInfo(className: "UIView", fullTitle: "MinimumContentSizeCategory", getterString: "minimumContentSizeCategory", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_MaximumContentSizeCategory, title: "MaximumContentSizeCategory", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_MaximumContentSizeCategory_MaximumContentSizeCategory, AttributeInfo(className: "UIView", fullTitle: "MaximumContentSizeCategory", getterString: "maximumContentSizeCategory", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_AppliedContentSizeCategoryLimitsDescription, title: "AppliedContentSizeCategoryLimitsDescription", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_AppliedContentSizeCategoryLimitsDescription_AppliedContentSizeCategoryLimitsDescription, AttributeInfo(className: "UIView", fullTitle: "AppliedContentSizeCategoryLimitsDescription", getterString: "appliedContentSizeCategoryLimitsDescription", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIView_CornerConfiguration, title: "CornerConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_UIView_CornerConfiguration_CornerConfiguration, AttributeInfo(className: "UIView", fullTitle: "CornerConfiguration", getterString: "cornerConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.description))),
             ]),
         ])
     }
