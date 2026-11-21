@@ -280,7 +280,8 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
         group.isSwiftUIGroup || (group.userCustomTitle?.hasPrefix("SwiftUI") ?? false)
     }
 
-    private static let groupIconNames: [String: String] = {
+    /// Internal for DashboardRegistrationTests.
+    static let groupIconNames: [String: String] = {
         let names: [String: String] = [
             LookinAttrGroup_Class: "dashboard_class",
             LookinAttrGroup_Relation: "dashboard_relation",
@@ -373,16 +374,16 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             LookinAttrGroup_NSTableHeaderView: "dashboard_tableview",
             LookinAttrGroup_NSTextInsertionIndicator: "dashboard_textview",
             LookinAttrGroup_NSView: "dashboard_view",
+            LookinAttrGroup_CALayer: "dashboard_layer",
             LookinAttrGroup_UserCustom: "dashboard_custom",
         ]
         #if DEBUG
             // Fail on the first card rendered rather than only when someone
             // selects the unregistered kind; that is how 16 AppKit control
-            // groups once shipped with a borrowed icon. This covers the groups
-            // compiled for this platform; the iOS-only groups rely on the
-            // per-lookup assertion.
-            for groupID in DashboardBlueprint.groupIDs() {
-                assert(names[groupID] != nil, "missing dashboard icon for group \(groupID)")
+            // groups once shipped with a borrowed icon. Every group of the
+            // catalog, the UIKit ones included: the Host shows both.
+            for group in DashboardBlueprintTables.catalog {
+                assert(names[group.identifier] != nil, "missing dashboard icon for group \(group.identifier)")
             }
         #endif
         return names
