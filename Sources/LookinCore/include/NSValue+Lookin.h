@@ -9,7 +9,11 @@
 
 #import <Foundation/Foundation.h>
 #import <TargetConditionals.h>
-#import "LookinDefines.h"
+#if TARGET_OS_IPHONE
+#import <UIKit/UIKit.h>
+#elif TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+#endif
 
 // Exported by the `@_cdecl` functions in LookinCoreImpl/Category/NSValue+Lookin.swift.
 // The NSValue (Lookin) category itself is a Swift extension with the

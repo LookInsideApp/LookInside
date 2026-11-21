@@ -15,7 +15,6 @@
 //
 
 #import <AppKit/AppKit.h>
-#import "LookinDefines.h"
 #import "LookinCoreTypes.h"
 
 // The model classes are plain Swift (`@objc(OriginalName)`, LookinCoreImpl);

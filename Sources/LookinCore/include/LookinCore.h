@@ -1,9 +1,10 @@
 // Umbrella header of the LookinCore module.
 //
-// Only C declarations live here: the macros and port ranges, the exported
-// attribute identifier constants, the archived enums, the NSStringFrom*
-// prototypes the Swift `@_cdecl` functions export, and the runtime shim
-// (NSException catching, NSInvocation, @encode, ptrauth_strip). The model
+// Only C declarations live here: the exported attribute identifier
+// constants, the archived enums, the NSStringFrom* prototypes the Swift
+// `@_cdecl` functions export, and the runtime shim (NSException catching,
+// NSInvocation, @encode, ptrauth_strip). Versions, ports, request numbers,
+// parameter keys and error codes are Swift, in LookinCoreImpl/LookinDefines.swift. The model
 // classes and categories are plain Swift in LookinCoreImpl, declared with
 // `@objc(OriginalName)` and their original selectors, so archived class
 // names and Objective-C callers are unchanged.
@@ -19,7 +20,5 @@
 #import "LookinAttrType.h"
 #import "LookinCodingValueType.h"
 #import "LookinCoreTypes.h"
-#import "LookinDefines.h"
-#import "LookinHitTargetSize.h"
 #import "LookinRuntimeShim.h"
 #import "NSValue+Lookin.h"
