@@ -14,6 +14,12 @@
 
     public extension AttributeOptionNames {
         static let tables: [String: [AttributeOptionName]] = [
+            "CACornerMask": [
+                AttributeOptionName("minXMinYCorner", 0x1),
+                AttributeOptionName("maxXMinYCorner", 0x2),
+                AttributeOptionName("minXMaxYCorner", 0x4),
+                AttributeOptionName("maxXMaxYCorner", 0x8),
+            ],
             "NSAutoresizingMaskOptions": [
                 AttributeOptionName("notSizable", 0x0),
                 AttributeOptionName("minXMargin", 0x1),

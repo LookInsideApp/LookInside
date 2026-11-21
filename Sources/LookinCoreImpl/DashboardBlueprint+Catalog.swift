@@ -24,6 +24,7 @@
             layoutGroup,
             autoLayoutGroup,
             viewLayerGroup,
+            caLayerGroup,
             uiViewGroup,
             uiStackViewGroup,
             uiVisualEffectViewGroup,
@@ -214,6 +215,144 @@
             ]),
             BlueprintSection(LookinAttrSec_LayoutGuide_OwningView, title: "OwningView", attributes: [
                 BlueprintAttribute(LookinAttr_LayoutGuide_OwningView_OwningView, AttributeInfo(className: layoutGuideClassName, fullTitle: "OwningView", getterString: "lks_owningViewDescription", setterString: "", typeIfObj: .nsString, hideIfNil: true)),
+            ]),
+        ])
+
+        static let caLayerGroup = BlueprintGroup(LookinAttrGroup_CALayer, title: "CALayer", on: .all, sections: [
+            BlueprintSection(LookinAttrSec_CALayer_ZPosition, title: "ZPosition", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ZPosition_ZPosition, AttributeInfo(className: "CALayer", fullTitle: "ZPosition", getterString: "zPosition", setterString: "setZPosition:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_AnchorPointZ, title: "AnchorPointZ", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_AnchorPointZ_AnchorPointZ, AttributeInfo(className: "CALayer", fullTitle: "AnchorPointZ", getterString: "anchorPointZ", setterString: "setAnchorPointZ:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_Transform, title: "Transform", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_Transform_Transform, AttributeInfo(className: "CALayer", fullTitle: "Transform", getterString: "transform", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_DoubleSided, AttributeInfo(className: "CALayer", fullTitle: "DoubleSided", getterString: "isDoubleSided", setterString: "setDoubleSided:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_GeometryFlipped, AttributeInfo(className: "CALayer", fullTitle: "GeometryFlipped", getterString: "isGeometryFlipped", setterString: "setGeometryFlipped:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_Opaque, AttributeInfo(className: "CALayer", fullTitle: "Opaque", getterString: "isOpaque", setterString: "setOpaque:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_NeedsDisplayOnBoundsChange, AttributeInfo(className: "CALayer", fullTitle: "NeedsDisplayOnBoundsChange", getterString: "needsDisplayOnBoundsChange", setterString: "setNeedsDisplayOnBoundsChange:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_DrawsAsynchronously, AttributeInfo(className: "CALayer", fullTitle: "DrawsAsynchronously", getterString: "drawsAsynchronously", setterString: "setDrawsAsynchronously:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_AllowsEdgeAntialiasing, AttributeInfo(className: "CALayer", fullTitle: "AllowsEdgeAntialiasing", getterString: "allowsEdgeAntialiasing", setterString: "setAllowsEdgeAntialiasing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_AllowsGroupOpacity, AttributeInfo(className: "CALayer", fullTitle: "AllowsGroupOpacity", getterString: "allowsGroupOpacity", setterString: "setAllowsGroupOpacity:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_Behavior_ShouldRasterize, AttributeInfo(className: "CALayer", fullTitle: "ShouldRasterize", getterString: "shouldRasterize", setterString: "setShouldRasterize:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_SublayerTransform, title: "SublayerTransform", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_SublayerTransform_SublayerTransform, AttributeInfo(className: "CALayer", fullTitle: "SublayerTransform", getterString: "sublayerTransform", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ContentsRect, title: "ContentsRect", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ContentsRect_ContentsRect, AttributeInfo(className: "CALayer", fullTitle: "ContentsRect", getterString: "contentsRect", setterString: "setContentsRect:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ContentsGravity, title: "ContentsGravity", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ContentsGravity_ContentsGravity, AttributeInfo(className: "CALayer", fullTitle: "ContentsGravity", getterString: "contentsGravity", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ContentsScale, title: "ContentsScale", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ContentsScale_ContentsScale, AttributeInfo(className: "CALayer", fullTitle: "ContentsScale", getterString: "contentsScale", setterString: "setContentsScale:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ContentsCenter, title: "ContentsCenter", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ContentsCenter_ContentsCenter, AttributeInfo(className: "CALayer", fullTitle: "ContentsCenter", getterString: "contentsCenter", setterString: "setContentsCenter:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ContentsFormat, title: "ContentsFormat", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ContentsFormat_ContentsFormat, AttributeInfo(className: "CALayer", fullTitle: "ContentsFormat", getterString: "contentsFormat", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ToneMapMode, title: "ToneMapMode", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ToneMapMode_ToneMapMode, AttributeInfo(className: "CALayer", fullTitle: "ToneMapMode", getterString: "toneMapMode", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_PreferredDynamicRange, title: "PreferredDynamicRange", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_PreferredDynamicRange_PreferredDynamicRange, AttributeInfo(className: "CALayer", fullTitle: "PreferredDynamicRange", getterString: "preferredDynamicRange", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ContentsHeadroom, title: "ContentsHeadroom", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ContentsHeadroom_ContentsHeadroom, AttributeInfo(className: "CALayer", fullTitle: "ContentsHeadroom", getterString: "contentsHeadroom", setterString: "setContentsHeadroom:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_MinificationFilter, title: "MinificationFilter", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_MinificationFilter_MinificationFilter, AttributeInfo(className: "CALayer", fullTitle: "MinificationFilter", getterString: "minificationFilter", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_MagnificationFilter, title: "MagnificationFilter", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_MagnificationFilter_MagnificationFilter, AttributeInfo(className: "CALayer", fullTitle: "MagnificationFilter", getterString: "magnificationFilter", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_MinificationFilterBias, title: "MinificationFilterBias", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_MinificationFilterBias_MinificationFilterBias, AttributeInfo(className: "CALayer", fullTitle: "MinificationFilterBias", getterString: "minificationFilterBias", setterString: "setMinificationFilterBias:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_MaskedCorners, title: "MaskedCorners", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_MaskedCorners_MaskedCorners, AttributeInfo(className: "CALayer", fullTitle: "MaskedCorners", getterString: "maskedCorners", setterString: "", revision: 1, presentation: .optionNames("CACornerMask"))),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CornerCurve, title: "CornerCurve", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CornerCurve_CornerCurve, AttributeInfo(className: "CALayer", fullTitle: "CornerCurve", getterString: "cornerCurve", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_RasterizationScale, title: "RasterizationScale", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_RasterizationScale_RasterizationScale, AttributeInfo(className: "CALayer", fullTitle: "RasterizationScale", getterString: "rasterizationScale", setterString: "setRasterizationScale:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_ShadowPath, title: "ShadowPath", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_ShadowPath_ShadowPath, AttributeInfo(className: "CALayer", fullTitle: "ShadowPath", getterString: "shadowPath", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.path))),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_Name, title: "Name", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_Name_Name, AttributeInfo(className: "CALayer", fullTitle: "Name", getterString: "name", setterString: "setName:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_VisibleRect, title: "VisibleRect", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_VisibleRect_VisibleRect, AttributeInfo(className: "CALayer", fullTitle: "VisibleRect", getterString: "visibleRect", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CAShapeLayer, title: "CAShapeLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_Path, AttributeInfo(className: "CAShapeLayer", fullTitle: "Path", getterString: "path", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.path))),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_FillColor, AttributeInfo(className: "CAShapeLayer", fullTitle: "FillColor", getterString: "fillColor", setterString: "", revision: 1, presentation: .cgColor)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_FillRule, AttributeInfo(className: "CAShapeLayer", fullTitle: "FillRule", getterString: "fillRule", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_StrokeColor, AttributeInfo(className: "CAShapeLayer", fullTitle: "StrokeColor", getterString: "strokeColor", setterString: "", revision: 1, presentation: .cgColor)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_StrokeStart, AttributeInfo(className: "CAShapeLayer", fullTitle: "StrokeStart", getterString: "strokeStart", setterString: "setStrokeStart:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_StrokeEnd, AttributeInfo(className: "CAShapeLayer", fullTitle: "StrokeEnd", getterString: "strokeEnd", setterString: "setStrokeEnd:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_LineWidth, AttributeInfo(className: "CAShapeLayer", fullTitle: "LineWidth", getterString: "lineWidth", setterString: "setLineWidth:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_MiterLimit, AttributeInfo(className: "CAShapeLayer", fullTitle: "MiterLimit", getterString: "miterLimit", setterString: "setMiterLimit:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_LineCap, AttributeInfo(className: "CAShapeLayer", fullTitle: "LineCap", getterString: "lineCap", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_LineJoin, AttributeInfo(className: "CAShapeLayer", fullTitle: "LineJoin", getterString: "lineJoin", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_LineDashPhase, AttributeInfo(className: "CAShapeLayer", fullTitle: "LineDashPhase", getterString: "lineDashPhase", setterString: "setLineDashPhase:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAShapeLayer_LineDashPattern, AttributeInfo(className: "CAShapeLayer", fullTitle: "LineDashPattern", getterString: "lineDashPattern", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CAGradientLayer, title: "CAGradientLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CAGradientLayer_Colors, AttributeInfo(className: "CAGradientLayer", fullTitle: "Colors", getterString: "colors", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_CALayer_CAGradientLayer_Locations, AttributeInfo(className: "CAGradientLayer", fullTitle: "Locations", getterString: "locations", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_CALayer_CAGradientLayer_StartPoint, AttributeInfo(className: "CAGradientLayer", fullTitle: "StartPoint", getterString: "startPoint", setterString: "setStartPoint:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAGradientLayer_EndPoint, AttributeInfo(className: "CAGradientLayer", fullTitle: "EndPoint", getterString: "endPoint", setterString: "setEndPoint:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAGradientLayer_Type, AttributeInfo(className: "CAGradientLayer", fullTitle: "Type", getterString: "type", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CATextLayer, title: "CATextLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CATextLayer_FontSize, AttributeInfo(className: "CATextLayer", fullTitle: "FontSize", getterString: "fontSize", setterString: "setFontSize:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CATextLayer_ForegroundColor, AttributeInfo(className: "CATextLayer", fullTitle: "ForegroundColor", getterString: "foregroundColor", setterString: "", revision: 1, presentation: .cgColor)),
+                BlueprintAttribute(LookinAttr_CALayer_CATextLayer_Wrapped, AttributeInfo(className: "CATextLayer", fullTitle: "Wrapped", getterString: "isWrapped", setterString: "setWrapped:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CATextLayer_TruncationMode, AttributeInfo(className: "CATextLayer", fullTitle: "TruncationMode", getterString: "truncationMode", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CATextLayer_AlignmentMode, AttributeInfo(className: "CATextLayer", fullTitle: "AlignmentMode", getterString: "alignmentMode", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CATextLayer_AllowsFontSubpixelQuantization, AttributeInfo(className: "CATextLayer", fullTitle: "AllowsFontSubpixelQuantization", getterString: "allowsFontSubpixelQuantization", setterString: "setAllowsFontSubpixelQuantization:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CAReplicatorLayer, title: "CAReplicatorLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceCount, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceCount", getterString: "instanceCount", setterString: "setInstanceCount:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_PreservesDepth, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "PreservesDepth", getterString: "preservesDepth", setterString: "setPreservesDepth:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceDelay, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceDelay", getterString: "instanceDelay", setterString: "setInstanceDelay:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceTransform, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceTransform", getterString: "instanceTransform", setterString: "", revision: 1, presentation: .structure)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceColor, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceColor", getterString: "instanceColor", setterString: "", revision: 1, presentation: .cgColor)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceRedOffset, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceRedOffset", getterString: "instanceRedOffset", setterString: "setInstanceRedOffset:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceGreenOffset, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceGreenOffset", getterString: "instanceGreenOffset", setterString: "setInstanceGreenOffset:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceBlueOffset, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceBlueOffset", getterString: "instanceBlueOffset", setterString: "setInstanceBlueOffset:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAReplicatorLayer_InstanceAlphaOffset, AttributeInfo(className: "CAReplicatorLayer", fullTitle: "InstanceAlphaOffset", getterString: "instanceAlphaOffset", setterString: "setInstanceAlphaOffset:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CAEmitterLayer, title: "CAEmitterLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterCells, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterCells", getterString: "emitterCells", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_BirthRate, AttributeInfo(className: "CAEmitterLayer", fullTitle: "BirthRate", getterString: "birthRate", setterString: "setBirthRate:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_Lifetime, AttributeInfo(className: "CAEmitterLayer", fullTitle: "Lifetime", getterString: "lifetime", setterString: "setLifetime:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterPosition, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterPosition", getterString: "emitterPosition", setterString: "setEmitterPosition:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterZPosition, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterZPosition", getterString: "emitterZPosition", setterString: "setEmitterZPosition:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterSize, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterSize", getterString: "emitterSize", setterString: "setEmitterSize:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterDepth, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterDepth", getterString: "emitterDepth", setterString: "setEmitterDepth:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterShape, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterShape", getterString: "emitterShape", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_EmitterMode, AttributeInfo(className: "CAEmitterLayer", fullTitle: "EmitterMode", getterString: "emitterMode", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_RenderMode, AttributeInfo(className: "CAEmitterLayer", fullTitle: "RenderMode", getterString: "renderMode", setterString: "", typeIfObj: .nsString, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_PreservesDepth, AttributeInfo(className: "CAEmitterLayer", fullTitle: "PreservesDepth", getterString: "preservesDepth", setterString: "setPreservesDepth:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_Velocity, AttributeInfo(className: "CAEmitterLayer", fullTitle: "Velocity", getterString: "velocity", setterString: "setVelocity:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_Scale, AttributeInfo(className: "CAEmitterLayer", fullTitle: "Scale", getterString: "scale", setterString: "setScale:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_CALayer_CAEmitterLayer_Spin, AttributeInfo(className: "CAEmitterLayer", fullTitle: "Spin", getterString: "spin", setterString: "setSpin:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CAScrollLayer, title: "CAScrollLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CAScrollLayer_ScrollMode, AttributeInfo(className: "CAScrollLayer", fullTitle: "ScrollMode", getterString: "scrollMode", setterString: "", typeIfObj: .nsString, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_CALayer_CATiledLayer, title: "CATiledLayer", attributes: [
+                BlueprintAttribute(LookinAttr_CALayer_CATiledLayer_TileSize, AttributeInfo(className: "CATiledLayer", fullTitle: "TileSize", getterString: "tileSize", setterString: "setTileSize:", patch: true, revision: 1)),
             ]),
         ])
     }

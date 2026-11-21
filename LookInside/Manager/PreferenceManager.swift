@@ -1110,5 +1110,15 @@ final class PreferenceManager: NSObject {
         // NSWindow (added sections)
         LookinAttrSec_NSWindow_StyleMask,
         LookinAttrSec_NSWindow_FirstResponder,
+        // CALayer
+        LookinAttrSec_CALayer_Transform,
+        LookinAttrSec_CALayer_Behavior,
+        LookinAttrSec_CALayer_CAShapeLayer,
+        LookinAttrSec_CALayer_CAGradientLayer,
+        LookinAttrSec_CALayer_CATextLayer,
+        LookinAttrSec_CALayer_CAReplicatorLayer,
+        LookinAttrSec_CALayer_CAEmitterLayer,
+        LookinAttrSec_CALayer_CAScrollLayer,
+        LookinAttrSec_CALayer_CATiledLayer,
     ] as [NSString]).map { $0 as String })
 }
