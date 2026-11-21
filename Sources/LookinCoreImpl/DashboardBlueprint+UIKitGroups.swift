@@ -238,6 +238,13 @@
             BlueprintSection(LookinAttrSec_UITextField_ClearButtonMode, title: "ClearButtonMode", attributes: [
                 BlueprintAttribute(LookinAttr_UITextField_ClearButtonMode_Mode, AttributeInfo(className: "UITextField", fullTitle: "ClearButtonMode", enumList: "UITextFieldViewMode", patch: false)),
             ]),
+            BlueprintSection(LookinAttrSec_UITextField_UISearchTextField, title: "UISearchTextField", attributes: [
+                BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_Tokens, AttributeInfo(className: "UISearchTextField", fullTitle: "Tokens", getterString: "tokens", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_TokenBackgroundColor, AttributeInfo(className: "UISearchTextField", fullTitle: "TokenBackgroundColor", getterString: "tokenBackgroundColor", setterString: "setTokenBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_AllowsDeletingTokens, AttributeInfo(className: "UISearchTextField", fullTitle: "AllowsDeletingTokens", getterString: "allowsDeletingTokens", setterString: "setAllowsDeletingTokens:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_AllowsCopyingTokens, AttributeInfo(className: "UISearchTextField", fullTitle: "AllowsCopyingTokens", getterString: "allowsCopyingTokens", setterString: "setAllowsCopyingTokens:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITextField_UISearchTextField_SearchSuggestions, AttributeInfo(className: "UISearchTextField", fullTitle: "SearchSuggestions", getterString: "searchSuggestions", setterString: "", revision: 1, presentation: .count)),
+            ]),
         ])
 
         static let uiWindowSceneGroup = BlueprintGroup(LookinAttrGroup_UIWindowScene, title: "UIWindowScene", on: .uiKit, sections: [
@@ -607,6 +614,285 @@
         static let uiPasteControlGroup = BlueprintGroup(LookinAttrGroup_UIPasteControl, title: "UIPasteControl", on: .uiKit, sections: [
             BlueprintSection(LookinAttrSec_UIPasteControl_Configuration, title: "Configuration", attributes: [
                 BlueprintAttribute(LookinAttr_UIPasteControl_Configuration_Configuration, AttributeInfo(className: "UIPasteControl", fullTitle: "Configuration", getterString: "configuration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
+            ]),
+        ])
+
+        static let uiCollectionViewGroup = BlueprintGroup(LookinAttrGroup_UICollectionView, title: "UICollectionView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UICollectionView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_PrefetchingEnabled, AttributeInfo(className: "UICollectionView", fullTitle: "PrefetchingEnabled", getterString: "isPrefetchingEnabled", setterString: "setPrefetchingEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_DragInteractionEnabled, AttributeInfo(className: "UICollectionView", fullTitle: "DragInteractionEnabled", getterString: "dragInteractionEnabled", setterString: "setDragInteractionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_AllowsSelection, AttributeInfo(className: "UICollectionView", fullTitle: "AllowsSelection", getterString: "allowsSelection", setterString: "setAllowsSelection:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_AllowsMultipleSelection, AttributeInfo(className: "UICollectionView", fullTitle: "AllowsMultipleSelection", getterString: "allowsMultipleSelection", setterString: "setAllowsMultipleSelection:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_HasUncommittedUpdates, AttributeInfo(className: "UICollectionView", fullTitle: "HasUncommittedUpdates", getterString: "hasUncommittedUpdates", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_RemembersLastFocusedIndexPath, AttributeInfo(className: "UICollectionView", fullTitle: "RemembersLastFocusedIndexPath", getterString: "remembersLastFocusedIndexPath", setterString: "setRemembersLastFocusedIndexPath:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_SelectionFollowsFocus, AttributeInfo(className: "UICollectionView", fullTitle: "SelectionFollowsFocus", getterString: "selectionFollowsFocus", setterString: "setSelectionFollowsFocus:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_AllowsFocus, AttributeInfo(className: "UICollectionView", fullTitle: "AllowsFocus", getterString: "allowsFocus", setterString: "setAllowsFocus:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_AllowsFocusDuringEditing, AttributeInfo(className: "UICollectionView", fullTitle: "AllowsFocusDuringEditing", getterString: "allowsFocusDuringEditing", setterString: "setAllowsFocusDuringEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_HasActiveDrag, AttributeInfo(className: "UICollectionView", fullTitle: "HasActiveDrag", getterString: "hasActiveDrag", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_HasActiveDrop, AttributeInfo(className: "UICollectionView", fullTitle: "HasActiveDrop", getterString: "hasActiveDrop", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_Editing, AttributeInfo(className: "UICollectionView", fullTitle: "Editing", getterString: "isEditing", setterString: "setEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_AllowsSelectionDuringEditing, AttributeInfo(className: "UICollectionView", fullTitle: "AllowsSelectionDuringEditing", getterString: "allowsSelectionDuringEditing", setterString: "setAllowsSelectionDuringEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionView_Behavior_AllowsMultipleSelectionDuringEditing, AttributeInfo(className: "UICollectionView", fullTitle: "AllowsMultipleSelectionDuringEditing", getterString: "allowsMultipleSelectionDuringEditing", setterString: "setAllowsMultipleSelectionDuringEditing:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICollectionView_ReorderingCadence, title: "ReorderingCadence", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionView_ReorderingCadence_ReorderingCadence, AttributeInfo(className: "UICollectionView", fullTitle: "ReorderingCadence", getterString: "reorderingCadence", setterString: "setReorderingCadence:", enumList: "UICollectionViewReorderingCadence", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICollectionView_SelfSizingInvalidation, title: "SelfSizingInvalidation", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionView_SelfSizingInvalidation_SelfSizingInvalidation, AttributeInfo(className: "UICollectionView", fullTitle: "SelfSizingInvalidation", getterString: "selfSizingInvalidation", setterString: "setSelfSizingInvalidation:", enumList: "UICollectionViewSelfSizingInvalidation", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICollectionView_IndexPathsForSelectedItems, title: "IndexPathsForSelectedItems", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionView_IndexPathsForSelectedItems_IndexPathsForSelectedItems, AttributeInfo(className: "UICollectionView", fullTitle: "IndexPathsForSelectedItems", getterString: "indexPathsForSelectedItems", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICollectionView_NumberOfSections, title: "NumberOfSections", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionView_NumberOfSections_NumberOfSections, AttributeInfo(className: "UICollectionView", fullTitle: "NumberOfSections", getterString: "numberOfSections", setterString: "", revision: 1)),
+            ]),
+        ])
+
+
+        static let uiCollectionReusableViewGroup = BlueprintGroup(LookinAttrGroup_UICollectionReusableView, title: "UICollectionReusableView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UICollectionReusableView_ReuseIdentifier, title: "ReuseIdentifier", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_ReuseIdentifier_ReuseIdentifier, AttributeInfo(className: "UICollectionReusableView", fullTitle: "ReuseIdentifier", getterString: "reuseIdentifier", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICollectionReusableView_UICollectionViewCell, title: "UICollectionViewCell", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewCell_AutomaticallyUpdatesContentConfiguration, AttributeInfo(className: "UICollectionViewCell", fullTitle: "AutomaticallyUpdatesContentConfiguration", getterString: "automaticallyUpdatesContentConfiguration", setterString: "setAutomaticallyUpdatesContentConfiguration:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewCell_Selected, AttributeInfo(className: "UICollectionViewCell", fullTitle: "Selected", getterString: "isSelected", setterString: "setSelected:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewCell_Highlighted, AttributeInfo(className: "UICollectionViewCell", fullTitle: "Highlighted", getterString: "isHighlighted", setterString: "setHighlighted:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewCell_BackgroundConfiguration, AttributeInfo(className: "UICollectionViewCell", fullTitle: "BackgroundConfiguration", getterString: "backgroundConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewCell_AutomaticallyUpdatesBackgroundConfiguration, AttributeInfo(className: "UICollectionViewCell", fullTitle: "AutomaticallyUpdatesBackgroundConfiguration", getterString: "automaticallyUpdatesBackgroundConfiguration", setterString: "setAutomaticallyUpdatesBackgroundConfiguration:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UICollectionReusableView_UICollectionViewListCell, title: "UICollectionViewListCell", attributes: [
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewListCell_IndentationLevel, AttributeInfo(className: "UICollectionViewListCell", fullTitle: "IndentationLevel", getterString: "indentationLevel", setterString: "setIndentationLevel:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewListCell_IndentationWidth, AttributeInfo(className: "UICollectionViewListCell", fullTitle: "IndentationWidth", getterString: "indentationWidth", setterString: "setIndentationWidth:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewListCell_IndentsAccessories, AttributeInfo(className: "UICollectionViewListCell", fullTitle: "IndentsAccessories", getterString: "indentsAccessories", setterString: "setIndentsAccessories:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UICollectionReusableView_UICollectionViewListCell_Accessories, AttributeInfo(className: "UICollectionViewListCell", fullTitle: "Accessories", getterString: "accessories", setterString: "", revision: 1, presentation: .count)),
+            ]),
+        ])
+
+
+        static let uiTableViewCellGroup = BlueprintGroup(LookinAttrGroup_UITableViewCell, title: "UITableViewCell", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UITableViewCell_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_AutomaticallyUpdatesContentConfiguration, AttributeInfo(className: "UITableViewCell", fullTitle: "AutomaticallyUpdatesContentConfiguration", getterString: "automaticallyUpdatesContentConfiguration", setterString: "setAutomaticallyUpdatesContentConfiguration:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_AutomaticallyUpdatesBackgroundConfiguration, AttributeInfo(className: "UITableViewCell", fullTitle: "AutomaticallyUpdatesBackgroundConfiguration", getterString: "automaticallyUpdatesBackgroundConfiguration", setterString: "setAutomaticallyUpdatesBackgroundConfiguration:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_Selected, AttributeInfo(className: "UITableViewCell", fullTitle: "Selected", getterString: "isSelected", setterString: "setSelected:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_Highlighted, AttributeInfo(className: "UITableViewCell", fullTitle: "Highlighted", getterString: "isHighlighted", setterString: "setHighlighted:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_ShowsReorderControl, AttributeInfo(className: "UITableViewCell", fullTitle: "ShowsReorderControl", getterString: "showsReorderControl", setterString: "setShowsReorderControl:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_ShouldIndentWhileEditing, AttributeInfo(className: "UITableViewCell", fullTitle: "ShouldIndentWhileEditing", getterString: "shouldIndentWhileEditing", setterString: "setShouldIndentWhileEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_Editing, AttributeInfo(className: "UITableViewCell", fullTitle: "Editing", getterString: "isEditing", setterString: "setEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_ShowingDeleteConfirmation, AttributeInfo(className: "UITableViewCell", fullTitle: "ShowingDeleteConfirmation", getterString: "showingDeleteConfirmation", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewCell_Behavior_UserInteractionEnabledWhileDragging, AttributeInfo(className: "UITableViewCell", fullTitle: "UserInteractionEnabledWhileDragging", getterString: "userInteractionEnabledWhileDragging", setterString: "setUserInteractionEnabledWhileDragging:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_BackgroundConfiguration, title: "BackgroundConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_BackgroundConfiguration_BackgroundConfiguration, AttributeInfo(className: "UITableViewCell", fullTitle: "BackgroundConfiguration", getterString: "backgroundConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_ReuseIdentifier, title: "ReuseIdentifier", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_ReuseIdentifier_ReuseIdentifier, AttributeInfo(className: "UITableViewCell", fullTitle: "ReuseIdentifier", getterString: "reuseIdentifier", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_SelectionStyle, title: "SelectionStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_SelectionStyle_SelectionStyle, AttributeInfo(className: "UITableViewCell", fullTitle: "SelectionStyle", getterString: "selectionStyle", setterString: "setSelectionStyle:", enumList: "UITableViewCellSelectionStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_EditingStyle, title: "EditingStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_EditingStyle_EditingStyle, AttributeInfo(className: "UITableViewCell", fullTitle: "EditingStyle", getterString: "editingStyle", setterString: "", enumList: "UITableViewCellEditingStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_AccessoryType, title: "AccessoryType", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_AccessoryType_AccessoryType, AttributeInfo(className: "UITableViewCell", fullTitle: "AccessoryType", getterString: "accessoryType", setterString: "setAccessoryType:", enumList: "UITableViewCellAccessoryType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_EditingAccessoryType, title: "EditingAccessoryType", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_EditingAccessoryType_EditingAccessoryType, AttributeInfo(className: "UITableViewCell", fullTitle: "EditingAccessoryType", getterString: "editingAccessoryType", setterString: "setEditingAccessoryType:", enumList: "UITableViewCellAccessoryType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_IndentationLevel, title: "IndentationLevel", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_IndentationLevel_IndentationLevel, AttributeInfo(className: "UITableViewCell", fullTitle: "IndentationLevel", getterString: "indentationLevel", setterString: "setIndentationLevel:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_IndentationWidth, title: "IndentationWidth", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_IndentationWidth_IndentationWidth, AttributeInfo(className: "UITableViewCell", fullTitle: "IndentationWidth", getterString: "indentationWidth", setterString: "setIndentationWidth:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_SeparatorInset, title: "SeparatorInset", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_SeparatorInset_SeparatorInset, AttributeInfo(className: "UITableViewCell", fullTitle: "SeparatorInset", getterString: "separatorInset", setterString: "setSeparatorInset:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewCell_FocusStyle, title: "FocusStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewCell_FocusStyle_FocusStyle, AttributeInfo(className: "UITableViewCell", fullTitle: "FocusStyle", getterString: "focusStyle", setterString: "setFocusStyle:", enumList: "UITableViewCellFocusStyle", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiTableViewHeaderFooterViewGroup = BlueprintGroup(LookinAttrGroup_UITableViewHeaderFooterView, title: "UITableViewHeaderFooterView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UITableViewHeaderFooterView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewHeaderFooterView_Behavior_AutomaticallyUpdatesContentConfiguration, AttributeInfo(className: "UITableViewHeaderFooterView", fullTitle: "AutomaticallyUpdatesContentConfiguration", getterString: "automaticallyUpdatesContentConfiguration", setterString: "setAutomaticallyUpdatesContentConfiguration:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITableViewHeaderFooterView_Behavior_AutomaticallyUpdatesBackgroundConfiguration, AttributeInfo(className: "UITableViewHeaderFooterView", fullTitle: "AutomaticallyUpdatesBackgroundConfiguration", getterString: "automaticallyUpdatesBackgroundConfiguration", setterString: "setAutomaticallyUpdatesBackgroundConfiguration:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewHeaderFooterView_BackgroundConfiguration, title: "BackgroundConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewHeaderFooterView_BackgroundConfiguration_BackgroundConfiguration, AttributeInfo(className: "UITableViewHeaderFooterView", fullTitle: "BackgroundConfiguration", getterString: "backgroundConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITableViewHeaderFooterView_ReuseIdentifier, title: "ReuseIdentifier", attributes: [
+                BlueprintAttribute(LookinAttr_UITableViewHeaderFooterView_ReuseIdentifier_ReuseIdentifier, AttributeInfo(className: "UITableViewHeaderFooterView", fullTitle: "ReuseIdentifier", getterString: "reuseIdentifier", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiNavigationBarGroup = BlueprintGroup(LookinAttrGroup_UINavigationBar, title: "UINavigationBar", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UINavigationBar_BarStyle, title: "BarStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_BarStyle_BarStyle, AttributeInfo(className: "UINavigationBar", fullTitle: "BarStyle", getterString: "barStyle", setterString: "setBarStyle:", enumList: "UIBarStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_Behavior_Translucent, AttributeInfo(className: "UINavigationBar", fullTitle: "Translucent", getterString: "isTranslucent", setterString: "setTranslucent:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UINavigationBar_Behavior_PrefersLargeTitles, AttributeInfo(className: "UINavigationBar", fullTitle: "PrefersLargeTitles", getterString: "prefersLargeTitles", setterString: "setPrefersLargeTitles:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_TopItem, title: "TopItem", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_TopItem_TopItem, AttributeInfo(className: "UINavigationBar", fullTitle: "TopItem", getterString: "topItem", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.navigationItem))),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_BackItem, title: "BackItem", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_BackItem_BackItem, AttributeInfo(className: "UINavigationBar", fullTitle: "BackItem", getterString: "backItem", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.navigationItem))),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_CurrentNSToolbarSection, title: "CurrentNSToolbarSection", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_CurrentNSToolbarSection_CurrentNSToolbarSection, AttributeInfo(className: "UINavigationBar", fullTitle: "CurrentNSToolbarSection", getterString: "currentNSToolbarSection", setterString: "", enumList: "UINavigationBarNSToolbarSection", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_BehavioralStyle, title: "BehavioralStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_BehavioralStyle_BehavioralStyle, AttributeInfo(className: "UINavigationBar", fullTitle: "BehavioralStyle", getterString: "behavioralStyle", setterString: "", enumList: "UIBehavioralStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_PreferredBehavioralStyle, title: "PreferredBehavioralStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_PreferredBehavioralStyle_PreferredBehavioralStyle, AttributeInfo(className: "UINavigationBar", fullTitle: "PreferredBehavioralStyle", getterString: "preferredBehavioralStyle", setterString: "setPreferredBehavioralStyle:", enumList: "UIBehavioralStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_BarTintColor, title: "BarTintColor", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_BarTintColor_BarTintColor, AttributeInfo(className: "UINavigationBar", fullTitle: "BarTintColor", getterString: "barTintColor", setterString: "setBarTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UINavigationBar_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UINavigationBar_Images_ShadowImage, AttributeInfo(className: "UINavigationBar", fullTitle: "ShadowImage", getterString: "shadowImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UINavigationBar_Images_BackIndicatorImage, AttributeInfo(className: "UINavigationBar", fullTitle: "BackIndicatorImage", getterString: "backIndicatorImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UINavigationBar_Images_BackIndicatorTransitionMaskImage, AttributeInfo(className: "UINavigationBar", fullTitle: "BackIndicatorTransitionMaskImage", getterString: "backIndicatorTransitionMaskImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+        ])
+
+
+        static let uiTabBarGroup = BlueprintGroup(LookinAttrGroup_UITabBar, title: "UITabBar", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UITabBar_SelectedItem, title: "SelectedItem", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_SelectedItem_SelectedItem, AttributeInfo(className: "UITabBar", fullTitle: "SelectedItem", getterString: "selectedItem", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.barItem))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_Behavior_Customizing, AttributeInfo(className: "UITabBar", fullTitle: "Customizing", getterString: "isCustomizing", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UITabBar_Behavior_Translucent, AttributeInfo(className: "UITabBar", fullTitle: "Translucent", getterString: "isTranslucent", setterString: "setTranslucent:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_Colors_BarTintColor, AttributeInfo(className: "UITabBar", fullTitle: "BarTintColor", getterString: "barTintColor", setterString: "setBarTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UITabBar_Colors_UnselectedItemTintColor, AttributeInfo(className: "UITabBar", fullTitle: "UnselectedItemTintColor", getterString: "unselectedItemTintColor", setterString: "setUnselectedItemTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_Images_BackgroundImage, AttributeInfo(className: "UITabBar", fullTitle: "BackgroundImage", getterString: "backgroundImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UITabBar_Images_SelectionIndicatorImage, AttributeInfo(className: "UITabBar", fullTitle: "SelectionIndicatorImage", getterString: "selectionIndicatorImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UITabBar_Images_ShadowImage, AttributeInfo(className: "UITabBar", fullTitle: "ShadowImage", getterString: "shadowImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_ItemPositioning, title: "ItemPositioning", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_ItemPositioning_ItemPositioning, AttributeInfo(className: "UITabBar", fullTitle: "ItemPositioning", getterString: "itemPositioning", setterString: "setItemPositioning:", enumList: "UITabBarItemPositioning", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_ItemWidth, title: "ItemWidth", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_ItemWidth_ItemWidth, AttributeInfo(className: "UITabBar", fullTitle: "ItemWidth", getterString: "itemWidth", setterString: "setItemWidth:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_ItemSpacing, title: "ItemSpacing", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_ItemSpacing_ItemSpacing, AttributeInfo(className: "UITabBar", fullTitle: "ItemSpacing", getterString: "itemSpacing", setterString: "setItemSpacing:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UITabBar_BarStyle, title: "BarStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UITabBar_BarStyle_BarStyle, AttributeInfo(className: "UITabBar", fullTitle: "BarStyle", getterString: "barStyle", setterString: "setBarStyle:", enumList: "UIBarStyle", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiToolbarGroup = BlueprintGroup(LookinAttrGroup_UIToolbar, title: "UIToolbar", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIToolbar_BarStyle, title: "BarStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIToolbar_BarStyle_BarStyle, AttributeInfo(className: "UIToolbar", fullTitle: "BarStyle", getterString: "barStyle", setterString: "setBarStyle:", enumList: "UIBarStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIToolbar_Translucent, title: "Translucent", attributes: [
+                BlueprintAttribute(LookinAttr_UIToolbar_Translucent_Translucent, AttributeInfo(className: "UIToolbar", fullTitle: "Translucent", getterString: "isTranslucent", setterString: "setTranslucent:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIToolbar_BarTintColor, title: "BarTintColor", attributes: [
+                BlueprintAttribute(LookinAttr_UIToolbar_BarTintColor_BarTintColor, AttributeInfo(className: "UIToolbar", fullTitle: "BarTintColor", getterString: "barTintColor", setterString: "setBarTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiSearchBarGroup = BlueprintGroup(LookinAttrGroup_UISearchBar, title: "UISearchBar", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UISearchBar_BarStyle, title: "BarStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_BarStyle_BarStyle, AttributeInfo(className: "UISearchBar", fullTitle: "BarStyle", getterString: "barStyle", setterString: "setBarStyle:", enumList: "UIBarStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_Text, title: "Text", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_Text_Text, AttributeInfo(className: "UISearchBar", fullTitle: "Text", getterString: "text", setterString: "setText:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_Prompt, title: "Prompt", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_Prompt_Prompt, AttributeInfo(className: "UISearchBar", fullTitle: "Prompt", getterString: "prompt", setterString: "setPrompt:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_Placeholder, title: "Placeholder", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_Placeholder_Placeholder, AttributeInfo(className: "UISearchBar", fullTitle: "Placeholder", getterString: "placeholder", setterString: "setPlaceholder:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_ShowsBookmarkButton, AttributeInfo(className: "UISearchBar", fullTitle: "ShowsBookmarkButton", getterString: "showsBookmarkButton", setterString: "setShowsBookmarkButton:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_ShowsCancelButton, AttributeInfo(className: "UISearchBar", fullTitle: "ShowsCancelButton", getterString: "showsCancelButton", setterString: "setShowsCancelButton:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_ShowsSearchResultsButton, AttributeInfo(className: "UISearchBar", fullTitle: "ShowsSearchResultsButton", getterString: "showsSearchResultsButton", setterString: "setShowsSearchResultsButton:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_SearchResultsButtonSelected, AttributeInfo(className: "UISearchBar", fullTitle: "SearchResultsButtonSelected", getterString: "isSearchResultsButtonSelected", setterString: "setSearchResultsButtonSelected:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_Translucent, AttributeInfo(className: "UISearchBar", fullTitle: "Translucent", getterString: "isTranslucent", setterString: "setTranslucent:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_ShowsScopeBar, AttributeInfo(className: "UISearchBar", fullTitle: "ShowsScopeBar", getterString: "showsScopeBar", setterString: "setShowsScopeBar:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_Enabled, AttributeInfo(className: "UISearchBar", fullTitle: "Enabled", getterString: "isEnabled", setterString: "setEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UISearchBar_Behavior_LookToDictateEnabled, AttributeInfo(className: "UISearchBar", fullTitle: "LookToDictateEnabled", getterString: "isLookToDictateEnabled", setterString: "setLookToDictateEnabled:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_BarTintColor, title: "BarTintColor", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_BarTintColor_BarTintColor, AttributeInfo(className: "UISearchBar", fullTitle: "BarTintColor", getterString: "barTintColor", setterString: "setBarTintColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_SearchBarStyle, title: "SearchBarStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_SearchBarStyle_SearchBarStyle, AttributeInfo(className: "UISearchBar", fullTitle: "SearchBarStyle", getterString: "searchBarStyle", setterString: "setSearchBarStyle:", enumList: "UISearchBarStyle", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_ScopeButtonTitles, title: "ScopeButtonTitles", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_ScopeButtonTitles_ScopeButtonTitles, AttributeInfo(className: "UISearchBar", fullTitle: "ScopeButtonTitles", getterString: "scopeButtonTitles", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_SelectedScopeButtonIndex, title: "SelectedScopeButtonIndex", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_SelectedScopeButtonIndex_SelectedScopeButtonIndex, AttributeInfo(className: "UISearchBar", fullTitle: "SelectedScopeButtonIndex", getterString: "selectedScopeButtonIndex", setterString: "setSelectedScopeButtonIndex:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_Images_BackgroundImage, AttributeInfo(className: "UISearchBar", fullTitle: "BackgroundImage", getterString: "backgroundImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_UISearchBar_Images_ScopeBarBackgroundImage, AttributeInfo(className: "UISearchBar", fullTitle: "ScopeBarBackgroundImage", getterString: "scopeBarBackgroundImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_SearchFieldBackgroundPositionAdjustment, title: "SearchFieldBackgroundPositionAdjustment", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_SearchFieldBackgroundPositionAdjustment_SearchFieldBackgroundPositionAdjustment, AttributeInfo(className: "UISearchBar", fullTitle: "SearchFieldBackgroundPositionAdjustment", getterString: "searchFieldBackgroundPositionAdjustment", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+            BlueprintSection(LookinAttrSec_UISearchBar_SearchTextPositionAdjustment, title: "SearchTextPositionAdjustment", attributes: [
+                BlueprintAttribute(LookinAttr_UISearchBar_SearchTextPositionAdjustment_SearchTextPositionAdjustment, AttributeInfo(className: "UISearchBar", fullTitle: "SearchTextPositionAdjustment", getterString: "searchTextPositionAdjustment", setterString: "", revision: 1, presentation: .structure)),
+            ]),
+        ])
+
+
+        static let uiInputViewGroup = BlueprintGroup(LookinAttrGroup_UIInputView, title: "UIInputView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIInputView_InputViewStyle, title: "InputViewStyle", attributes: [
+                BlueprintAttribute(LookinAttr_UIInputView_InputViewStyle_InputViewStyle, AttributeInfo(className: "UIInputView", fullTitle: "InputViewStyle", getterString: "inputViewStyle", setterString: "", enumList: "UIInputViewStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIInputView_AllowsSelfSizing, title: "AllowsSelfSizing", attributes: [
+                BlueprintAttribute(LookinAttr_UIInputView_AllowsSelfSizing_AllowsSelfSizing, AttributeInfo(className: "UIInputView", fullTitle: "AllowsSelfSizing", getterString: "allowsSelfSizing", setterString: "setAllowsSelfSizing:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiContentUnavailableViewGroup = BlueprintGroup(LookinAttrGroup_UIContentUnavailableView, title: "UIContentUnavailableView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIContentUnavailableView_Configuration, title: "Configuration", attributes: [
+                BlueprintAttribute(LookinAttr_UIContentUnavailableView_Configuration_Configuration, AttributeInfo(className: "UIContentUnavailableView", fullTitle: "Configuration", getterString: "configuration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.configuration))),
+            ]),
+            BlueprintSection(LookinAttrSec_UIContentUnavailableView_ScrollEnabled, title: "ScrollEnabled", attributes: [
+                BlueprintAttribute(LookinAttr_UIContentUnavailableView_ScrollEnabled_ScrollEnabled, AttributeInfo(className: "UIContentUnavailableView", fullTitle: "ScrollEnabled", getterString: "isScrollEnabled", setterString: "setScrollEnabled:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiBackgroundExtensionViewGroup = BlueprintGroup(LookinAttrGroup_UIBackgroundExtensionView, title: "UIBackgroundExtensionView", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIBackgroundExtensionView_AutomaticallyPlacesContentView, title: "AutomaticallyPlacesContentView", attributes: [
+                BlueprintAttribute(LookinAttr_UIBackgroundExtensionView_AutomaticallyPlacesContentView_AutomaticallyPlacesContentView, AttributeInfo(className: "UIBackgroundExtensionView", fullTitle: "AutomaticallyPlacesContentView", getterString: "automaticallyPlacesContentView", setterString: "setAutomaticallyPlacesContentView:", patch: true, revision: 1)),
+            ]),
+        ])
+
+
+        static let uiWindowGroup = BlueprintGroup(LookinAttrGroup_UIWindow, title: "UIWindow", on: .uiKit, sections: [
+            BlueprintSection(LookinAttrSec_UIWindow_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_UIWindow_Behavior_CanResizeToFitContent, AttributeInfo(className: "UIWindow", fullTitle: "CanResizeToFitContent", getterString: "canResizeToFitContent", setterString: "setCanResizeToFitContent:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_UIWindow_Behavior_KeyWindow, AttributeInfo(className: "UIWindow", fullTitle: "KeyWindow", getterString: "isKeyWindow", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_UIWindow_Behavior_CanBecomeKeyWindow, AttributeInfo(className: "UIWindow", fullTitle: "CanBecomeKeyWindow", getterString: "canBecomeKeyWindow", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIWindow_WindowLevel, title: "WindowLevel", attributes: [
+                BlueprintAttribute(LookinAttr_UIWindow_WindowLevel_WindowLevel, AttributeInfo(className: "UIWindow", fullTitle: "WindowLevel", getterString: "windowLevel", setterString: "setWindowLevel:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_UIWindow_RootViewController, title: "RootViewController", attributes: [
+                BlueprintAttribute(LookinAttr_UIWindow_RootViewController_RootViewController, AttributeInfo(className: "UIWindow", fullTitle: "RootViewController", getterString: "rootViewController", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
             ]),
         ])
     }

@@ -344,6 +344,18 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             LookinAttrGroup_UIPickerView: "dashboard_picker",
             LookinAttrGroup_UICalendarView: "dashboard_datepicker",
             LookinAttrGroup_UIPasteControl: "dashboard_button",
+            LookinAttrGroup_UICollectionView: "dashboard_collectionview",
+            LookinAttrGroup_UICollectionReusableView: "dashboard_cell",
+            LookinAttrGroup_UITableViewCell: "dashboard_cell",
+            LookinAttrGroup_UITableViewHeaderFooterView: "dashboard_cell",
+            LookinAttrGroup_UINavigationBar: "dashboard_navigationbar",
+            LookinAttrGroup_UITabBar: "dashboard_tabbar",
+            LookinAttrGroup_UIToolbar: "dashboard_toolbar",
+            LookinAttrGroup_UISearchBar: "dashboard_searchfield",
+            LookinAttrGroup_UIInputView: "dashboard_view",
+            LookinAttrGroup_UIContentUnavailableView: "dashboard_view",
+            LookinAttrGroup_UIBackgroundExtensionView: "dashboard_effectview",
+            LookinAttrGroup_UIWindow: "dashboard_window",
             LookinAttrGroup_UserCustom: "dashboard_custom",
         ]
         #if DEBUG

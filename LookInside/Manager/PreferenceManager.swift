@@ -902,5 +902,79 @@ final class PreferenceManager: NSObject {
         LookinAttrSec_UIPasteControl_Configuration,
         // UIControl (added sections)
         LookinAttrSec_UIControl_Behavior,
+        // UICollectionView
+        LookinAttrSec_UICollectionView_Behavior,
+        LookinAttrSec_UICollectionView_ReorderingCadence,
+        LookinAttrSec_UICollectionView_SelfSizingInvalidation,
+        LookinAttrSec_UICollectionView_IndexPathsForSelectedItems,
+        LookinAttrSec_UICollectionView_NumberOfSections,
+        // UICollectionReusableView
+        LookinAttrSec_UICollectionReusableView_ReuseIdentifier,
+        LookinAttrSec_UICollectionReusableView_UICollectionViewCell,
+        LookinAttrSec_UICollectionReusableView_UICollectionViewListCell,
+        // UITableViewCell
+        LookinAttrSec_UITableViewCell_Behavior,
+        LookinAttrSec_UITableViewCell_BackgroundConfiguration,
+        LookinAttrSec_UITableViewCell_ReuseIdentifier,
+        LookinAttrSec_UITableViewCell_SelectionStyle,
+        LookinAttrSec_UITableViewCell_EditingStyle,
+        LookinAttrSec_UITableViewCell_AccessoryType,
+        LookinAttrSec_UITableViewCell_EditingAccessoryType,
+        LookinAttrSec_UITableViewCell_IndentationLevel,
+        LookinAttrSec_UITableViewCell_IndentationWidth,
+        LookinAttrSec_UITableViewCell_SeparatorInset,
+        LookinAttrSec_UITableViewCell_FocusStyle,
+        // UITableViewHeaderFooterView
+        LookinAttrSec_UITableViewHeaderFooterView_Behavior,
+        LookinAttrSec_UITableViewHeaderFooterView_BackgroundConfiguration,
+        LookinAttrSec_UITableViewHeaderFooterView_ReuseIdentifier,
+        // UINavigationBar
+        LookinAttrSec_UINavigationBar_BarStyle,
+        LookinAttrSec_UINavigationBar_Behavior,
+        LookinAttrSec_UINavigationBar_TopItem,
+        LookinAttrSec_UINavigationBar_BackItem,
+        LookinAttrSec_UINavigationBar_CurrentNSToolbarSection,
+        LookinAttrSec_UINavigationBar_BehavioralStyle,
+        LookinAttrSec_UINavigationBar_PreferredBehavioralStyle,
+        LookinAttrSec_UINavigationBar_BarTintColor,
+        LookinAttrSec_UINavigationBar_Images,
+        // UITabBar
+        LookinAttrSec_UITabBar_SelectedItem,
+        LookinAttrSec_UITabBar_Behavior,
+        LookinAttrSec_UITabBar_Colors,
+        LookinAttrSec_UITabBar_Images,
+        LookinAttrSec_UITabBar_ItemPositioning,
+        LookinAttrSec_UITabBar_ItemWidth,
+        LookinAttrSec_UITabBar_ItemSpacing,
+        LookinAttrSec_UITabBar_BarStyle,
+        // UIToolbar
+        LookinAttrSec_UIToolbar_BarStyle,
+        LookinAttrSec_UIToolbar_Translucent,
+        LookinAttrSec_UIToolbar_BarTintColor,
+        // UISearchBar
+        LookinAttrSec_UISearchBar_BarStyle,
+        LookinAttrSec_UISearchBar_Text,
+        LookinAttrSec_UISearchBar_Prompt,
+        LookinAttrSec_UISearchBar_Placeholder,
+        LookinAttrSec_UISearchBar_Behavior,
+        LookinAttrSec_UISearchBar_BarTintColor,
+        LookinAttrSec_UISearchBar_SearchBarStyle,
+        LookinAttrSec_UISearchBar_ScopeButtonTitles,
+        LookinAttrSec_UISearchBar_SelectedScopeButtonIndex,
+        LookinAttrSec_UISearchBar_Images,
+        LookinAttrSec_UISearchBar_SearchFieldBackgroundPositionAdjustment,
+        LookinAttrSec_UISearchBar_SearchTextPositionAdjustment,
+        // UIInputView
+        LookinAttrSec_UIInputView_InputViewStyle,
+        LookinAttrSec_UIInputView_AllowsSelfSizing,
+        // UIContentUnavailableView
+        LookinAttrSec_UIContentUnavailableView_Configuration,
+        LookinAttrSec_UIContentUnavailableView_ScrollEnabled,
+        // UIBackgroundExtensionView
+        LookinAttrSec_UIBackgroundExtensionView_AutomaticallyPlacesContentView,
+        // UIWindow
+        LookinAttrSec_UIWindow_Behavior,
+        LookinAttrSec_UIWindow_WindowLevel,
+        LookinAttrSec_UIWindow_RootViewController,
     ] as [NSString]).map { $0 as String })
 }

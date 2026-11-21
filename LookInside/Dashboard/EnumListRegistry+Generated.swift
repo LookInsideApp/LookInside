@@ -20,10 +20,28 @@ extension EnumListRegistry {
             item("UIActivityIndicatorViewStyleGray", 2, 2),
         ]
 
+        data["UIBarStyle"] = [
+            item("UIBarStyleDefault", 0),
+            item("UIBarStyleBlack", 1),
+            item("UIBarStyleBlackTranslucent", 2, 2),
+        ]
+
         data["UIBehavioralStyle"] = [
             item("UIBehavioralStyleAutomatic", 0),
             item("UIBehavioralStylePad", 1),
             item("UIBehavioralStyleMac", 2),
+        ]
+
+        data["UICollectionViewReorderingCadence"] = [
+            item("UICollectionViewReorderingCadenceImmediate", 0),
+            item("UICollectionViewReorderingCadenceFast", 1),
+            item("UICollectionViewReorderingCadenceSlow", 2),
+        ]
+
+        data["UICollectionViewSelfSizingInvalidation"] = [
+            item("UICollectionViewSelfSizingInvalidationDisabled", 0),
+            item("UICollectionViewSelfSizingInvalidationEnabled", 1),
+            item("UICollectionViewSelfSizingInvalidationEnabledIncludingConstraints", 2),
         ]
 
         data["UIDatePickerMode"] = [
@@ -39,6 +57,18 @@ extension EnumListRegistry {
             item("UIDatePickerStyleWheels", 1),
             item("UIDatePickerStyleCompact", 2),
             item("UIDatePickerStyleInline", 3, 14),
+        ]
+
+        data["UIInputViewStyle"] = [
+            item("UIInputViewStyleDefault", 0),
+            item("UIInputViewStyleKeyboard", 1),
+        ]
+
+        data["UINavigationBarNSToolbarSection"] = [
+            item("UINavigationBarNSToolbarSectionNone", 0),
+            item("UINavigationBarNSToolbarSectionSidebar", 1),
+            item("UINavigationBarNSToolbarSectionSupplementary", 2),
+            item("UINavigationBarNSToolbarSectionContent", 3),
         ]
 
         data["UIPageControlBackgroundStyle"] = [
@@ -66,6 +96,12 @@ extension EnumListRegistry {
             item("UIProgressViewStyleBar", 1),
         ]
 
+        data["UISearchBarStyle"] = [
+            item("UISearchBarStyleDefault", 0),
+            item("UISearchBarStyleProminent", 1),
+            item("UISearchBarStyleMinimal", 2),
+        ]
+
         data["UISliderStyle"] = [
             item("UISliderStyleDefault", 0),
             item("UISliderStyleThumbless", 1),
@@ -75,6 +111,38 @@ extension EnumListRegistry {
             item("UISwitchStyleAutomatic", 0),
             item("UISwitchStyleCheckbox", 1),
             item("UISwitchStyleSliding", 2),
+        ]
+
+        data["UITabBarItemPositioning"] = [
+            item("UITabBarItemPositioningAutomatic", 0),
+            item("UITabBarItemPositioningFill", 1),
+            item("UITabBarItemPositioningCentered", 2),
+        ]
+
+        data["UITableViewCellAccessoryType"] = [
+            item("UITableViewCellAccessoryNone", 0),
+            item("UITableViewCellAccessoryDisclosureIndicator", 1),
+            item("UITableViewCellAccessoryDetailDisclosureButton", 2),
+            item("UITableViewCellAccessoryCheckmark", 3),
+            item("UITableViewCellAccessoryDetailButton", 4, 7),
+        ]
+
+        data["UITableViewCellEditingStyle"] = [
+            item("UITableViewCellEditingStyleNone", 0),
+            item("UITableViewCellEditingStyleDelete", 1),
+            item("UITableViewCellEditingStyleInsert", 2),
+        ]
+
+        data["UITableViewCellFocusStyle"] = [
+            item("UITableViewCellFocusStyleDefault", 0),
+            item("UITableViewCellFocusStyleCustom", 1),
+        ]
+
+        data["UITableViewCellSelectionStyle"] = [
+            item("UITableViewCellSelectionStyleNone", 0),
+            item("UITableViewCellSelectionStyleBlue", 1),
+            item("UITableViewCellSelectionStyleGray", 2),
+            item("UITableViewCellSelectionStyleDefault", 3, 7),
         ]
     }
 }
