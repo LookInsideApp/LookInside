@@ -20,6 +20,10 @@
                 AttributeOptionName("hangulWordPriority", 0x2),
                 AttributeOptionName("standard", 0xFFFF),
             ],
+            "NSTextInsertionIndicatorAutomaticModeOptions": [
+                AttributeOptionName("effectsView", 0x1),
+                AttributeOptionName("whileTracking", 0x2),
+            ],
             "UIControlEvents": [
                 AttributeOptionName("touchDown", 0x1),
                 AttributeOptionName("touchDownRepeat", 0x2),

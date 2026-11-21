@@ -12,6 +12,77 @@ import Foundation
 
 extension EnumListRegistry {
     static func addGeneratedLists(to data: inout [String: [EnumListRegistryKeyValueItem]]) {
+        data["NSBrowserColumnResizingType"] = [
+            item("NSBrowserNoColumnResizing", 0),
+            item("NSBrowserAutoColumnResizing", 1),
+            item("NSBrowserUserColumnResizing", 2),
+        ]
+
+        data["NSComboButtonStyle"] = [
+            item("NSComboButtonStyleSplit", 0),
+            item("NSComboButtonStyleUnified", 1),
+        ]
+
+        data["NSGlassEffectViewStyle"] = [
+            item("NSGlassEffectViewStyleRegular", 0),
+            item("NSGlassEffectViewStyleClear", 1),
+        ]
+
+        data["NSMatrixMode"] = [
+            item("NSRadioModeMatrix", 0),
+            item("NSHighlightModeMatrix", 1),
+            item("NSListModeMatrix", 2),
+            item("NSTrackModeMatrix", 3),
+        ]
+
+        data["NSPathStyle"] = [
+            item("NSPathStyleStandard", 0),
+            item("NSPathStylePopUp", 2),
+            item("NSPathStyleNavigationBar", 1, 10),
+        ]
+
+        data["NSRuleEditorNestingMode"] = [
+            item("NSRuleEditorNestingModeSingle", 0),
+            item("NSRuleEditorNestingModeList", 1),
+            item("NSRuleEditorNestingModeCompound", 2),
+            item("NSRuleEditorNestingModeSimple", 3),
+        ]
+
+        data["NSRulerOrientation"] = [
+            item("NSHorizontalRuler", 0),
+            item("NSVerticalRuler", 1),
+        ]
+
+        data["NSScrollerPart"] = [
+            item("NSScrollerNoPart", 0),
+            item("NSScrollerDecrementPage", 1),
+            item("NSScrollerKnob", 2),
+            item("NSScrollerIncrementPage", 3),
+            item("NSScrollerDecrementLine", 4, 10),
+            item("NSScrollerIncrementLine", 5, 10),
+            item("NSScrollerKnobSlot", 6),
+        ]
+
+        data["NSTextInsertionIndicatorDisplayMode"] = [
+            item("NSTextInsertionIndicatorDisplayModeAutomatic", 0),
+            item("NSTextInsertionIndicatorDisplayModeHidden", 1),
+            item("NSTextInsertionIndicatorDisplayModeVisible", 2),
+        ]
+
+        data["NSTokenStyle"] = [
+            item("NSTokenStyleDefault", 0),
+            item("NSTokenStyleNone", 1),
+            item("NSTokenStyleRounded", 2),
+            item("NSTokenStyleSquared", 3, 10),
+            item("NSTokenStylePlainSquared", 4, 10),
+        ]
+
+        data["NSUsableScrollerParts"] = [
+            item("NSNoScrollerParts", 0),
+            item("NSOnlyScrollerArrows", 1, 10),
+            item("NSAllScrollerParts", 2),
+        ]
+
         data["UIActivityIndicatorViewStyle"] = [
             item("UIActivityIndicatorViewStyleMedium", 100, 13),
             item("UIActivityIndicatorViewStyleLarge", 101, 13),
