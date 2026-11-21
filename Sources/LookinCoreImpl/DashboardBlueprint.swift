@@ -56,6 +56,14 @@
             var hideIfNil: Bool?
             /// Minimum OS major version; nil means no limit.
             var osVersion: Int?
+            /// The attribute catalog revision that introduced the attribute
+            /// (`LookinAttributeCatalogRevisionCurrent`); a Host that declares an
+            /// older revision does not get it. Everything before revisions
+            /// existed is 0.
+            var revision: Int = 0
+            /// How the value reaches the Host (AttributePresentation.swift).
+            /// Anything but `.value` is read-only, so give it `setterString: ""`.
+            var presentation: AttributePresentation = .value
         }
 
         /// `%@` of a possibly nil string, as `+[NSString stringWithFormat:]`
@@ -164,16 +172,28 @@
 
         @objc(targetKindForAttrID:)
         public class func targetKind(forAttrID attrID: String?) -> LookinAttrTargetKind {
-            switch className(withAttrID: attrID) {
-            case "CALayer":
-                .layer
-            case "UIWindowScene", "NSWindow":
-                .window
-            case "NSCell", "NSButtonCell", "NSTextFieldCell":
-                .cell
-            default:
-                .view
+            targetKind(forClassName: className(withAttrID: attrID))
+        }
+
+        /// The object an attribute of `className` is read from. Decided by the
+        /// name alone, so the Host (which cannot load UIKit classes) and every
+        /// Server agree: Core Animation classes are layers, AppKit classes
+        /// ending in "Cell" are cells (NSTableCellView ends in "CellView" and
+        /// stays a view), the window classes are windows, the rest views.
+        static func targetKind(forClassName className: String?) -> LookinAttrTargetKind {
+            guard let className else {
+                return .view
             }
+            if className == "UIWindowScene" || className == "NSWindow" {
+                return .window
+            }
+            if className.hasPrefix("CA") {
+                return .layer
+            }
+            if className.hasPrefix("NS"), className.hasSuffix("Cell") {
+                return .cell
+            }
+            return .view
         }
 
         @objc(isWindowPropertyWithAttrID:)
@@ -247,6 +267,34 @@
         @objc(minAvailableOSVersionWithAttrID:)
         public class func minAvailableOSVersion(withAttrID attrID: String?) -> Int {
             DashboardBlueprintTables.info(attrID)?.osVersion ?? 0
+        }
+
+        /// The attribute catalog revision that introduced `attrID`, 0 for an
+        /// unknown identifier. Swift only, so the Objective-C surface of the
+        /// class stays as recorded.
+        public static func catalogRevision(ofAttrID attrID: String) -> Int {
+            DashboardBlueprintTables.info(attrID)?.revision ?? 0
+        }
+
+        /// How the value of `attrID` reaches the Host; `.value` for an unknown
+        /// identifier. Swift only, like `catalogRevision(ofAttrID:)`.
+        public static func presentation(ofAttrID attrID: String) -> AttributePresentation {
+            DashboardBlueprintTables.info(attrID)?.presentation ?? .value
+        }
+
+        /// Whether `attrID` reaches the Host converted by its presentation (as
+        /// text, a count or a color) rather than as the getter returns it; such
+        /// attributes need no `typeIfObj`.
+        @objc(isPresentedWithAttrID:)
+        public class func isPresented(withAttrID attrID: String?) -> Bool {
+            (DashboardBlueprintTables.info(attrID)?.presentation ?? .value) != .value
+        }
+
+        /// The class every attribute of `sectionID` belongs to, when they all
+        /// belong to the same one; the Server skips the whole section for a
+        /// target of another class. Swift only.
+        public static func uniformClassName(ofSectionID sectionID: String) -> String? {
+            DashboardBlueprintTables.sectionClassNames[sectionID]
         }
     }
 

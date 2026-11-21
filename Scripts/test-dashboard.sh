@@ -41,6 +41,7 @@ swiftc -parse-as-library \
 	-Xcc -I"$LOOKIN_SERVER_BASE_DIR" \
 	"$SOURCE_DIR/DashboardModification.swift" \
 	"$SOURCE_DIR/EnumListRegistry.swift" \
+	"$SOURCE_DIR/EnumListRegistry+Generated.swift" \
 	"$SOURCE_DIR/AttributeView/JSON/JSONAttributeItem.swift" \
 	$(find "$LOOKIN_CORE_IMPL_DIR" -name '*.swift' | sort) \
 	"$TEST_DIR/DashboardTests.swift" \

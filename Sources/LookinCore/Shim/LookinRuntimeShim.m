@@ -9,7 +9,10 @@
 
 #import "LookinRuntimeShim.h"
 #import <TargetConditionals.h>
+#import <objc/message.h>
 #import <objc/runtime.h>
+#import <QuartzCore/QuartzCore.h>
+#import <os/lock.h>
 #if TARGET_OS_IPHONE
 #import <UIKit/UIKit.h>
 typedef UIEdgeInsets LookinShimEdgeInsets;
@@ -30,19 +33,77 @@ NSException *LookinCatchException(NS_NOESCAPE void (^block)(void)) {
     return nil;
 }
 
-NSString *LookinMethodReturnType(id target, SEL selector, NSUInteger *outArgumentCount) {
+/// A method's signature and its return type as a string, kept once looked up.
+@interface LookinShimMethodSignature : NSObject
+@property(nonatomic, strong) NSMethodSignature *signature;
+@property(nonatomic, copy) NSString *returnType;
+@end
+
+@implementation LookinShimMethodSignature
+@end
+
+/// `[target methodSignatureForSelector:selector]` with its return type.
+/// -methodSignatureForSelector: is slow (NSObject's walks every adopted
+/// protocol for a method description) and the Server asks for every attribute
+/// of every node, so the answer is kept per class and selector once it is
+/// known that the class implements the selector itself; a method's types never
+/// change while its class exists. A selector the class has no method for (one
+/// it forwards) is looked up every time, since its signature may depend on the
+/// instance.
+static LookinShimMethodSignature *LookinShimSignature(id target, SEL selector) {
+    Class targetClass = object_getClass(target);
+    if (!targetClass || !selector) {
+        return nil;
+    }
+    // Class -> (selector -> signature). Keys are the class and selector
+    // pointers (not retained); the inner dictionaries and the signatures are
+    // retained.
+    static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+    static CFMutableDictionaryRef signaturesByClass;
+    os_unfair_lock_lock(&lock);
+    CFMutableDictionaryRef signaturesBySelector = signaturesByClass ? (CFMutableDictionaryRef)CFDictionaryGetValue(signaturesByClass, (__bridge const void *)targetClass) : NULL;
+    LookinShimMethodSignature *cached = signaturesBySelector ? (__bridge LookinShimMethodSignature *)CFDictionaryGetValue(signaturesBySelector, selector) : nil;
+    os_unfair_lock_unlock(&lock);
+    if (cached) {
+        return cached;
+    }
     NSMethodSignature *signature = [target methodSignatureForSelector:selector];
     if (!signature) {
         return nil;
     }
-    if (outArgumentCount) {
-        *outArgumentCount = signature.numberOfArguments;
+    LookinShimMethodSignature *result = [LookinShimMethodSignature new];
+    result.signature = signature;
+    result.returnType = [NSString stringWithUTF8String:signature.methodReturnType];
+    if (class_getInstanceMethod(targetClass, selector)) {
+        os_unfair_lock_lock(&lock);
+        if (!signaturesByClass) {
+            signaturesByClass = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
+        }
+        signaturesBySelector = (CFMutableDictionaryRef)CFDictionaryGetValue(signaturesByClass, (__bridge const void *)targetClass);
+        if (!signaturesBySelector) {
+            signaturesBySelector = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, NULL, &kCFTypeDictionaryValueCallBacks);
+            CFDictionarySetValue(signaturesByClass, (__bridge const void *)targetClass, signaturesBySelector);
+            CFRelease(signaturesBySelector);
+        }
+        CFDictionarySetValue(signaturesBySelector, selector, (__bridge const void *)result);
+        os_unfair_lock_unlock(&lock);
     }
-    return [NSString stringWithUTF8String:signature.methodReturnType];
+    return result;
+}
+
+NSString *LookinMethodReturnType(id target, SEL selector, NSUInteger *outArgumentCount) {
+    LookinShimMethodSignature *cached = LookinShimSignature(target, selector);
+    if (!cached) {
+        return nil;
+    }
+    if (outArgumentCount) {
+        *outArgumentCount = cached.signature.numberOfArguments;
+    }
+    return cached.returnType;
 }
 
 NSString *LookinMethodArgumentType(id target, SEL selector, NSUInteger index) {
-    NSMethodSignature *signature = [target methodSignatureForSelector:selector];
+    NSMethodSignature *signature = LookinShimSignature(target, selector).signature;
     if (!signature || index + 2 >= signature.numberOfArguments) {
         return nil;
     }
@@ -64,8 +125,45 @@ static BOOL LookinIsObjectType(const char *type) {
     return type[0] == _C_ID || type[0] == _C_CLASS;
 }
 
+/// Calls a getter that returns an object or a scalar directly through
+/// objc_msgSend instead of building an NSInvocation, which costs several
+/// microseconds a call; the Server reads every attribute of every node this
+/// way. Scalars come back boxed exactly as NSInvocation's path boxes them.
+/// Sets `*outHandled` to NO, without calling anything, for the return types it
+/// leaves to NSInvocation (structs, pointers, void).
+static id LookinInvokeGetterDirectly(id target, SEL selector, const char *returnType, BOOL *outHandled) {
+    *outHandled = YES;
+    switch (returnType[0]) {
+        case _C_ID:
+        case _C_CLASS:
+            return ((id (*)(id, SEL))objc_msgSend)(target, selector);
+#define LOOKIN_DIRECT_SCALAR(code, scalarType) \
+        case code: { \
+            scalarType value = ((scalarType (*)(id, SEL))objc_msgSend)(target, selector); \
+            return [NSValue valueWithBytes:&value objCType:returnType]; \
+        }
+        LOOKIN_DIRECT_SCALAR(_C_CHR, char)
+        LOOKIN_DIRECT_SCALAR(_C_UCHR, unsigned char)
+        LOOKIN_DIRECT_SCALAR(_C_SHT, short)
+        LOOKIN_DIRECT_SCALAR(_C_USHT, unsigned short)
+        LOOKIN_DIRECT_SCALAR(_C_INT, int)
+        LOOKIN_DIRECT_SCALAR(_C_UINT, unsigned int)
+        LOOKIN_DIRECT_SCALAR(_C_LNG, long)
+        LOOKIN_DIRECT_SCALAR(_C_ULNG, unsigned long)
+        LOOKIN_DIRECT_SCALAR(_C_LNG_LNG, long long)
+        LOOKIN_DIRECT_SCALAR(_C_ULNG_LNG, unsigned long long)
+        LOOKIN_DIRECT_SCALAR(_C_FLT, float)
+        LOOKIN_DIRECT_SCALAR(_C_DBL, double)
+        LOOKIN_DIRECT_SCALAR(_C_BOOL, bool)
+#undef LOOKIN_DIRECT_SCALAR
+        default:
+            *outHandled = NO;
+            return nil;
+    }
+}
+
 id LookinInvoke(id target, SEL selector, NSArray *arguments, NSError **outError) {
-    NSMethodSignature *signature = [target methodSignatureForSelector:selector];
+    NSMethodSignature *signature = LookinShimSignature(target, selector).signature;
     if (!signature) {
         if (outError) {
             *outError = LookinInvokeError([NSString stringWithFormat:@"%@ does not respond to %@", [target class], NSStringFromSelector(selector)]);
@@ -78,6 +176,26 @@ id LookinInvoke(id target, SEL selector, NSArray *arguments, NSError **outError)
             *outError = LookinInvokeError([NSString stringWithFormat:@"%@ takes %lu arguments, got %lu", NSStringFromSelector(selector), (unsigned long)parameterCount, (unsigned long)arguments.count]);
         }
         return nil;
+    }
+    if (parameterCount == 0) {
+        BOOL handled = NO;
+        id directResult = nil;
+#if TARGET_OS_WATCH
+        // See the NSInvocation path below for why the watch catches here.
+        @try {
+            directResult = LookinInvokeGetterDirectly(target, selector, signature.methodReturnType, &handled);
+        } @catch (NSException *exception) {
+            if (outError) {
+                *outError = LookinInvokeError([NSString stringWithFormat:@"%@ raised %@: %@", NSStringFromSelector(selector), exception.name, exception.reason ?: @"no reason"]);
+            }
+            return nil;
+        }
+#else
+        directResult = LookinInvokeGetterDirectly(target, selector, signature.methodReturnType, &handled);
+#endif
+        if (handled) {
+            return directResult;
+        }
     }
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
     invocation.target = target;
@@ -197,6 +315,16 @@ NSString *LookinEncoding(LookinEncodedType type) {
             return @(@encode(CGAffineTransform));
         case LookinEncodedTypeLookinInsets:
             return @(@encode(LookinShimEdgeInsets));
+        case LookinEncodedTypeCATransform3D:
+            return @(@encode(CATransform3D));
+        case LookinEncodedTypeNSRange:
+            return @(@encode(NSRange));
+        case LookinEncodedTypeNSDirectionalEdgeInsets:
+            return @(@encode(NSDirectionalEdgeInsets));
+        case LookinEncodedTypeCGColorRef:
+            return @(@encode(CGColorRef));
+        case LookinEncodedTypeCGPathRef:
+            return @(@encode(CGPathRef));
 #if TARGET_OS_IPHONE
         case LookinEncodedTypeUIOffset:
             return @(@encode(UIOffset));

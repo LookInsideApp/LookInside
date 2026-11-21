@@ -280,7 +280,8 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
         group.isSwiftUIGroup || (group.userCustomTitle?.hasPrefix("SwiftUI") ?? false)
     }
 
-    private static let groupIconNames: [String: String] = {
+    /// Internal for DashboardRegistrationTests.
+    static let groupIconNames: [String: String] = {
         let names: [String: String] = [
             LookinAttrGroup_Class: "dashboard_class",
             LookinAttrGroup_Relation: "dashboard_relation",
@@ -331,16 +332,58 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             LookinAttrGroup_UITraitCollection: "dashboard_traitcollection",
             LookinAttrGroup_LayoutGuide: "dashboard_layoutguide",
             LookinAttrGroup_NSCell: "dashboard_cell",
+            LookinAttrGroup_UISlider: "dashboard_slider",
+            LookinAttrGroup_UIStepper: "dashboard_stepper",
+            LookinAttrGroup_UISwitch: "dashboard_switch",
+            LookinAttrGroup_UISegmentedControl: "dashboard_segmentedcontrol",
+            LookinAttrGroup_UIProgressView: "dashboard_progressindicator",
+            LookinAttrGroup_UIActivityIndicatorView: "dashboard_progressindicator",
+            LookinAttrGroup_UIPageControl: "dashboard_pagecontrol",
+            LookinAttrGroup_UIDatePicker: "dashboard_datepicker",
+            LookinAttrGroup_UIColorWell: "dashboard_colorwell",
+            LookinAttrGroup_UIRefreshControl: "dashboard_progressindicator",
+            LookinAttrGroup_UIPickerView: "dashboard_picker",
+            LookinAttrGroup_UICalendarView: "dashboard_datepicker",
+            LookinAttrGroup_UIPasteControl: "dashboard_button",
+            LookinAttrGroup_UICollectionView: "dashboard_collectionview",
+            LookinAttrGroup_UICollectionReusableView: "dashboard_cell",
+            LookinAttrGroup_UITableViewCell: "dashboard_cell",
+            LookinAttrGroup_UITableViewHeaderFooterView: "dashboard_cell",
+            LookinAttrGroup_UINavigationBar: "dashboard_navigationbar",
+            LookinAttrGroup_UITabBar: "dashboard_tabbar",
+            LookinAttrGroup_UIToolbar: "dashboard_toolbar",
+            LookinAttrGroup_UISearchBar: "dashboard_searchfield",
+            LookinAttrGroup_UIInputView: "dashboard_view",
+            LookinAttrGroup_UIContentUnavailableView: "dashboard_view",
+            LookinAttrGroup_UIBackgroundExtensionView: "dashboard_effectview",
+            LookinAttrGroup_UIWindow: "dashboard_window",
+            LookinAttrGroup_UIView: "dashboard_view",
+            LookinAttrGroup_NSClipView: "dashboard_scrollview",
+            LookinAttrGroup_NSScroller: "dashboard_scrollview",
+            LookinAttrGroup_NSBrowser: "dashboard_browser",
+            LookinAttrGroup_NSMatrix: "dashboard_gridview",
+            LookinAttrGroup_NSPathControl: "dashboard_pathcontrol",
+            LookinAttrGroup_NSRuleEditor: "dashboard_ruleeditor",
+            LookinAttrGroup_NSSearchField: "dashboard_searchfield",
+            LookinAttrGroup_NSComboButton: "dashboard_button",
+            LookinAttrGroup_NSGlassEffectView: "dashboard_effectview",
+            LookinAttrGroup_NSBackgroundExtensionView: "dashboard_effectview",
+            LookinAttrGroup_NSRulerView: "dashboard_ruler",
+            LookinAttrGroup_NSTableCellView: "dashboard_cell",
+            LookinAttrGroup_NSTableRowView: "dashboard_tableview",
+            LookinAttrGroup_NSTableHeaderView: "dashboard_tableview",
+            LookinAttrGroup_NSTextInsertionIndicator: "dashboard_textview",
+            LookinAttrGroup_NSView: "dashboard_view",
+            LookinAttrGroup_CALayer: "dashboard_layer",
             LookinAttrGroup_UserCustom: "dashboard_custom",
         ]
         #if DEBUG
             // Fail on the first card rendered rather than only when someone
             // selects the unregistered kind; that is how 16 AppKit control
-            // groups once shipped with a borrowed icon. This covers the groups
-            // compiled for this platform; the iOS-only groups rely on the
-            // per-lookup assertion.
-            for groupID in DashboardBlueprint.groupIDs() {
-                assert(names[groupID] != nil, "missing dashboard icon for group \(groupID)")
+            // groups once shipped with a borrowed icon. Every group of the
+            // catalog, the UIKit ones included: the Host shows both.
+            for group in DashboardBlueprintTables.catalog {
+                assert(names[group.identifier] != nil, "missing dashboard icon for group \(group.identifier)")
             }
         #endif
         return names

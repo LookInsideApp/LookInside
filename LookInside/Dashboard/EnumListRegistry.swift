@@ -56,7 +56,8 @@ final class EnumListRegistry: NSObject {
         Array(data.keys)
     }
 
-    private static func item(_ desc: String, _ value: Int, _ availableOSVersion: Int = 0) -> EnumListRegistryKeyValueItem {
+    /// Shared with EnumListRegistry+Generated.swift.
+    static func item(_ desc: String, _ value: Int, _ availableOSVersion: Int = 0) -> EnumListRegistryKeyValueItem {
         EnumListRegistryKeyValueItem(desc: desc, value: value, availableOSVersion: availableOSVersion)
     }
 
@@ -697,6 +698,10 @@ final class EnumListRegistry: NSObject {
             item("NSGridCellPlacementCenter", 4),
             item("NSGridCellPlacementFill", 5),
         ]
+
+        // The lists generate-enum-tables.py reads from the SDK for the
+        // enum attributes no hand-written list above covers.
+        addGeneratedLists(to: &data)
 
         return data
     }

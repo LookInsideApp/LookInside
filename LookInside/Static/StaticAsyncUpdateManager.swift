@@ -726,6 +726,7 @@ final class StaticAsyncUpdateManager: NSObject {
         task.taskType = type
         task.needBasisVisualInfo = true
         task.clientReadableVersion = context.clientReadableVersion
+        task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
         // The Class card shows the image each class comes from.
         task.wantsClassImagePaths = true
         return task
@@ -1069,6 +1070,7 @@ extension StaticAsyncUpdateManager {
         task.oid = oid
         task.frameSize = item.frame.size
         task.clientReadableVersion = AppHelper.readableVersion()
+        task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
         return task
     }
 }

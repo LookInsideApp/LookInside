@@ -33,6 +33,13 @@
         /// Servers ignore the key.
         @objc(wantsClassImagePaths)
         public var wantsClassImagePaths: Bool = false
+        /// The newest attribute catalog revision the Host knows
+        /// (`LookinAttributeCatalogRevisionCurrent` when it was built); the
+        /// Server leaves out attributes of newer revisions. Archived only when
+        /// above zero, so older Hosts' tasks encode exactly as before and read
+        /// back as revision 0; older Servers ignore the key.
+        @objc(attributeCatalogRevision)
+        public var attributeCatalogRevision: Int = 0
         /// Not archived.
         @objc(frameSize)
         public var frameSize: CGSize = .zero
@@ -53,6 +60,9 @@
             aCoder.encode(needSubitems, forKey: "needSubitems")
             if wantsClassImagePaths {
                 aCoder.encode(true, forKey: "wantsClassImagePaths")
+            }
+            if attributeCatalogRevision > 0 {
+                aCoder.encode(attributeCatalogRevision, forKey: "attributeCatalogRevision")
             }
         }
 
@@ -85,6 +95,7 @@
             }
 
             wantsClassImagePaths = aDecoder.containsValue(forKey: "wantsClassImagePaths") && aDecoder.decodeBool(forKey: "wantsClassImagePaths")
+            attributeCatalogRevision = aDecoder.containsValue(forKey: "attributeCatalogRevision") ? max(0, aDecoder.decodeInteger(forKey: "attributeCatalogRevision")) : 0
         }
 
         @objc(supportsSecureCoding)

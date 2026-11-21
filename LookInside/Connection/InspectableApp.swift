@@ -196,6 +196,9 @@ final class InspectableApp: NSObject {
         parameters[LookinParam_SwiftUIDisplayMode] = NSNumber(value: SwiftUIHierarchyDisplayModeStore.currentMode().rawValue)
         parameters["showBackingLayers"] = NSNumber(value: PreferenceManager.shared.showBackingLayers.currentBOOLValue)
         parameters[LookinParam_AsyncAcquisition] = NSNumber(value: true)
+        // The newest attribute catalog revision this Host has titles, icons
+        // and enum lists for; the Server leaves out anything newer.
+        parameters[LookinParam_AttributeCatalogRevision] = NSNumber(value: LookinAttributeCatalogRevisionCurrent)
         parameters.addEntries(from: PreferenceManager.shared.inspectedAppKeyAppearanceLevel.requestParameters)
         return parameters
     }

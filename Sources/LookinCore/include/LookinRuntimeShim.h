@@ -86,6 +86,11 @@ typedef NS_ENUM(NSInteger, LookinEncodedType) {
     LookinEncodedTypeCGRect,
     LookinEncodedTypeCGAffineTransform,
     LookinEncodedTypeLookinInsets,
+    LookinEncodedTypeCATransform3D,
+    LookinEncodedTypeNSRange,
+    LookinEncodedTypeNSDirectionalEdgeInsets,
+    LookinEncodedTypeCGColorRef,
+    LookinEncodedTypeCGPathRef,
 #if TARGET_OS_IPHONE
     LookinEncodedTypeUIOffset,
 #endif

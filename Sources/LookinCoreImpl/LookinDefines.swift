@@ -192,6 +192,19 @@
     /// platforms ignore it. Additive payload, no version bump.
     public let LookinParam_KeyAppearanceLevel = "keyAppearanceLevel"
 
+    /// Hierarchy request (202) param: the newest attribute catalog revision the
+    /// Host knows. NSNumber boxed integer. The Server leaves out attributes
+    /// whose `revision` is newer, so a Host never gets a group it has no title,
+    /// icon or default sections for. Missing (older Hosts, upstream Lookin) →
+    /// 0, the catalog as it was before revisions existed. The detail request
+    /// (203) carries the same value on `LookinStaticAsyncUpdateTask`.
+    public let LookinParam_AttributeCatalogRevision = "attributeCatalogRevision"
+
+    /// The newest attribute catalog revision this build knows. Raise it by one
+    /// for each batch of attributes that needs a matching Host (new groups,
+    /// sections or enum lists), and give that batch the new revision.
+    public let LookinAttributeCatalogRevisionCurrent = 1
+
     /// The description an invoked method's reply carries when the method
     /// returns void.
     public let LookinStringFlag_VoidReturn = "LOOKIN_TAG_RETURN_VALUE_VOID"
