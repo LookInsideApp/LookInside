@@ -8,6 +8,8 @@
 //  https://lookin.work
 //
 
+#import <Foundation/Foundation.h>
+
 typedef NS_ENUM(NSInteger, LookinCodingValueType) {
     LookinCodingValueTypeUnknown,
     LookinCodingValueTypeChar,

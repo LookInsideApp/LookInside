@@ -8,6 +8,8 @@
 //  https://lookin.work
 //
 
+#import <Foundation/Foundation.h>
+
 /// 注意：新属性只能加到末尾，否则新旧版本搭配时可能有兼容问题
 typedef NS_ENUM(NSInteger, LookinAttrType) {
     LookinAttrTypeNone,
