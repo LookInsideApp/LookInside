@@ -15,7 +15,17 @@
 //
 
 #import <AppKit/AppKit.h>
-#import "LookinCoreTypes.h"
+
+// LookinAppInfoDevice is a Swift enum now (LookinCoreImpl/LookinCoreTypes.swift),
+// which this Objective-C program does not import; it needs only the storage
+// type and the case it writes.
+typedef NS_ENUM(NSInteger, LookinAppInfoDevice) {
+    LookinAppInfoDeviceSimulator = 0,
+};
+
+// The connection protocol version the fixture records: LOOKIN_SERVER_VERSION,
+// now Swift in LookinCoreImpl/LookinDefines.swift.
+static const int LOOKIN_SERVER_VERSION = 9;
 
 // The model classes are plain Swift (`@objc(OriginalName)`, LookinCoreImpl);
 // this file declares the members it sets and links against the class
