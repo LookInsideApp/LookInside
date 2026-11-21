@@ -141,6 +141,7 @@
 				Dashboard/DashboardSectionView.swift,
 				Dashboard/DashboardViewController.swift,
 				Dashboard/EnumListRegistry.swift,
+				"Dashboard/EnumListRegistry+Generated.swift",
 				Dashboard/Search/DashboardHeaderView.swift,
 				Dashboard/Search/DashboardSearchViews.swift,
 				DebugE2E/DebugE2EDump.swift,
