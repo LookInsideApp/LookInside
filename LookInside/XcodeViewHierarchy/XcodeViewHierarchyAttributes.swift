@@ -312,7 +312,7 @@ enum XcodeViewHierarchyAttributes {
     // MARK: - Values
 
     /// The attribute value a decoded capture value becomes, typed the way the
-    /// card for that kind reads it (`LookinAttrType.h`).
+    /// card for that kind reads it (`LookinAttrType`, LookinCoreTypes.swift).
     private static func makingValue(
         _ value: XcodeViewHierarchyValue,
         kind: Specification.Kind,
@@ -409,7 +409,7 @@ enum XcodeViewHierarchyAttributes {
     }
 
     /// RGBA in 0...1, which is what a `LookinAttrTypeUIColor` value carries
-    /// (`LookinAttrType.h`). The dashboard decodes that array itself and
+    /// (`LookinAttrType`, LookinCoreTypes.swift). The dashboard decodes that array itself and
     /// asserts on anything else, so no `NSColor` is built here.
     ///
     /// The capture writes a colour in its own space: RGB(A), gray(+alpha) for

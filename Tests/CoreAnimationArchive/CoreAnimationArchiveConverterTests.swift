@@ -740,7 +740,7 @@ struct CoreAnimationArchiveConverterTests {
 
     /// The rows are typed as the server types a live layer's: a float
     /// opacity, CGFloat values as doubles, colours as RGBA arrays
-    /// (`LookinAttrType.h`; the colour card asserts on anything else).
+    /// (`LookinAttrType`, LookinCoreTypes.swift; the colour card asserts on anything else).
     private static func testLayerRowsFollowTheServerTypes() {
         let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 40, height: 40))
         let styledLayer = makingLayer(CGRect(x: 0, y: 0, width: 20, height: 20))

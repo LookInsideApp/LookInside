@@ -2,9 +2,9 @@
 //  ConnectionErrors.swift
 //  LookInside
 //
-//  The NSErrors the Connection layer reports. Swift does not import the
-//  LookinErr_* macros of LookinDefines.h, so these build the same errors:
-//  same domain, codes and localization keys.
+//  The NSErrors the Connection layer reports: the same errors as the
+//  LookinErr_* values in LookinCoreImpl/LookinDefines.swift (formerly macros
+//  of LookinDefines.h) — same domain, codes and localization keys.
 //
 
 import Foundation

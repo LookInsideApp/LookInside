@@ -8,8 +8,15 @@
 //
 
 #import "LookinRuntimeShim.h"
-#import "LookinDefines.h"
+#import <TargetConditionals.h>
 #import <objc/runtime.h>
+#if TARGET_OS_IPHONE
+#import <UIKit/UIKit.h>
+typedef UIEdgeInsets LookinShimEdgeInsets;
+#elif TARGET_OS_OSX
+#import <AppKit/AppKit.h>
+typedef NSEdgeInsets LookinShimEdgeInsets;
+#endif
 #if __has_feature(ptrauth_calls)
 #import <ptrauth.h>
 #endif
@@ -42,8 +49,15 @@ NSString *LookinMethodArgumentType(id target, SEL selector, NSUInteger index) {
     return [NSString stringWithUTF8String:[signature getArgumentTypeAtIndex:index + 2]];
 }
 
+// LookinErrorDomain and LookinErrCode_Inner, which Swift declares in
+// LookinCoreImpl/LookinDefines.swift; this target cannot see Swift, so the
+// shim keeps its own copy. Change both together: the error goes over the wire
+// in the invoke-method reply (206).
+static NSString *const LookinShimErrorDomain = @"LookinError";
+static const NSInteger LookinShimErrorCodeInner = -401;
+
 static NSError *LookinInvokeError(NSString *reason) {
-    return [NSError errorWithDomain:LookinErrorDomain code:LookinErrCode_Inner userInfo:@{NSLocalizedDescriptionKey: reason}];
+    return [NSError errorWithDomain:LookinShimErrorDomain code:LookinShimErrorCodeInner userInfo:@{NSLocalizedDescriptionKey: reason}];
 }
 
 static BOOL LookinIsObjectType(const char *type) {
@@ -182,7 +196,7 @@ NSString *LookinEncoding(LookinEncodedType type) {
         case LookinEncodedTypeCGAffineTransform:
             return @(@encode(CGAffineTransform));
         case LookinEncodedTypeLookinInsets:
-            return @(@encode(LookinInsets));
+            return @(@encode(LookinShimEdgeInsets));
 #if TARGET_OS_IPHONE
         case LookinEncodedTypeUIOffset:
             return @(@encode(UIOffset));

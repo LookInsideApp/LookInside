@@ -439,7 +439,7 @@ enum CoreAnimationArchiveAttributes {
     }
 
     /// A colour row: RGBA in 0...1, the value a `LookinAttrTypeUIColor`
-    /// carries (`LookinAttrType.h`). No colour — or one with no RGB
+    /// carries (`LookinAttrType`, LookinCoreTypes.swift). No colour — or one with no RGB
     /// equivalent, such as a pattern — is shown as nil unless the blueprint
     /// hides nil for the row.
     private static func colorAttribute(_ identifier: String, _ color: CGColor?) -> InspectedAttribute? {

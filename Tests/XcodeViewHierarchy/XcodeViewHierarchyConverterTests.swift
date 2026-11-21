@@ -31,7 +31,7 @@ struct XcodeViewHierarchyConverterTests {
     // MARK: - Dashboard contract
 
     /// A `LookinAttrTypeUIColor` value is an RGBA array of four numbers in
-    /// 0...1 (`LookinAttrType.h`); the dashboard's colour card asserts on
+    /// 0...1 (`LookinAttrType`, LookinCoreTypes.swift); the dashboard's colour card asserts on
     /// anything else. Handing it an `NSColor` raised on the first card drawn
     /// and aborted opening the document.
     private static func testColorAttributesCarryRGBAComponents() {

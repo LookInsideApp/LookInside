@@ -18,8 +18,9 @@
 //   PR #26 references the attribute identifier `isSecureTextEntry` but
 //   LookinServer's identifier table has no matching entry — so that branch
 //   silently never fires there either. The right fix is to add the
-//   property to `LookinAttrIdentifiers.h` plus the iOS-side reflection in
-//   `LookinServer/Server/Category/UITextField+LookinServer.m`, after which
+//   property to `LookinAttrIdentifiers.swift` and the blueprint catalog,
+//   plus the iOS-side reflection in
+//   `LookinServerImpl/Category/UITextField+LookinServer.swift`, after which
 //   this detector can opt the UIKit case in.
 
 import Foundation

@@ -2,10 +2,11 @@
 //  DashboardBlueprint.swift
 //  LookinCore
 //
-//  Was LookinDashboardBlueprint.m. The tables
-//  live in DashboardBlueprint+Groups.swift, +Sections.swift and
-//  +AttrInfo.swift; the output of every class method below is pinned by
-//  Tests/LookinServerHierarchyTests/BlueprintEquivalenceTests.
+//  Was LookinDashboardBlueprint.m. The groups, sections and attributes are
+//  one nested catalog (DashboardBlueprint+Catalog.swift and the per-platform
+//  group files); DashboardBlueprintCatalog.swift derives the lookup tables the
+//  class methods below answer from. The output of every class method is
+//  pinned by Tests/LookinServerHierarchyTests/BlueprintEquivalenceTests.
 //
 
 #if SHOULD_COMPILE_LOOKIN_SERVER
@@ -28,7 +29,7 @@
         #endif
 
         /// What the blueprint knows about one attribute.
-        struct AttrInfo {
+        struct AttributeInfo {
             /// Required: the class that owns the attribute.
             var className: String?
             /// Full name. It is the search keyword and the search result
@@ -65,11 +66,11 @@
             string ?? "(null)"
         }
 
-        static func info(_ attrID: String?) -> AttrInfo? {
+        static func info(_ attrID: String?) -> AttributeInfo? {
             guard let attrID else {
                 return nil
             }
-            return attrInfo[attrID]
+            return attributeInfo[attrID]
         }
     }
 
