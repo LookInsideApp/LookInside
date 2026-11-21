@@ -62,6 +62,7 @@
             uiWindowGroup,
             uiWindowSceneGroup,
             uiTraitCollectionGroup,
+            nsViewGroup,
             nsImageViewGroup,
             nsControlGroup,
             nsButtonGroup,

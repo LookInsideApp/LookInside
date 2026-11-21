@@ -372,6 +372,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             LookinAttrGroup_NSTableRowView: "dashboard_tableview",
             LookinAttrGroup_NSTableHeaderView: "dashboard_tableview",
             LookinAttrGroup_NSTextInsertionIndicator: "dashboard_textview",
+            LookinAttrGroup_NSView: "dashboard_view",
             LookinAttrGroup_UserCustom: "dashboard_custom",
         ]
         #if DEBUG

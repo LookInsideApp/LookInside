@@ -12,6 +12,12 @@ import Foundation
 
 extension EnumListRegistry {
     static func addGeneratedLists(to data: inout [String: [EnumListRegistryKeyValueItem]]) {
+        data["NSBackingStoreType"] = [
+            item("NSBackingStoreRetained", 0, 10),
+            item("NSBackingStoreNonretained", 1, 10),
+            item("NSBackingStoreBuffered", 2),
+        ]
+
         data["NSBrowserColumnResizingType"] = [
             item("NSBrowserNoColumnResizing", 0),
             item("NSBrowserAutoColumnResizing", 1),
@@ -23,9 +29,42 @@ extension EnumListRegistry {
             item("NSComboButtonStyleUnified", 1),
         ]
 
+        data["NSControlBorderShape"] = [
+            item("NSControlBorderShapeAutomatic", 0),
+            item("NSControlBorderShapeCapsule", 1),
+            item("NSControlBorderShapeRoundedRectangle", 2),
+            item("NSControlBorderShapeCircle", 3),
+        ]
+
+        data["NSFocusRingType"] = [
+            item("NSFocusRingTypeDefault", 0),
+            item("NSFocusRingTypeNone", 1),
+            item("NSFocusRingTypeExterior", 2),
+        ]
+
         data["NSGlassEffectViewStyle"] = [
             item("NSGlassEffectViewStyleRegular", 0),
             item("NSGlassEffectViewStyleClear", 1),
+        ]
+
+        data["NSGridRowAlignment"] = [
+            item("NSGridRowAlignmentInherited", 0),
+            item("NSGridRowAlignmentNone", 1),
+            item("NSGridRowAlignmentFirstBaseline", 2),
+            item("NSGridRowAlignmentLastBaseline", 3),
+        ]
+
+        data["NSImageDynamicRange"] = [
+            item("NSImageDynamicRangeUnspecified", -1),
+            item("NSImageDynamicRangeStandard", 0),
+            item("NSImageDynamicRangeConstrainedHigh", 1),
+            item("NSImageDynamicRangeHigh", 2),
+        ]
+
+        data["NSLevelIndicatorPlaceholderVisibility"] = [
+            item("NSLevelIndicatorPlaceholderVisibilityAutomatic", 0),
+            item("NSLevelIndicatorPlaceholderVisibilityAlways", 1),
+            item("NSLevelIndicatorPlaceholderVisibilityWhileEditing", 2),
         ]
 
         data["NSMatrixMode"] = [
@@ -41,6 +80,12 @@ extension EnumListRegistry {
             item("NSPathStyleNavigationBar", 1, 10),
         ]
 
+        data["NSPopUpArrowPosition"] = [
+            item("NSPopUpNoArrow", 0),
+            item("NSPopUpArrowAtCenter", 1),
+            item("NSPopUpArrowAtBottom", 2),
+        ]
+
         data["NSRuleEditorNestingMode"] = [
             item("NSRuleEditorNestingModeSingle", 0),
             item("NSRuleEditorNestingModeList", 1),
@@ -53,6 +98,12 @@ extension EnumListRegistry {
             item("NSVerticalRuler", 1),
         ]
 
+        data["NSScrollViewFindBarPosition"] = [
+            item("NSScrollViewFindBarPositionAboveHorizontalRuler", 0),
+            item("NSScrollViewFindBarPositionAboveContent", 1),
+            item("NSScrollViewFindBarPositionBelowContent", 2),
+        ]
+
         data["NSScrollerPart"] = [
             item("NSScrollerNoPart", 0),
             item("NSScrollerDecrementPage", 1),
@@ -63,10 +114,53 @@ extension EnumListRegistry {
             item("NSScrollerKnobSlot", 6),
         ]
 
+        data["NSSegmentDistribution"] = [
+            item("NSSegmentDistributionFit", 0),
+            item("NSSegmentDistributionFill", 1),
+            item("NSSegmentDistributionFillEqually", 2),
+            item("NSSegmentDistributionFillProportionally", 3),
+        ]
+
+        data["NSSegmentedControlRole"] = [
+            item("NSSegmentedControlRoleAutomatic", 0),
+            item("NSSegmentedControlRoleTabs", 1),
+            item("NSSegmentedControlRoleValueSelection", 2),
+        ]
+
+        data["NSSelectionAffinity"] = [
+            item("NSSelectionAffinityUpstream", 0),
+            item("NSSelectionAffinityDownstream", 1),
+        ]
+
+        data["NSSelectionDirection"] = [
+            item("NSDirectSelection", 0),
+            item("NSSelectingNext", 1),
+            item("NSSelectingPrevious", 2),
+        ]
+
+        data["NSSelectionGranularity"] = [
+            item("NSSelectByCharacter", 0),
+            item("NSSelectByWord", 1),
+            item("NSSelectByParagraph", 2),
+        ]
+
+        data["NSTextInputTraitType"] = [
+            item("NSTextInputTraitTypeDefault", 0),
+            item("NSTextInputTraitTypeNo", 1),
+            item("NSTextInputTraitTypeYes", 2),
+        ]
+
         data["NSTextInsertionIndicatorDisplayMode"] = [
             item("NSTextInsertionIndicatorDisplayModeAutomatic", 0),
             item("NSTextInsertionIndicatorDisplayModeHidden", 1),
             item("NSTextInsertionIndicatorDisplayModeVisible", 2),
+        ]
+
+        data["NSTintProminence"] = [
+            item("NSTintProminenceAutomatic", 0),
+            item("NSTintProminenceNone", 1),
+            item("NSTintProminencePrimary", 2),
+            item("NSTintProminenceSecondary", 3),
         ]
 
         data["NSTokenStyle"] = [
@@ -81,6 +175,53 @@ extension EnumListRegistry {
             item("NSNoScrollerParts", 0),
             item("NSOnlyScrollerArrows", 1, 10),
             item("NSAllScrollerParts", 2),
+        ]
+
+        data["NSViewExclusiveGestureBehavior"] = [
+            item("NSViewExclusiveGestureBehaviorInherit", 0),
+            item("NSViewExclusiveGestureBehaviorExclusive", 1),
+            item("NSViewExclusiveGestureBehaviorNotExclusive", 2),
+        ]
+
+        data["NSViewLayerContentsPlacement"] = [
+            item("NSViewLayerContentsPlacementScaleAxesIndependently", 0),
+            item("NSViewLayerContentsPlacementScaleProportionallyToFit", 1),
+            item("NSViewLayerContentsPlacementScaleProportionallyToFill", 2),
+            item("NSViewLayerContentsPlacementCenter", 3),
+            item("NSViewLayerContentsPlacementTop", 4),
+            item("NSViewLayerContentsPlacementTopRight", 5),
+            item("NSViewLayerContentsPlacementRight", 6),
+            item("NSViewLayerContentsPlacementBottomRight", 7),
+            item("NSViewLayerContentsPlacementBottom", 8),
+            item("NSViewLayerContentsPlacementBottomLeft", 9),
+            item("NSViewLayerContentsPlacementLeft", 10),
+            item("NSViewLayerContentsPlacementTopLeft", 11),
+        ]
+
+        data["NSViewLayerContentsRedrawPolicy"] = [
+            item("NSViewLayerContentsRedrawNever", 0),
+            item("NSViewLayerContentsRedrawOnSetNeedsDisplay", 1),
+            item("NSViewLayerContentsRedrawDuringViewResize", 2),
+            item("NSViewLayerContentsRedrawBeforeViewResize", 3),
+            item("NSViewLayerContentsRedrawCrossfade", 4, 10),
+        ]
+
+        data["NSWindowDepth"] = [
+            item("NSWindowDepthTwentyfourBitRGB", 520),
+            item("NSWindowDepthSixtyfourBitRGB", 528),
+            item("NSWindowDepthOnehundredtwentyeightBitRGB", 544),
+        ]
+
+        data["NSWindowSharingType"] = [
+            item("NSWindowSharingNone", 0),
+            item("NSWindowSharingReadOnly", 1),
+        ]
+
+        data["NSWritingToolsBehavior"] = [
+            item("NSWritingToolsBehaviorNone", -1),
+            item("NSWritingToolsBehaviorDefault", 0),
+            item("NSWritingToolsBehaviorComplete", 1),
+            item("NSWritingToolsBehaviorLimited", 2),
         ]
 
         data["UIActivityIndicatorViewStyle"] = [

@@ -34,6 +34,18 @@
             BlueprintSection(LookinAttrSec_NSImageView_ContentTintColor, title: "ContentTintColor", attributes: [
                 BlueprintAttribute(LookinAttr_NSImageView_ContentTintColor_ContentTintColor, AttributeInfo(className: "NSImageView", fullTitle: "ContentTintColor", typeIfObj: .uiColor, patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSImageView_SymbolConfiguration, title: "SymbolConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_NSImageView_SymbolConfiguration_SymbolConfiguration, AttributeInfo(className: "NSImageView", fullTitle: "SymbolConfiguration", getterString: "symbolConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.description))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSImageView_AllowsCutCopyPaste, title: "AllowsCutCopyPaste", attributes: [
+                BlueprintAttribute(LookinAttr_NSImageView_AllowsCutCopyPaste_AllowsCutCopyPaste, AttributeInfo(className: "NSImageView", fullTitle: "AllowsCutCopyPaste", getterString: "allowsCutCopyPaste", setterString: "setAllowsCutCopyPaste:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSImageView_PreferredImageDynamicRange, title: "PreferredImageDynamicRange", attributes: [
+                BlueprintAttribute(LookinAttr_NSImageView_PreferredImageDynamicRange_PreferredImageDynamicRange, AttributeInfo(className: "NSImageView", fullTitle: "PreferredImageDynamicRange", getterString: "preferredImageDynamicRange", setterString: "setPreferredImageDynamicRange:", enumList: "NSImageDynamicRange", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSImageView_ImageDynamicRange, title: "ImageDynamicRange", attributes: [
+                BlueprintAttribute(LookinAttr_NSImageView_ImageDynamicRange_ImageDynamicRange, AttributeInfo(className: "NSImageView", fullTitle: "ImageDynamicRange", getterString: "imageDynamicRange", setterString: "", enumList: "NSImageDynamicRange", revision: 1)),
+            ]),
         ])
 
         static let nsControlGroup = BlueprintGroup(LookinAttrGroup_NSControl, title: "NSControl", on: .appKit, sections: [
@@ -67,6 +79,15 @@
                 BlueprintAttribute(LookinAttr_NSControl_Value_FloatValue, AttributeInfo(className: "NSControl", fullTitle: "FloatValue", patch: true)),
                 BlueprintAttribute(LookinAttr_NSControl_Value_DoubleValue, AttributeInfo(className: "NSControl", fullTitle: "DoubleValue", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSControl_Tag, title: "Tag", attributes: [
+                BlueprintAttribute(LookinAttr_NSControl_Tag_Tag, AttributeInfo(className: "NSControl", fullTitle: "Tag", getterString: "tag", setterString: "setTag:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSControl_RefusesFirstResponder, title: "RefusesFirstResponder", attributes: [
+                BlueprintAttribute(LookinAttr_NSControl_RefusesFirstResponder_RefusesFirstResponder, AttributeInfo(className: "NSControl", fullTitle: "RefusesFirstResponder", getterString: "refusesFirstResponder", setterString: "setRefusesFirstResponder:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSControl_LineBreakMode, title: "LineBreakMode", attributes: [
+                BlueprintAttribute(LookinAttr_NSControl_LineBreakMode_LineBreakMode, AttributeInfo(className: "NSControl", fullTitle: "LineBreakMode", getterString: "lineBreakMode", setterString: "setLineBreakMode:", enumList: "NSLineBreakMode", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsButtonGroup = BlueprintGroup(LookinAttrGroup_NSButton, title: "NSButton", on: .appKit, sections: [
@@ -97,6 +118,38 @@
             ]),
             BlueprintSection(LookinAttrSec_NSButton_NSStatusBarButton, title: "NSStatusBarButton", attributes: [
                 BlueprintAttribute(LookinAttr_NSButton_NSStatusBarButton_AppearsDisabled, AttributeInfo(className: "NSStatusBarButton", fullTitle: "AppearsDisabled", getterString: "appearsDisabled", setterString: "setAppearsDisabled:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_TintProminence, title: "TintProminence", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_TintProminence_TintProminence, AttributeInfo(className: "NSButton", fullTitle: "TintProminence", getterString: "tintProminence", setterString: "setTintProminence:", enumList: "NSTintProminence", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_Images_Image, AttributeInfo(className: "NSButton", fullTitle: "Image", getterString: "image", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_NSButton_Images_AlternateImage, AttributeInfo(className: "NSButton", fullTitle: "AlternateImage", getterString: "alternateImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_ImagePosition, title: "ImagePosition", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_ImagePosition_ImagePosition, AttributeInfo(className: "NSButton", fullTitle: "ImagePosition", getterString: "imagePosition", setterString: "setImagePosition:", enumList: "NSCellImagePosition", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_ImageScaling, title: "ImageScaling", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_ImageScaling_ImageScaling, AttributeInfo(className: "NSButton", fullTitle: "ImageScaling", getterString: "imageScaling", setterString: "setImageScaling:", enumList: "NSImageScaling", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_Behavior_ImageHugsTitle, AttributeInfo(className: "NSButton", fullTitle: "ImageHugsTitle", getterString: "imageHugsTitle", setterString: "setImageHugsTitle:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSButton_Behavior_AllowsMixedState, AttributeInfo(className: "NSButton", fullTitle: "AllowsMixedState", getterString: "allowsMixedState", setterString: "setAllowsMixedState:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_SymbolConfiguration, title: "SymbolConfiguration", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_SymbolConfiguration_SymbolConfiguration, AttributeInfo(className: "NSButton", fullTitle: "SymbolConfiguration", getterString: "symbolConfiguration", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.description))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_State, title: "State", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_State_State, AttributeInfo(className: "NSButton", fullTitle: "State", getterString: "state", setterString: "setState:", enumList: "NSControlStateValue", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_KeyEquivalent, title: "KeyEquivalent", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_KeyEquivalent_KeyEquivalent, AttributeInfo(className: "NSButton", fullTitle: "KeyEquivalent", getterString: "keyEquivalent", setterString: "setKeyEquivalent:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_KeyEquivalentModifierMask, title: "KeyEquivalentModifierMask", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_KeyEquivalentModifierMask_KeyEquivalentModifierMask, AttributeInfo(className: "NSButton", fullTitle: "KeyEquivalentModifierMask", getterString: "keyEquivalentModifierMask", setterString: "", revision: 1, presentation: .optionNames("NSEventModifierFlags"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSButton_BorderShape, title: "BorderShape", attributes: [
+                BlueprintAttribute(LookinAttr_NSButton_BorderShape_BorderShape, AttributeInfo(className: "NSButton", fullTitle: "BorderShape", getterString: "borderShape", setterString: "setBorderShape:", enumList: "NSControlBorderShape", patch: true, revision: 1)),
             ]),
         ])
 
@@ -162,6 +215,28 @@
                 // as nil and never appeared in the dashboard at all.
                 BlueprintAttribute(LookinAttr_NSScrollView_Magnification_Max, AttributeInfo(className: "NSScrollView", fullTitle: "MaximumMagnification", briefTitle: "Max", getterString: "maxMagnification", setterString: "setMaxMagnification:", patch: true)),
                 BlueprintAttribute(LookinAttr_NSScrollView_Magnification_Min, AttributeInfo(className: "NSScrollView", fullTitle: "MinimumMagnification", briefTitle: "Min", getterString: "minMagnification", setterString: "setMinMagnification:", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_DocumentVisibleRect, title: "DocumentVisibleRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_DocumentVisibleRect_DocumentVisibleRect, AttributeInfo(className: "NSScrollView", fullTitle: "DocumentVisibleRect", getterString: "documentVisibleRect", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_BackgroundColor, title: "BackgroundColor", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_BackgroundColor_BackgroundColor, AttributeInfo(className: "NSScrollView", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "setBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_Behavior_DrawsBackground, AttributeInfo(className: "NSScrollView", fullTitle: "DrawsBackground", getterString: "drawsBackground", setterString: "setDrawsBackground:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSScrollView_Behavior_TouchScrollingEnabled, AttributeInfo(className: "NSScrollView", fullTitle: "TouchScrollingEnabled", getterString: "isTouchScrollingEnabled", setterString: "setTouchScrollingEnabled:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_ContentInsets, title: "ContentInsets", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_ContentInsets_ContentInsets, AttributeInfo(className: "NSScrollView", fullTitle: "ContentInsets", getterString: "contentInsets", setterString: "setContentInsets:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_MinimumNumberOfTouchesForScrolling, title: "MinimumNumberOfTouchesForScrolling", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_MinimumNumberOfTouchesForScrolling_MinimumNumberOfTouchesForScrolling, AttributeInfo(className: "NSScrollView", fullTitle: "MinimumNumberOfTouchesForScrolling", getterString: "minimumNumberOfTouchesForScrolling", setterString: "setMinimumNumberOfTouchesForScrolling:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_MaximumNumberOfTouchesForScrolling, title: "MaximumNumberOfTouchesForScrolling", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_MaximumNumberOfTouchesForScrolling_MaximumNumberOfTouchesForScrolling, AttributeInfo(className: "NSScrollView", fullTitle: "MaximumNumberOfTouchesForScrolling", getterString: "maximumNumberOfTouchesForScrolling", setterString: "setMaximumNumberOfTouchesForScrolling:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSScrollView_FindBarPosition, title: "FindBarPosition", attributes: [
+                BlueprintAttribute(LookinAttr_NSScrollView_FindBarPosition_FindBarPosition, AttributeInfo(className: "NSScrollView", fullTitle: "FindBarPosition", getterString: "findBarPosition", setterString: "setFindBarPosition:", enumList: "NSScrollViewFindBarPosition", patch: true, revision: 1)),
             ]),
         ])
 
@@ -244,6 +319,39 @@
             BlueprintSection(LookinAttrSec_NSTableView_VerticalMotionCanBeginDrag, title: "VerticalMotionCanBeginDrag", attributes: [
                 BlueprintAttribute(LookinAttr_NSTableView_VerticalMotionCanBeginDrag_VerticalMotionCanBeginDrag, AttributeInfo(className: "NSTableView", fullTitle: "VerticalMotionCanBeginDrag", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSTableView_BackgroundColor, title: "BackgroundColor", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_BackgroundColor_BackgroundColor, AttributeInfo(className: "NSTableView", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "setBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_EffectiveRowSizeStyle, title: "EffectiveRowSizeStyle", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_EffectiveRowSizeStyle_EffectiveRowSizeStyle, AttributeInfo(className: "NSTableView", fullTitle: "EffectiveRowSizeStyle", getterString: "effectiveRowSizeStyle", setterString: "", enumList: "NSTableViewRowSizeStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_EditedColumn, title: "EditedColumn", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_EditedColumn_EditedColumn, AttributeInfo(className: "NSTableView", fullTitle: "EditedColumn", getterString: "editedColumn", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_EditedRow, title: "EditedRow", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_EditedRow_EditedRow, AttributeInfo(className: "NSTableView", fullTitle: "EditedRow", getterString: "editedRow", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_ClickedColumn, title: "ClickedColumn", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_ClickedColumn_ClickedColumn, AttributeInfo(className: "NSTableView", fullTitle: "ClickedColumn", getterString: "clickedColumn", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_ClickedRow, title: "ClickedRow", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_ClickedRow_ClickedRow, AttributeInfo(className: "NSTableView", fullTitle: "ClickedRow", getterString: "clickedRow", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_SelectedColumn, title: "SelectedColumn", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_SelectedColumn_SelectedColumn, AttributeInfo(className: "NSTableView", fullTitle: "SelectedColumn", getterString: "selectedColumn", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_SelectedRow, title: "SelectedRow", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_SelectedRow_SelectedRow, AttributeInfo(className: "NSTableView", fullTitle: "SelectedRow", getterString: "selectedRow", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_NumberOfSelectedColumns, title: "NumberOfSelectedColumns", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_NumberOfSelectedColumns_NumberOfSelectedColumns, AttributeInfo(className: "NSTableView", fullTitle: "NumberOfSelectedColumns", getterString: "numberOfSelectedColumns", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_NumberOfSelectedRows, title: "NumberOfSelectedRows", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_NumberOfSelectedRows_NumberOfSelectedRows, AttributeInfo(className: "NSTableView", fullTitle: "NumberOfSelectedRows", getterString: "numberOfSelectedRows", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTableView_EffectiveStyle, title: "EffectiveStyle", attributes: [
+                BlueprintAttribute(LookinAttr_NSTableView_EffectiveStyle_EffectiveStyle, AttributeInfo(className: "NSTableView", fullTitle: "EffectiveStyle", getterString: "effectiveStyle", setterString: "", enumList: "NSTableViewStyle", revision: 1)),
+            ]),
         ])
 
         static let nsTextViewGroup = BlueprintGroup(LookinAttrGroup_NSTextView, title: "NSTextView", on: .appKit, sections: [
@@ -283,6 +391,65 @@
                 // Derived getter would be -verticallyResizable; it is -isVerticallyResizable.
                 BlueprintAttribute(LookinAttr_NSTextView_Resizable_Vertical, AttributeInfo(className: "NSTextView", fullTitle: "VerticallyResizable", getterString: "isVerticallyResizable", patch: false)),
             ]),
+            BlueprintSection(LookinAttrSec_NSTextView_TextContainerOrigin, title: "TextContainerOrigin", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_TextContainerOrigin_TextContainerOrigin, AttributeInfo(className: "NSTextView", fullTitle: "TextContainerOrigin", getterString: "textContainerOrigin", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_ShouldDrawInsertionPoint, AttributeInfo(className: "NSTextView", fullTitle: "ShouldDrawInsertionPoint", getterString: "shouldDrawInsertionPoint", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesAdaptiveColorMappingForDarkAppearance, AttributeInfo(className: "NSTextView", fullTitle: "UsesAdaptiveColorMappingForDarkAppearance", getterString: "usesAdaptiveColorMappingForDarkAppearance", setterString: "setUsesAdaptiveColorMappingForDarkAppearance:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_DisplaysLinkToolTips, AttributeInfo(className: "NSTextView", fullTitle: "DisplaysLinkToolTips", getterString: "displaysLinkToolTips", setterString: "setDisplaysLinkToolTips:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AcceptsGlyphInfo, AttributeInfo(className: "NSTextView", fullTitle: "AcceptsGlyphInfo", getterString: "acceptsGlyphInfo", setterString: "setAcceptsGlyphInfo:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesRuler, AttributeInfo(className: "NSTextView", fullTitle: "UsesRuler", getterString: "usesRuler", setterString: "setUsesRuler:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesInspectorBar, AttributeInfo(className: "NSTextView", fullTitle: "UsesInspectorBar", getterString: "usesInspectorBar", setterString: "setUsesInspectorBar:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_ContinuousSpellCheckingEnabled, AttributeInfo(className: "NSTextView", fullTitle: "ContinuousSpellCheckingEnabled", getterString: "isContinuousSpellCheckingEnabled", setterString: "setContinuousSpellCheckingEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_GrammarCheckingEnabled, AttributeInfo(className: "NSTextView", fullTitle: "GrammarCheckingEnabled", getterString: "isGrammarCheckingEnabled", setterString: "setGrammarCheckingEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AllowsDocumentBackgroundColorChange, AttributeInfo(className: "NSTextView", fullTitle: "AllowsDocumentBackgroundColorChange", getterString: "allowsDocumentBackgroundColorChange", setterString: "setAllowsDocumentBackgroundColorChange:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AllowsUndo, AttributeInfo(className: "NSTextView", fullTitle: "AllowsUndo", getterString: "allowsUndo", setterString: "setAllowsUndo:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_CoalescingUndo, AttributeInfo(className: "NSTextView", fullTitle: "CoalescingUndo", getterString: "isCoalescingUndo", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AllowsImageEditing, AttributeInfo(className: "NSTextView", fullTitle: "AllowsImageEditing", getterString: "allowsImageEditing", setterString: "setAllowsImageEditing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesRolloverButtonForSelection, AttributeInfo(className: "NSTextView", fullTitle: "UsesRolloverButtonForSelection", getterString: "usesRolloverButtonForSelection", setterString: "setUsesRolloverButtonForSelection:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_DrawsBackground, AttributeInfo(className: "NSTextView", fullTitle: "DrawsBackground", getterString: "drawsBackground", setterString: "setDrawsBackground:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesFontPanel, AttributeInfo(className: "NSTextView", fullTitle: "UsesFontPanel", getterString: "usesFontPanel", setterString: "setUsesFontPanel:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_RulerVisible, AttributeInfo(className: "NSTextView", fullTitle: "RulerVisible", getterString: "isRulerVisible", setterString: "setRulerVisible:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_WritingToolsActive, AttributeInfo(className: "NSTextView", fullTitle: "WritingToolsActive", getterString: "isWritingToolsActive", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_SmartInsertDeleteEnabled, AttributeInfo(className: "NSTextView", fullTitle: "SmartInsertDeleteEnabled", getterString: "smartInsertDeleteEnabled", setterString: "setSmartInsertDeleteEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticQuoteSubstitutionEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticQuoteSubstitutionEnabled", getterString: "isAutomaticQuoteSubstitutionEnabled", setterString: "setAutomaticQuoteSubstitutionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticLinkDetectionEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticLinkDetectionEnabled", getterString: "isAutomaticLinkDetectionEnabled", setterString: "setAutomaticLinkDetectionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticDataDetectionEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticDataDetectionEnabled", getterString: "isAutomaticDataDetectionEnabled", setterString: "setAutomaticDataDetectionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticDashSubstitutionEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticDashSubstitutionEnabled", getterString: "isAutomaticDashSubstitutionEnabled", setterString: "setAutomaticDashSubstitutionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticTextReplacementEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticTextReplacementEnabled", getterString: "isAutomaticTextReplacementEnabled", setterString: "setAutomaticTextReplacementEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticSpellingCorrectionEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticSpellingCorrectionEnabled", getterString: "isAutomaticSpellingCorrectionEnabled", setterString: "setAutomaticSpellingCorrectionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesFindPanel, AttributeInfo(className: "NSTextView", fullTitle: "UsesFindPanel", getterString: "usesFindPanel", setterString: "setUsesFindPanel:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_UsesFindBar, AttributeInfo(className: "NSTextView", fullTitle: "UsesFindBar", getterString: "usesFindBar", setterString: "setUsesFindBar:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_IncrementalSearchingEnabled, AttributeInfo(className: "NSTextView", fullTitle: "IncrementalSearchingEnabled", getterString: "isIncrementalSearchingEnabled", setterString: "setIncrementalSearchingEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AutomaticTextCompletionEnabled, AttributeInfo(className: "NSTextView", fullTitle: "AutomaticTextCompletionEnabled", getterString: "isAutomaticTextCompletionEnabled", setterString: "setAutomaticTextCompletionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Behavior_AllowsCharacterPickerTouchBarItem, AttributeInfo(className: "NSTextView", fullTitle: "AllowsCharacterPickerTouchBarItem", getterString: "allowsCharacterPickerTouchBarItem", setterString: "setAllowsCharacterPickerTouchBarItem:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_SelectionAffinity, title: "SelectionAffinity", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_SelectionAffinity_SelectionAffinity, AttributeInfo(className: "NSTextView", fullTitle: "SelectionAffinity", getterString: "selectionAffinity", setterString: "", enumList: "NSSelectionAffinity", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_SelectionGranularity, title: "SelectionGranularity", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_SelectionGranularity_SelectionGranularity, AttributeInfo(className: "NSTextView", fullTitle: "SelectionGranularity", getterString: "selectionGranularity", setterString: "setSelectionGranularity:", enumList: "NSSelectionGranularity", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_Colors_InsertionPointColor, AttributeInfo(className: "NSTextView", fullTitle: "InsertionPointColor", getterString: "insertionPointColor", setterString: "setInsertionPointColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextView_Colors_BackgroundColor, AttributeInfo(className: "NSTextView", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "setBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_WritingToolsBehavior, title: "WritingToolsBehavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_WritingToolsBehavior_WritingToolsBehavior, AttributeInfo(className: "NSTextView", fullTitle: "WritingToolsBehavior", getterString: "writingToolsBehavior", setterString: "setWritingToolsBehavior:", enumList: "NSWritingToolsBehavior", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_AllowedWritingToolsResultOptions, title: "AllowedWritingToolsResultOptions", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_AllowedWritingToolsResultOptions_AllowedWritingToolsResultOptions, AttributeInfo(className: "NSTextView", fullTitle: "AllowedWritingToolsResultOptions", getterString: "allowedWritingToolsResultOptions", setterString: "", revision: 1, presentation: .optionNames("NSWritingToolsResultOptions"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_InlinePredictionType, title: "InlinePredictionType", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_InlinePredictionType_InlinePredictionType, AttributeInfo(className: "NSTextView", fullTitle: "InlinePredictionType", getterString: "inlinePredictionType", setterString: "setInlinePredictionType:", enumList: "NSTextInputTraitType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_MathExpressionCompletionType, title: "MathExpressionCompletionType", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_MathExpressionCompletionType_MathExpressionCompletionType, AttributeInfo(className: "NSTextView", fullTitle: "MathExpressionCompletionType", getterString: "mathExpressionCompletionType", setterString: "setMathExpressionCompletionType:", enumList: "NSTextInputTraitType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextView_SelectedRange, title: "SelectedRange", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextView_SelectedRange_SelectedRange, AttributeInfo(className: "NSTextView", fullTitle: "SelectedRange", getterString: "selectedRange", setterString: "", revision: 1, presentation: .structure)),
+            ]),
         ])
 
         static let nsTextFieldGroup = BlueprintGroup(LookinAttrGroup_NSTextField, title: "NSTextField", on: .appKit, sections: [
@@ -317,6 +484,17 @@
                 BlueprintAttribute(LookinAttr_NSTextField_NSTokenField_TokenStyle, AttributeInfo(className: "NSTokenField", fullTitle: "TokenStyle", getterString: "tokenStyle", setterString: "setTokenStyle:", enumList: "NSTokenStyle", patch: true, revision: 1)),
                 BlueprintAttribute(LookinAttr_NSTextField_NSTokenField_CompletionDelay, AttributeInfo(className: "NSTokenField", fullTitle: "CompletionDelay", getterString: "completionDelay", setterString: "setCompletionDelay:", patch: true, revision: 1)),
             ]),
+            BlueprintSection(LookinAttrSec_NSTextField_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextField_Behavior_AcceptsFirstResponder, AttributeInfo(className: "NSTextField", fullTitle: "AcceptsFirstResponder", getterString: "acceptsFirstResponder", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextField_Behavior_AllowsWritingTools, AttributeInfo(className: "NSTextField", fullTitle: "AllowsWritingTools", getterString: "allowsWritingTools", setterString: "setAllowsWritingTools:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextField_Behavior_AllowsWritingToolsAffordance, AttributeInfo(className: "NSTextField", fullTitle: "AllowsWritingToolsAffordance", getterString: "allowsWritingToolsAffordance", setterString: "setAllowsWritingToolsAffordance:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextField_Behavior_ResolvesNaturalAlignmentWithBaseWritingDirection, AttributeInfo(className: "NSTextField", fullTitle: "ResolvesNaturalAlignmentWithBaseWritingDirection", getterString: "resolvesNaturalAlignmentWithBaseWritingDirection", setterString: "setResolvesNaturalAlignmentWithBaseWritingDirection:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextField_Behavior_AutomaticTextCompletionEnabled, AttributeInfo(className: "NSTextField", fullTitle: "AutomaticTextCompletionEnabled", getterString: "isAutomaticTextCompletionEnabled", setterString: "setAutomaticTextCompletionEnabled:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSTextField_Behavior_AllowsCharacterPickerTouchBarItem, AttributeInfo(className: "NSTextField", fullTitle: "AllowsCharacterPickerTouchBarItem", getterString: "allowsCharacterPickerTouchBarItem", setterString: "setAllowsCharacterPickerTouchBarItem:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTextField_BorderShape, title: "BorderShape", attributes: [
+                BlueprintAttribute(LookinAttr_NSTextField_BorderShape_BorderShape, AttributeInfo(className: "NSTextField", fullTitle: "BorderShape", getterString: "borderShape", setterString: "setBorderShape:", enumList: "NSControlBorderShape", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsVisualEffectViewGroup = BlueprintGroup(LookinAttrGroup_NSVisualEffectView, title: "NSVisualEffectView", on: .appKit, sections: [
@@ -334,6 +512,9 @@
             ]),
             BlueprintSection(LookinAttrSec_NSVisualEffectView_Emphasized, title: "Emphasized", attributes: [
                 BlueprintAttribute(LookinAttr_NSVisualEffectView_Emphasized_Emphasized, AttributeInfo(className: "NSVisualEffectView", fullTitle: "Emphasized", getterString: "isEmphasized", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSVisualEffectView_MaskImage, title: "MaskImage", attributes: [
+                BlueprintAttribute(LookinAttr_NSVisualEffectView_MaskImage_MaskImage, AttributeInfo(className: "NSVisualEffectView", fullTitle: "MaskImage", getterString: "maskImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
             ]),
         ])
 
@@ -434,6 +615,114 @@
                 BlueprintAttribute(LookinAttr_NSWindow_Info_WindowNumber, AttributeInfo(className: "NSWindow", fullTitle: "WindowNumber", setterString: "", patch: false)),
                 BlueprintAttribute(LookinAttr_NSWindow_Info_BackingScaleFactor, AttributeInfo(className: "NSWindow", fullTitle: "BackingScaleFactor", setterString: "", patch: false)),
             ]),
+            BlueprintSection(LookinAttrSec_NSWindow_ContentLayoutRect, title: "ContentLayoutRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_ContentLayoutRect_ContentLayoutRect, AttributeInfo(className: "NSWindow", fullTitle: "ContentLayoutRect", getterString: "contentLayoutRect", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_RepresentedURL, title: "RepresentedURL", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_RepresentedURL_RepresentedURL, AttributeInfo(className: "NSWindow", fullTitle: "RepresentedURL", getterString: "representedURL", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.url))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_RepresentedFilename, title: "RepresentedFilename", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_RepresentedFilename_RepresentedFilename, AttributeInfo(className: "NSWindow", fullTitle: "RepresentedFilename", getterString: "representedFilename", setterString: "setRepresentedFilename:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_Flags, title: "Flags", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_ExcludedFromWindowsMenu, AttributeInfo(className: "NSWindow", fullTitle: "ExcludedFromWindowsMenu", getterString: "isExcludedFromWindowsMenu", setterString: "setExcludedFromWindowsMenu:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_InLiveResize, AttributeInfo(className: "NSWindow", fullTitle: "InLiveResize", getterString: "inLiveResize", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_ViewsNeedDisplay, AttributeInfo(className: "NSWindow", fullTitle: "ViewsNeedDisplay", getterString: "viewsNeedDisplay", setterString: "setViewsNeedDisplay:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_PreservesContentDuringLiveResize, AttributeInfo(className: "NSWindow", fullTitle: "PreservesContentDuringLiveResize", getterString: "preservesContentDuringLiveResize", setterString: "setPreservesContentDuringLiveResize:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_ReleasedWhenClosed, AttributeInfo(className: "NSWindow", fullTitle: "ReleasedWhenClosed", getterString: "isReleasedWhenClosed", setterString: "setReleasedWhenClosed:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Zoomed, AttributeInfo(className: "NSWindow", fullTitle: "Zoomed", getterString: "isZoomed", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Miniaturized, AttributeInfo(className: "NSWindow", fullTitle: "Miniaturized", getterString: "isMiniaturized", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_CanHide, AttributeInfo(className: "NSWindow", fullTitle: "CanHide", getterString: "canHide", setterString: "setCanHide:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_DocumentEdited, AttributeInfo(className: "NSWindow", fullTitle: "DocumentEdited", getterString: "isDocumentEdited", setterString: "setDocumentEdited:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_WorksWhenModal, AttributeInfo(className: "NSWindow", fullTitle: "WorksWhenModal", getterString: "worksWhenModal", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_PreventsApplicationTerminationWhenModal, AttributeInfo(className: "NSWindow", fullTitle: "PreventsApplicationTerminationWhenModal", getterString: "preventsApplicationTerminationWhenModal", setterString: "setPreventsApplicationTerminationWhenModal:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_AllowsToolTipsWhenApplicationIsInactive, AttributeInfo(className: "NSWindow", fullTitle: "AllowsToolTipsWhenApplicationIsInactive", getterString: "allowsToolTipsWhenApplicationIsInactive", setterString: "setAllowsToolTipsWhenApplicationIsInactive:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_HasDynamicDepthLimit, AttributeInfo(className: "NSWindow", fullTitle: "HasDynamicDepthLimit", getterString: "hasDynamicDepthLimit", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_AllowsConcurrentViewDrawing, AttributeInfo(className: "NSWindow", fullTitle: "AllowsConcurrentViewDrawing", getterString: "allowsConcurrentViewDrawing", setterString: "setAllowsConcurrentViewDrawing:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_DisplaysWhenScreenProfileChanges, AttributeInfo(className: "NSWindow", fullTitle: "DisplaysWhenScreenProfileChanges", getterString: "displaysWhenScreenProfileChanges", setterString: "setDisplaysWhenScreenProfileChanges:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_CanBecomeVisibleWithoutLogin, AttributeInfo(className: "NSWindow", fullTitle: "CanBecomeVisibleWithoutLogin", getterString: "canBecomeVisibleWithoutLogin", setterString: "setCanBecomeVisibleWithoutLogin:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_OnActiveSpace, AttributeInfo(className: "NSWindow", fullTitle: "OnActiveSpace", getterString: "isOnActiveSpace", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Sheet, AttributeInfo(className: "NSWindow", fullTitle: "Sheet", getterString: "isSheet", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_AutorecalculatesKeyViewLoop, AttributeInfo(className: "NSWindow", fullTitle: "AutorecalculatesKeyViewLoop", getterString: "autorecalculatesKeyViewLoop", setterString: "setAutorecalculatesKeyViewLoop:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_HasActiveWindowSharingSession, AttributeInfo(className: "NSWindow", fullTitle: "HasActiveWindowSharingSession", getterString: "hasActiveWindowSharingSession", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_AcceptsMouseMovedEvents, AttributeInfo(className: "NSWindow", fullTitle: "AcceptsMouseMovedEvents", getterString: "acceptsMouseMovedEvents", setterString: "setAcceptsMouseMovedEvents:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_IgnoresMouseEvents, AttributeInfo(className: "NSWindow", fullTitle: "IgnoresMouseEvents", getterString: "ignoresMouseEvents", setterString: "setIgnoresMouseEvents:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_AreCursorRectsEnabled, AttributeInfo(className: "NSWindow", fullTitle: "AreCursorRectsEnabled", getterString: "areCursorRectsEnabled", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Restorable, AttributeInfo(className: "NSWindow", fullTitle: "Restorable", getterString: "isRestorable", setterString: "setRestorable:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_HasCloseBox, AttributeInfo(className: "NSWindow", fullTitle: "HasCloseBox", getterString: "hasCloseBox", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_HasTitleBar, AttributeInfo(className: "NSWindow", fullTitle: "HasTitleBar", getterString: "hasTitleBar", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_FloatingPanel, AttributeInfo(className: "NSWindow", fullTitle: "FloatingPanel", getterString: "isFloatingPanel", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Miniaturizable, AttributeInfo(className: "NSWindow", fullTitle: "Miniaturizable", getterString: "isMiniaturizable", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_ModalPanel, AttributeInfo(className: "NSWindow", fullTitle: "ModalPanel", getterString: "isModalPanel", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Resizable, AttributeInfo(className: "NSWindow", fullTitle: "Resizable", getterString: "isResizable", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSWindow_Flags_Zoomable, AttributeInfo(className: "NSWindow", fullTitle: "Zoomable", getterString: "isZoomable", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_StyleMask, title: "StyleMask", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_StyleMask_StyleMask, AttributeInfo(className: "NSWindow", fullTitle: "StyleMask", getterString: "styleMask", setterString: "", revision: 1, presentation: .optionNames("NSWindowStyleMask"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_CascadingReferenceFrame, title: "CascadingReferenceFrame", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_CascadingReferenceFrame_CascadingReferenceFrame, AttributeInfo(className: "NSWindow", fullTitle: "CascadingReferenceFrame", getterString: "cascadingReferenceFrame", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_ResizeIncrements, title: "ResizeIncrements", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_ResizeIncrements_ResizeIncrements, AttributeInfo(className: "NSWindow", fullTitle: "ResizeIncrements", getterString: "resizeIncrements", setterString: "setResizeIncrements:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_AspectRatio, title: "AspectRatio", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_AspectRatio_AspectRatio, AttributeInfo(className: "NSWindow", fullTitle: "AspectRatio", getterString: "aspectRatio", setterString: "setAspectRatio:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_ContentResizeIncrements, title: "ContentResizeIncrements", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_ContentResizeIncrements_ContentResizeIncrements, AttributeInfo(className: "NSWindow", fullTitle: "ContentResizeIncrements", getterString: "contentResizeIncrements", setterString: "setContentResizeIncrements:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_ContentAspectRatio, title: "ContentAspectRatio", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_ContentAspectRatio_ContentAspectRatio, AttributeInfo(className: "NSWindow", fullTitle: "ContentAspectRatio", getterString: "contentAspectRatio", setterString: "setContentAspectRatio:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_MiniwindowTitle, title: "MiniwindowTitle", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_MiniwindowTitle_MiniwindowTitle, AttributeInfo(className: "NSWindow", fullTitle: "MiniwindowTitle", getterString: "miniwindowTitle", setterString: "setMiniwindowTitle:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_BackingType, title: "BackingType", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_BackingType_BackingType, AttributeInfo(className: "NSWindow", fullTitle: "BackingType", getterString: "backingType", setterString: "setBackingType:", enumList: "NSBackingStoreType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_DepthLimit, title: "DepthLimit", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_DepthLimit_DepthLimit, AttributeInfo(className: "NSWindow", fullTitle: "DepthLimit", getterString: "depthLimit", setterString: "setDepthLimit:", enumList: "NSWindowDepth", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_Screen, title: "Screen", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_Screen_Screen, AttributeInfo(className: "NSWindow", fullTitle: "Screen", getterString: "screen", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.screen))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_DeepestScreen, title: "DeepestScreen", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_DeepestScreen_DeepestScreen, AttributeInfo(className: "NSWindow", fullTitle: "DeepestScreen", getterString: "deepestScreen", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.screen))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_SharingType, title: "SharingType", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_SharingType_SharingType, AttributeInfo(className: "NSWindow", fullTitle: "SharingType", getterString: "sharingType", setterString: "setSharingType:", enumList: "NSWindowSharingType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_CollectionBehaviorOptions, title: "CollectionBehaviorOptions", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_CollectionBehaviorOptions_CollectionBehavior, AttributeInfo(className: "NSWindow", fullTitle: "CollectionBehavior", getterString: "collectionBehavior", setterString: "", revision: 1, presentation: .optionNames("NSWindowCollectionBehavior"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_ContentMinSize, title: "ContentMinSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_ContentMinSize_ContentMinSize, AttributeInfo(className: "NSWindow", fullTitle: "ContentMinSize", getterString: "contentMinSize", setterString: "setContentMinSize:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_ContentMaxSize, title: "ContentMaxSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_ContentMaxSize_ContentMaxSize, AttributeInfo(className: "NSWindow", fullTitle: "ContentMaxSize", getterString: "contentMaxSize", setterString: "setContentMaxSize:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_MinFullScreenContentSize, title: "MinFullScreenContentSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_MinFullScreenContentSize_MinFullScreenContentSize, AttributeInfo(className: "NSWindow", fullTitle: "MinFullScreenContentSize", getterString: "minFullScreenContentSize", setterString: "setMinFullScreenContentSize:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_MaxFullScreenContentSize, title: "MaxFullScreenContentSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_MaxFullScreenContentSize_MaxFullScreenContentSize, AttributeInfo(className: "NSWindow", fullTitle: "MaxFullScreenContentSize", getterString: "maxFullScreenContentSize", setterString: "setMaxFullScreenContentSize:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_OcclusionState, title: "OcclusionState", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_OcclusionState_OcclusionState, AttributeInfo(className: "NSWindow", fullTitle: "OcclusionState", getterString: "occlusionState", setterString: "", revision: 1, presentation: .optionNames("NSWindowOcclusionState"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_KeyViewSelectionDirection, title: "KeyViewSelectionDirection", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_KeyViewSelectionDirection_KeyViewSelectionDirection, AttributeInfo(className: "NSWindow", fullTitle: "KeyViewSelectionDirection", getterString: "keyViewSelectionDirection", setterString: "", enumList: "NSSelectionDirection", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_Toolbar, title: "Toolbar", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_Toolbar_Toolbar, AttributeInfo(className: "NSWindow", fullTitle: "Toolbar", getterString: "toolbar", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.toolbar))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_OrderedIndex, title: "OrderedIndex", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_OrderedIndex_OrderedIndex, AttributeInfo(className: "NSWindow", fullTitle: "OrderedIndex", getterString: "orderedIndex", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSWindow_FirstResponder, title: "FirstResponder", attributes: [
+                BlueprintAttribute(LookinAttr_NSWindow_FirstResponder_FirstResponder, AttributeInfo(className: "NSWindow", fullTitle: "FirstResponder", getterString: "firstResponder", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
+            ]),
         ])
 
         static let nsSliderGroup = BlueprintGroup(LookinAttrGroup_NSSlider, title: "NSSlider", on: .appKit, sections: [
@@ -455,6 +744,12 @@
                 BlueprintAttribute(LookinAttr_NSSlider_Misc_AltIncrementValue, AttributeInfo(className: "NSSlider", fullTitle: "AltIncrementValue", patch: true)),
                 BlueprintAttribute(LookinAttr_NSSlider_Misc_TrackFillColor, AttributeInfo(className: "NSSlider", fullTitle: "TrackFillColor", typeIfObj: .uiColor, patch: true, hideIfNil: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSSlider_NeutralValue, title: "NeutralValue", attributes: [
+                BlueprintAttribute(LookinAttr_NSSlider_NeutralValue_NeutralValue, AttributeInfo(className: "NSSlider", fullTitle: "NeutralValue", getterString: "neutralValue", setterString: "setNeutralValue:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSlider_TintProminence, title: "TintProminence", attributes: [
+                BlueprintAttribute(LookinAttr_NSSlider_TintProminence_TintProminence, AttributeInfo(className: "NSSlider", fullTitle: "TintProminence", getterString: "tintProminence", setterString: "setTintProminence:", enumList: "NSTintProminence", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsProgressIndicatorGroup = BlueprintGroup(LookinAttrGroup_NSProgressIndicator, title: "NSProgressIndicator", on: .appKit, sections: [
@@ -470,6 +765,12 @@
                 BlueprintAttribute(LookinAttr_NSProgressIndicator_Misc_Indeterminate, AttributeInfo(className: "NSProgressIndicator", fullTitle: "Indeterminate", getterString: "isIndeterminate", patch: true)),
                 BlueprintAttribute(LookinAttr_NSProgressIndicator_Misc_Bezeled, AttributeInfo(className: "NSProgressIndicator", fullTitle: "Bezeled", getterString: "isBezeled", patch: true)),
                 BlueprintAttribute(LookinAttr_NSProgressIndicator_Misc_DisplayedWhenStopped, AttributeInfo(className: "NSProgressIndicator", fullTitle: "DisplayedWhenStopped", getterString: "isDisplayedWhenStopped", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSProgressIndicator_ControlSize, title: "ControlSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSProgressIndicator_ControlSize_ControlSize, AttributeInfo(className: "NSProgressIndicator", fullTitle: "ControlSize", getterString: "controlSize", setterString: "setControlSize:", enumList: "NSControlSize", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSProgressIndicator_UsesThreadedAnimation, title: "UsesThreadedAnimation", attributes: [
+                BlueprintAttribute(LookinAttr_NSProgressIndicator_UsesThreadedAnimation_UsesThreadedAnimation, AttributeInfo(className: "NSProgressIndicator", fullTitle: "UsesThreadedAnimation", getterString: "usesThreadedAnimation", setterString: "setUsesThreadedAnimation:", patch: true, revision: 1)),
             ]),
         ])
 
@@ -487,6 +788,24 @@
             BlueprintSection(LookinAttrSec_NSSegmentedControl_Colors, title: "Colors", attributes: [
                 BlueprintAttribute(LookinAttr_NSSegmentedControl_Colors_SelectedSegmentBezelColor, AttributeInfo(className: "NSSegmentedControl", fullTitle: "SelectedSegmentBezelColor", typeIfObj: .uiColor, patch: true, hideIfNil: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSSegmentedControl_Role, title: "Role", attributes: [
+                BlueprintAttribute(LookinAttr_NSSegmentedControl_Role_Role, AttributeInfo(className: "NSSegmentedControl", fullTitle: "Role", getterString: "role", setterString: "setRole:", enumList: "NSSegmentedControlRole", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSegmentedControl_SpringLoaded, title: "SpringLoaded", attributes: [
+                BlueprintAttribute(LookinAttr_NSSegmentedControl_SpringLoaded_SpringLoaded, AttributeInfo(className: "NSSegmentedControl", fullTitle: "SpringLoaded", getterString: "isSpringLoaded", setterString: "setSpringLoaded:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSegmentedControl_DoubleValueForSelectedSegment, title: "DoubleValueForSelectedSegment", attributes: [
+                BlueprintAttribute(LookinAttr_NSSegmentedControl_DoubleValueForSelectedSegment_DoubleValueForSelectedSegment, AttributeInfo(className: "NSSegmentedControl", fullTitle: "DoubleValueForSelectedSegment", getterString: "doubleValueForSelectedSegment", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSegmentedControl_IndexOfSelectedItem, title: "IndexOfSelectedItem", attributes: [
+                BlueprintAttribute(LookinAttr_NSSegmentedControl_IndexOfSelectedItem_IndexOfSelectedItem, AttributeInfo(className: "NSSegmentedControl", fullTitle: "IndexOfSelectedItem", getterString: "indexOfSelectedItem", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSegmentedControl_SegmentDistribution, title: "SegmentDistribution", attributes: [
+                BlueprintAttribute(LookinAttr_NSSegmentedControl_SegmentDistribution_SegmentDistribution, AttributeInfo(className: "NSSegmentedControl", fullTitle: "SegmentDistribution", getterString: "segmentDistribution", setterString: "setSegmentDistribution:", enumList: "NSSegmentDistribution", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSegmentedControl_BorderShape, title: "BorderShape", attributes: [
+                BlueprintAttribute(LookinAttr_NSSegmentedControl_BorderShape_BorderShape, AttributeInfo(className: "NSSegmentedControl", fullTitle: "BorderShape", getterString: "borderShape", setterString: "setBorderShape:", enumList: "NSControlBorderShape", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsPopUpButtonGroup = BlueprintGroup(LookinAttrGroup_NSPopUpButton, title: "NSPopUpButton", on: .appKit, sections: [
@@ -503,6 +822,13 @@
             BlueprintSection(LookinAttrSec_NSPopUpButton_Items, title: "Items", attributes: [
                 BlueprintAttribute(LookinAttr_NSPopUpButton_Items_NumberOfItems, AttributeInfo(className: "NSPopUpButton", fullTitle: "NumberOfItems", setterString: "", patch: false)),
             ]),
+            BlueprintSection(LookinAttrSec_NSPopUpButton_Menu, title: "Menu", attributes: [
+                BlueprintAttribute(LookinAttr_NSPopUpButton_Menu_Menu, AttributeInfo(className: "NSPopUpButton", fullTitle: "Menu", getterString: "menu", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.menu))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSPopUpButton_Flags, title: "Flags", attributes: [
+                BlueprintAttribute(LookinAttr_NSPopUpButton_Flags_UsesItemFromMenu, AttributeInfo(className: "NSPopUpButton", fullTitle: "UsesItemFromMenu", getterString: "usesItemFromMenu", setterString: "setUsesItemFromMenu:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSPopUpButton_Flags_AltersStateOfSelectedItem, AttributeInfo(className: "NSPopUpButton", fullTitle: "AltersStateOfSelectedItem", getterString: "altersStateOfSelectedItem", setterString: "setAltersStateOfSelectedItem:", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsComboBoxGroup = BlueprintGroup(LookinAttrGroup_NSComboBox, title: "NSComboBox", on: .appKit, sections: [
@@ -517,6 +843,9 @@
                 BlueprintAttribute(LookinAttr_NSComboBox_Misc_ButtonBordered, AttributeInfo(className: "NSComboBox", fullTitle: "ButtonBordered", getterString: "isButtonBordered", patch: true)),
                 BlueprintAttribute(LookinAttr_NSComboBox_Misc_Completes, AttributeInfo(className: "NSComboBox", fullTitle: "Completes", patch: true)),
                 BlueprintAttribute(LookinAttr_NSComboBox_Misc_UsesDataSource, AttributeInfo(className: "NSComboBox", fullTitle: "UsesDataSource", patch: false)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSComboBox_IndexOfSelectedItem, title: "IndexOfSelectedItem", attributes: [
+                BlueprintAttribute(LookinAttr_NSComboBox_IndexOfSelectedItem_IndexOfSelectedItem, AttributeInfo(className: "NSComboBox", fullTitle: "IndexOfSelectedItem", getterString: "indexOfSelectedItem", setterString: "", revision: 1)),
             ]),
         ])
 
@@ -541,6 +870,15 @@
                 BlueprintAttribute(LookinAttr_NSColorWell_Misc_Active, AttributeInfo(className: "NSColorWell", fullTitle: "Active", getterString: "isActive", setterString: "", patch: false)),
                 BlueprintAttribute(LookinAttr_NSColorWell_Misc_ColorWellStyle, AttributeInfo(className: "NSColorWell", fullTitle: "ColorWellStyle", enumList: "NSColorWellStyle", patch: true, osVersion: 13)),
             ]),
+            BlueprintSection(LookinAttrSec_NSColorWell_Image, title: "Image", attributes: [
+                BlueprintAttribute(LookinAttr_NSColorWell_Image_Image, AttributeInfo(className: "NSColorWell", fullTitle: "Image", getterString: "image", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSColorWell_SupportsAlpha, title: "SupportsAlpha", attributes: [
+                BlueprintAttribute(LookinAttr_NSColorWell_SupportsAlpha_SupportsAlpha, AttributeInfo(className: "NSColorWell", fullTitle: "SupportsAlpha", getterString: "supportsAlpha", setterString: "setSupportsAlpha:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSColorWell_MaximumLinearExposure, title: "MaximumLinearExposure", attributes: [
+                BlueprintAttribute(LookinAttr_NSColorWell_MaximumLinearExposure_MaximumLinearExposure, AttributeInfo(className: "NSColorWell", fullTitle: "MaximumLinearExposure", getterString: "maximumLinearExposure", setterString: "setMaximumLinearExposure:", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsSwitchGroup = BlueprintGroup(LookinAttrGroup_NSSwitch, title: "NSSwitch", on: .appKit, sections: [
@@ -564,6 +902,28 @@
                 BlueprintAttribute(LookinAttr_NSDatePicker_Misc_Bezeled, AttributeInfo(className: "NSDatePicker", fullTitle: "Bezeled", getterString: "isBezeled", patch: true)),
                 BlueprintAttribute(LookinAttr_NSDatePicker_Misc_DrawsBackground, AttributeInfo(className: "NSDatePicker", fullTitle: "DrawsBackground", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_Colors_BackgroundColor, AttributeInfo(className: "NSDatePicker", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "setBackgroundColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSDatePicker_Colors_TextColor, AttributeInfo(className: "NSDatePicker", fullTitle: "TextColor", getterString: "textColor", setterString: "setTextColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_DatePickerElements, title: "DatePickerElements", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_DatePickerElements_DatePickerElements, AttributeInfo(className: "NSDatePicker", fullTitle: "DatePickerElements", getterString: "datePickerElements", setterString: "", revision: 1, presentation: .optionNames("NSDatePickerElementFlags"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_Calendar, title: "Calendar", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_Calendar_Calendar, AttributeInfo(className: "NSDatePicker", fullTitle: "Calendar", getterString: "calendar", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.calendar))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_Locale, title: "Locale", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_Locale_Locale, AttributeInfo(className: "NSDatePicker", fullTitle: "Locale", getterString: "locale", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.locale))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_TimeZone, title: "TimeZone", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_TimeZone_TimeZone, AttributeInfo(className: "NSDatePicker", fullTitle: "TimeZone", getterString: "timeZone", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.timeZone))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_TimeInterval, title: "TimeInterval", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_TimeInterval_TimeInterval, AttributeInfo(className: "NSDatePicker", fullTitle: "TimeInterval", getterString: "timeInterval", setterString: "setTimeInterval:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSDatePicker_PresentsCalendarOverlay, title: "PresentsCalendarOverlay", attributes: [
+                BlueprintAttribute(LookinAttr_NSDatePicker_PresentsCalendarOverlay_PresentsCalendarOverlay, AttributeInfo(className: "NSDatePicker", fullTitle: "PresentsCalendarOverlay", getterString: "presentsCalendarOverlay", setterString: "setPresentsCalendarOverlay:", patch: true, revision: 1)),
+            ]),
         ])
 
         static let nsLevelIndicatorGroup = BlueprintGroup(LookinAttrGroup_NSLevelIndicator, title: "NSLevelIndicator", on: .appKit, sections: [
@@ -580,6 +940,25 @@
                 BlueprintAttribute(LookinAttr_NSLevelIndicator_TickMark_NumberOfTickMarks, AttributeInfo(className: "NSLevelIndicator", fullTitle: "NumberOfTickMarks", patch: true)),
                 BlueprintAttribute(LookinAttr_NSLevelIndicator_TickMark_NumberOfMajorTickMarks, AttributeInfo(className: "NSLevelIndicator", fullTitle: "NumberOfMajorTickMarks", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSLevelIndicator_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Behavior_Editable, AttributeInfo(className: "NSLevelIndicator", fullTitle: "Editable", getterString: "isEditable", setterString: "setEditable:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Behavior_DrawsTieredCapacityLevels, AttributeInfo(className: "NSLevelIndicator", fullTitle: "DrawsTieredCapacityLevels", getterString: "drawsTieredCapacityLevels", setterString: "setDrawsTieredCapacityLevels:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSLevelIndicator_TickMarkPosition, title: "TickMarkPosition", attributes: [
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_TickMarkPosition_TickMarkPosition, AttributeInfo(className: "NSLevelIndicator", fullTitle: "TickMarkPosition", getterString: "tickMarkPosition", setterString: "setTickMarkPosition:", enumList: "NSTickMarkPosition", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSLevelIndicator_Colors, title: "Colors", attributes: [
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Colors_FillColor, AttributeInfo(className: "NSLevelIndicator", fullTitle: "FillColor", getterString: "fillColor", setterString: "setFillColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Colors_WarningFillColor, AttributeInfo(className: "NSLevelIndicator", fullTitle: "WarningFillColor", getterString: "warningFillColor", setterString: "setWarningFillColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Colors_CriticalFillColor, AttributeInfo(className: "NSLevelIndicator", fullTitle: "CriticalFillColor", getterString: "criticalFillColor", setterString: "setCriticalFillColor:", typeIfObj: .uiColor, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSLevelIndicator_PlaceholderVisibility, title: "PlaceholderVisibility", attributes: [
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_PlaceholderVisibility_PlaceholderVisibility, AttributeInfo(className: "NSLevelIndicator", fullTitle: "PlaceholderVisibility", getterString: "placeholderVisibility", setterString: "setPlaceholderVisibility:", enumList: "NSLevelIndicatorPlaceholderVisibility", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSLevelIndicator_Images, title: "Images", attributes: [
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Images_RatingImage, AttributeInfo(className: "NSLevelIndicator", fullTitle: "RatingImage", getterString: "ratingImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_NSLevelIndicator_Images_RatingPlaceholderImage, AttributeInfo(className: "NSLevelIndicator", fullTitle: "RatingPlaceholderImage", getterString: "ratingPlaceholderImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
         ])
 
         static let nsOutlineViewGroup = BlueprintGroup(LookinAttrGroup_NSOutlineView, title: "NSOutlineView", on: .appKit, sections: [
@@ -590,6 +969,12 @@
                 BlueprintAttribute(LookinAttr_NSOutlineView_Misc_AutoresizesOutlineColumn, AttributeInfo(className: "NSOutlineView", fullTitle: "AutoresizesOutlineColumn", patch: true)),
                 BlueprintAttribute(LookinAttr_NSOutlineView_Misc_IndentationMarkerFollowsCell, AttributeInfo(className: "NSOutlineView", fullTitle: "IndentationMarkerFollowsCell", patch: true)),
                 BlueprintAttribute(LookinAttr_NSOutlineView_Misc_AutosaveExpandedItems, AttributeInfo(className: "NSOutlineView", fullTitle: "AutosaveExpandedItems", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSOutlineView_UserInterfaceLayoutDirection, title: "UserInterfaceLayoutDirection", attributes: [
+                BlueprintAttribute(LookinAttr_NSOutlineView_UserInterfaceLayoutDirection_UserInterfaceLayoutDirection, AttributeInfo(className: "NSOutlineView", fullTitle: "UserInterfaceLayoutDirection", getterString: "userInterfaceLayoutDirection", setterString: "setUserInterfaceLayoutDirection:", enumList: "NSUserInterfaceLayoutDirection", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSOutlineView_StronglyReferencesItems, title: "StronglyReferencesItems", attributes: [
+                BlueprintAttribute(LookinAttr_NSOutlineView_StronglyReferencesItems_StronglyReferencesItems, AttributeInfo(className: "NSOutlineView", fullTitle: "StronglyReferencesItems", getterString: "stronglyReferencesItems", setterString: "setStronglyReferencesItems:", patch: true, revision: 1)),
             ]),
         ])
 
@@ -604,6 +989,9 @@
             ]),
             BlueprintSection(LookinAttrSec_NSCollectionView_Colors, title: "Colors", attributes: [
                 BlueprintAttribute(LookinAttr_NSCollectionView_Colors_BackgroundColors, AttributeInfo(className: "NSCollectionView", fullTitle: "BackgroundColors", setterString: "", typeIfObj: .customObj, patch: false)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCollectionView_BackgroundViewScrollsWithContent, title: "BackgroundViewScrollsWithContent", attributes: [
+                BlueprintAttribute(LookinAttr_NSCollectionView_BackgroundViewScrollsWithContent_BackgroundViewScrollsWithContent, AttributeInfo(className: "NSCollectionView", fullTitle: "BackgroundViewScrollsWithContent", getterString: "backgroundViewScrollsWithContent", setterString: "setBackgroundViewScrollsWithContent:", patch: true, revision: 1)),
             ]),
         ])
 
@@ -626,6 +1014,15 @@
                 BlueprintAttribute(LookinAttr_NSBox_Metrics_CornerRadius, AttributeInfo(className: "NSBox", fullTitle: "CornerRadius", patch: true)),
                 BlueprintAttribute(LookinAttr_NSBox_Metrics_ContentViewMargins, AttributeInfo(className: "NSBox", fullTitle: "ContentViewMargins", patch: true)),
             ]),
+            BlueprintSection(LookinAttrSec_NSBox_TitleFont, title: "TitleFont", attributes: [
+                BlueprintAttribute(LookinAttr_NSBox_TitleFont_TitleFont, AttributeInfo(className: "NSBox", fullTitle: "TitleFont", getterString: "titleFont", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.font))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSBox_BorderRect, title: "BorderRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSBox_BorderRect_BorderRect, AttributeInfo(className: "NSBox", fullTitle: "BorderRect", getterString: "borderRect", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSBox_TitleRect, title: "TitleRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSBox_TitleRect_TitleRect, AttributeInfo(className: "NSBox", fullTitle: "TitleRect", getterString: "titleRect", setterString: "", revision: 1)),
+            ]),
         ])
 
         static let nsSplitViewGroup = BlueprintGroup(LookinAttrGroup_NSSplitView, title: "NSSplitView", on: .appKit, sections: [
@@ -638,6 +1035,9 @@
             ]),
             BlueprintSection(LookinAttrSec_NSSplitView_Misc, title: "Misc", attributes: [
                 BlueprintAttribute(LookinAttr_NSSplitView_Misc_ArrangesAllSubviews, AttributeInfo(className: "NSSplitView", fullTitle: "ArrangesAllSubviews", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSSplitView_DividerColor, title: "DividerColor", attributes: [
+                BlueprintAttribute(LookinAttr_NSSplitView_DividerColor_DividerColor, AttributeInfo(className: "NSSplitView", fullTitle: "DividerColor", getterString: "dividerColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
             ]),
         ])
 
@@ -654,6 +1054,18 @@
             BlueprintSection(LookinAttrSec_NSTabView_Info, title: "Info", attributes: [
                 BlueprintAttribute(LookinAttr_NSTabView_Info_NumberOfTabViewItems, AttributeInfo(className: "NSTabView", fullTitle: "NumberOfTabViewItems", setterString: "", patch: false)),
             ]),
+            BlueprintSection(LookinAttrSec_NSTabView_Font, title: "Font", attributes: [
+                BlueprintAttribute(LookinAttr_NSTabView_Font_Font, AttributeInfo(className: "NSTabView", fullTitle: "Font", getterString: "font", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.font))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTabView_MinimumSize, title: "MinimumSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSTabView_MinimumSize_MinimumSize, AttributeInfo(className: "NSTabView", fullTitle: "MinimumSize", getterString: "minimumSize", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTabView_ControlSize, title: "ControlSize", attributes: [
+                BlueprintAttribute(LookinAttr_NSTabView_ControlSize_ControlSize, AttributeInfo(className: "NSTabView", fullTitle: "ControlSize", getterString: "controlSize", setterString: "setControlSize:", enumList: "NSControlSize", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSTabView_ContentRect, title: "ContentRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSTabView_ContentRect_ContentRect, AttributeInfo(className: "NSTabView", fullTitle: "ContentRect", getterString: "contentRect", setterString: "", revision: 1)),
+            ]),
         ])
 
         static let nsGridViewGroup = BlueprintGroup(LookinAttrGroup_NSGridView, title: "NSGridView", on: .appKit, sections: [
@@ -668,6 +1080,9 @@
             BlueprintSection(LookinAttrSec_NSGridView_Placement, title: "Placement", attributes: [
                 BlueprintAttribute(LookinAttr_NSGridView_Placement_XPlacement, AttributeInfo(className: "NSGridView", fullTitle: "XPlacement", enumList: "NSGridCellPlacement", patch: true)),
                 BlueprintAttribute(LookinAttr_NSGridView_Placement_YPlacement, AttributeInfo(className: "NSGridView", fullTitle: "YPlacement", enumList: "NSGridCellPlacement", patch: true)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSGridView_RowAlignment, title: "RowAlignment", attributes: [
+                BlueprintAttribute(LookinAttr_NSGridView_RowAlignment_RowAlignment, AttributeInfo(className: "NSGridView", fullTitle: "RowAlignment", getterString: "rowAlignment", setterString: "setRowAlignment:", enumList: "NSGridRowAlignment", patch: true, revision: 1)),
             ]),
         ])
 
@@ -703,6 +1118,18 @@
                 BlueprintAttribute(LookinAttr_NSCell_ButtonCell_ShowsBorderOnlyWhileMouseInside, AttributeInfo(className: "NSButtonCell", fullTitle: "ShowsBorderOnlyWhileMouseInside", getterString: "showsBorderOnlyWhileMouseInside", setterString: "")),
                 BlueprintAttribute(LookinAttr_NSCell_ButtonCell_KeyEquivalent, AttributeInfo(className: "NSButtonCell", fullTitle: "KeyEquivalent", getterString: "keyEquivalent", setterString: "", typeIfObj: .nsString, hideIfNil: true)),
                 BlueprintAttribute(LookinAttr_NSCell_ButtonCell_AlternateTitle, AttributeInfo(className: "NSButtonCell", fullTitle: "AlternateTitle", getterString: "alternateTitle", setterString: "", typeIfObj: .nsString, hideIfNil: true)),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_HighlightsBy, AttributeInfo(className: "NSButtonCell", fullTitle: "HighlightsBy", getterString: "highlightsBy", setterString: "", revision: 1, presentation: .optionNames("NSCellStyleMask"))),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_ShowsStateBy, AttributeInfo(className: "NSButtonCell", fullTitle: "ShowsStateBy", getterString: "showsStateBy", setterString: "", revision: 1, presentation: .optionNames("NSCellStyleMask"))),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_Title, AttributeInfo(className: "NSButtonCell", fullTitle: "Title", getterString: "title", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_AttributedTitle, AttributeInfo(className: "NSButtonCell", fullTitle: "AttributedTitle", getterString: "attributedTitle", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_AttributedAlternateTitle, AttributeInfo(className: "NSButtonCell", fullTitle: "AttributedAlternateTitle", getterString: "attributedAlternateTitle", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_AlternateImage, AttributeInfo(className: "NSButtonCell", fullTitle: "AlternateImage", getterString: "alternateImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_ImageScaling, AttributeInfo(className: "NSButtonCell", fullTitle: "ImageScaling", getterString: "imageScaling", setterString: "", enumList: "NSImageScaling", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_KeyEquivalentModifierMask, AttributeInfo(className: "NSButtonCell", fullTitle: "KeyEquivalentModifierMask", getterString: "keyEquivalentModifierMask", setterString: "", revision: 1, presentation: .optionNames("NSEventModifierFlags"))),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_Transparent, AttributeInfo(className: "NSButtonCell", fullTitle: "Transparent", getterString: "isTransparent", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_Opaque, AttributeInfo(className: "NSButtonCell", fullTitle: "Opaque", getterString: "isOpaque", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_ImageDimsWhenDisabled, AttributeInfo(className: "NSButtonCell", fullTitle: "ImageDimsWhenDisabled", getterString: "imageDimsWhenDisabled", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_ButtonCell_BackgroundColor, AttributeInfo(className: "NSButtonCell", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
             ]),
             BlueprintSection(LookinAttrSec_NSCell_TextFieldCell, title: "NSTextFieldCell", on: .all, attributes: [
                 BlueprintAttribute(LookinAttr_NSCell_TextFieldCell_Placeholder, AttributeInfo(className: "NSTextFieldCell", fullTitle: "Placeholder", getterString: "placeholderString", setterString: "", typeIfObj: .nsString, hideIfNil: true)),
@@ -710,6 +1137,212 @@
                 BlueprintAttribute(LookinAttr_NSCell_TextFieldCell_TextColor, AttributeInfo(className: "NSTextFieldCell", fullTitle: "TextColor", getterString: "textColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true)),
                 BlueprintAttribute(LookinAttr_NSCell_TextFieldCell_BackgroundColor, AttributeInfo(className: "NSTextFieldCell", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true)),
                 BlueprintAttribute(LookinAttr_NSCell_TextFieldCell_BezelStyle, AttributeInfo(className: "NSTextFieldCell", fullTitle: "BezelStyle", getterString: "bezelStyle", setterString: "", enumList: "NSTextFieldBezelStyle")),
+                BlueprintAttribute(LookinAttr_NSCell_TextFieldCell_PlaceholderAttributedString, AttributeInfo(className: "NSTextFieldCell", fullTitle: "PlaceholderAttributedString", getterString: "placeholderAttributedString", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+                BlueprintAttribute(LookinAttr_NSCell_TextFieldCell_AllowedInputSourceLocales, AttributeInfo(className: "NSTextFieldCell", fullTitle: "AllowedInputSourceLocales", getterString: "allowedInputSourceLocales", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_ControlView, title: "ControlView", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_ControlView_ControlView, AttributeInfo(className: "NSCell", fullTitle: "ControlView", getterString: "controlView", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_Flags, title: "Flags", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_Flags_Opaque, AttributeInfo(className: "NSCell", fullTitle: "Opaque", getterString: "isOpaque", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_Scrollable, AttributeInfo(className: "NSCell", fullTitle: "Scrollable", getterString: "isScrollable", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_HasValidObjectValue, AttributeInfo(className: "NSCell", fullTitle: "HasValidObjectValue", getterString: "hasValidObjectValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_AllowsUndo, AttributeInfo(className: "NSCell", fullTitle: "AllowsUndo", getterString: "allowsUndo", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_TruncatesLastVisibleLine, AttributeInfo(className: "NSCell", fullTitle: "TruncatesLastVisibleLine", getterString: "truncatesLastVisibleLine", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_UsesSingleLineMode, AttributeInfo(className: "NSCell", fullTitle: "UsesSingleLineMode", getterString: "usesSingleLineMode", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_RefusesFirstResponder, AttributeInfo(className: "NSCell", fullTitle: "RefusesFirstResponder", getterString: "refusesFirstResponder", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_AcceptsFirstResponder, AttributeInfo(className: "NSCell", fullTitle: "AcceptsFirstResponder", getterString: "acceptsFirstResponder", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_ShowsFirstResponder, AttributeInfo(className: "NSCell", fullTitle: "ShowsFirstResponder", getterString: "showsFirstResponder", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_WantsNotificationForMarkedText, AttributeInfo(className: "NSCell", fullTitle: "WantsNotificationForMarkedText", getterString: "wantsNotificationForMarkedText", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_AllowsEditingTextAttributes, AttributeInfo(className: "NSCell", fullTitle: "AllowsEditingTextAttributes", getterString: "allowsEditingTextAttributes", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_Flags_ImportsGraphics, AttributeInfo(className: "NSCell", fullTitle: "ImportsGraphics", getterString: "importsGraphics", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_Font, title: "Font", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_Font_Font, AttributeInfo(className: "NSCell", fullTitle: "Font", getterString: "font", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.font))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_KeyEquivalent, title: "KeyEquivalent", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_KeyEquivalent_KeyEquivalent, AttributeInfo(className: "NSCell", fullTitle: "KeyEquivalent", getterString: "keyEquivalent", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_StringValue, title: "StringValue", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_StringValue_StringValue, AttributeInfo(className: "NSCell", fullTitle: "StringValue", getterString: "stringValue", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_IntValue, title: "IntValue", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_IntValue_IntValue, AttributeInfo(className: "NSCell", fullTitle: "IntValue", getterString: "intValue", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_FloatValue, title: "FloatValue", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_FloatValue_FloatValue, AttributeInfo(className: "NSCell", fullTitle: "FloatValue", getterString: "floatValue", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_DoubleValue, title: "DoubleValue", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_DoubleValue_DoubleValue, AttributeInfo(className: "NSCell", fullTitle: "DoubleValue", getterString: "doubleValue", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_IntegerValue, title: "IntegerValue", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_IntegerValue_IntegerValue, AttributeInfo(className: "NSCell", fullTitle: "IntegerValue", getterString: "integerValue", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_Image, title: "Image", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_Image_Image, AttributeInfo(className: "NSCell", fullTitle: "Image", getterString: "image", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_CellSize, title: "CellSize", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_CellSize_CellSize, AttributeInfo(className: "NSCell", fullTitle: "CellSize", getterString: "cellSize", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_MouseDownFlags, title: "MouseDownFlags", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_MouseDownFlags_MouseDownFlags, AttributeInfo(className: "NSCell", fullTitle: "MouseDownFlags", getterString: "mouseDownFlags", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_Menu, title: "Menu", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_Menu_Menu, AttributeInfo(className: "NSCell", fullTitle: "Menu", getterString: "menu", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.menu))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_BaseWritingDirection, title: "BaseWritingDirection", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_BaseWritingDirection_BaseWritingDirection, AttributeInfo(className: "NSCell", fullTitle: "BaseWritingDirection", getterString: "baseWritingDirection", setterString: "", enumList: "NSWritingDirection", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_UserInterfaceLayoutDirection, title: "UserInterfaceLayoutDirection", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_UserInterfaceLayoutDirection_UserInterfaceLayoutDirection, AttributeInfo(className: "NSCell", fullTitle: "UserInterfaceLayoutDirection", getterString: "userInterfaceLayoutDirection", setterString: "", enumList: "NSUserInterfaceLayoutDirection", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_FocusRingType, title: "FocusRingType", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_FocusRingType_FocusRingType, AttributeInfo(className: "NSCell", fullTitle: "FocusRingType", getterString: "focusRingType", setterString: "", enumList: "NSFocusRingType", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_AttributedStringValue, title: "AttributedStringValue", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_AttributedStringValue_AttributedStringValue, AttributeInfo(className: "NSCell", fullTitle: "AttributedStringValue", getterString: "attributedStringValue", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NextState, title: "NextState", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NextState_NextState, AttributeInfo(className: "NSCell", fullTitle: "NextState", getterString: "nextState", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_BackgroundStyle, title: "BackgroundStyle", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_BackgroundStyle_BackgroundStyle, AttributeInfo(className: "NSCell", fullTitle: "BackgroundStyle", getterString: "backgroundStyle", setterString: "", enumList: "NSBackgroundStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_InteriorBackgroundStyle, title: "InteriorBackgroundStyle", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_InteriorBackgroundStyle_InteriorBackgroundStyle, AttributeInfo(className: "NSCell", fullTitle: "InteriorBackgroundStyle", getterString: "interiorBackgroundStyle", setterString: "", enumList: "NSBackgroundStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSActionCell, title: "NSActionCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSActionCell_Tag, AttributeInfo(className: "NSActionCell", fullTitle: "Tag", getterString: "tag", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSMenuItemCell, title: "NSMenuItemCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSMenuItemCell_NeedsSizing, AttributeInfo(className: "NSMenuItemCell", fullTitle: "NeedsSizing", getterString: "needsSizing", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSMenuItemCell_NeedsDisplay, AttributeInfo(className: "NSMenuItemCell", fullTitle: "NeedsDisplay", getterString: "needsDisplay", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSMenuItemCell_Tag, AttributeInfo(className: "NSMenuItemCell", fullTitle: "Tag", getterString: "tag", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSPopUpButtonCell, title: "NSPopUpButtonCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_Menu, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "Menu", getterString: "menu", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.menu))),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_PullsDown, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "PullsDown", getterString: "pullsDown", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_AutoenablesItems, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "AutoenablesItems", getterString: "autoenablesItems", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_PreferredEdge, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "PreferredEdge", getterString: "preferredEdge", setterString: "", enumList: "NSRectEdge", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_UsesItemFromMenu, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "UsesItemFromMenu", getterString: "usesItemFromMenu", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_AltersStateOfSelectedItem, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "AltersStateOfSelectedItem", getterString: "altersStateOfSelectedItem", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_NumberOfItems, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "NumberOfItems", getterString: "numberOfItems", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_IndexOfSelectedItem, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "IndexOfSelectedItem", getterString: "indexOfSelectedItem", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_ItemTitles, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "ItemTitles", getterString: "itemTitles", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_TitleOfSelectedItem, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "TitleOfSelectedItem", getterString: "titleOfSelectedItem", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPopUpButtonCell_ArrowPosition, AttributeInfo(className: "NSPopUpButtonCell", fullTitle: "ArrowPosition", getterString: "arrowPosition", setterString: "", enumList: "NSPopUpArrowPosition", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSDatePickerCell, title: "NSDatePickerCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_DatePickerStyle, AttributeInfo(className: "NSDatePickerCell", fullTitle: "DatePickerStyle", getterString: "datePickerStyle", setterString: "", enumList: "NSDatePickerStyle", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_DrawsBackground, AttributeInfo(className: "NSDatePickerCell", fullTitle: "DrawsBackground", getterString: "drawsBackground", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_BackgroundColor, AttributeInfo(className: "NSDatePickerCell", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_TextColor, AttributeInfo(className: "NSDatePickerCell", fullTitle: "TextColor", getterString: "textColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_DatePickerMode, AttributeInfo(className: "NSDatePickerCell", fullTitle: "DatePickerMode", getterString: "datePickerMode", setterString: "", enumList: "NSDatePickerMode", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_DatePickerElements, AttributeInfo(className: "NSDatePickerCell", fullTitle: "DatePickerElements", getterString: "datePickerElements", setterString: "", revision: 1, presentation: .optionNames("NSDatePickerElementFlags"))),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_Calendar, AttributeInfo(className: "NSDatePickerCell", fullTitle: "Calendar", getterString: "calendar", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.calendar))),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_Locale, AttributeInfo(className: "NSDatePickerCell", fullTitle: "Locale", getterString: "locale", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.locale))),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_TimeZone, AttributeInfo(className: "NSDatePickerCell", fullTitle: "TimeZone", getterString: "timeZone", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.timeZone))),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_DateValue, AttributeInfo(className: "NSDatePickerCell", fullTitle: "DateValue", getterString: "dateValue", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.date))),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_TimeInterval, AttributeInfo(className: "NSDatePickerCell", fullTitle: "TimeInterval", getterString: "timeInterval", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_MinDate, AttributeInfo(className: "NSDatePickerCell", fullTitle: "MinDate", getterString: "minDate", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.date))),
+                BlueprintAttribute(LookinAttr_NSCell_NSDatePickerCell_MaxDate, AttributeInfo(className: "NSDatePickerCell", fullTitle: "MaxDate", getterString: "maxDate", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.date))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSFormCell, title: "NSFormCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_TitleWidth, AttributeInfo(className: "NSFormCell", fullTitle: "TitleWidth", getterString: "titleWidth", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_Title, AttributeInfo(className: "NSFormCell", fullTitle: "Title", getterString: "title", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_TitleFont, AttributeInfo(className: "NSFormCell", fullTitle: "TitleFont", getterString: "titleFont", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.font))),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_Opaque, AttributeInfo(className: "NSFormCell", fullTitle: "Opaque", getterString: "isOpaque", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_PlaceholderString, AttributeInfo(className: "NSFormCell", fullTitle: "PlaceholderString", getterString: "placeholderString", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_PlaceholderAttributedString, AttributeInfo(className: "NSFormCell", fullTitle: "PlaceholderAttributedString", getterString: "placeholderAttributedString", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_TitleAlignment, AttributeInfo(className: "NSFormCell", fullTitle: "TitleAlignment", getterString: "titleAlignment", setterString: "", enumList: "NSTextAlignment", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_TitleBaseWritingDirection, AttributeInfo(className: "NSFormCell", fullTitle: "TitleBaseWritingDirection", getterString: "titleBaseWritingDirection", setterString: "", enumList: "NSWritingDirection", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_PreferredTextFieldWidth, AttributeInfo(className: "NSFormCell", fullTitle: "PreferredTextFieldWidth", getterString: "preferredTextFieldWidth", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSFormCell_AttributedTitle, AttributeInfo(className: "NSFormCell", fullTitle: "AttributedTitle", getterString: "attributedTitle", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSLevelIndicatorCell, title: "NSLevelIndicatorCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_LevelIndicatorStyle, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "LevelIndicatorStyle", getterString: "levelIndicatorStyle", setterString: "", enumList: "NSLevelIndicatorStyle", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_MinValue, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "MinValue", getterString: "minValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_MaxValue, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "MaxValue", getterString: "maxValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_WarningValue, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "WarningValue", getterString: "warningValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_CriticalValue, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "CriticalValue", getterString: "criticalValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_TickMarkPosition, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "TickMarkPosition", getterString: "tickMarkPosition", setterString: "", enumList: "NSTickMarkPosition", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_NumberOfTickMarks, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "NumberOfTickMarks", getterString: "numberOfTickMarks", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSLevelIndicatorCell_NumberOfMajorTickMarks, AttributeInfo(className: "NSLevelIndicatorCell", fullTitle: "NumberOfMajorTickMarks", getterString: "numberOfMajorTickMarks", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSPathCell, title: "NSPathCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_PathStyle, AttributeInfo(className: "NSPathCell", fullTitle: "PathStyle", getterString: "pathStyle", setterString: "", enumList: "NSPathStyle", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_URL, AttributeInfo(className: "NSPathCell", fullTitle: "URL", getterString: "URL", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.url))),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_AllowedTypes, AttributeInfo(className: "NSPathCell", fullTitle: "AllowedTypes", getterString: "allowedTypes", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_PathComponentCells, AttributeInfo(className: "NSPathCell", fullTitle: "PathComponentCells", getterString: "pathComponentCells", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_BackgroundColor, AttributeInfo(className: "NSPathCell", fullTitle: "BackgroundColor", getterString: "backgroundColor", setterString: "", typeIfObj: .uiColor, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_PlaceholderString, AttributeInfo(className: "NSPathCell", fullTitle: "PlaceholderString", getterString: "placeholderString", setterString: "", typeIfObj: .nsString, hideIfNil: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathCell_PlaceholderAttributedString, AttributeInfo(className: "NSPathCell", fullTitle: "PlaceholderAttributedString", getterString: "placeholderAttributedString", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.attributedString))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSSegmentedCell, title: "NSSegmentedCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSSegmentedCell_SegmentCount, AttributeInfo(className: "NSSegmentedCell", fullTitle: "SegmentCount", getterString: "segmentCount", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSegmentedCell_SelectedSegment, AttributeInfo(className: "NSSegmentedCell", fullTitle: "SelectedSegment", getterString: "selectedSegment", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSegmentedCell_TrackingMode, AttributeInfo(className: "NSSegmentedCell", fullTitle: "TrackingMode", getterString: "trackingMode", setterString: "", enumList: "NSSegmentSwitchTracking", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSegmentedCell_SegmentStyle, AttributeInfo(className: "NSSegmentedCell", fullTitle: "SegmentStyle", getterString: "segmentStyle", setterString: "", enumList: "NSSegmentStyle", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSSliderCell, title: "NSSliderCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_MinValue, AttributeInfo(className: "NSSliderCell", fullTitle: "MinValue", getterString: "minValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_MaxValue, AttributeInfo(className: "NSSliderCell", fullTitle: "MaxValue", getterString: "maxValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_AltIncrementValue, AttributeInfo(className: "NSSliderCell", fullTitle: "AltIncrementValue", getterString: "altIncrementValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_SliderType, AttributeInfo(className: "NSSliderCell", fullTitle: "SliderType", getterString: "sliderType", setterString: "", enumList: "NSSliderType", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_Vertical, AttributeInfo(className: "NSSliderCell", fullTitle: "Vertical", getterString: "isVertical", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_TrackRect, AttributeInfo(className: "NSSliderCell", fullTitle: "TrackRect", getterString: "trackRect", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_KnobThickness, AttributeInfo(className: "NSSliderCell", fullTitle: "KnobThickness", getterString: "knobThickness", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_NumberOfTickMarks, AttributeInfo(className: "NSSliderCell", fullTitle: "NumberOfTickMarks", getterString: "numberOfTickMarks", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_TickMarkPosition, AttributeInfo(className: "NSSliderCell", fullTitle: "TickMarkPosition", getterString: "tickMarkPosition", setterString: "", enumList: "NSTickMarkPosition", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSliderCell_AllowsTickMarkValuesOnly, AttributeInfo(className: "NSSliderCell", fullTitle: "AllowsTickMarkValuesOnly", getterString: "allowsTickMarkValuesOnly", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSStepperCell, title: "NSStepperCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSStepperCell_MinValue, AttributeInfo(className: "NSStepperCell", fullTitle: "MinValue", getterString: "minValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSStepperCell_MaxValue, AttributeInfo(className: "NSStepperCell", fullTitle: "MaxValue", getterString: "maxValue", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSStepperCell_Increment, AttributeInfo(className: "NSStepperCell", fullTitle: "Increment", getterString: "increment", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSStepperCell_ValueWraps, AttributeInfo(className: "NSStepperCell", fullTitle: "ValueWraps", getterString: "valueWraps", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSStepperCell_Autorepeat, AttributeInfo(className: "NSStepperCell", fullTitle: "Autorepeat", getterString: "autorepeat", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSComboBoxCell, title: "NSComboBoxCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_HasVerticalScroller, AttributeInfo(className: "NSComboBoxCell", fullTitle: "HasVerticalScroller", getterString: "hasVerticalScroller", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_IntercellSpacing, AttributeInfo(className: "NSComboBoxCell", fullTitle: "IntercellSpacing", getterString: "intercellSpacing", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_ItemHeight, AttributeInfo(className: "NSComboBoxCell", fullTitle: "ItemHeight", getterString: "itemHeight", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_NumberOfVisibleItems, AttributeInfo(className: "NSComboBoxCell", fullTitle: "NumberOfVisibleItems", getterString: "numberOfVisibleItems", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_ButtonBordered, AttributeInfo(className: "NSComboBoxCell", fullTitle: "ButtonBordered", getterString: "isButtonBordered", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_UsesDataSource, AttributeInfo(className: "NSComboBoxCell", fullTitle: "UsesDataSource", getterString: "usesDataSource", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_IndexOfSelectedItem, AttributeInfo(className: "NSComboBoxCell", fullTitle: "IndexOfSelectedItem", getterString: "indexOfSelectedItem", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_NumberOfItems, AttributeInfo(className: "NSComboBoxCell", fullTitle: "NumberOfItems", getterString: "numberOfItems", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_Completes, AttributeInfo(className: "NSComboBoxCell", fullTitle: "Completes", getterString: "completes", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSComboBoxCell_ObjectValues, AttributeInfo(className: "NSComboBoxCell", fullTitle: "ObjectValues", getterString: "objectValues", setterString: "", revision: 1, presentation: .count)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSPathComponentCell, title: "NSPathComponentCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSPathComponentCell_Image, AttributeInfo(className: "NSPathComponentCell", fullTitle: "Image", getterString: "image", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_NSCell_NSPathComponentCell_URL, AttributeInfo(className: "NSPathComponentCell", fullTitle: "URL", getterString: "URL", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.url))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSSearchFieldCell, title: "NSSearchFieldCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSSearchFieldCell_SearchMenuTemplate, AttributeInfo(className: "NSSearchFieldCell", fullTitle: "SearchMenuTemplate", getterString: "searchMenuTemplate", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.menu))),
+                BlueprintAttribute(LookinAttr_NSCell_NSSearchFieldCell_SendsWholeSearchString, AttributeInfo(className: "NSSearchFieldCell", fullTitle: "SendsWholeSearchString", getterString: "sendsWholeSearchString", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSearchFieldCell_MaximumRecents, AttributeInfo(className: "NSSearchFieldCell", fullTitle: "MaximumRecents", getterString: "maximumRecents", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSearchFieldCell_RecentSearches, AttributeInfo(className: "NSSearchFieldCell", fullTitle: "RecentSearches", getterString: "recentSearches", setterString: "", revision: 1, presentation: .count)),
+                BlueprintAttribute(LookinAttr_NSCell_NSSearchFieldCell_SendsSearchStringImmediately, AttributeInfo(className: "NSSearchFieldCell", fullTitle: "SendsSearchStringImmediately", getterString: "sendsSearchStringImmediately", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSSecureTextFieldCell, title: "NSSecureTextFieldCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSSecureTextFieldCell_EchosBullets, AttributeInfo(className: "NSSecureTextFieldCell", fullTitle: "EchosBullets", getterString: "echosBullets", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSTokenFieldCell, title: "NSTokenFieldCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSTokenFieldCell_TokenStyle, AttributeInfo(className: "NSTokenFieldCell", fullTitle: "TokenStyle", getterString: "tokenStyle", setterString: "", enumList: "NSTokenStyle", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSTokenFieldCell_CompletionDelay, AttributeInfo(className: "NSTokenFieldCell", fullTitle: "CompletionDelay", getterString: "completionDelay", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSBrowserCell, title: "NSBrowserCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSBrowserCell_Leaf, AttributeInfo(className: "NSBrowserCell", fullTitle: "Leaf", getterString: "isLeaf", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSBrowserCell_Loaded, AttributeInfo(className: "NSBrowserCell", fullTitle: "Loaded", getterString: "isLoaded", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSBrowserCell_Image, AttributeInfo(className: "NSBrowserCell", fullTitle: "Image", getterString: "image", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+                BlueprintAttribute(LookinAttr_NSCell_NSBrowserCell_AlternateImage, AttributeInfo(className: "NSBrowserCell", fullTitle: "AlternateImage", getterString: "alternateImage", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.image))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSCell_NSImageCell, title: "NSImageCell", on: .all, attributes: [
+                BlueprintAttribute(LookinAttr_NSCell_NSImageCell_ImageAlignment, AttributeInfo(className: "NSImageCell", fullTitle: "ImageAlignment", getterString: "imageAlignment", setterString: "", enumList: "NSImageAlignment", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSImageCell_ImageScaling, AttributeInfo(className: "NSImageCell", fullTitle: "ImageScaling", getterString: "imageScaling", setterString: "", enumList: "NSImageScaling", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSCell_NSImageCell_ImageFrameStyle, AttributeInfo(className: "NSImageCell", fullTitle: "ImageFrameStyle", getterString: "imageFrameStyle", setterString: "", enumList: "NSImageFrameStyle", revision: 1)),
             ]),
         ])
 
@@ -1053,6 +1686,98 @@
             ]),
             BlueprintSection(LookinAttrSec_NSTextInsertionIndicator_AutomaticModeOptions, title: "AutomaticModeOptions", attributes: [
                 BlueprintAttribute(LookinAttr_NSTextInsertionIndicator_AutomaticModeOptions_AutomaticModeOptions, AttributeInfo(className: "NSTextInsertionIndicator", fullTitle: "AutomaticModeOptions", getterString: "automaticModeOptions", setterString: "", revision: 1, presentation: .optionNames("NSTextInsertionIndicatorAutomaticModeOptions"))),
+            ]),
+        ])
+
+        static let nsViewGroup = BlueprintGroup(LookinAttrGroup_NSView, title: "NSView", on: .appKit, sections: [
+            BlueprintSection(LookinAttrSec_NSView_Behavior, title: "Behavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_Behavior_NeedsUpdateConstraints, AttributeInfo(className: "NSView", fullTitle: "NeedsUpdateConstraints", getterString: "needsUpdateConstraints", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_TranslatesAutoresizingMaskIntoConstraints, AttributeInfo(className: "NSView", fullTitle: "TranslatesAutoresizingMaskIntoConstraints", getterString: "translatesAutoresizingMaskIntoConstraints", setterString: "setTranslatesAutoresizingMaskIntoConstraints:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_HorizontalContentSizeConstraintActive, AttributeInfo(className: "NSView", fullTitle: "HorizontalContentSizeConstraintActive", getterString: "isHorizontalContentSizeConstraintActive", setterString: "setHorizontalContentSizeConstraintActive:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_VerticalContentSizeConstraintActive, AttributeInfo(className: "NSView", fullTitle: "VerticalContentSizeConstraintActive", getterString: "isVerticalContentSizeConstraintActive", setterString: "setVerticalContentSizeConstraintActive:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_HiddenOrHasHiddenAncestor, AttributeInfo(className: "NSView", fullTitle: "HiddenOrHasHiddenAncestor", getterString: "isHiddenOrHasHiddenAncestor", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_WantsDefaultClipping, AttributeInfo(className: "NSView", fullTitle: "WantsDefaultClipping", getterString: "wantsDefaultClipping", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_PostsFrameChangedNotifications, AttributeInfo(className: "NSView", fullTitle: "PostsFrameChangedNotifications", getterString: "postsFrameChangedNotifications", setterString: "setPostsFrameChangedNotifications:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_AutoresizesSubviews, AttributeInfo(className: "NSView", fullTitle: "AutoresizesSubviews", getterString: "autoresizesSubviews", setterString: "setAutoresizesSubviews:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_Flipped, AttributeInfo(className: "NSView", fullTitle: "Flipped", getterString: "isFlipped", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_RotatedFromBase, AttributeInfo(className: "NSView", fullTitle: "RotatedFromBase", getterString: "isRotatedFromBase", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_RotatedOrScaledFromBase, AttributeInfo(className: "NSView", fullTitle: "RotatedOrScaledFromBase", getterString: "isRotatedOrScaledFromBase", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_Opaque, AttributeInfo(className: "NSView", fullTitle: "Opaque", getterString: "isOpaque", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_CanDrawConcurrently, AttributeInfo(className: "NSView", fullTitle: "CanDrawConcurrently", getterString: "canDrawConcurrently", setterString: "setCanDrawConcurrently:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_NeedsDisplay, AttributeInfo(className: "NSView", fullTitle: "NeedsDisplay", getterString: "needsDisplay", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_NeedsPanelToBecomeKey, AttributeInfo(className: "NSView", fullTitle: "NeedsPanelToBecomeKey", getterString: "needsPanelToBecomeKey", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_MouseDownCanMoveWindow, AttributeInfo(className: "NSView", fullTitle: "MouseDownCanMoveWindow", getterString: "mouseDownCanMoveWindow", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_WantsRestingTouches, AttributeInfo(className: "NSView", fullTitle: "WantsRestingTouches", getterString: "wantsRestingTouches", setterString: "setWantsRestingTouches:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_WantsLayer, AttributeInfo(className: "NSView", fullTitle: "WantsLayer", getterString: "wantsLayer", setterString: "setWantsLayer:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_WantsUpdateLayer, AttributeInfo(className: "NSView", fullTitle: "WantsUpdateLayer", getterString: "wantsUpdateLayer", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_CanDrawSubviewsIntoLayer, AttributeInfo(className: "NSView", fullTitle: "CanDrawSubviewsIntoLayer", getterString: "canDrawSubviewsIntoLayer", setterString: "setCanDrawSubviewsIntoLayer:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_NeedsLayout, AttributeInfo(className: "NSView", fullTitle: "NeedsLayout", getterString: "needsLayout", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_LayerUsesCoreImageFilters, AttributeInfo(className: "NSView", fullTitle: "LayerUsesCoreImageFilters", getterString: "layerUsesCoreImageFilters", setterString: "setLayerUsesCoreImageFilters:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_ClipsToBounds, AttributeInfo(className: "NSView", fullTitle: "ClipsToBounds", getterString: "clipsToBounds", setterString: "setClipsToBounds:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_PostsBoundsChangedNotifications, AttributeInfo(className: "NSView", fullTitle: "PostsBoundsChangedNotifications", getterString: "postsBoundsChangedNotifications", setterString: "setPostsBoundsChangedNotifications:", patch: true, revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_InLiveResize, AttributeInfo(className: "NSView", fullTitle: "InLiveResize", getterString: "inLiveResize", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_PreservesContentDuringLiveResize, AttributeInfo(className: "NSView", fullTitle: "PreservesContentDuringLiveResize", getterString: "preservesContentDuringLiveResize", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_AllowsVibrancy, AttributeInfo(className: "NSView", fullTitle: "AllowsVibrancy", getterString: "allowsVibrancy", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_CanBecomeKeyView, AttributeInfo(className: "NSView", fullTitle: "CanBecomeKeyView", getterString: "canBecomeKeyView", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_InFullScreenMode, AttributeInfo(className: "NSView", fullTitle: "InFullScreenMode", getterString: "isInFullScreenMode", setterString: "", revision: 1)),
+                BlueprintAttribute(LookinAttr_NSView_Behavior_PrefersCompactControlSizeMetrics, AttributeInfo(className: "NSView", fullTitle: "PrefersCompactControlSizeMetrics", getterString: "prefersCompactControlSizeMetrics", setterString: "setPrefersCompactControlSizeMetrics:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_AlignmentRectInsets, title: "AlignmentRectInsets", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_AlignmentRectInsets_AlignmentRectInsets, AttributeInfo(className: "NSView", fullTitle: "AlignmentRectInsets", getterString: "alignmentRectInsets", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_AutoresizingMask, title: "AutoresizingMask", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_AutoresizingMask_AutoresizingMask, AttributeInfo(className: "NSView", fullTitle: "AutoresizingMask", getterString: "autoresizingMask", setterString: "", revision: 1, presentation: .optionNames("NSAutoresizingMaskOptions"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_FrameRotation, title: "FrameRotation", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_FrameRotation_FrameRotation, AttributeInfo(className: "NSView", fullTitle: "FrameRotation", getterString: "frameRotation", setterString: "setFrameRotation:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_FrameCenterRotation, title: "FrameCenterRotation", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_FrameCenterRotation_FrameCenterRotation, AttributeInfo(className: "NSView", fullTitle: "FrameCenterRotation", getterString: "frameCenterRotation", setterString: "setFrameCenterRotation:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_BoundsRotation, title: "BoundsRotation", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_BoundsRotation_BoundsRotation, AttributeInfo(className: "NSView", fullTitle: "BoundsRotation", getterString: "boundsRotation", setterString: "setBoundsRotation:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_VisibleRect, title: "VisibleRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_VisibleRect_VisibleRect, AttributeInfo(className: "NSView", fullTitle: "VisibleRect", getterString: "visibleRect", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_LayerContentsRedrawPolicy, title: "LayerContentsRedrawPolicy", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_LayerContentsRedrawPolicy_LayerContentsRedrawPolicy, AttributeInfo(className: "NSView", fullTitle: "LayerContentsRedrawPolicy", getterString: "layerContentsRedrawPolicy", setterString: "setLayerContentsRedrawPolicy:", enumList: "NSViewLayerContentsRedrawPolicy", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_LayerContentsPlacement, title: "LayerContentsPlacement", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_LayerContentsPlacement_LayerContentsPlacement, AttributeInfo(className: "NSView", fullTitle: "LayerContentsPlacement", getterString: "layerContentsPlacement", setterString: "setLayerContentsPlacement:", enumList: "NSViewLayerContentsPlacement", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_CompositingFilter, title: "CompositingFilter", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_CompositingFilter_CompositingFilter, AttributeInfo(className: "NSView", fullTitle: "CompositingFilter", getterString: "compositingFilter", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.className))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_Shadow, title: "Shadow", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_Shadow_Shadow, AttributeInfo(className: "NSView", fullTitle: "Shadow", getterString: "shadow", setterString: "", hideIfNil: true, revision: 1, presentation: .summary(.shadow))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_ToolTip, title: "ToolTip", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_ToolTip_ToolTip, AttributeInfo(className: "NSView", fullTitle: "ToolTip", getterString: "toolTip", setterString: "setToolTip:", typeIfObj: .nsString, patch: true, hideIfNil: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_UserInterfaceLayoutDirection, title: "UserInterfaceLayoutDirection", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_UserInterfaceLayoutDirection_UserInterfaceLayoutDirection, AttributeInfo(className: "NSView", fullTitle: "UserInterfaceLayoutDirection", getterString: "userInterfaceLayoutDirection", setterString: "setUserInterfaceLayoutDirection:", enumList: "NSUserInterfaceLayoutDirection", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_PreparedContentRect, title: "PreparedContentRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_PreparedContentRect_PreparedContentRect, AttributeInfo(className: "NSView", fullTitle: "PreparedContentRect", getterString: "preparedContentRect", setterString: "setPreparedContentRect:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_FocusRingType, title: "FocusRingType", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_FocusRingType_FocusRingType, AttributeInfo(className: "NSView", fullTitle: "FocusRingType", getterString: "focusRingType", setterString: "setFocusRingType:", enumList: "NSFocusRingType", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_FocusRingMaskBounds, title: "FocusRingMaskBounds", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_FocusRingMaskBounds_FocusRingMaskBounds, AttributeInfo(className: "NSView", fullTitle: "FocusRingMaskBounds", getterString: "focusRingMaskBounds", setterString: "", revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_ExclusiveGestureBehavior, title: "ExclusiveGestureBehavior", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_ExclusiveGestureBehavior_ExclusiveGestureBehavior, AttributeInfo(className: "NSView", fullTitle: "ExclusiveGestureBehavior", getterString: "exclusiveGestureBehavior", setterString: "setExclusiveGestureBehavior:", enumList: "NSViewExclusiveGestureBehavior", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_AllowedTouchTypes, title: "AllowedTouchTypes", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_AllowedTouchTypes_AllowedTouchTypes, AttributeInfo(className: "NSView", fullTitle: "AllowedTouchTypes", getterString: "allowedTouchTypes", setterString: "", revision: 1, presentation: .optionNames("NSTouchTypeMask"))),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_AdditionalSafeAreaInsets, title: "AdditionalSafeAreaInsets", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_AdditionalSafeAreaInsets_AdditionalSafeAreaInsets, AttributeInfo(className: "NSView", fullTitle: "AdditionalSafeAreaInsets", getterString: "additionalSafeAreaInsets", setterString: "setAdditionalSafeAreaInsets:", patch: true, revision: 1)),
+            ]),
+            BlueprintSection(LookinAttrSec_NSView_SafeAreaRect, title: "SafeAreaRect", attributes: [
+                BlueprintAttribute(LookinAttr_NSView_SafeAreaRect_SafeAreaRect, AttributeInfo(className: "NSView", fullTitle: "SafeAreaRect", getterString: "safeAreaRect", setterString: "", revision: 1)),
             ]),
         ])
     }

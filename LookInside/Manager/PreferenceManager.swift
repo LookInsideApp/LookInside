@@ -1100,5 +1100,15 @@ final class PreferenceManager: NSObject {
         LookinAttrSec_NSTextInsertionIndicator_DisplayMode,
         LookinAttrSec_NSTextInsertionIndicator_Color,
         LookinAttrSec_NSTextInsertionIndicator_AutomaticModeOptions,
+        // NSView
+        LookinAttrSec_NSView_Behavior,
+        LookinAttrSec_NSView_AutoresizingMask,
+        // NSButton (added sections)
+        LookinAttrSec_NSButton_State,
+        // NSTextView (added sections)
+        LookinAttrSec_NSTextView_SelectedRange,
+        // NSWindow (added sections)
+        LookinAttrSec_NSWindow_StyleMask,
+        LookinAttrSec_NSWindow_FirstResponder,
     ] as [NSString]).map { $0 as String })
 }

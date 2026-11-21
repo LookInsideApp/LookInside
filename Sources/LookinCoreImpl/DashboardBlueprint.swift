@@ -282,6 +282,14 @@
             DashboardBlueprintTables.info(attrID)?.presentation ?? .value
         }
 
+        /// Whether `attrID` reaches the Host converted by its presentation (as
+        /// text, a count or a color) rather than as the getter returns it; such
+        /// attributes need no `typeIfObj`.
+        @objc(isPresentedWithAttrID:)
+        public class func isPresented(withAttrID attrID: String?) -> Bool {
+            (DashboardBlueprintTables.info(attrID)?.presentation ?? .value) != .value
+        }
+
         /// The class every attribute of `sectionID` belongs to, when they all
         /// belong to the same one; the Server skips the whole section for a
         /// target of another class. Swift only.
