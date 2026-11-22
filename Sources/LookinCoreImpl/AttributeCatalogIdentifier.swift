@@ -15,12 +15,12 @@
 
     /// The identifier of an entry in the dashboard's attribute catalog: a
     /// group, a section or an attribute.
-    public protocol AttributeCatalogIdentifier: RawRepresentable, Hashable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible where RawValue == String {
-        init(rawValue: String)
+    public protocol AttributeCatalogIdentifier: RawRepresentable<String>, Hashable, Sendable, ExpressibleByStringLiteral, CustomStringConvertible {
+        init(rawValue: RawValue)
     }
 
     extension AttributeCatalogIdentifier {
-        public init(stringLiteral value: String) {
+        public init(stringLiteral value: RawValue) {
             self.init(rawValue: value)
         }
 
@@ -32,9 +32,9 @@
     extension AttributesGroup {
         /// The identifier of an attribute group. The string crosses the wire.
         public struct Identifier: AttributeCatalogIdentifier {
-            public let rawValue: String
+            public let rawValue: RawValue
 
-            public init(rawValue: String) {
+            public init(rawValue: RawValue) {
                 self.rawValue = rawValue
             }
         }
@@ -45,9 +45,9 @@
         /// and is stored in the Host's settings to remember which sections are
         /// shown.
         public struct Identifier: AttributeCatalogIdentifier {
-            public let rawValue: String
+            public let rawValue: RawValue
 
-            public init(rawValue: String) {
+            public init(rawValue: RawValue) {
                 self.rawValue = rawValue
             }
         }
@@ -56,9 +56,9 @@
     extension InspectedAttribute {
         /// The identifier of an attribute. The string crosses the wire.
         public struct Identifier: AttributeCatalogIdentifier {
-            public let rawValue: String
+            public let rawValue: RawValue
 
-            public init(rawValue: String) {
+            public init(rawValue: RawValue) {
                 self.rawValue = rawValue
             }
         }
