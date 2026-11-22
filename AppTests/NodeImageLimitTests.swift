@@ -4,7 +4,7 @@
 //
 //  The nodes of a live session the preview takes no image of: those without
 //  pixels of their own, and those larger than an image may be
-//  (`LookinNodeImageMaxLengthInPx`). A reload marks them; a detail that
+//  (`PreviewLimits.maximumNodeImageLengthInPixels`). A reload marks them; a detail that
 //  changes a node's frame, or brings new nodes, marks them the same way.
 //
 
@@ -58,17 +58,17 @@ extension HostAppTests {
         @Test func detailThatGrowsANodePastTheLimitTakesItsScreenshotsAway() {
             let item = layerItem(oid: 2, size: CGSize(width: 100, height: 100))
             let dataSource = loadedDataSource(root: layerItem(oid: 1, size: CGSize(width: 400, height: 400), subitems: [item]))
-            #expect(item.doNotFetchScreenshotReason == .fetchScreenshotPermitted)
+            #expect(item.doNotFetchScreenshotReason == .permitted)
             item.groupScreenshot = NSImage(size: CGSize(width: 100, height: 100))
             item.soloScreenshot = NSImage(size: CGSize(width: 100, height: 100))
 
             dataSource.modify(with: detail(of: item, size: CGSize(width: 100, height: 9000)))
-            #expect(item.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge)
+            #expect(item.doNotFetchScreenshotReason == .tooLarge)
             #expect(item.groupScreenshot == nil)
             #expect(item.soloScreenshot == nil)
 
             dataSource.modify(with: detail(of: item, size: CGSize(width: 100, height: 100)))
-            #expect(item.doNotFetchScreenshotReason == .fetchScreenshotPermitted)
+            #expect(item.doNotFetchScreenshotReason == .permitted)
         }
 
         /// The nodes a detail brings — an item reloaded with its children —
@@ -91,9 +91,9 @@ extension HostAppTests {
             detail.subitems = [guide, tall, small]
             dataSource.modify(with: detail)
 
-            #expect(guide.doNotFetchScreenshotReason == .doNotFetchScreenshotForNoPixels)
-            #expect(tall.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge)
-            #expect(small.doNotFetchScreenshotReason == .fetchScreenshotPermitted)
+            #expect(guide.doNotFetchScreenshotReason == .noPixels)
+            #expect(tall.doNotFetchScreenshotReason == .tooLarge)
+            #expect(small.doNotFetchScreenshotReason == .permitted)
         }
     }
 }

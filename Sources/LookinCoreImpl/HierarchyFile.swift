@@ -70,24 +70,24 @@
         @objc(verifyHierarchyFile:)
         public class func verifyHierarchyFile(_ hierarchyFile: HierarchyFile?) -> (any Error)? {
             guard let hierarchyFile, hierarchyFile.isKind(of: HierarchyFile.self) else {
-                return LookinErr_Inner
+                return InspectionError.inner
             }
 
-            if hierarchyFile.serverVersion < LOOKIN_SUPPORTED_SERVER_MIN {
+            if hierarchyFile.serverVersion < ProtocolVersion.supportedServers.lowerBound {
                 // The document is too old. A missing serverVersion field means
                 // version 6.
                 let fileVersion = hierarchyFile.serverVersion != 0 ? hierarchyFile.serverVersion : 6
-                let detail = String(format: NSLocalizedString("The document was created by a LookInside app with too old version. Current LookInside app version is %@, but the document version is %@.", comment: ""), NSNumber(value: LOOKIN_CLIENT_VERSION), NSNumber(value: fileVersion))
-                return NSError(domain: LookinErrorDomain, code: Int(LookinErrCode_ServerVersionTooLow), userInfo: [
+                let detail = String(format: NSLocalizedString("The document was created by a LookInside app with too old version. Current LookInside app version is %@, but the document version is %@.", comment: ""), NSNumber(value: ProtocolVersion.client), NSNumber(value: fileVersion))
+                return NSError(domain: InspectionError.domain, code: Int(InspectionError.Code.serverVersionTooLow), userInfo: [
                     NSLocalizedDescriptionKey: NSLocalizedString("Failed to open the document.", comment: ""),
                     NSLocalizedRecoverySuggestionErrorKey: detail,
                 ])
             }
 
-            if hierarchyFile.serverVersion > LOOKIN_SUPPORTED_SERVER_MAX {
+            if hierarchyFile.serverVersion > ProtocolVersion.supportedServers.upperBound {
                 // The document is too new.
-                let detail = String(format: NSLocalizedString("Current LookInside app is too old to open this document. Current LookInside app version is %@, but the document version is %@.", comment: ""), NSNumber(value: LOOKIN_CLIENT_VERSION), NSNumber(value: hierarchyFile.serverVersion))
-                return NSError(domain: LookinErrorDomain, code: Int(LookinErrCode_ServerVersionTooHigh), userInfo: [
+                let detail = String(format: NSLocalizedString("Current LookInside app is too old to open this document. Current LookInside app version is %@, but the document version is %@.", comment: ""), NSNumber(value: ProtocolVersion.client), NSNumber(value: hierarchyFile.serverVersion))
+                return NSError(domain: InspectionError.domain, code: Int(InspectionError.Code.serverVersionTooHigh), userInfo: [
                     NSLocalizedDescriptionKey: NSLocalizedString("Failed to open the document.", comment: ""),
                     NSLocalizedRecoverySuggestionErrorKey: detail,
                 ])

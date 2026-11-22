@@ -130,7 +130,7 @@ final class MCPBridgeRefreshService {
 
     private func mapRefreshError(_ error: NSError) -> MCPBridgeErrorPayload {
         // Two domains reach here. The window controller's own domain means
-        // the host declined to start; `LookinErrorDomain` means the target
+        // the host declined to start; `InspectionError.domain` means the target
         // app failed the fetch. Keeping them apart matters to the caller:
         // the first is worth retrying in a moment, the second usually is
         // not.
@@ -172,14 +172,14 @@ final class MCPBridgeRefreshService {
         }
 
         switch error.code {
-        case LookinErrCode_LicenseRequired:
+        case InspectionError.Code.licenseRequired:
             return .licenseRequired
-        case LookinErrCode_NoConnect:
+        case InspectionError.Code.noConnection:
             return MCPBridgeErrorPayload(
                 code: "refresh.disconnected",
                 message: "The target app is no longer connected. Re-attach from the LookInside inspector and try again."
             )
-        case LookinErrCode_Timeout:
+        case InspectionError.Code.timeout:
             return MCPBridgeErrorPayload(
                 code: "refresh.timeout",
                 message: "The target app did not return its hierarchy within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."

@@ -11,7 +11,7 @@ import AppKit
 import LookInsideHostCore
 
 extension AutoLayoutConstraint {
-    static func description(withItemObject object: InspectedObject?, type: LookinConstraintItemType, detailed: Bool) -> String {
+    static func description(withItemObject object: InspectedObject?, type: AutoLayoutConstraint.ItemType, detailed: Bool) -> String {
         switch type {
         case .`nil`:
             return detailed ? "Nil" : "nil"

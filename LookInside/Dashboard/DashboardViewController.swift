@@ -228,7 +228,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
             }
             cardView.isHidden = false
             cardView.attrGroup = group
-            cardView.isCollapsed = PreferenceManager.shared.collapsedAttrGroups.contains(group.identifier ?? "")
+            cardView.isCollapsed = group.identifier.map { PreferenceManager.shared.collapsedAttributeGroups.contains($0) } ?? false
             cardView.render()
         }
         needlessViews.forEach { $0.isHidden = true }
@@ -323,7 +323,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         staticDataSource.modify(with: detail)
         DashboardTextControlEditingFlag.shared.shouldIgnoreTextEditingChangeEvent = false
 
-        if DashboardBlueprint.needPatchAfterModification(withAttrID: attribute.identifier), let modifyingItem {
+        if attribute.identifier.map(DashboardBlueprint.needsPatchAfterModification) ?? false, let modifyingItem {
             asyncUpdateManager?.updateAfterModifyingDisplayItem(modifyingItem)
         }
     }
@@ -332,13 +332,13 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
 
     func dashboardCardViewNeedToggleCollapse(_ view: DashboardCardView) {
         guard let manager = currentDataSource()?.preferenceManager(), let identifier = view.attrGroup?.identifier else { return }
-        let collapsed = manager.collapsedAttrGroups
+        let collapsed = manager.collapsedAttributeGroups
         if collapsed.contains(identifier) {
             view.isCollapsed = false
-            manager.collapsedAttrGroups = collapsed.filter { $0 != identifier }
+            manager.collapsedAttributeGroups = collapsed.filter { $0 != identifier }
         } else {
             view.isCollapsed = true
-            manager.collapsedAttrGroups = collapsed + [identifier]
+            manager.collapsedAttributeGroups = collapsed + [identifier]
         }
         self.view.needsLayout = true
     }
@@ -357,7 +357,7 @@ final class DashboardViewController: BaseViewController, DashboardCardViewDelega
         for group in groupList(for: currentDataSource()?.selectedItem) {
             for section in group.attrSections ?? [] {
                 for attr in section.attributes ?? [] {
-                    let title = attr.isUserCustom() ? attr.displayTitle : DashboardBlueprint.fullTitle(withAttrID: attr.identifier)
+                    let title = attr.isUserCustom() ? attr.displayTitle : attr.identifier.flatMap(DashboardBlueprint.fullTitle(of:))
                     if (title ?? "").lowercased().contains(searchString) {
                         resultAttrs.append(attr)
                     }

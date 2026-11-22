@@ -31,17 +31,17 @@ struct XcodeViewHierarchyConverterTests {
     // MARK: - Dashboard contract
 
     /// A `LookinAttrTypeUIColor` value is an RGBA array of four numbers in
-    /// 0...1 (`LookinAttrType`, LookinCoreTypes.swift); the dashboard's colour card asserts on
+    /// 0...1 (`InspectedAttribute.ValueType`, LookinCoreTypes.swift); the dashboard's colour card asserts on
     /// anything else. Handing it an `NSColor` raised on the first card drawn
     /// and aborted opening the document.
     private static func testColorAttributesCarryRGBAComponents() {
         let file = convertedFixture()
-        var colorAttributes: [(identifier: String, value: Any?)] = []
+        var colorAttributes: [(identifier: InspectedAttribute.Identifier?, value: Any?)] = []
         walk(file.hierarchyInfo?.displayItems ?? []) { item in
             for group in item.attributesGroupList ?? [] {
                 for section in group.attrSections ?? [] {
                     for attribute in section.attributes ?? [] where attribute.attrType == .uiColor {
-                        colorAttributes.append((attribute.identifier ?? "", attribute.value))
+                        colorAttributes.append((attribute.identifier, attribute.value))
                     }
                 }
             }
@@ -59,7 +59,7 @@ struct XcodeViewHierarchyConverterTests {
         }
 
         let background = colorAttributes
-            .first { $0.identifier == LookinAttr_ViewLayer_BgColor_BgColor }?
+            .first { $0.identifier == InspectedAttribute.Identifier.ViewLayer.BackgroundColor.backgroundColor }?
             .value as? [NSNumber]
         expect(background?.map(\.doubleValue) == [0.5, 0.25, 1, 1],
                "background colour components mismatch: \(String(describing: background))")
@@ -74,7 +74,7 @@ struct XcodeViewHierarchyConverterTests {
     /// has to opt in explicitly, the way the server does for each kind.
     private static func testEveryConvertedNodeOptsIntoScreenshots() {
         let file = convertedFixture()
-        var kindsSeen: Set<LookinDisplayItemNodeKind> = []
+        var kindsSeen: Set<DisplayItem.NodeKind> = []
         walk(file.hierarchyInfo?.displayItems ?? []) { item in
             kindsSeen.insert(item.nodeKind)
             expect(item.shouldCaptureImage,
@@ -176,7 +176,7 @@ struct XcodeViewHierarchyConverterTests {
         let window = scene?.subitems?.first
         expect(classChains(of: window) == [["UIWindow", "UIView"]],
                "a window's chain stops at UIView and lists no controller; got \(String(describing: classChains(of: window)))")
-        expect(attribute(LookinAttr_Relation_Relation_Relation, of: window) == nil,
+        expect(attribute(InspectedAttribute.Identifier.Relation.Relation.relation, of: window) == nil,
                "a window is not its root view controller's view, so it has no relation row")
         let button = item(withObjectIdentifier: 0x11, in: uiKit)
         expect(classChains(of: button) == [["MyButton", "UIButton", "UIControl", "UIView"], ["MyViewController", "UIViewController"]],
@@ -208,52 +208,52 @@ struct XcodeViewHierarchyConverterTests {
         let file = convert(uiKitCardsFixture())
 
         let label = item(withObjectIdentifier: 0x12, in: file)
-        expect(groupIdentifiers(of: label) == [LookinAttrGroup_Class, LookinAttrGroup_Layout, LookinAttrGroup_ViewLayer, LookinAttrGroup_UILabel],
+        expect(groupIdentifiers(of: label) == [AttributesGroup.Identifier.class, AttributesGroup.Identifier.layout, AttributesGroup.Identifier.viewLayer, AttributesGroup.Identifier.uiLabel],
                "a label's cards come in the blueprint's order; got \(groupIdentifiers(of: label))")
-        expectAttribute(LookinAttr_UILabel_Text_Text, of: label, type: .nsString, equals: "Hello" as NSString)
-        expectAttribute(LookinAttr_UILabel_Font_Name, of: label, type: .nsString, equals: ".SFUI-Regular" as NSString)
-        expectAttribute(LookinAttr_UILabel_Font_Size, of: label, type: .double, equals: NSNumber(value: 17))
-        expectAttribute(LookinAttr_UILabel_NumberOfLines_NumberOfLines, of: label, type: .long, equals: NSNumber(value: 2))
-        expectAttribute(LookinAttr_UILabel_Alignment_Alignment, of: label, type: .enumLong, equals: NSNumber(value: 1))
-        expectAttribute(LookinAttr_UILabel_TextColor_Color, of: label, type: .uiColor,
+        expectAttribute(InspectedAttribute.Identifier.UILabel.Text.text, of: label, type: .nsString, equals: "Hello" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.UILabel.Font.name, of: label, type: .nsString, equals: ".SFUI-Regular" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.UILabel.Font.size, of: label, type: .double, equals: NSNumber(value: 17))
+        expectAttribute(InspectedAttribute.Identifier.UILabel.NumberOfLines.numberOfLines, of: label, type: .long, equals: NSNumber(value: 2))
+        expectAttribute(InspectedAttribute.Identifier.UILabel.Alignment.alignment, of: label, type: .enumLong, equals: NSNumber(value: 1))
+        expectAttribute(InspectedAttribute.Identifier.UILabel.TextColor.color, of: label, type: .uiColor,
                         equals: [1, 1, 1, 0.5].map { NSNumber(value: $0) } as NSArray)
-        expect(attribute(LookinAttr_AutoLayout_Hugging_Hor, of: label) == nil,
+        expect(attribute(InspectedAttribute.Identifier.AutoLayout.Hugging.horizontal, of: label) == nil,
                "sizing priorities alone do not earn an Auto Layout card, as on the server")
 
         let untitledLabel = item(withObjectIdentifier: 0x16, in: file)
-        guard let textAttribute = attribute(LookinAttr_UILabel_Text_Text, of: untitledLabel) else {
+        guard let textAttribute = attribute(InspectedAttribute.Identifier.UILabel.Text.text, of: untitledLabel) else {
             fail("a label whose text is nil still shows its Text row")
         }
         expect(textAttribute.value == nil, "a captured nil text is reported as nil, not dropped")
 
         let imageView = item(withObjectIdentifier: 0x13, in: file)
-        expectAttribute(LookinAttr_UIImageView_Name_Name, of: imageView, type: .nsString, equals: "star.fill" as NSString)
-        expectAttribute(LookinAttr_UIImageView_Open_Open, of: imageView, type: .customObj, equals: imageBytes as NSData)
-        expectAttribute(LookinAttr_ViewLayer_ContentMode_Mode, of: imageView, type: .enumLong, equals: NSNumber(value: 1))
+        expectAttribute(InspectedAttribute.Identifier.UIImageView.Name.name, of: imageView, type: .nsString, equals: "star.fill" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.UIImageView.Open.open, of: imageView, type: .customObject, equals: imageBytes as NSData)
+        expectAttribute(InspectedAttribute.Identifier.ViewLayer.ContentMode.mode, of: imageView, type: .enumLong, equals: NSNumber(value: 1))
         let emptyImageView = item(withObjectIdentifier: 0x14, in: file)
-        expect(!groupIdentifiers(of: emptyImageView).contains(LookinAttrGroup_UIImageView),
+        expect(!groupIdentifiers(of: emptyImageView).contains(AttributesGroup.Identifier.uiImageView),
                "an image view without an image shows no image rows")
 
         let button = item(withObjectIdentifier: 0x11, in: file)
-        guard let insets = attribute(LookinAttr_UIButton_ContentInsets_Insets, of: button),
+        guard let insets = attribute(InspectedAttribute.Identifier.UIButton.ContentInsets.insets, of: button),
               insets.attrType == .uiEdgeInsets, let insetsValue = insets.value as? NSValue
         else { fail("a button's content insets come out as an insets value") }
         expect(NSEdgeInsetsEqual(insetsValue.edgeInsetsValue, NSEdgeInsets(top: 1, left: 2, bottom: 3, right: 4)),
                "insets are top, left, bottom, right; got \(insetsValue.edgeInsetsValue)")
-        expectAttribute(LookinAttr_UIControl_EnabledSelected_Enabled, of: button, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_ViewLayer_InterationAndMasks_MasksToBounds, of: button, type: .BOOL, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.UIControl.EnabledSelected.enabled, of: button, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.ViewLayer.InteractionAndMasks.masksToBounds, of: button, type: .bool, equals: NSNumber(value: true))
 
         let stackView = item(withObjectIdentifier: 0x15, in: file)
-        expectAttribute(LookinAttr_UIStackView_Axis_Axis, of: stackView, type: .enumLong, equals: NSNumber(value: 1))
-        expectAttribute(LookinAttr_UIStackView_Spacing_Spacing, of: stackView, type: .double, equals: NSNumber(value: 8))
+        expectAttribute(InspectedAttribute.Identifier.UIStackView.Axis.axis, of: stackView, type: .enumLong, equals: NSNumber(value: 1))
+        expectAttribute(InspectedAttribute.Identifier.UIStackView.Spacing.spacing, of: stackView, type: .double, equals: NSNumber(value: 8))
 
         let scene = file.hierarchyInfo?.displayItems?.first
-        expectAttribute(LookinAttr_UIWindowScene_Title_Title, of: scene, type: .nsString, equals: "Main" as NSString)
-        expectAttribute(LookinAttr_UIWindowScene_State_ActivationState, of: scene, type: .enumLong, equals: NSNumber(value: 0))
-        expectAttribute(LookinAttr_UIWindowScene_Windows_WindowCount, of: scene, type: .long, equals: NSNumber(value: 1))
-        expectAttribute(LookinAttr_UIWindowScene_Windows_KeyWindowClassName, of: scene, type: .nsString, equals: "UIWindow" as NSString)
-        expectAttribute(LookinAttr_UIWindowScene_Screen_ScreenScale, of: scene, type: .double, equals: NSNumber(value: 3))
-        guard let screenBounds = attribute(LookinAttr_UIWindowScene_Screen_ScreenBounds, of: scene)?.value as? NSValue else {
+        expectAttribute(InspectedAttribute.Identifier.UIWindowScene.Title.title, of: scene, type: .nsString, equals: "Main" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.UIWindowScene.State.activationState, of: scene, type: .enumLong, equals: NSNumber(value: 0))
+        expectAttribute(InspectedAttribute.Identifier.UIWindowScene.Windows.windowCount, of: scene, type: .long, equals: NSNumber(value: 1))
+        expectAttribute(InspectedAttribute.Identifier.UIWindowScene.Windows.keyWindowClassName, of: scene, type: .nsString, equals: "UIWindow" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.UIWindowScene.Screen.screenScale, of: scene, type: .double, equals: NSNumber(value: 3))
+        guard let screenBounds = attribute(InspectedAttribute.Identifier.UIWindowScene.Screen.screenBounds, of: scene)?.value as? NSValue else {
             fail("a scene's screen bounds are read through its screen reference")
         }
         expect(screenBounds.rectValue == CGRect(x: 0, y: 0, width: 402, height: 874),
@@ -269,38 +269,38 @@ struct XcodeViewHierarchyConverterTests {
         let file = convert(appKitCardsFixture())
 
         let panel = file.hierarchyInfo?.displayItems?.first
-        expect(groupIdentifiers(of: panel) == [LookinAttrGroup_Class, LookinAttrGroup_Relation, LookinAttrGroup_Layout, LookinAttrGroup_NSWindow],
+        expect(groupIdentifiers(of: panel) == [AttributesGroup.Identifier.class, AttributesGroup.Identifier.relation, AttributesGroup.Identifier.layout, AttributesGroup.Identifier.nsWindow],
                "a window's cards: class, relation, layout, window; got \(groupIdentifiers(of: panel))")
-        expectAttribute(LookinAttr_NSWindow_Title_Title, of: panel, type: .nsString, equals: "Inspector" as NSString)
-        expectAttribute(LookinAttr_NSWindow_State_KeyWindow, of: panel, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_NSWindow_Style_Titled, of: panel, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_NSWindow_Style_Resizable, of: panel, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_NSWindow_Style_HUDWindow, of: panel, type: .BOOL, equals: NSNumber(value: false))
-        expectAttribute(LookinAttr_NSWindow_CollectionBehavior_FullScreenPrimary, of: panel, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_NSWindow_CollectionBehavior_CanJoinAllSpaces, of: panel, type: .BOOL, equals: NSNumber(value: false))
-        guard let frame = attribute(LookinAttr_Layout_Frame_Frame, of: panel)?.value as? NSValue else {
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.Title.title, of: panel, type: .nsString, equals: "Inspector" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.State.keyWindow, of: panel, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.Style.titled, of: panel, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.Style.resizable, of: panel, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.Style.hudWindow, of: panel, type: .bool, equals: NSNumber(value: false))
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.CollectionBehavior.fullScreenPrimary, of: panel, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSWindow.CollectionBehavior.canJoinAllSpaces, of: panel, type: .bool, equals: NSNumber(value: false))
+        guard let frame = attribute(InspectedAttribute.Identifier.Layout.Frame.frame, of: panel)?.value as? NSValue else {
             fail("an AppKit window's frame reaches the Layout card")
         }
         expect(frame.rectValue == CGRect(x: 10, y: 20, width: 300, height: 200), "window frame mismatch: \(frame.rectValue)")
 
         let button = item(withObjectIdentifier: 0x11, in: file)
-        expectAttribute(LookinAttr_NSButton_BezelStyle_BezelStyle, of: button, type: .enumLong, equals: NSNumber(value: 1))
-        expectAttribute(LookinAttr_NSButton_ButtonType_ButtonType, of: button, type: .enumLong, equals: NSNumber(value: 7))
-        expectAttribute(LookinAttr_NSButton_Bordered_Bordered, of: button, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_NSButton_Title_Title, of: button, type: .nsString, equals: "OK" as NSString)
-        expectAttribute(LookinAttr_NSControl_Font_Name, of: button, type: .nsString, equals: ".SFNS-Regular" as NSString)
-        expectAttribute(LookinAttr_NSControl_Alignment_Alignment, of: button, type: .enumLong, equals: NSNumber(value: 2))
+        expectAttribute(InspectedAttribute.Identifier.NSButton.BezelStyle.bezelStyle, of: button, type: .enumLong, equals: NSNumber(value: 1))
+        expectAttribute(InspectedAttribute.Identifier.NSButton.ButtonType.buttonType, of: button, type: .enumLong, equals: NSNumber(value: 7))
+        expectAttribute(InspectedAttribute.Identifier.NSButton.Bordered.bordered, of: button, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSButton.Title.title, of: button, type: .nsString, equals: "OK" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.NSControl.Font.name, of: button, type: .nsString, equals: ".SFNS-Regular" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.NSControl.Alignment.alignment, of: button, type: .enumLong, equals: NSNumber(value: 2))
 
         let textField = item(withObjectIdentifier: 0x12, in: file)
-        expectAttribute(LookinAttr_NSTextField_Placeholder_Placeholder, of: textField, type: .nsString, equals: "Search" as NSString)
-        expectAttribute(LookinAttr_NSTextField_Editable_Editable, of: textField, type: .BOOL, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSTextField.Placeholder.placeholder, of: textField, type: .nsString, equals: "Search" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.NSTextField.Editable.editable, of: textField, type: .bool, equals: NSNumber(value: true))
 
         let cell = item(withObjectIdentifier: 0x40, in: file)
-        expect(groupIdentifiers(of: cell) == [LookinAttrGroup_Class, LookinAttrGroup_Relation, LookinAttrGroup_NSCell],
+        expect(groupIdentifiers(of: cell) == [AttributesGroup.Identifier.class, AttributesGroup.Identifier.relation, AttributesGroup.Identifier.nsCell],
                "a cell's cards: class, relation, cell; got \(groupIdentifiers(of: cell))")
-        expectAttribute(LookinAttr_NSCell_Cell_Bordered, of: cell, type: .BOOL, equals: NSNumber(value: true))
-        expectAttribute(LookinAttr_NSCell_Content_Title, of: cell, type: .nsString, equals: "OK" as NSString)
-        expectAttribute(LookinAttr_NSCell_ButtonCell_BezelStyle, of: cell, type: .enumLong, equals: NSNumber(value: 1))
+        expectAttribute(InspectedAttribute.Identifier.NSCell.Cell.bordered, of: cell, type: .bool, equals: NSNumber(value: true))
+        expectAttribute(InspectedAttribute.Identifier.NSCell.Content.title, of: cell, type: .nsString, equals: "OK" as NSString)
+        expectAttribute(InspectedAttribute.Identifier.NSCell.ButtonCell.bezelStyle, of: cell, type: .enumLong, equals: NSNumber(value: 1))
     }
 
     /// The Auto Layout card carries the server's constraint model: every
@@ -312,8 +312,8 @@ struct XcodeViewHierarchyConverterTests {
     private static func testConstraintsCardFollowsTheServerModel() {
         let file = convert(uiKitCardsFixture())
         let button = item(withObjectIdentifier: 0x11, in: file)
-        guard let constraintsAttribute = attribute(LookinAttr_AutoLayout_Constraints_Constraints, of: button),
-              constraintsAttribute.attrType == .customObj,
+        guard let constraintsAttribute = attribute(InspectedAttribute.Identifier.AutoLayout.Constraints.constraints, of: button),
+              constraintsAttribute.attrType == .customObject,
               let constraints = constraintsAttribute.value as? [AutoLayoutConstraint]
         else { fail("a view with constraints gets a constraints row carrying LookinAutoLayoutConstraint values") }
 
@@ -333,11 +333,11 @@ struct XcodeViewHierarchyConverterTests {
         expect(constraints[2].firstItem?.classChainList == ["UILayoutGuide", "NSObject"] && constraints[2].identifier == "guide-leading",
                "layout guide endpoint carries its class chain and the constraint its identifier")
 
-        let hugging = attribute(LookinAttr_AutoLayout_Hugging_Hor, of: button)
+        let hugging = attribute(InspectedAttribute.Identifier.AutoLayout.Hugging.horizontal, of: button)
         expect(hugging?.attrType == .double && (hugging?.value as? NSNumber)?.doubleValue == 250,
                "sizing priorities ride along once the card exists")
         let rootView = item(withObjectIdentifier: 0x10, in: file)
-        expect((attribute(LookinAttr_AutoLayout_Constraints_Constraints, of: rootView)?.value as? [AutoLayoutConstraint])?
+        expect((attribute(InspectedAttribute.Identifier.AutoLayout.Constraints.constraints, of: rootView)?.value as? [AutoLayoutConstraint])?
             .map(\.constraintOid) == [0xD2],
             "the superview lists the same constraint from its own side")
     }
@@ -363,8 +363,8 @@ struct XcodeViewHierarchyConverterTests {
         expect(gradient.frame == CGRect(x: 10, y: 10, width: 50, height: 50), "a layer node keeps the layer's frame; got \(gradient.frame)")
         expect(classChains(of: gradient) == [["CAGradientLayer", "CALayer"]],
                "a layer node's chain stops at CALayer; got \(String(describing: classChains(of: gradient)))")
-        expect(attribute(LookinAttr_Layout_Frame_Frame, of: gradient) != nil, "a layer node answers the layer rows")
-        expect(attribute(LookinAttr_ViewLayer_Tag_Tag, of: gradient) == nil, "a layer node has no view rows")
+        expect(attribute(InspectedAttribute.Identifier.Layout.Frame.frame, of: gradient) != nil, "a layer node answers the layer rows")
+        expect(attribute(InspectedAttribute.Identifier.ViewLayer.Tag.tag, of: gradient) == nil, "a layer node has no view rows")
 
         expect(file.soloScreenshots?[0x100] == imageData("solo-100"), "the merged node's solo is the layer's own content")
         expect(file.groupScreenshots?[0x100] == imageData("group-100"), "the merged node's group is the whole subtree")
@@ -990,7 +990,7 @@ struct XcodeViewHierarchyConverterTests {
         return found
     }
 
-    private static func attribute(_ identifier: String, of item: DisplayItem?) -> InspectedAttribute? {
+    private static func attribute(_ identifier: InspectedAttribute.Identifier, of item: DisplayItem?) -> InspectedAttribute? {
         for group in item?.attributesGroupList ?? [] {
             for section in group.attrSections ?? [] {
                 if let attribute = section.attributes?.first(where: { $0.identifier == identifier }) {
@@ -1002,9 +1002,9 @@ struct XcodeViewHierarchyConverterTests {
     }
 
     private static func expectAttribute(
-        _ identifier: String,
+        _ identifier: InspectedAttribute.Identifier,
         of item: DisplayItem?,
-        type attrType: LookinAttrType,
+        type attrType: InspectedAttribute.ValueType,
         equals expected: NSObject
     ) {
         guard let attribute = attribute(identifier, of: item) else { fail("\(identifier) is missing") }
@@ -1013,16 +1013,16 @@ struct XcodeViewHierarchyConverterTests {
                "\(identifier) is \(String(describing: attribute.value)), expected \(expected)")
     }
 
-    private static func groupIdentifiers(of item: DisplayItem?) -> [String] {
+    private static func groupIdentifiers(of item: DisplayItem?) -> [AttributesGroup.Identifier] {
         (item?.attributesGroupList ?? []).compactMap(\.identifier)
     }
 
     private static func classChains(of item: DisplayItem?) -> [[String]]? {
-        attribute(LookinAttr_Class_Class_Class, of: item)?.value as? [[String]]
+        attribute(InspectedAttribute.Identifier.Class.Class.class, of: item)?.value as? [[String]]
     }
 
     private static func relations(of item: DisplayItem?) -> [String]? {
-        attribute(LookinAttr_Relation_Relation_Relation, of: item)?.value as? [String]
+        attribute(InspectedAttribute.Identifier.Relation.Relation.relation, of: item)?.value as? [String]
     }
 
     /// The object a row stands for, whichever slot its kind rides.

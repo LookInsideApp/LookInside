@@ -23,7 +23,7 @@
         @objc(getterSelector)
         public var getterSelector: Selector?
         @objc(attrType)
-        public var attrType: LookinAttrType = .none
+        public var attrType: InspectedAttribute.ValueType = .none
         @objc(value)
         public var value: Any?
         @objc(clientReadableVersion)
@@ -50,7 +50,7 @@
             targetOid = (aDecoder.decodeObject(forKey: "targetOid") as? NSNumber)?.uintValue ?? 0
             // NSSelectorFromString(nil) is NULL.
             setterSelector = (aDecoder.decodeObject(forKey: "setterSelector") as? String).map { NSSelectorFromString($0) }
-            attrType = LookinAttrType(rawValue: aDecoder.decodeInteger(forKey: "attrType")) ?? .none
+            attrType = InspectedAttribute.ValueType(rawValue: aDecoder.decodeInteger(forKey: "attrType")) ?? .none
             value = aDecoder.decodeObject(forKey: "value")
             clientReadableVersion = aDecoder.decodeObject(forKey: "clientReadableVersion") as? String
         }

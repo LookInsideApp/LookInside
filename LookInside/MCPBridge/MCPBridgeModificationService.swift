@@ -112,10 +112,10 @@ final class MCPBridgeModificationService {
             )
         }
 
-        // Setter lookup. `setter(withAttrID:)` returns nil for read-only
+        // Setter lookup. `setter(of:)` returns nil for read-only
         // attributes (e.g. computed Relation, class chain, AutoLayout
         // constraint summaries).
-        guard let setterSelector = DashboardBlueprint.setter(withAttrID: attributeIdentifier) else {
+        guard let setterSelector = DashboardBlueprint.setter(of: InspectedAttribute.Identifier(rawValue: attributeIdentifier)) else {
             return .failure(
                 identifier: identifier,
                 error: MCPBridgeErrorPayload(
@@ -268,7 +268,7 @@ final class MCPBridgeModificationService {
         for group in groups {
             for section in group.attrSections ?? [] {
                 for attribute in section.attributes ?? [] {
-                    if attribute.identifier == identifier {
+                    if attribute.identifier?.rawValue == identifier {
                         return attribute
                     }
                 }
@@ -302,17 +302,17 @@ final class MCPBridgeModificationService {
 
     private func mapModificationError(_ error: NSError) -> MCPBridgeErrorPayload {
         switch error.code {
-        case LookinErrCode_ObjectNotFound:
+        case InspectionError.Code.objectNotFound:
             return MCPBridgeErrorPayload(
                 code: "modify.objectNotFound",
                 message: "The target app could not find an object for this identifier. The object may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
-        case LookinErrCode_Inner:
+        case InspectionError.Code.inner:
             return MCPBridgeErrorPayload(
                 code: "modify.invalidSetter",
                 message: "The target app rejected the modification — the setter signature was missing or the value type did not unbox cleanly."
             )
-        case LookinErrCode_Exception:
+        case InspectionError.Code.exception:
             // NSException thrown by the setter; the server stuffs the
             // exception's reason into the NSLocalizedDescriptionKey.
             let reason = (error.userInfo[NSLocalizedDescriptionKey] as? String) ?? "no further detail"
@@ -320,14 +320,14 @@ final class MCPBridgeModificationService {
                 code: "modify.exception",
                 message: "The setter raised an NSException in the target app: \(reason)"
             )
-        case LookinErrCode_LicenseRequired:
+        case InspectionError.Code.licenseRequired:
             return .licenseRequired
-        case LookinErrCode_NoConnect:
+        case InspectionError.Code.noConnection:
             return MCPBridgeErrorPayload(
                 code: "modify.disconnected",
                 message: "The target app is no longer connected. Re-attach from the LookInside inspector and try again."
             )
-        case LookinErrCode_Timeout:
+        case InspectionError.Code.timeout:
             return MCPBridgeErrorPayload(
                 code: "modify.timeout",
                 message: "The target app did not respond within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."

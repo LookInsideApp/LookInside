@@ -34,7 +34,7 @@
         public var swiftUIDisplayItemID: String?
         /// The oid a detail request (203) uses for this node's screenshots and
         /// attribute groups, when the Server left them out of the hierarchy
-        /// (`LookinParam_AsyncAcquisition`). Zero when the details came inline
+        /// (`RequestParameterKey.asyncAcquisition`). Zero when the details came inline
         /// or the node has none. Archived only when non-zero.
         @objc(detailObjectOid)
         public var detailObjectOid: UInt = 0
@@ -110,9 +110,9 @@
                 return false
             }
             #if canImport(UIKit)
-                return LookinIsUsableRect(frameInWindow.cgRectValue)
+                return frameInWindow.cgRectValue.isUsable
             #else
-                return LookinIsUsableRect(frameInWindow.rectValue)
+                return frameInWindow.rectValue.isUsable
             #endif
         }
     }

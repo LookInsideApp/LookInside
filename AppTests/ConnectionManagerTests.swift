@@ -22,26 +22,26 @@ extension HostAppTests {
             defer { server.shutDown() }
             let channel = server.connectChannel()
 
-            let response = try await manager.request(type: UInt32(LookinRequestTypeApp), data: nil, channel: channel)
+            let response = try await manager.request(type: UInt32(RequestType.app), data: nil, channel: channel)
 
             let info = try #require(response.data as? InspectedAppInfo)
             #expect(info.appName == "Request Round Trip")
-            #expect(server.receivedRequestTypes == [UInt32(LookinRequestTypePing), UInt32(LookinRequestTypeApp)])
-            #expect(!manager.isRequestInFlight(type: UInt32(LookinRequestTypeApp), channel: channel))
+            #expect(server.receivedRequestTypes == [UInt32(RequestType.ping), UInt32(RequestType.app)])
+            #expect(!manager.isRequestInFlight(type: UInt32(RequestType.app), channel: channel))
         }
 
         @Test func serverBelowTheSupportedVersionFailsTheRequestUnsent() async {
             let server = FakeServer()
-            server.serverVersion = Int32(LOOKIN_SUPPORTED_SERVER_MIN) - 1
+            server.serverVersion = Int32(ProtocolVersion.supportedServers.lowerBound) - 1
             defer { server.shutDown() }
             let channel = server.connectChannel()
 
             await #expect {
-                _ = try await manager.request(type: UInt32(LookinRequestTypeApp), data: nil, channel: channel)
+                _ = try await manager.request(type: UInt32(RequestType.app), data: nil, channel: channel)
             } throws: { error in
-                (error as NSError).code == LookinErrCode_ServerVersionTooLow
+                (error as NSError).code == InspectionError.Code.serverVersionTooLow
             }
-            #expect(server.receivedRequestTypes == [UInt32(LookinRequestTypePing)])
+            #expect(server.receivedRequestTypes == [UInt32(RequestType.ping)])
         }
 
         /// A hierarchy fetch must not wait out its timeout once its app is
@@ -54,15 +54,15 @@ extension HostAppTests {
             let endedChannels = StreamCollector(manager.channelWillEndEvents())
             defer { endedChannels.stop() }
             let recorder = ResponseRecorder()
-            manager.sendFrame(type: UInt32(LookinRequestTypeHierarchy), channel: channel, data: nil, timeoutInterval: 60, sink: recorder.sink)
-            #expect(await waitUntil { server.receivedRequestTypes.contains(UInt32(LookinRequestTypeHierarchy)) })
-            #expect(manager.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchy), channel: channel))
+            manager.sendFrame(type: UInt32(RequestType.hierarchy), channel: channel, data: nil, timeoutInterval: 60, sink: recorder.sink)
+            #expect(await waitUntil { server.receivedRequestTypes.contains(UInt32(RequestType.hierarchy)) })
+            #expect(manager.isRequestInFlight(type: UInt32(RequestType.hierarchy), channel: channel))
 
             server.disconnectAll()
 
             #expect(await waitUntil { recorder.hasEnded })
-            #expect(recorder.failure?.code == LookinErrCode_NoConnect)
-            #expect(!manager.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchy), channel: channel))
+            #expect(recorder.failure?.code == InspectionError.Code.noConnection)
+            #expect(!manager.isRequestInFlight(type: UInt32(RequestType.hierarchy), channel: channel))
             #expect(await waitUntil { endedChannels.elements.contains { $0 === channel } })
             #expect(!channel.isConnected)
         }
@@ -74,9 +74,9 @@ extension HostAppTests {
             channel.close()
             let recorder = ResponseRecorder()
 
-            manager.sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: 60, sink: recorder.sink)
+            manager.sendFrame(type: UInt32(RequestType.ping), channel: channel, data: nil, timeoutInterval: 60, sink: recorder.sink)
 
-            #expect(recorder.failure?.code == LookinErrCode_NoConnect)
+            #expect(recorder.failure?.code == InspectionError.Code.noConnection)
         }
 
         /// A probe that times out on a channel that received bytes a moment
@@ -90,13 +90,13 @@ extension HostAppTests {
             let ping = ResponseRecorder()
             let hierarchy = ResponseRecorder()
 
-            manager.sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: 0.2, sink: ping.sink)
-            manager.sendFrame(type: UInt32(LookinRequestTypeHierarchy), channel: channel, data: nil, timeoutInterval: 0.2, sink: hierarchy.sink)
+            manager.sendFrame(type: UInt32(RequestType.ping), channel: channel, data: nil, timeoutInterval: 0.2, sink: ping.sink)
+            manager.sendFrame(type: UInt32(RequestType.hierarchy), channel: channel, data: nil, timeoutInterval: 0.2, sink: hierarchy.sink)
 
             #expect(await waitUntil { ping.hasEnded && hierarchy.hasEnded })
-            #expect(ping.failure?.code == LookinErrCode_Timeout)
-            #expect(hierarchy.failure?.code == LookinErrCode_Timeout)
-            #expect(!manager.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchy), channel: channel))
+            #expect(ping.failure?.code == InspectionError.Code.timeout)
+            #expect(hierarchy.failure?.code == InspectionError.Code.timeout)
+            #expect(!manager.isRequestInFlight(type: UInt32(RequestType.hierarchy), channel: channel))
             #expect(channel.isConnected)
         }
 
@@ -114,10 +114,10 @@ extension HostAppTests {
             let ping = ResponseRecorder()
 
             let timeout = ChannelLivenessPolicy.defaultSilenceBeforeClosing + 0.3
-            manager.sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: timeout, sink: ping.sink)
+            manager.sendFrame(type: UInt32(RequestType.ping), channel: channel, data: nil, timeoutInterval: timeout, sink: ping.sink)
 
             #expect(await waitUntil(timeout: .seconds(timeout + 3)) { ping.hasEnded })
-            #expect(ping.failure?.code == LookinErrCode_Timeout)
+            #expect(ping.failure?.code == InspectionError.Code.timeout)
             #expect(await waitUntil { endedChannels.elements.contains { $0 === channel } })
             #expect(!channel.isConnected)
         }
@@ -133,7 +133,7 @@ extension HostAppTests {
             await #expect {
                 try await manager.ping(channel: channel)
             } throws: { error in
-                (error as NSError).code == LookinErrCode_PingFailForBackgroundState
+                (error as NSError).code == InspectionError.Code.pingFailedForBackgroundState
             }
 
             #expect(await waitUntil { !reports.elements.isEmpty })
@@ -143,7 +143,7 @@ extension HostAppTests {
                 Issue.record("expected requestRefusedInBackground, got \(String(describing: report?.kind))")
                 return
             }
-            #expect(!manager.isRequestInFlight(type: UInt32(LookinRequestTypePing), channel: channel))
+            #expect(!manager.isRequestInFlight(type: UInt32(RequestType.ping), channel: channel))
         }
 
         @Test func applicationStatePushIsReportedForItsChannel() async {
@@ -168,7 +168,7 @@ extension HostAppTests {
                 return nil
             }
             #expect(states == [false, true])
-            #expect(pushes.elements.map(\.type) == [UInt32(LookinPush_ApplicationStateChanged), UInt32(LookinPush_ApplicationStateChanged)])
+            #expect(pushes.elements.map(\.type) == [UInt32(PushType.applicationStateChanged), UInt32(PushType.applicationStateChanged)])
         }
 
         /// A channel the Host closed is reported as ended a main-queue turn

@@ -17,20 +17,20 @@ enum DanceUIAttributeMaker {
             return
         }
         let groups = item.attributesGroupList ?? []
-        if groups.contains(where: { $0.identifier == LookinAttrGroup_Class }) {
+        if groups.contains(where: { $0.identifier == AttributesGroup.Identifier.class }) {
             return
         }
         let attribute = InspectedAttribute()
-        attribute.identifier = LookinAttr_Class_Class_Class
-        attribute.attrType = .customObj
+        attribute.identifier = InspectedAttribute.Identifier.Class.Class.class
+        attribute.attrType = .customObject
         attribute.value = [[className]]
 
         let section = AttributesSection()
-        section.identifier = LookinAttrSec_Class_Class
+        section.identifier = AttributesSection.Identifier.Class.class
         section.attributes = [attribute]
 
         let group = AttributesGroup()
-        group.identifier = LookinAttrGroup_Class
+        group.identifier = AttributesGroup.Identifier.class
         group.attrSections = [section]
 
         item.attributesGroupList = groups + [group]

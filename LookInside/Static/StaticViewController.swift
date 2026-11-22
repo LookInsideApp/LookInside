@@ -455,7 +455,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
     private func updateNoPreviewTip() {
         let item = hierarchyDataSource?.selectedItem
         let shouldShowNoPreviewTip = (item?.inNoPreviewHierarchy ?? false)
-            && item?.doNotFetchScreenshotReason != .doNotFetchScreenshotForUserConfig
+            && item?.doNotFetchScreenshotReason != .userConfiguration
         guard shouldShowNoPreviewTip || !noPreviewTipView.isHidden else { return }
         noPreviewTipView.title = String(
             format: NSLocalizedString("The screenshot of selected %@ is not displayed.", comment: ""),
@@ -502,7 +502,7 @@ final class StaticViewController: BaseViewController, NSSplitViewDelegate {
 
         let showsTooLargeTip = item != nil
             && item?.appropriateScreenshot() == nil
-            && item?.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge
+            && item?.doNotFetchScreenshotReason == .tooLarge
         if tooLargeToSyncScreenshotTipsView.isHidden != !showsTooLargeTip {
             tooLargeToSyncScreenshotTipsView.isHidden = !showsTooLargeTip
             if showsTooLargeTip {

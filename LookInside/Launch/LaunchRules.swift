@@ -12,7 +12,7 @@ enum LaunchRules {
     /// The page Learn More opens for a Server version error: how to update
     /// the Server when it is too old, the download when LookInside is.
     static func serverVersionHelpURL(errorCode: Int) -> URL {
-        errorCode == LookinErrCode_ServerVersionTooLow
+        errorCode == InspectionError.Code.serverVersionTooLow
             ? URL(string: "https://lookinside-app.com/docs/update-server")!
             : URL(string: "https://lookinside-app.com/#cta")!
     }
@@ -20,10 +20,10 @@ enum LaunchRules {
     /// The text an app card shows for a Server version error: what to do,
     /// in one short sentence.
     static func serverVersionErrorTitle(errorCode: Int, localizedDescription: String) -> String {
-        if errorCode == LookinErrCode_ServerVersionTooLow {
+        if errorCode == InspectionError.Code.serverVersionTooLow {
             return NSLocalizedString("Update LookInside Server to inspect this app.", comment: "App card: the app's embedded Server is too old")
         }
-        if errorCode == LookinErrCode_ServerVersionTooHigh {
+        if errorCode == InspectionError.Code.serverVersionTooHigh {
             return NSLocalizedString("Update LookInside to inspect this app.", comment: "App card: the app's embedded Server is newer than this LookInside")
         }
         return localizedDescription.isEmpty ? NSLocalizedString("Unable to inspect this app.", comment: "") : localizedDescription
@@ -32,7 +32,7 @@ enum LaunchRules {
     /// The title of the sheet a click on such a card shows: what is wrong,
     /// naming the app when its name is known.
     static func serverVersionAlertTitle(errorCode: Int, appName: String?) -> String {
-        let isServerTooNew = errorCode == LookinErrCode_ServerVersionTooHigh
+        let isServerTooNew = errorCode == InspectionError.Code.serverVersionTooHigh
         guard let appName, !appName.isEmpty else {
             return isServerTooNew
                 ? NSLocalizedString("This app uses a newer LookInside Server.", comment: "Server version alert title, app name unknown")
@@ -46,7 +46,7 @@ enum LaunchRules {
 
     /// The sheet's message: why it matters and who can fix it.
     static func serverVersionAlertMessage(errorCode: Int) -> String {
-        if errorCode == LookinErrCode_ServerVersionTooHigh {
+        if errorCode == InspectionError.Code.serverVersionTooHigh {
             return NSLocalizedString(
                 "The app was built with a newer LookInside Server than this version of LookInside supports. Update LookInside to inspect it.",
                 comment: "Server version alert message: update the Host"

@@ -98,7 +98,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         contentNode = SCNNode(geometry: contentPlane)
         contentNode.position = SCNVector3(0, 0, 0)
         contentNode.name = "screenshot"
-        contentNode.categoryBitMask = Int(LookinPreviewBitMask.noLight.rawValue)
+        contentNode.categoryBitMask = Int(PreviewBitMask.noLight.rawValue)
 
         regionPlane.firstMaterial?.isDoubleSided = true
         regionPlane.firstMaterial?.lightingModel = .constant
@@ -107,18 +107,18 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         // Just above the content plane, which shows the background colour
         // beneath a partial screenshot.
         regionNode.position = SCNVector3(0, 0, 0.0005)
-        regionNode.categoryBitMask = Int(LookinPreviewBitMask.noLight.rawValue)
+        regionNode.categoryBitMask = Int(PreviewBitMask.noLight.rawValue)
         regionNode.isHidden = true
 
         maskPlane.firstMaterial?.isDoubleSided = true
         maskNode = SCNNode(geometry: maskPlane)
         maskNode.name = "mask"
         maskNode.position = SCNVector3(0, 0, 0.001)
-        maskNode.categoryBitMask = Int(LookinPreviewBitMask.hasLight.rawValue)
+        maskNode.categoryBitMask = Int(PreviewBitMask.hasLight.rawValue)
 
         borderNode.name = "border"
         borderNode.position = SCNVector3(0, 0, 0.002)
-        borderNode.categoryBitMask = Int(LookinPreviewBitMask.noLight.rawValue)
+        borderNode.categoryBitMask = Int(PreviewBitMask.noLight.rawValue)
 
         super.init()
 
@@ -244,7 +244,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
             canSelect = false
         }
 
-        let selectability: LookinPreviewBitMask = canSelect ? .selectable : .unselectable
+        let selectability: PreviewBitMask = canSelect ? .selectable : .unselectable
         contentNode.categoryBitMask = Int(selectability.union(.noLight).rawValue)
     }
 
@@ -259,7 +259,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         } else if screenshot === displayItem.groupScreenshot {
             region = displayItem.groupScreenshotRegion
         }
-        if region.isEmpty || !LookinIsUsableRect(displayItem.bounds) || region.equalTo(displayItem.bounds) {
+        if region.isEmpty || !displayItem.bounds.isUsable || region.equalTo(displayItem.bounds) {
             return nil
         }
         return region
@@ -291,7 +291,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
 
         let screenshot = displayItem?.appropriateScreenshot()
         if let rep = screenshot?.representations.first {
-            assert(CGFloat(Swift.max(rep.pixelsWide, rep.pixelsHigh)) <= CGFloat(LookinNodeImageMaxLengthInPx), "image is too large")
+            assert(CGFloat(Swift.max(rep.pixelsWide, rep.pixelsHigh)) <= CGFloat(PreviewLimits.maximumNodeImageLengthInPixels), "image is too large")
         }
         let backgroundColor = displayItem?.backgroundColor ?? NSColor.clear
         // A plane that does not show gets no picture. SceneKit uploads the
@@ -317,7 +317,7 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         }
 
         let tooLargeToFetchScreenshot = screenshot == nil
-            && displayItem?.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge
+            && displayItem?.doNotFetchScreenshotReason == .tooLarge
 
         if displayItem?.shouldRenderAsCoplanarPreviewOverlay() == true {
             // Draw the box only while the node is the one being looked at.
@@ -376,18 +376,18 @@ final class DisplayItemNode: SCNNode, DisplayItemDelegate {
         maskPlane.firstMaterial?.diffuse.contents = maskColor
     }
 
-    /// `LookinColorRGBAMake`.
+    /// A color from 0...255 channels and a 0...1 alpha.
     private static func color(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat, _ alpha: CGFloat = 1) -> NSColor {
         NSColor(red: red / 255, green: green / 255, blue: blue / 255, alpha: alpha)
     }
 
     // MARK: - DisplayItemDelegate
 
-    func displayItem(_ displayItem: DisplayItem, propertyDidChange property: LookinDisplayItemProperty) {
+    func displayItem(_ displayItem: DisplayItem, propertyDidChange property: DisplayItem.Property) {
         render(displayItem, changedProperty: property)
     }
 
-    private func render(_ displayItem: DisplayItem, changedProperty property: LookinDisplayItemProperty) {
+    private func render(_ displayItem: DisplayItem, changedProperty property: DisplayItem.Property) {
         if property == .none || property == .frameToRoot {
             let frameToRoot = displayItem.calculateFrameToRoot()
             let width = frameToRoot.size.width

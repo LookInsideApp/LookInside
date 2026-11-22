@@ -3,7 +3,7 @@
 //  LookInside
 //
 //  One window of a live macOS session as its Server encoded it
-//  (LookinRequestTypeLayerArchive, 211): the layer tree QuartzCore's
+//  (RequestType.layerArchive, 211): the layer tree QuartzCore's
 //  CAEncodeLayerTree wrote, decoded the way a `.caar` file is, checked
 //  against the depth-first walk the Server made while encoding, and indexed
 //  by the oids the hierarchy gave its layers. The Host draws the nodes'

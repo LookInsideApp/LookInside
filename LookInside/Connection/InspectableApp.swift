@@ -134,7 +134,7 @@ final class InspectableApp: NSObject {
     }
 
     /// The values of a request, each cast to `Value`. A value of another
-    /// type ends the stream with `LookinErr_Inner`.
+    /// type ends the stream with `InspectionError.inner`.
     @MainActor
     func typedResponses<Value>(type: UInt32, data: NSObject?, as _: Value.Type) -> AsyncThrowingStream<Value, Error> {
         let untyped = responses(type: type, data: data)
@@ -158,7 +158,7 @@ final class InspectableApp: NSObject {
 
     /// The single value of a request that answers once, cast to `Value`.
     /// A request that completes without a value, or with a value of
-    /// another type, throws `LookinErr_Inner`.
+    /// another type, throws `InspectionError.inner`.
     @MainActor
     func response<Value>(type: UInt32, data: NSObject?, as _: Value.Type, transform: ((Any?) -> Any?)? = nil) async throws -> Value {
         for try await value in responses(type: type, data: data, transform: transform) {
@@ -193,12 +193,12 @@ final class InspectableApp: NSObject {
     /// inspect them, see `HierarchyAcquisitionSupport`).
     static func hierarchyRequestParameters() -> NSDictionary {
         let parameters = NSMutableDictionary(dictionary: ["clientVersion": AppHelper.readableVersion() as NSString])
-        parameters[LookinParam_SwiftUIDisplayMode] = NSNumber(value: SwiftUIHierarchyDisplayModeStore.currentMode().rawValue)
+        parameters[RequestParameterKey.swiftUIDisplayMode] = NSNumber(value: SwiftUIHierarchyDisplayModeStore.currentMode().rawValue)
         parameters["showBackingLayers"] = NSNumber(value: PreferenceManager.shared.showBackingLayers.currentBOOLValue)
-        parameters[LookinParam_AsyncAcquisition] = NSNumber(value: true)
+        parameters[RequestParameterKey.asyncAcquisition] = NSNumber(value: true)
         // The newest attribute catalog revision this Host has titles, icons
         // and enum lists for; the Server leaves out anything newer.
-        parameters[LookinParam_AttributeCatalogRevision] = NSNumber(value: LookinAttributeCatalogRevisionCurrent)
+        parameters[RequestParameterKey.attributeCatalogRevision] = NSNumber(value: DashboardBlueprint.currentCatalogRevision)
         parameters.addEntries(from: PreferenceManager.shared.inspectedAppKeyAppearanceLevel.requestParameters)
         return parameters
     }
@@ -208,7 +208,7 @@ final class InspectableApp: NSObject {
     static func layerArchiveParameters(windowOid: UInt, layerLimit: UInt) -> NSDictionary {
         NSDictionary(
             objects: [NSNumber(value: windowOid), NSNumber(value: layerLimit)],
-            forKeys: [LookinParam_LayerArchiveWindowOid as NSString, LookinParam_LayerArchiveLayerLimit as NSString]
+            forKeys: [RequestParameterKey.layerArchiveWindowOid as NSString, RequestParameterKey.layerArchiveLayerLimit as NSString]
         )
     }
 
@@ -237,7 +237,7 @@ final class InspectableApp: NSObject {
     /// instead of the Server's marker.
     static func localizingVoidReturn(_ value: Any?) -> Any? {
         guard let dictionary = value as? NSDictionary,
-              (dictionary["description"] as? String) == LookinStringFlag_VoidReturn
+              (dictionary["description"] as? String) == RequestType.invokeMethodVoidReturnDescription
         else {
             return value
         }
@@ -255,7 +255,7 @@ extension InspectableApp {
     /// `HierarchyInfo` last.
     @MainActor
     func hierarchy() async throws -> HierarchyInfo {
-        for try await value in responses(type: UInt32(LookinRequestTypeHierarchy), data: Self.hierarchyRequestParameters()) {
+        for try await value in responses(type: UInt32(RequestType.hierarchy), data: Self.hierarchyRequestParameters()) {
             if let info = value as? HierarchyInfo {
                 return info
             }
@@ -267,7 +267,7 @@ extension InspectableApp {
     }
 
     /// Whether `value` is one of the progress frames a Server sends while it
-    /// builds a hierarchy (`LookinParam_AsyncAcquisition`).
+    /// builds a hierarchy (`RequestParameterKey.asyncAcquisition`).
     static func isHierarchyProgress(_ value: Any?) -> Bool {
         ((value as? NSDictionary)?["acquiring"] as? NSNumber)?.boolValue == true
     }
@@ -280,7 +280,7 @@ extension InspectableApp {
     @MainActor
     func layerArchive(windowOid: UInt, layerLimit: UInt) async throws -> LayerArchive {
         try await response(
-            type: UInt32(LookinRequestTypeLayerArchive),
+            type: UInt32(RequestType.layerArchive),
             data: Self.layerArchiveParameters(windowOid: windowOid, layerLimit: layerLimit),
             as: LayerArchive.self
         )
@@ -289,18 +289,18 @@ extension InspectableApp {
     /// Returns the updated detail of the modified item.
     @MainActor
     func submit(_ modification: AttributeModification) async throws -> DisplayItemDetail {
-        try await response(type: UInt32(LookinRequestTypeInbuiltAttrModification), data: modification, as: DisplayItemDetail.self)
+        try await response(type: UInt32(RequestType.inbuiltAttributeModification), data: modification, as: DisplayItemDetail.self)
     }
 
     @MainActor
     func submit(_ modification: CustomAttributeModification) async throws -> Any? {
-        try await response(type: UInt32(LookinRequestTypeCustomAttrModification), data: modification, as: Any?.self)
+        try await response(type: UInt32(RequestType.customAttributeModification), data: modification, as: Any?.self)
     }
 
     /// One array of details per package the Server finished.
     @MainActor
     func hierarchyDetails(packages: [StaticAsyncUpdateTasksPackage]) -> AsyncThrowingStream<[DisplayItemDetail], Error> {
-        typedResponses(type: UInt32(LookinRequestTypeHierarchyDetails), data: packages as NSArray, as: [DisplayItemDetail].self)
+        typedResponses(type: UInt32(RequestType.hierarchyDetails), data: packages as NSArray, as: [DisplayItemDetail].self)
     }
 
     /// Stops the hierarchy details request whose events go to `sink`: it
@@ -312,31 +312,31 @@ extension InspectableApp {
     @MainActor
     func cancelHierarchyDetailRequest(receivingEventsWith sink: ResponseSink) {
         guard ConnectionManager.shared.cancelRequest(receivingEventsWith: sink, channel: channel) else { return }
-        push(type: UInt32(LookinPush_CanceHierarchyDetails), data: nil)
+        push(type: UInt32(PushType.cancelHierarchyDetails), data: nil)
     }
 
     /// One detail per modified item, as the Server finishes them.
     @MainActor
     func modificationPatch(tasks: [StaticAsyncUpdateTask]) -> AsyncThrowingStream<DisplayItemDetail, Error> {
-        typedResponses(type: UInt32(LookinRequestTypeAttrModificationPatch), data: tasks as NSArray, as: DisplayItemDetail.self)
+        typedResponses(type: UInt32(RequestType.attributeModificationPatch), data: tasks as NSArray, as: DisplayItemDetail.self)
     }
 
     @MainActor
     func object(oid: UInt) async throws -> InspectedObject {
         guard oid != 0 else { throw ConnectionError.inner }
-        return try await response(type: UInt32(LookinRequestTypeFetchObject), data: NSNumber(value: oid), as: InspectedObject.self)
+        return try await response(type: UInt32(RequestType.fetchObject), data: NSNumber(value: oid), as: InspectedObject.self)
     }
 
     @MainActor
     func attributeGroups(oid: UInt) async throws -> [AttributesGroup] {
         guard oid != 0 else { throw ConnectionError.inner }
-        return try await response(type: UInt32(LookinRequestTypeAllAttrGroups), data: NSNumber(value: oid), as: [AttributesGroup].self)
+        return try await response(type: UInt32(RequestType.allAttributeGroups), data: NSNumber(value: oid), as: [AttributesGroup].self)
     }
 
     @MainActor
     func selectorNames(className: String, hasArg: Bool) async throws -> [String] {
         try await response(
-            type: UInt32(LookinRequestTypeAllSelectorNames),
+            type: UInt32(RequestType.allSelectorNames),
             data: Self.selectorNamesParameters(className: className, hasArg: hasArg),
             as: [String].self
         )
@@ -347,7 +347,7 @@ extension InspectableApp {
     func invokeMethod(oid: UInt, text: String) async throws -> NSDictionary {
         guard oid != 0, !text.isEmpty else { throw ConnectionError.inner }
         return try await response(
-            type: UInt32(LookinRequestTypeInvokeMethod),
+            type: UInt32(RequestType.invokeMethod),
             data: Self.invokeMethodParameters(oid: oid, text: text),
             as: NSDictionary.self,
             transform: Self.localizingVoidReturn
@@ -358,13 +358,13 @@ extension InspectableApp {
     @MainActor
     func image(imageViewOid oid: UInt) async throws -> Data? {
         guard oid != 0 else { throw ConnectionError.inner }
-        return try await response(type: UInt32(LookinRequestTypeFetchImageViewImage), data: NSNumber(value: oid), as: Data?.self)
+        return try await response(type: UInt32(RequestType.fetchImageViewImage), data: NSNumber(value: oid), as: Data?.self)
     }
 
     /// Versioned controls for the optional SwiftUI gesture capture service.
     @MainActor
     func controlGestureDebug(_ parameters: NSDictionary) async throws -> NSDictionary {
-        try await response(type: UInt32(LookinRequestTypeGestureDebug), data: parameters, as: NSDictionary.self)
+        try await response(type: UInt32(RequestType.gestureDebug), data: parameters, as: NSDictionary.self)
     }
 
     /// Returns whether the recognizer is enabled afterwards.
@@ -372,7 +372,7 @@ extension InspectableApp {
     func setGestureRecognizer(oid: UInt, enabled: Bool) async throws -> Bool {
         guard oid != 0 else { throw ConnectionError.inner }
         return try await response(
-            type: UInt32(LookinRequestTypeModifyRecognizerEnable),
+            type: UInt32(RequestType.modifyRecognizerEnable),
             data: Self.gestureRecognizerParameters(oid: oid, enabled: enabled),
             as: Bool.self
         )

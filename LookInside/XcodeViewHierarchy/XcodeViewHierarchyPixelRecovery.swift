@@ -109,7 +109,7 @@ enum XcodeViewHierarchyPixelRecovery {
     ///
     /// The preview puts every image on a SceneKit material, and a texture
     /// longer than this cannot be uploaded — the host asserts the same bound
-    /// (`LookinNodeImageMaxLengthInPx`). A layer taller than this at its own
+    /// (`PreviewLimits.maximumNodeImageLengthInPixels`). A layer taller than this at its own
     /// scale is rendered coarser to fit, never dropped: a folded node's whole
     /// subtree lives in this one image, so a missing image is a hole.
     static let maximumRenderedEdgeLength: CGFloat = 16384

@@ -123,7 +123,7 @@ struct MCPBridgeViewNode: Sendable, Codable {
 /// One attribute "card" in the host's inspector — a coherent bundle of
 /// related attributes (Frame, View, Layer, AutoLayout, UIControl, …).
 struct MCPBridgeAttributeGroup: Sendable, Codable {
-    /// Group identifier (`LookinAttrGroupIdentifier`, e.g. `Layout`,
+    /// Group identifier (`AttributesGroup.Identifier`, e.g. `Layout`,
     /// `UIScrollView`, `NSWindow`), or the user-supplied title when the
     /// group originates from `lookin_customDebugInfos`.
     let identifier: String
@@ -147,7 +147,7 @@ struct MCPBridgeAttributeSection: Sendable, Codable {
 
 /// One inspected attribute value with a type-discriminating `kind`.
 struct MCPBridgeAttribute: Sendable, Codable {
-    /// `LookinAttrIdentifier` string (e.g. `BasicViewClass_Frame`,
+    /// `InspectedAttribute.Identifier` string (e.g. `BasicViewClass_Frame`,
     /// `BasicViewClass_Hidden`). Stable across LookinServer versions.
     let identifier: String
 

@@ -30,7 +30,7 @@ final class FakeServer {
 
     var behavior: Behavior = .answering
     /// The version reported in each response; the Host checks the ping's.
-    var serverVersion = Int32(LOOKIN_SERVER_VERSION)
+    var serverVersion = Int32(ProtocolVersion.server)
     /// Requests of these types are recorded but not answered until
     /// `answerHeldRequests(with:)`.
     var heldRequestTypes: Set<UInt32> = []
@@ -57,7 +57,7 @@ final class FakeServer {
         info.deviceDescription = "Test Mac"
         info.osDescription = "macOS"
         info.deviceType = .mac
-        info.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        info.serverVersion = Int32(ProtocolVersion.server)
         info.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
         appInfo = info
     }
@@ -80,7 +80,7 @@ final class FakeServer {
     /// Throws when every Mac port is taken.
     func listen() throws -> Int32 {
         var lastError: Error?
-        for port in Int32(LookinMacIPv4PortNumberStart) ... Int32(LookinMacIPv4PortNumberEnd) {
+        for port in Int32(ListeningPorts.mac.lowerBound) ... Int32(ListeningPorts.mac.upperBound) {
             do {
                 listener = try FrameListener.listen(port: UInt16(port), queue: .main) { [weak self] descriptor in
                     MainActor.assumeIsolated {
@@ -114,13 +114,13 @@ final class FakeServer {
 
     // MARK: - Sending
 
-    /// Sends the `LookinPush_ApplicationStateChanged` push on every channel.
+    /// Sends the `PushType.applicationStateChanged` push on every channel.
     func pushApplicationState(isActive: Bool) {
         let payload = [ApplicationStatePush.isActiveKey: NSNumber(value: isActive)] as NSDictionary
         // The push decoder on the Host takes secure-coded Foundation types.
         let data = try! NSKeyedArchiver.archivedData(withRootObject: payload, requiringSecureCoding: true)
         for connection in connections {
-            connection.send(type: UInt32(LookinPush_ApplicationStateChanged), tag: 0, payload: data)
+            connection.send(type: UInt32(PushType.applicationStateChanged), tag: 0, payload: data)
         }
     }
 
@@ -165,7 +165,7 @@ final class FakeServer {
         case .answering:
             if let responder = responders[frame.type] {
                 attachment.data = responder(requestData)
-            } else if frame.type == UInt32(LookinRequestTypeApp) {
+            } else if frame.type == UInt32(RequestType.app) {
                 attachment.data = appInfo
             }
         }

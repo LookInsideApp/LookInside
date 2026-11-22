@@ -235,7 +235,7 @@
         @objc(osMainVersion)
         public var osMainVersion: UInt = 0
         @objc(deviceType)
-        public var deviceType: LookinAppInfoDevice = .simulator
+        public var deviceType: InspectedAppInfo.Device = .simulator
         @objc(screenWidth)
         public var screenWidth: Double = 0
         @objc(screenHeight)
@@ -248,13 +248,13 @@
         @objc(gestureDebugProtocolVersion)
         public var gestureDebugProtocolVersion: UInt = 0
         /// Zero for older servers; 1 for a server that answers
-        /// `LookinParam_AsyncAcquisition`. Archived only when non-zero, so
+        /// `RequestParameterKey.asyncAcquisition`. Archived only when non-zero, so
         /// every archive an older server made stays byte for byte the same.
         @objc(hierarchyAcquisitionProtocolVersion)
         public var hierarchyAcquisitionProtocolVersion: UInt = 0
         /// Zero for older servers and for servers that cannot encode layer
         /// trees; 1 for a macOS server that answers
-        /// `LookinRequestTypeLayerArchive`. Archived only when non-zero, so
+        /// `RequestType.layerArchive`. Archived only when non-zero, so
         /// every archive an older server made stays byte for byte the same.
         @objc(layerArchiveProtocolVersion)
         public var layerArchiveProtocolVersion: UInt = 0
@@ -308,7 +308,7 @@
             deviceModelIdentifier = aDecoder.decodeObject(forKey: "deviceModelIdentifier") as? String
             osDescription = aDecoder.decodeObject(forKey: CodingKey_OsDescription) as? String
             osMainVersion = UInt(bitPattern: aDecoder.decodeInteger(forKey: "osMainVersion"))
-            deviceType = LookinAppInfoDevice(rawValue: aDecoder.decodeInteger(forKey: CodingKey_DeviceType)) ?? .simulator
+            deviceType = InspectedAppInfo.Device(rawValue: aDecoder.decodeInteger(forKey: CodingKey_DeviceType)) ?? .simulator
             screenWidth = aDecoder.decodeDouble(forKey: CodingKey_ScreenWidth)
             screenHeight = aDecoder.decodeDouble(forKey: CodingKey_ScreenHeight)
             screenScale = aDecoder.decodeDouble(forKey: "screenScale")
@@ -404,14 +404,14 @@
             let info = InspectedAppInfo()
             info.hierarchyAcquisitionProtocolVersion = 1
             #if os(macOS)
-                // AppKit Servers answer LookinRequestTypeLayerArchive. Mac
+                // AppKit Servers answer RequestType.layerArchive. Mac
                 // Catalyst builds the UIKit Server, which does not.
                 info.layerArchiveProtocolVersion = 1
             #endif
             if #available(iOS 16.0, macOS 13.0, tvOS 16.0, *) {
                 info.gestureDebugProtocolVersion = NSClassFromString("LKS_GestureDebugService") != nil ? 1 : 0
             }
-            info.serverReadableVersion = LOOKIN_SERVER_READABLE_VERSION
+            info.serverReadableVersion = ServerBuild.releaseVersion
             // Report Swift optimization as enabled whenever the Swift-aware build
             // is compiled in. The CocoaPods subspec path defines
             // LOOKIN_SERVER_SWIFT_ENABLED; the SwiftPM / XCFramework path defines

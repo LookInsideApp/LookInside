@@ -2,7 +2,7 @@
 //  LayerArchive.swift
 //  LookinCore
 //
-//  The reply to `LookinRequestTypeLayerArchive` (211): one window's whole
+//  The reply to `RequestType.layerArchive` (211): one window's whole
 //  layer tree as QuartzCore's `CAEncodeLayerTree` encodes it — the format
 //  AppKit's Dump Layer writes to `.caar` files — plus what the Host needs to
 //  match the decoded layers to the hierarchy's nodes.

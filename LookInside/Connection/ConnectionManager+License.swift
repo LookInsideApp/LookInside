@@ -122,7 +122,7 @@ private final class ServerChannelLicenseEnvironment: LicenseHandshakeEnvironment
     }
 
     func sendChallenge(completion: @escaping (LicenseExchangeResult) -> Void) {
-        send(type: UInt32(LookinRequestTypeLicenseChallenge), data: nil, completion: completion)
+        send(type: UInt32(RequestType.licenseChallenge), data: nil, completion: completion)
     }
 
     func sendVerify(_ request: LicenseVerifyRequest, completion: @escaping (LicenseExchangeResult) -> Void) {
@@ -148,7 +148,7 @@ private final class ServerChannelLicenseEnvironment: LicenseHandshakeEnvironment
                 "udid" as NSString,
             ]
         )
-        send(type: UInt32(LookinRequestTypeLicenseVerify), data: payload, completion: completion)
+        send(type: UInt32(RequestType.licenseVerify), data: payload, completion: completion)
     }
 
     /// Signing blocks until the key is free and the keychain answers,

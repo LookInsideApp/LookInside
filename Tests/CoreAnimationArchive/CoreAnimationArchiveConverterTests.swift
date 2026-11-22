@@ -161,7 +161,7 @@ struct CoreAnimationArchiveConverterTests {
     /// A Dump Layer of an Xcode window held the console's content view,
     /// 256310 points of text. Its image came out 25630 pixels tall, and the
     /// preview asserts that no image it is handed is longer than
-    /// `LookinNodeImageMaxLengthInPx` on a side. Every image an import files
+    /// `PreviewLimits.maximumNodeImageLengthInPixels` on a side. Every image an import files
     /// has to fit, measured as the reader loads it, and the tall layer still
     /// gets its image: a folded node shows its whole subtree in it.
     private static func testEveryImageFitsThePreviewTextureLimit() {
@@ -188,7 +188,7 @@ struct CoreAnimationArchiveConverterTests {
             }
             let longestSide = max(representation.pixelsWide, representation.pixelsHigh)
             expect(
-                Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                Double(longestSide) <= PreviewLimits.maximumNodeImageLengthInPixels,
                 "an image of \(representation.pixelsWide) x \(representation.pixelsHigh) pixels is past the preview's limit"
             )
         }
@@ -740,7 +740,7 @@ struct CoreAnimationArchiveConverterTests {
 
     /// The rows are typed as the server types a live layer's: a float
     /// opacity, CGFloat values as doubles, colours as RGBA arrays
-    /// (`LookinAttrType`, LookinCoreTypes.swift; the colour card asserts on anything else).
+    /// (`InspectedAttribute.ValueType`, LookinCoreTypes.swift; the colour card asserts on anything else).
     private static func testLayerRowsFollowTheServerTypes() {
         let rootLayer = makingLayer(CGRect(x: 0, y: 0, width: 40, height: 40))
         let styledLayer = makingLayer(CGRect(x: 0, y: 0, width: 20, height: 20))
@@ -756,19 +756,19 @@ struct CoreAnimationArchiveConverterTests {
         guard items.count == 2 else { fail("the tree should have two nodes") }
         let attributes = attributesByIdentifier(of: items[1])
 
-        expect(attributes[LookinAttr_ViewLayer_Visibility_Opacity]?.attrType == .float, "opacity should be a float")
-        expect((attributes[LookinAttr_ViewLayer_Visibility_Opacity]?.value as? NSNumber)?.floatValue == 0.5, "opacity should be 0.5")
-        expect(attributes[LookinAttr_ViewLayer_Corner_Radius]?.attrType == .double, "corner radius should be a double")
-        expect(attributes[LookinAttr_ViewLayer_InterationAndMasks_MasksToBounds]?.attrType == .BOOL, "masks to bounds should be a BOOL")
-        expect(attributes[LookinAttr_Layout_Frame_Frame]?.attrType == .cgRect, "the frame should be a CGRect")
-        expect(attributes[LookinAttr_Layout_Position_Position]?.attrType == .cgPoint, "the position should be a CGPoint")
-        expect(attributes[LookinAttr_ViewLayer_BgColor_BgColor]?.attrType == .uiColor, "the background colour should be a colour")
+        expect(attributes[InspectedAttribute.Identifier.ViewLayer.Visibility.opacity]?.attrType == .float, "opacity should be a float")
+        expect((attributes[InspectedAttribute.Identifier.ViewLayer.Visibility.opacity]?.value as? NSNumber)?.floatValue == 0.5, "opacity should be 0.5")
+        expect(attributes[InspectedAttribute.Identifier.ViewLayer.Corner.radius]?.attrType == .double, "corner radius should be a double")
+        expect(attributes[InspectedAttribute.Identifier.ViewLayer.InteractionAndMasks.masksToBounds]?.attrType == .bool, "masks to bounds should be a BOOL")
+        expect(attributes[InspectedAttribute.Identifier.Layout.Frame.frame]?.attrType == .cgRect, "the frame should be a CGRect")
+        expect(attributes[InspectedAttribute.Identifier.Layout.Position.position]?.attrType == .cgPoint, "the position should be a CGPoint")
+        expect(attributes[InspectedAttribute.Identifier.ViewLayer.BackgroundColor.backgroundColor]?.attrType == .uiColor, "the background colour should be a colour")
         expect(
-            (attributes[LookinAttr_ViewLayer_BgColor_BgColor]?.value as? [NSNumber])?.map(\.doubleValue) == [1, 0, 0, 1],
+            (attributes[InspectedAttribute.Identifier.ViewLayer.BackgroundColor.backgroundColor]?.value as? [NSNumber])?.map(\.doubleValue) == [1, 0, 0, 1],
             "a colour's value should be its RGBA components"
         )
         expect(
-            (attributes[LookinAttr_ViewLayer_Border_Color]?.value as? [NSNumber])?.map(\.doubleValue) == [0, 0, 1, 1],
+            (attributes[InspectedAttribute.Identifier.ViewLayer.Border.color]?.value as? [NSNumber])?.map(\.doubleValue) == [0, 0, 1, 1],
             "the border colour should be its RGBA components"
         )
         for attribute in attributes.values {
@@ -778,7 +778,7 @@ struct CoreAnimationArchiveConverterTests {
         }
         for identifier in attributes.keys {
             expect(
-                DashboardBlueprint.targetKind(forAttrID: identifier) == .layer,
+                DashboardBlueprint.targetKind(of: identifier) == .layer,
                 "\(identifier) is not a row the blueprint aims at a CALayer"
             )
         }
@@ -792,7 +792,7 @@ struct CoreAnimationArchiveConverterTests {
 
         let items = flattened(convertedFile(of: rootLayer).hierarchyInfo?.displayItems ?? [])
         guard items.count == 2 else { fail("the tree should have two nodes") }
-        let classCard = attributesByIdentifier(of: items[1])[LookinAttr_Class_Class_Class]?.value as? [[String]]
+        let classCard = attributesByIdentifier(of: items[1])[InspectedAttribute.Identifier.Class.Class.class]?.value as? [[String]]
         expect(classCard == [["CAShapeLayer", "CALayer"]], "the Class card should list the chain up to CALayer, got \(String(describing: classCard))")
         expect(items[1].layerObject?.classChainList == ["CAShapeLayer", "CALayer", "NSObject"], "the object's chain should run to NSObject")
     }
@@ -836,7 +836,7 @@ struct CoreAnimationArchiveConverterTests {
             markerItem.viewObject?.classChainList == [NSStringFromClass(CoreAnimationArchiveMarkerView.self), "NSView", "NSResponder", "NSObject"],
             "a class this process has should get its whole chain, got \(String(describing: markerItem.viewObject?.classChainList))"
         )
-        let classCard = attributesByIdentifier(of: markerItem)[LookinAttr_Class_Class_Class]?.value as? [[String]]
+        let classCard = attributesByIdentifier(of: markerItem)[InspectedAttribute.Identifier.Class.Class.class]?.value as? [[String]]
         expect(
             classCard == [[NSStringFromClass(CoreAnimationArchiveMarkerView.self), "NSView"]],
             "a view node's Class card should list the view's chain up to NSView, got \(String(describing: classCard))"
@@ -890,7 +890,7 @@ struct CoreAnimationArchiveConverterTests {
             fail("a view of a class this process lacks should still become a view node")
         }
         expect(appItem.viewObject?.classChainList == ["DumpedAppOnlyView"], "an unknown class should claim no superclasses, got \(String(describing: appItem.viewObject?.classChainList))")
-        let classCard = attributesByIdentifier(of: appItem)[LookinAttr_Class_Class_Class]?.value as? [[String]]
+        let classCard = attributesByIdentifier(of: appItem)[InspectedAttribute.Identifier.Class.Class.class]?.value as? [[String]]
         expect(classCard == [["DumpedAppOnlyView"]], "the Class card should list just the name, got \(String(describing: classCard))")
     }
 
@@ -1227,8 +1227,8 @@ struct CoreAnimationArchiveConverterTests {
         items.flatMap { [$0] + flattened($0.subitems ?? []) }
     }
 
-    private static func attributesByIdentifier(of item: DisplayItem) -> [String: InspectedAttribute] {
-        var attributes: [String: InspectedAttribute] = [:]
+    private static func attributesByIdentifier(of item: DisplayItem) -> [InspectedAttribute.Identifier: InspectedAttribute] {
+        var attributes: [InspectedAttribute.Identifier: InspectedAttribute] = [:]
         for group in item.attributesGroupList ?? [] {
             for section in group.attrSections ?? [] {
                 for attribute in section.attributes ?? [] {

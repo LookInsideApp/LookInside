@@ -15,8 +15,13 @@
 
     @objc(LookinAttributesSection)
     public class AttributesSection: NSObject, NSCoding, NSSecureCoding, NSCopying {
+        public var identifier: Identifier?
+        /// `identifier` as Objective-C, KVC and the archive see it.
         @objc(identifier)
-        public var identifier: String?
+        public var rawIdentifier: String? {
+            get { identifier?.rawValue }
+            set { identifier = newValue.map(Identifier.init(rawValue:)) }
+        }
         @objc(attributes)
         public var attributes: [InspectedAttribute]?
 
@@ -38,13 +43,13 @@
 
         @objc(encodeWithCoder:)
         public func encode(with aCoder: NSCoder) {
-            aCoder.encode(identifier, forKey: "identifier")
+            aCoder.encode(rawIdentifier, forKey: "identifier")
             aCoder.encode(attributes, forKey: "attributes")
         }
 
         public required init?(coder aDecoder: NSCoder) {
             super.init()
-            identifier = aDecoder.decodeObject(forKey: "identifier") as? String
+            rawIdentifier = aDecoder.decodeObject(forKey: "identifier") as? String
             attributes = aDecoder.decodeObject(forKey: "attributes") as? [InspectedAttribute]
         }
 
@@ -55,7 +60,7 @@
 
         @objc(isUserCustom)
         public func isUserCustom() -> Bool {
-            stringsEqual(identifier, LookinAttrSec_UserCustom)
+            identifier == .userCustom
         }
     }
 

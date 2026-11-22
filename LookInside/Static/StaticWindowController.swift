@@ -33,7 +33,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     /// The refusals and failures of `reloadHierarchy(completion:)` that this
     /// window raises itself. Errors from the request keep their
-    /// `LookinErrorDomain` code.
+    /// `InspectionError.domain` code.
     enum ReloadError {
         static let domain = "LKStaticWindowControllerReloadErrorDomain"
 
@@ -208,7 +208,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     /// after its progress frames.
     private static func fetchHierarchy(from app: InspectableApp) async throws -> HierarchyFetchResult {
         let responses = app.responses(
-            type: UInt32(LookinRequestTypeHierarchy),
+            type: UInt32(RequestType.hierarchy),
             data: InspectableApp.hierarchyRequestParameters()
         )
         for try await value in responses where !InspectableApp.isHierarchyProgress(value) {
@@ -219,7 +219,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     private func alertError(_ error: Error?, in window: NSWindow?) {
         let error = (error as NSError?) ?? ConnectionError.inner
-        guard error.code != LookinErrCode_Discard, let window else {
+        guard error.code != InspectionError.Code.discarded, let window else {
             return
         }
         NSAlert(error: error).beginSheetModal(for: window, completionHandler: nil)
@@ -351,7 +351,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     /// The request starts before this returns. `completion` gets the
     /// reloaded hierarchy (after the data source took it), or an error in
     /// the reload domain (this window refused to start or lost the result)
-    /// or `LookinErrorDomain` (the app failed the request); a refusal is
+    /// or `InspectionError.domain` (the app failed the request); a refusal is
     /// reported before this returns.
     private func reloadHierarchy(
         initiator: ReloadInitiator = .host,
@@ -647,7 +647,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             return
         }
         if isFetchingDetails {
-            let error = NSError(domain: LookinErrorDomain, code: LookinErrCode_Default, userInfo: [
+            let error = NSError(domain: InspectionError.domain, code: InspectionError.Code.default, userInfo: [
                 NSLocalizedDescriptionKey: NSLocalizedString("Cannot reload at this time", comment: ""),
                 NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString("Please wait until current sync is completed. You can get sync progress in the upper-left corner of this window.", comment: ""),
             ])

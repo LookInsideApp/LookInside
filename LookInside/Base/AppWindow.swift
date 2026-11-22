@@ -25,7 +25,7 @@ class AppWindow: NSWindow {
             return true
         } catch {
             let nsError = error as NSError
-            if nsError.code != LookinErrCode_Discard {
+            if nsError.code != InspectionError.Code.discarded {
                 NSAlert(error: nsError).beginSheetModal(for: self, completionHandler: nil)
             }
             return false

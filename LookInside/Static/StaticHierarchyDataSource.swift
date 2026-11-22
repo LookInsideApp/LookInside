@@ -185,7 +185,7 @@ class StaticHierarchyDataSource: HierarchyDataSource {
             if !node.isUserCustom(), !node.shouldCaptureImage {
                 node.enumerateSelfAndChildren { descendant in
                     descendant.noPreview = true
-                    descendant.doNotFetchScreenshotReason = .doNotFetchScreenshotForUserConfig
+                    descendant.doNotFetchScreenshotReason = .userConfiguration
                 }
             }
             // The image limits a reload marks, applied after the app's own
@@ -232,10 +232,10 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         itemsDidChangeFrame.send(item)
     }
 
-    /// An image the preview takes is at most `LookinNodeImageMaxLengthInPx`
+    /// An image the preview takes is at most `PreviewLimits.maximumNodeImageLengthInPixels`
     /// on each side, an SCNNode's limit; keep 100 px clear of that. Pixels,
     /// not points.
-    private static let maximumImageLengthInPixels = CGFloat(LookinNodeImageMaxLengthInPx) - 100
+    private static let maximumImageLengthInPixels = CGFloat(PreviewLimits.maximumNodeImageLengthInPixels) - 100
 
     /// Whether `item`'s frame is too large for an image of it.
     private func isTooLargeForImages(_ item: DisplayItem) -> Bool {
@@ -250,9 +250,9 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     /// the preview. A node too large for an image gets none either.
     private func markingImageLimits(of item: DisplayItem) {
         if !item.isPixelBearing() {
-            item.doNotFetchScreenshotReason = .doNotFetchScreenshotForNoPixels
+            item.doNotFetchScreenshotReason = .noPixels
         } else if isTooLargeForImages(item) {
-            item.doNotFetchScreenshotReason = .doNotFetchScreenshotForTooLarge
+            item.doNotFetchScreenshotReason = .tooLarge
         }
     }
 
@@ -261,12 +261,12 @@ class StaticHierarchyDataSource: HierarchyDataSource {
     /// they show it at its old size. Fitting again, it gets images again.
     private func refreshingTooLargeMark(of item: DisplayItem) {
         switch item.doNotFetchScreenshotReason {
-        case .fetchScreenshotPermitted where isTooLargeForImages(item):
-            item.doNotFetchScreenshotReason = .doNotFetchScreenshotForTooLarge
+        case .permitted where isTooLargeForImages(item):
+            item.doNotFetchScreenshotReason = .tooLarge
             item.groupScreenshot = nil
             item.soloScreenshot = nil
-        case .doNotFetchScreenshotForTooLarge where !isTooLargeForImages(item):
-            item.doNotFetchScreenshotReason = .fetchScreenshotPermitted
+        case .tooLarge where !isTooLargeForImages(item):
+            item.doNotFetchScreenshotReason = .permitted
         default:
             break
         }

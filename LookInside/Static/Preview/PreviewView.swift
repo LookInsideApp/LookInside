@@ -141,7 +141,7 @@ final class PreviewView: SCNView {
 
         let rightLight = SCNLight()
         rightLight.type = .omni
-        rightLight.categoryBitMask = Int(LookinPreviewBitMask.hasLight.rawValue)
+        rightLight.categoryBitMask = Int(PreviewBitMask.hasLight.rawValue)
         rightLightNode.name = "right light"
         rightLightNode.light = rightLight
         scene.rootNode.addChildNode(rightLightNode)
@@ -346,7 +346,7 @@ final class PreviewView: SCNView {
 
     func displayItem(at point: CGPoint) -> DisplayItem? {
         let results = hitTest(point, options: [
-            .categoryBitMask: Int(LookinPreviewBitMask.selectable.rawValue),
+            .categoryBitMask: Int(PreviewBitMask.selectable.rawValue),
             .searchMode: SCNHitTestSearchMode.closest.rawValue,
             .ignoreHiddenNodes: false,
         ])

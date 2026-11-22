@@ -16,93 +16,93 @@ final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFie
 
     /// Laid out horizontally (title inside the field) with three decimals;
     /// everything else is vertical (title below) with two.
-    private static let horizontalAttrs: Set<String> = [
-        LookinAttr_ViewLayer_Visibility_Opacity,
-        LookinAttr_ViewLayer_Corner_Radius,
-        LookinAttr_ViewLayer_Tag_Tag,
-        LookinAttr_UILabel_Font_Size,
-        LookinAttr_UILabel_NumberOfLines_NumberOfLines,
-        LookinAttr_UITextView_Font_Size,
-        LookinAttr_UITextField_Font_Size,
-        LookinAttr_UITextField_CanAdjustFont_MinSize,
-        LookinAttr_ViewLayer_Border_Width,
-        LookinAttr_UITableView_SectionsNumber_Number,
-        LookinAttr_AutoLayout_Resistance_Ver,
-        LookinAttr_AutoLayout_Resistance_Hor,
-        LookinAttr_AutoLayout_Hugging_Ver,
-        LookinAttr_AutoLayout_Hugging_Hor,
-        LookinAttr_UIStackView_Spacing_Spacing,
-        LookinAttr_NSWindow_Appearance_AlphaValue,
-        LookinAttr_NSControl_Value_IntValue,
-        LookinAttr_NSControl_Value_IntegerValue,
-        LookinAttr_NSControl_Value_FloatValue,
-        LookinAttr_NSControl_Value_DoubleValue,
-        LookinAttr_NSTextField_PreferredMaxLayoutWidth_PreferredMaxLayoutWidth,
-        LookinAttr_NSTextField_MaximumNumberOfLines_MaximumNumberOfLines,
-        LookinAttr_UITraitCollection_Display_DisplayScale,
-        LookinAttr_UIWindowScene_Traits_DisplayScale,
-        LookinAttr_UIWindowScene_Windows_WindowCount,
-        LookinAttr_UIWindowScene_Screen_ScreenScale,
+    private static let horizontalAttributes: Set<InspectedAttribute.Identifier> = [
+        InspectedAttribute.Identifier.ViewLayer.Visibility.opacity,
+        InspectedAttribute.Identifier.ViewLayer.Corner.radius,
+        InspectedAttribute.Identifier.ViewLayer.Tag.tag,
+        InspectedAttribute.Identifier.UILabel.Font.size,
+        InspectedAttribute.Identifier.UILabel.NumberOfLines.numberOfLines,
+        InspectedAttribute.Identifier.UITextView.Font.size,
+        InspectedAttribute.Identifier.UITextField.Font.size,
+        InspectedAttribute.Identifier.UITextField.CanAdjustFont.minSize,
+        InspectedAttribute.Identifier.ViewLayer.Border.width,
+        InspectedAttribute.Identifier.UITableView.SectionsNumber.number,
+        InspectedAttribute.Identifier.AutoLayout.Resistance.vertical,
+        InspectedAttribute.Identifier.AutoLayout.Resistance.horizontal,
+        InspectedAttribute.Identifier.AutoLayout.Hugging.vertical,
+        InspectedAttribute.Identifier.AutoLayout.Hugging.horizontal,
+        InspectedAttribute.Identifier.UIStackView.Spacing.spacing,
+        InspectedAttribute.Identifier.NSWindow.Appearance.alphaValue,
+        InspectedAttribute.Identifier.NSControl.Value.intValue,
+        InspectedAttribute.Identifier.NSControl.Value.integerValue,
+        InspectedAttribute.Identifier.NSControl.Value.floatValue,
+        InspectedAttribute.Identifier.NSControl.Value.doubleValue,
+        InspectedAttribute.Identifier.NSTextField.PreferredMaxLayoutWidth.preferredMaxLayoutWidth,
+        InspectedAttribute.Identifier.NSTextField.MaximumNumberOfLines.maximumNumberOfLines,
+        InspectedAttribute.Identifier.UITraitCollection.Display.displayScale,
+        InspectedAttribute.Identifier.UIWindowScene.Traits.displayScale,
+        InspectedAttribute.Identifier.UIWindowScene.Windows.windowCount,
+        InspectedAttribute.Identifier.UIWindowScene.Screen.screenScale,
         // Three per row, each labelled with a single letter inside the
         // field, the same shape as the inset rows above them in the card.
-        LookinAttr_NSScrollView_LineScroll_Horizontal,
-        LookinAttr_NSScrollView_LineScroll_Vertical,
-        LookinAttr_NSScrollView_LineScroll_LineScroll,
-        LookinAttr_NSScrollView_PageScroll_Horizontal,
-        LookinAttr_NSScrollView_PageScroll_Vertical,
-        LookinAttr_NSScrollView_PageScroll_PageScroll,
+        InspectedAttribute.Identifier.NSScrollView.LineScroll.horizontal,
+        InspectedAttribute.Identifier.NSScrollView.LineScroll.vertical,
+        InspectedAttribute.Identifier.NSScrollView.LineScroll.lineScroll,
+        InspectedAttribute.Identifier.NSScrollView.PageScroll.horizontal,
+        InspectedAttribute.Identifier.NSScrollView.PageScroll.vertical,
+        InspectedAttribute.Identifier.NSScrollView.PageScroll.pageScroll,
     ]
 
     /// Columns per attribute; any other known attribute takes a quarter row.
-    private static let columns: [String: Int] = [
-        LookinAttr_ViewLayer_Visibility_Opacity: 1,
-        LookinAttr_ViewLayer_Corner_Radius: 1,
-        LookinAttr_ViewLayer_Tag_Tag: 1,
-        LookinAttr_UITextView_Font_Size: 1,
-        LookinAttr_UITextField_Font_Size: 1,
-        LookinAttr_UITextField_CanAdjustFont_MinSize: 1,
-        LookinAttr_ViewLayer_Border_Width: 1,
-        LookinAttr_UITableView_SectionsNumber_Number: 1,
-        LookinAttr_UILabel_NumberOfLines_NumberOfLines: 1,
-        LookinAttr_UILabel_Font_Size: 1,
-        LookinAttr_UIStackView_Spacing_Spacing: 1,
-        LookinAttr_NSWindow_Appearance_AlphaValue: 1,
-        LookinAttr_NSWindow_Info_WindowNumber: 2,
-        LookinAttr_NSWindow_Info_BackingScaleFactor: 2,
-        LookinAttr_NSControl_Value_IntValue: 1,
-        LookinAttr_NSControl_Value_IntegerValue: 1,
-        LookinAttr_NSControl_Value_FloatValue: 1,
-        LookinAttr_NSControl_Value_DoubleValue: 1,
-        LookinAttr_NSTextField_PreferredMaxLayoutWidth_PreferredMaxLayoutWidth: 1,
-        LookinAttr_NSTextField_MaximumNumberOfLines_MaximumNumberOfLines: 1,
+    private static let columns: [InspectedAttribute.Identifier: Int] = [
+        InspectedAttribute.Identifier.ViewLayer.Visibility.opacity: 1,
+        InspectedAttribute.Identifier.ViewLayer.Corner.radius: 1,
+        InspectedAttribute.Identifier.ViewLayer.Tag.tag: 1,
+        InspectedAttribute.Identifier.UITextView.Font.size: 1,
+        InspectedAttribute.Identifier.UITextField.Font.size: 1,
+        InspectedAttribute.Identifier.UITextField.CanAdjustFont.minSize: 1,
+        InspectedAttribute.Identifier.ViewLayer.Border.width: 1,
+        InspectedAttribute.Identifier.UITableView.SectionsNumber.number: 1,
+        InspectedAttribute.Identifier.UILabel.NumberOfLines.numberOfLines: 1,
+        InspectedAttribute.Identifier.UILabel.Font.size: 1,
+        InspectedAttribute.Identifier.UIStackView.Spacing.spacing: 1,
+        InspectedAttribute.Identifier.NSWindow.Appearance.alphaValue: 1,
+        InspectedAttribute.Identifier.NSWindow.Information.windowNumber: 2,
+        InspectedAttribute.Identifier.NSWindow.Information.backingScaleFactor: 2,
+        InspectedAttribute.Identifier.NSControl.Value.intValue: 1,
+        InspectedAttribute.Identifier.NSControl.Value.integerValue: 1,
+        InspectedAttribute.Identifier.NSControl.Value.floatValue: 1,
+        InspectedAttribute.Identifier.NSControl.Value.doubleValue: 1,
+        InspectedAttribute.Identifier.NSTextField.PreferredMaxLayoutWidth.preferredMaxLayoutWidth: 1,
+        InspectedAttribute.Identifier.NSTextField.MaximumNumberOfLines.maximumNumberOfLines: 1,
 
-        LookinAttr_AutoLayout_Resistance_Ver: 2,
-        LookinAttr_AutoLayout_Resistance_Hor: 2,
-        LookinAttr_AutoLayout_Hugging_Ver: 2,
-        LookinAttr_AutoLayout_Hugging_Hor: 2,
+        InspectedAttribute.Identifier.AutoLayout.Resistance.vertical: 2,
+        InspectedAttribute.Identifier.AutoLayout.Resistance.horizontal: 2,
+        InspectedAttribute.Identifier.AutoLayout.Hugging.vertical: 2,
+        InspectedAttribute.Identifier.AutoLayout.Hugging.horizontal: 2,
 
-        LookinAttr_UIScrollView_Zoom_Scale: 3,
-        LookinAttr_UIScrollView_Zoom_MinScale: 3,
-        LookinAttr_UIScrollView_Zoom_MaxScale: 3,
+        InspectedAttribute.Identifier.UIScrollView.Zoom.scale: 3,
+        InspectedAttribute.Identifier.UIScrollView.Zoom.minScale: 3,
+        InspectedAttribute.Identifier.UIScrollView.Zoom.maxScale: 3,
 
-        LookinAttr_NSScrollView_LineScroll_Horizontal: 3,
-        LookinAttr_NSScrollView_LineScroll_Vertical: 3,
-        LookinAttr_NSScrollView_LineScroll_LineScroll: 3,
-        LookinAttr_NSScrollView_PageScroll_Horizontal: 3,
-        LookinAttr_NSScrollView_PageScroll_Vertical: 3,
-        LookinAttr_NSScrollView_PageScroll_PageScroll: 3,
+        InspectedAttribute.Identifier.NSScrollView.LineScroll.horizontal: 3,
+        InspectedAttribute.Identifier.NSScrollView.LineScroll.vertical: 3,
+        InspectedAttribute.Identifier.NSScrollView.LineScroll.lineScroll: 3,
+        InspectedAttribute.Identifier.NSScrollView.PageScroll.horizontal: 3,
+        InspectedAttribute.Identifier.NSScrollView.PageScroll.vertical: 3,
+        InspectedAttribute.Identifier.NSScrollView.PageScroll.pageScroll: 3,
 
         // Kept in the vertical style ("Current" / "Max" / "Min" read
         // better as words than as glyphs) but widened to a third of the
         // row so the words fit without truncation.
-        LookinAttr_NSScrollView_Magnification_Magnification: 3,
-        LookinAttr_NSScrollView_Magnification_Max: 3,
-        LookinAttr_NSScrollView_Magnification_Min: 3,
+        InspectedAttribute.Identifier.NSScrollView.Magnification.magnification: 3,
+        InspectedAttribute.Identifier.NSScrollView.Magnification.maximum: 3,
+        InspectedAttribute.Identifier.NSScrollView.Magnification.minimum: 3,
 
-        LookinAttr_UITraitCollection_Display_DisplayScale: 1,
-        LookinAttr_UIWindowScene_Traits_DisplayScale: 1,
-        LookinAttr_UIWindowScene_Windows_WindowCount: 1,
-        LookinAttr_UIWindowScene_Screen_ScreenScale: 1,
+        InspectedAttribute.Identifier.UITraitCollection.Display.displayScale: 1,
+        InspectedAttribute.Identifier.UIWindowScene.Traits.displayScale: 1,
+        InspectedAttribute.Identifier.UIWindowScene.Windows.windowCount: 1,
+        InspectedAttribute.Identifier.UIWindowScene.Screen.screenScale: 1,
     ]
 
     required init(frame frameRect: NSRect) {
@@ -141,7 +141,7 @@ final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFie
         if attribute.isUserCustom() {
             inputView.title = nil
         } else {
-            inputView.title = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier)
+            inputView.title = attribute.identifier.flatMap(DashboardBlueprint.briefTitle(of:))
         }
 
         let doubleValue = (attribute.value as? NSNumber)?.doubleValue ?? 0
@@ -149,7 +149,7 @@ final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFie
         if attribute.isUserCustom() {
             inputView.viewStyle = .horizontal
             textField.stringValue = NSString.string(from: doubleValue, decimal: 6)
-        } else if Self.horizontalAttrs.contains(attribute.identifier ?? "") {
+        } else if attribute.identifier.map(Self.horizontalAttributes.contains) ?? false {
             inputView.viewStyle = .horizontal
             textField.stringValue = NSString.string(from: doubleValue, decimal: 3)
         } else {
@@ -160,7 +160,7 @@ final class DashboardAttributeNumberInputView: DashboardAttributeView, NSTextFie
 
     override func numberOfColumnsOccupied() -> Int {
         guard let attribute, !attribute.isUserCustom() else { return 1 }
-        return Self.columns[attribute.identifier ?? ""] ?? 4
+        return attribute.identifier.flatMap { Self.columns[$0] } ?? 4
     }
 
     override func dashboardViewControllerDidChange() {

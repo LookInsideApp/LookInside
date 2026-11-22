@@ -33,9 +33,9 @@ enum MCPBridgeAttributeValueDecoder {
         case unsupportedKind(String)
 
         /// The wire `kind` is valid in isolation but does not match
-        /// the attribute's declared `LookinAttrType`. E.g. wire says
+        /// the attribute's declared `InspectedAttribute.ValueType`. E.g. wire says
         /// `"color"` but the attribute is `LookinAttrTypeBOOL`.
-        case kindMismatch(wireKind: String, expectedAttrType: LookinAttrType)
+        case kindMismatch(wireKind: String, expectedAttrType: InspectedAttribute.ValueType)
 
         /// The wire `data` payload is missing required fields or
         /// carries the wrong JSON shape for its `kind` (e.g. an `int`
@@ -53,7 +53,7 @@ enum MCPBridgeAttributeValueDecoder {
     static func decode(
         wireKind: String,
         wireData: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         switch wireKind {
         case "integer":
@@ -65,7 +65,7 @@ enum MCPBridgeAttributeValueDecoder {
         case "string":
             return try decodeString(wireData, expectedAttrType: expectedAttrType, allowedTypes: [.nsString])
         case "selector":
-            return try decodeString(wireData, expectedAttrType: expectedAttrType, allowedTypes: [.sel])
+            return try decodeString(wireData, expectedAttrType: expectedAttrType, allowedTypes: [.selector])
         case "class":
             return try decodeString(wireData, expectedAttrType: expectedAttrType, allowedTypes: [.class])
         case "enum":
@@ -95,7 +95,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     // MARK: - Numeric kinds
 
-    private static let integerCompatibleTypes: Set<LookinAttrType> = [
+    private static let integerCompatibleTypes: Set<InspectedAttribute.ValueType> = [
         .char, .int, .short, .long, .longLong,
         .unsignedChar, .unsignedInt, .unsignedShort,
         .unsignedLong, .unsignedLongLong,
@@ -103,7 +103,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeInteger(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard integerCompatibleTypes.contains(expectedAttrType) else {
             throw DecodeError.kindMismatch(wireKind: "integer", expectedAttrType: expectedAttrType)
@@ -122,11 +122,11 @@ enum MCPBridgeAttributeValueDecoder {
         }
     }
 
-    private static let doubleCompatibleTypes: Set<LookinAttrType> = [.float, .double]
+    private static let doubleCompatibleTypes: Set<InspectedAttribute.ValueType> = [.float, .double]
 
     private static func decodeDouble(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard doubleCompatibleTypes.contains(expectedAttrType) else {
             throw DecodeError.kindMismatch(wireKind: "double", expectedAttrType: expectedAttrType)
@@ -146,9 +146,9 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeBool(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
-        guard expectedAttrType == .BOOL else {
+        guard expectedAttrType == .bool else {
             throw DecodeError.kindMismatch(wireKind: "bool", expectedAttrType: expectedAttrType)
         }
         guard case let .bool(value)? = data else {
@@ -161,14 +161,14 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeString(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType,
-        allowedTypes: Set<LookinAttrType>
+        expectedAttrType: InspectedAttribute.ValueType,
+        allowedTypes: Set<InspectedAttribute.ValueType>
     ) throws -> Any {
         guard allowedTypes.contains(expectedAttrType) else {
             let wireKind: String
             switch allowedTypes.first {
             case .nsString: wireKind = "string"
-            case .sel: wireKind = "selector"
+            case .selector: wireKind = "selector"
             case .class: wireKind = "class"
             default: wireKind = "string"
             }
@@ -182,11 +182,11 @@ enum MCPBridgeAttributeValueDecoder {
 
     // MARK: - Enums
 
-    private static let enumNumericTypes: Set<LookinAttrType> = [.enumInt, .enumLong]
+    private static let enumNumericTypes: Set<InspectedAttribute.ValueType> = [.enumInt, .enumLong]
 
     private static func decodeEnum(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         switch expectedAttrType {
         case .enumInt, .enumLong:
@@ -216,7 +216,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodePoint(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .cgPoint else {
             throw DecodeError.kindMismatch(wireKind: "point", expectedAttrType: expectedAttrType)
@@ -229,7 +229,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeVector(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .cgVector else {
             throw DecodeError.kindMismatch(wireKind: "vector", expectedAttrType: expectedAttrType)
@@ -242,7 +242,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeSize(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .cgSize else {
             throw DecodeError.kindMismatch(wireKind: "size", expectedAttrType: expectedAttrType)
@@ -255,7 +255,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeRect(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .cgRect else {
             throw DecodeError.kindMismatch(wireKind: "rect", expectedAttrType: expectedAttrType)
@@ -270,7 +270,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeAffineTransform(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .cgAffineTransform else {
             throw DecodeError.kindMismatch(wireKind: "transform", expectedAttrType: expectedAttrType)
@@ -288,7 +288,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeEdgeInsets(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .uiEdgeInsets else {
             throw DecodeError.kindMismatch(wireKind: "edgeInsets", expectedAttrType: expectedAttrType)
@@ -310,7 +310,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeOffset(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .uiOffset else {
             throw DecodeError.kindMismatch(wireKind: "offset", expectedAttrType: expectedAttrType)
@@ -329,7 +329,7 @@ enum MCPBridgeAttributeValueDecoder {
 
     private static func decodeColor(
         _ data: MCPBridgeJSONValue?,
-        expectedAttrType: LookinAttrType
+        expectedAttrType: InspectedAttribute.ValueType
     ) throws -> Any {
         guard expectedAttrType == .uiColor else {
             throw DecodeError.kindMismatch(wireKind: "color", expectedAttrType: expectedAttrType)

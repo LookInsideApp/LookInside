@@ -75,7 +75,7 @@ extension HostAppTests {
             // it and the first row 19 further down.
             #expect(outline.calculateFrameToRoot() == CGRect(x: 0, y: 919 - 107_829, width: 364.5, height: 107_829))
             #expect(firstRow.calculateFrameToRoot() == CGRect(x: 0, y: 919 - 19 - 24, width: 364.5, height: 24))
-            #expect(outline.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge, "the preview shows it red")
+            #expect(outline.doNotFetchScreenshotReason == .tooLarge, "the preview shows it red")
         }
     }
 }

@@ -113,13 +113,13 @@ final class AppsManager: NSObject {
                     case let .response(attachment):
                         settle(.response(attachment))
                     case let .failure(error):
-                        if error.code == LookinErrCode_ServerVersionTooHigh || error.code == LookinErrCode_ServerVersionTooLow {
+                        if error.code == InspectionError.Code.serverVersionTooHigh || error.code == InspectionError.Code.serverVersionTooLow {
                             // The launch window shows these.
                             settle(.versionError(error))
-                        } else if error.code == LookinErrCode_PingFailForBackgroundState {
+                        } else if error.code == InspectionError.Code.pingFailedForBackgroundState {
                             // A connected app in the background ends here.
                             settle(.unresponsive(.inBackground))
-                        } else if error.code == LookinErrCode_Timeout {
+                        } else if error.code == InspectionError.Code.timeout {
                             // A suspended app, or one that is busy or paused
                             // in a debugger, ends here.
                             settle(.unresponsive(.notResponding))
@@ -131,7 +131,7 @@ final class AppsManager: NSObject {
                     }
                 }
                 ConnectionManager.shared.request(
-                    type: UInt32(LookinRequestTypeApp),
+                    type: UInt32(RequestType.app),
                     data: parameters,
                     channel: channel,
                     sink: sink
@@ -156,7 +156,7 @@ final class AppsManager: NSObject {
         case let .response(response):
             if let error = response?.error as NSError? {
                 #log(.default, "LookinClient - app info request failed, domain:\(error.domain, privacy: .public), code:\(NSNumber(value: error.code), privacy: .public), description:\(error.localizedDescription, privacy: .public)")
-                if error.code == LookinErrCode_LicenseRequired {
+                if error.code == InspectionError.Code.licenseRequired {
                     return nil
                 }
                 let app = InspectableApp()

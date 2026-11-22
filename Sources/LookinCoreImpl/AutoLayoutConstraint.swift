@@ -20,7 +20,7 @@
 
     /// View endpoints have always had a node to land on; layout guide
     /// endpoints gained one when guides entered the hierarchy tree.
-    private func isJumpableConstraintItemType(_ itemType: LookinConstraintItemType) -> Bool {
+    private func isJumpableConstraintItemType(_ itemType: AutoLayoutConstraint.ItemType) -> Bool {
         itemType == .view || itemType == .layoutGuide
     }
 
@@ -46,7 +46,7 @@
         @objc(firstItem)
         public var firstItem: InspectedObject?
         @objc(firstItemType)
-        public var firstItemType: LookinConstraintItemType = .unknown
+        public var firstItemType: AutoLayoutConstraint.ItemType = .unknown
         @objc(firstAttribute)
         public var firstAttribute: Int = 0 {
             didSet {
@@ -59,7 +59,7 @@
         @objc(secondItem)
         public var secondItem: InspectedObject?
         @objc(secondItemType)
-        public var secondItemType: LookinConstraintItemType = .unknown
+        public var secondItemType: AutoLayoutConstraint.ItemType = .unknown
         @objc(secondAttribute)
         public var secondAttribute: Int = 0 {
             didSet {
@@ -81,7 +81,7 @@
         /// `+instanceFromNSConstraint:isEffective:firstItemType:secondItemType:`.
         /// An Objective-C factory must be a class method here.
         @objc(instanceFromNSConstraint:isEffective:firstItemType:secondItemType:)
-        public class func instance(fromNSConstraint constraint: NSLayoutConstraint?, isEffective: Bool, firstItemType: LookinConstraintItemType, secondItemType: LookinConstraintItemType) -> Self {
+        public class func instance(fromNSConstraint constraint: NSLayoutConstraint?, isEffective: Bool, firstItemType: AutoLayoutConstraint.ItemType, secondItemType: AutoLayoutConstraint.ItemType) -> Self {
             let instance = unsafeDowncast((self as NSObject.Type).init(), to: self)
             instance.effective = isEffective
             instance.active = constraint?.isActive ?? false
@@ -136,11 +136,11 @@
             active = aDecoder.decodeBool(forKey: "active")
             shouldBeArchived = aDecoder.decodeBool(forKey: "shouldBeArchived")
             firstItem = aDecoder.decodeObject(forKey: "firstItem") as? InspectedObject
-            firstItemType = LookinConstraintItemType(rawValue: aDecoder.decodeInteger(forKey: "firstItemType")) ?? .unknown
+            firstItemType = AutoLayoutConstraint.ItemType(rawValue: aDecoder.decodeInteger(forKey: "firstItemType")) ?? .unknown
             firstAttribute = aDecoder.decodeInteger(forKey: "firstAttribute")
             relation = NSLayoutConstraint.Relation(rawValue: aDecoder.decodeInteger(forKey: "relation")) ?? .equal
             secondItem = aDecoder.decodeObject(forKey: "secondItem") as? InspectedObject
-            secondItemType = LookinConstraintItemType(rawValue: aDecoder.decodeInteger(forKey: "secondItemType")) ?? .unknown
+            secondItemType = AutoLayoutConstraint.ItemType(rawValue: aDecoder.decodeInteger(forKey: "secondItemType")) ?? .unknown
             secondAttribute = aDecoder.decodeInteger(forKey: "secondAttribute")
             multiplier = CGFloat(aDecoder.decodeDouble(forKey: "multiplier"))
             constant = CGFloat(aDecoder.decodeDouble(forKey: "constant"))
@@ -152,7 +152,7 @@
         }
 
         @objc(jumpableItemObjectForEndpoint:)
-        public func jumpableItemObject(for endpoint: LookinConstraintEndpoint) -> InspectedObject? {
+        public func jumpableItemObject(for endpoint: AutoLayoutConstraint.Endpoint) -> InspectedObject? {
             switch endpoint {
             case .first:
                 return isJumpableConstraintItemType(firstItemType) ? firstItem : nil

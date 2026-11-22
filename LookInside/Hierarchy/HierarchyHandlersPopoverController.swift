@@ -256,7 +256,7 @@ final class HierarchyHandlersPopoverItemView: BaseView {
     /// AppHelper's AlertError: a sheet for every error except a discarded
     /// request.
     private static func present(_ error: NSError, in window: NSWindow?) {
-        guard error.code != LookinErrCode_Discard, let window else {
+        guard error.code != InspectionError.Code.discarded, let window else {
             return
         }
         NSAlert(error: error).beginSheetModal(for: window, completionHandler: nil)

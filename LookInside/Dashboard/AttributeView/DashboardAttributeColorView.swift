@@ -28,9 +28,9 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
     private let labelX: CGFloat = 28
 
     /// Border and shadow colours show no alias.
-    private let identifiersToHideAlias: Set<String> = [
-        LookinAttr_ViewLayer_Border_Color,
-        LookinAttr_ViewLayer_Shadow_Color,
+    private let identifiersToHideAlias: Set<InspectedAttribute.Identifier> = [
+        InspectedAttribute.Identifier.ViewLayer.Border.color,
+        InspectedAttribute.Identifier.ViewLayer.Shadow.color,
     ]
 
     private let containerView = DashboardAttributeColorContainerView()
@@ -92,7 +92,7 @@ final class DashboardAttributeColorView: DashboardAttributeView, NSMenuDelegate 
 
         let dataSource = dashboardViewController?.currentDataSource()
         let alias = dataSource?.alias(for: color)
-        if let alias, !identifiersToHideAlias.contains(attribute?.identifier ?? "") {
+        if let alias, !(attribute?.identifier.map(identifiersToHideAlias.contains) ?? false) {
             let label: TextLabel
             if let aliasLabel {
                 label = aliasLabel

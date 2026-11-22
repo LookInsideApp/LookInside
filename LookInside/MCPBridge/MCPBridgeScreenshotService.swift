@@ -65,7 +65,7 @@ final class MCPBridgeScreenshotService {
     // MARK: - Screenshot mode
 
     /// Which of the two `DisplayItemDetail` screenshot slots the
-    /// caller wants. Mirrors `LookinStaticAsyncUpdateTaskType` minus its
+    /// caller wants. Mirrors `StaticAsyncUpdateTask.TaskType` minus its
     /// `NoScreenshot` case, which has no meaning on this route.
     private enum ScreenshotMode: String {
         /// The view alone, with its subviews hidden during capture.
@@ -73,7 +73,7 @@ final class MCPBridgeScreenshotService {
         /// The view together with everything it contains.
         case group
 
-        var taskType: LookinStaticAsyncUpdateTaskType {
+        var taskType: StaticAsyncUpdateTask.TaskType {
             switch self {
             case .solo: return .soloScreenshot
             case .group: return .groupScreenshot
@@ -287,7 +287,7 @@ final class MCPBridgeScreenshotService {
         task.needBasisVisualInfo = false
         task.needSubitems = false
         task.clientReadableVersion = AppHelper.readableVersion()
-        task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
+        task.attributeCatalogRevision = DashboardBlueprint.currentCatalogRevision
 
         let package = StaticAsyncUpdateTasksPackage()
         package.tasks = [task]
@@ -481,24 +481,24 @@ final class MCPBridgeScreenshotService {
 
     private func mapScreenshotError(_ error: NSError) -> MCPBridgeErrorPayload {
         switch error.code {
-        case LookinErrCode_ObjectNotFound:
+        case InspectionError.Code.objectNotFound:
             return MCPBridgeErrorPayload(
                 code: "screenshot.objectNotFound",
                 message: "The target app could not find the requested object. It may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
-        case LookinErrCode_Inner:
+        case InspectionError.Code.inner:
             return MCPBridgeErrorPayload(
                 code: "screenshot.internalError",
                 message: "The target app rejected the render request with a generic inner error."
             )
-        case LookinErrCode_LicenseRequired:
+        case InspectionError.Code.licenseRequired:
             return .licenseRequired
-        case LookinErrCode_NoConnect:
+        case InspectionError.Code.noConnection:
             return MCPBridgeErrorPayload(
                 code: "screenshot.disconnected",
                 message: "The target app is no longer connected. Re-attach from the LookInside inspector and try again."
             )
-        case LookinErrCode_Timeout:
+        case InspectionError.Code.timeout:
             return MCPBridgeErrorPayload(
                 code: "screenshot.timeout",
                 message: "The target app did not render within the request timeout. Check whether the target is paused in Xcode."

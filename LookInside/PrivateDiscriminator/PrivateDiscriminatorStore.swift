@@ -264,7 +264,7 @@ final class PrivateDiscriminatorStore: NSObject {
         }
         let filteredGroups = groups.filter { $0.userCustomTitle != Self.dashboardTitle }
         let dashboardGroup = makeDashboardGroup(for: item, descriptor: descriptor)
-        guard let classGroupIndex = filteredGroups.firstIndex(where: { $0.identifier == LookinAttrGroup_Class }) else {
+        guard let classGroupIndex = filteredGroups.firstIndex(where: { $0.identifier == AttributesGroup.Identifier.class }) else {
             return filteredGroups + [dashboardGroup]
         }
 
@@ -853,16 +853,16 @@ final class PrivateDiscriminatorStore: NSObject {
         let attribute = InspectedAttribute()
         attribute.identifier = Self.dashboardAttributeIdentifier
         attribute.displayTitle = NSLocalizedString("Discriminator Details", comment: "")
-        attribute.attrType = .customObj
+        attribute.attrType = .customObject
         attribute.value = PrivateDiscriminatorDashboardPayload(descriptor: descriptor)
         attribute.targetDisplayItem = item
 
         let section = AttributesSection()
-        section.identifier = LookinAttrSec_UserCustom
+        section.identifier = AttributesSection.Identifier.userCustom
         section.attributes = [attribute]
 
         let group = AttributesGroup()
-        group.identifier = LookinAttrGroup_UserCustom
+        group.identifier = AttributesGroup.Identifier.userCustom
         group.userCustomTitle = Self.dashboardTitle
         group.attrSections = [section]
         return group
@@ -1238,7 +1238,7 @@ final class PrivateDiscriminatorStore: NSObject {
         NSLocalizedString("Private Discriminator", comment: "")
     }
 
-    private static let dashboardAttributeIdentifier = "lookinside.private_discriminator.field"
+    private static let dashboardAttributeIdentifier: InspectedAttribute.Identifier = "lookinside.private_discriminator.field"
     private static let dashboardStateDidChangeNotification = Notification.Name("LKPrivateDiscriminatorDashboardStateDidChange")
 
     private static let privateIDRegex = try! NSRegularExpression(pattern: #"\$?([0-9A-Fa-f]{32})"#)

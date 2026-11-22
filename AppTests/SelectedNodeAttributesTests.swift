@@ -31,7 +31,7 @@ extension HostAppTests {
             return item
         }
 
-        private static func group(_ identifier: String) -> AttributesGroup {
+        private static func group(_ identifier: AttributesGroup.Identifier) -> AttributesGroup {
             let group = AttributesGroup()
             group.identifier = identifier
             group.attrSections = []
@@ -43,14 +43,14 @@ extension HostAppTests {
         /// for every group gets a Class group too. An older Server does not
         /// know `omitsBlueprintAttributes` and sends every group.
         private static func answeringDetails(on server: FakeServer, knowsOmittingBlueprint: Bool) {
-            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { data in
+            server.responders[UInt32(RequestType.hierarchyDetails)] = { data in
                 let packages = data as? [StaticAsyncUpdateTasksPackage] ?? []
                 return packages.flatMap { $0.tasks ?? [] }.map { task in
                     let detail = DisplayItemDetail()
                     detail.displayItemOid = task.oid
                     if task.attrRequest == .need {
                         let omits = knowsOmittingBlueprint && task.omitsBlueprintAttributes
-                        detail.attributesGroupList = omits ? [group("ExtensionGroup")] : [group(LookinAttrGroup_Class), group("ExtensionGroup")]
+                        detail.attributesGroupList = omits ? [group("ExtensionGroup")] : [group(AttributesGroup.Identifier.class), group("ExtensionGroup")]
                     }
                     return detail
                 } as NSArray
@@ -60,7 +60,7 @@ extension HostAppTests {
         /// Every 203 task the Server received, in order.
         private static func detailTasks(in server: FakeServer) -> [StaticAsyncUpdateTask] {
             server.receivedRequests
-                .filter { $0.type == UInt32(LookinRequestTypeHierarchyDetails) }
+                .filter { $0.type == UInt32(RequestType.hierarchyDetails) }
                 .flatMap { request in (request.data as? [StaticAsyncUpdateTasksPackage] ?? []).flatMap { $0.tasks ?? [] } }
         }
 
@@ -126,7 +126,7 @@ extension HostAppTests {
             #expect(selectionTasks.map(\.oid) == [selected.layerObject?.oid ?? 0])
             #expect(selectionTasks.allSatisfy { !$0.omitsBlueprintAttributes })
             // The extension group stays, next to the blueprint group.
-            #expect(selected.attributesGroupList?.compactMap(\.identifier) == [LookinAttrGroup_Class, "ExtensionGroup"])
+            #expect(selected.attributesGroupList?.compactMap(\.identifier) == [AttributesGroup.Identifier.class, "ExtensionGroup"])
 
             // Selecting it again, or after another node, asks for nothing more.
             _ = await waitUntil { !session.manager.isUpdating() && !session.manager.isPrefetching() }
@@ -165,9 +165,9 @@ extension HostAppTests {
             #expect(!item.hasBlueprintAttributes)
             item.attributesGroupList = [Self.group("ExtensionGroup")]
             #expect(!item.hasBlueprintAttributes)
-            item.attributesGroupList = [Self.group(LookinAttrGroup_UIView)]
+            item.attributesGroupList = [Self.group(AttributesGroup.Identifier.uiView)]
             #expect(item.hasBlueprintAttributes)
-            item.attributesGroupList = [Self.group(LookinAttrGroup_NSView)]
+            item.attributesGroupList = [Self.group(AttributesGroup.Identifier.nsView)]
             #expect(item.hasBlueprintAttributes)
         }
 
@@ -181,13 +181,13 @@ extension HostAppTests {
             info.appInfo?.screenScale = 2
             info.displayItems = [item]
             dataSource.reload(with: info, keepState: false)
-            item.attributesGroupList = [Self.group(LookinAttrGroup_Class), Self.group("ExtensionGroup")]
+            item.attributesGroupList = [Self.group(AttributesGroup.Identifier.class), Self.group("ExtensionGroup")]
 
             let detail = DisplayItemDetail()
             detail.displayItemOid = 5
             detail.attributesGroupList = [Self.group("NewerExtensionGroup")]
             dataSource.modify(with: detail)
-            #expect(item.attributesGroupList?.compactMap(\.identifier) == [LookinAttrGroup_Class, "NewerExtensionGroup"])
+            #expect(item.attributesGroupList?.compactMap(\.identifier) == [AttributesGroup.Identifier.class, "NewerExtensionGroup"])
 
             // A node asked for its extension groups that has none holds an
             // empty list, so it is not asked again.

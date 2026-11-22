@@ -52,7 +52,7 @@ struct DashboardTests {
         let modifyingItem = attribute.targetDisplayItem!
         let modification = AttributeModification()
         modification.clientReadableVersion = clientVersion
-        switch DashboardBlueprint.targetKind(forAttrID: attribute.identifier) {
+        switch attribute.identifier.flatMap(DashboardBlueprint.targetKind(of:)) {
         case .view:
             modification.targetOid = modifyingItem.viewObject?.oid ?? 0
         case .window:
@@ -64,7 +64,7 @@ struct DashboardTests {
         @unknown default:
             fail("unknown target kind")
         }
-        modification.setterSelector = DashboardBlueprint.setter(withAttrID: attribute.identifier)
+        modification.setterSelector = attribute.identifier.flatMap(DashboardBlueprint.setter(of:))
         modification.attrType = attribute.attrType
         modification.value = newValue
         return modification
@@ -78,7 +78,7 @@ struct DashboardTests {
         }
     }
 
-    private static func sampleValue(for type: LookinAttrType) -> Any {
+    private static func sampleValue(for type: InspectedAttribute.ValueType) -> Any {
         switch type {
         case .cgRect: return NSValue(rect: NSRect(x: 1, y: 2, width: 3, height: 4))
         case .cgSize: return NSValue(size: NSSize(width: 5, height: 6))
@@ -86,7 +86,7 @@ struct DashboardTests {
         case .uiEdgeInsets: return NSValue(edgeInsets: NSEdgeInsets(top: 1, left: 2, bottom: 3, right: 4))
         case .uiColor: return [NSNumber(value: 0.1), NSNumber(value: 0.2), NSNumber(value: 0.3), NSNumber(value: 1)]
         case .nsString: return "text"
-        case .BOOL: return NSNumber(value: true)
+        case .bool: return NSNumber(value: true)
         default: return NSNumber(value: 2.5)
         }
     }
@@ -99,13 +99,13 @@ struct DashboardTests {
         defer { withExtendedLifetime(item) {} }
         var checked = 0
         var kinds = Set<Int>()
-        for groupID in DashboardBlueprint.groupIDs() ?? [] {
-            for sectionID in DashboardBlueprint.sectionIDs(forGroupID: groupID) ?? [] {
-                for attrID in DashboardBlueprint.attrIDs(forSectionID: sectionID) ?? [] {
-                    guard DashboardBlueprint.setter(withAttrID: attrID) != nil else { continue }
+        for groupID in DashboardBlueprint.groupIdentifiers ?? [] {
+            for sectionID in DashboardBlueprint.sectionIdentifiers(in: groupID) ?? [] {
+                for attrID in DashboardBlueprint.attributeIdentifiers(in: sectionID) ?? [] {
+                    guard DashboardBlueprint.setter(of: attrID) != nil else { continue }
                     let attribute = InspectedAttribute()
                     attribute.identifier = attrID
-                    attribute.attrType = DashboardBlueprint.objectAttrType(withAttrID: attrID)
+                    attribute.attrType = DashboardBlueprint.objectValueType(of: attrID)
                     attribute.targetDisplayItem = item
                     let newValue = sampleValue(for: attribute.attrType)
 
@@ -115,20 +115,20 @@ struct DashboardTests {
                     let expected = objectiveCInbuiltPayload(attribute: attribute, newValue: newValue)
                     expect(archive(payload) == archive(expected), "\(attrID): payload differs from the Objective-C one")
                     expect(payload.targetOid != 0, "\(attrID): no target object")
-                    kinds.insert(DashboardBlueprint.targetKind(forAttrID: attrID).rawValue)
+                    kinds.insert(DashboardBlueprint.targetKind(of: attrID).rawValue)
                     checked += 1
                 }
             }
         }
         expect(checked > 50, "only \(checked) editable attributes found in the blueprint")
-        expect(kinds.contains(LookinAttrTargetKind.view.rawValue) && kinds.contains(LookinAttrTargetKind.layer.rawValue),
+        expect(kinds.contains(InspectedAttribute.TargetKind.view.rawValue) && kinds.contains(InspectedAttribute.TargetKind.layer.rawValue),
                "the editable attributes cover neither views nor layers: \(kinds)")
     }
 
     private static func testInbuiltPayloadWithoutSetter() {
         let attribute = InspectedAttribute()
-        attribute.identifier = LookinAttr_Class_Class_Class
-        attribute.attrType = .customObj
+        attribute.identifier = InspectedAttribute.Identifier.Class.Class.class
+        attribute.attrType = .customObject
         attribute.targetDisplayItem = makeItem()
         expect(DashboardModification.inbuilt(attribute: attribute, newValue: nil, clientReadableVersion: clientVersion) == nil,
                "an attribute without a setter must not be sent")
@@ -136,7 +136,7 @@ struct DashboardTests {
 
     private static func testCustomPayload() {
         let attribute = InspectedAttribute()
-        attribute.identifier = LookinAttr_UserCustom
+        attribute.identifier = InspectedAttribute.Identifier.userCustom
         attribute.attrType = .double
         attribute.customSetterID = "setter-7"
         let newValue = NSNumber(value: 3.25)
@@ -154,7 +154,7 @@ struct DashboardTests {
 
     private static func testCustomPayloadWithoutSetter() {
         let attribute = InspectedAttribute()
-        attribute.identifier = LookinAttr_UserCustom
+        attribute.identifier = InspectedAttribute.Identifier.userCustom
         attribute.attrType = .nsString
         expect(DashboardModification.custom(attribute: attribute, newValue: "x") == nil,
                "a read-only custom attribute must not be sent")
@@ -168,13 +168,13 @@ struct DashboardTests {
     private static func testUntypedAttributesTakeTheBlueprintType() {
         // What a server built before the blueprint fix sends for -autosaveName.
         let autosaveName = InspectedAttribute()
-        autosaveName.identifier = LookinAttr_NSTableView_AutosaveName_AutosaveName
+        autosaveName.identifier = InspectedAttribute.Identifier.NSTableView.AutosaveName.autosaveName
         autosaveName.value = "Sidebar"
         let unknown = InspectedAttribute()
         unknown.identifier = "app.untyped"
         let typed = InspectedAttribute()
-        typed.identifier = LookinAttr_NSTableView_AllowsTypeSelect_AllowsTypeSelect
-        typed.attrType = .BOOL
+        typed.identifier = InspectedAttribute.Identifier.NSTableView.AllowsTypeSelect.allowsTypeSelect
+        typed.attrType = .bool
         let section = AttributesSection()
         section.attributes = [autosaveName, unknown, typed]
         let group = AttributesGroup()
@@ -184,7 +184,7 @@ struct DashboardTests {
 
         expect(autosaveName.attrType == .nsString, "an untyped attribute takes the blueprint's object type")
         expect(unknown.attrType == .none, "an identifier the blueprint does not know stays untyped")
-        expect(typed.attrType == .BOOL, "a type the server sent is kept")
+        expect(typed.attrType == .bool, "a type the server sent is kept")
         let payload = DashboardModification.inbuilt(attribute: autosaveName, newValue: "Main", clientReadableVersion: clientVersion)
         expect(payload?.attrType == .nsString, "an edit is sent with the repaired type")
     }
@@ -214,7 +214,7 @@ struct DashboardTests {
         let item = makeItem()
         withExtendedLifetime(item) {
             let attribute = InspectedAttribute()
-            attribute.identifier = LookinAttr_Layout_Frame_Frame
+            attribute.identifier = InspectedAttribute.Identifier.Layout.Frame.frame
             attribute.attrType = .cgRect
             attribute.targetDisplayItem = item
             let newRect = DashboardModification.rect(rect, replacingField: 2, with: 30)!
@@ -230,19 +230,19 @@ struct DashboardTests {
 
     private static func testNumberValueClampsOpacity() {
         let opacity = InspectedAttribute()
-        opacity.identifier = LookinAttr_ViewLayer_Visibility_Opacity
+        opacity.identifier = InspectedAttribute.Identifier.ViewLayer.Visibility.opacity
         opacity.value = NSNumber(value: 0.5)
         expect(DashboardModification.numberValue(NSNumber(value: 1.7), for: opacity) == NSNumber(value: 1.0), "opacity above 1")
         expect(DashboardModification.numberValue(NSNumber(value: -0.2), for: opacity) == NSNumber(value: 0.0), "opacity below 0")
         expect(DashboardModification.numberValue(NSNumber(value: 0.5), for: opacity) == nil, "unchanged opacity")
 
         let shadowOpacity = InspectedAttribute()
-        shadowOpacity.identifier = LookinAttr_ViewLayer_Shadow_Opacity
+        shadowOpacity.identifier = InspectedAttribute.Identifier.ViewLayer.Shadow.opacity
         shadowOpacity.value = NSNumber(value: 1.0)
         expect(DashboardModification.numberValue(NSNumber(value: 4), for: shadowOpacity) == nil, "shadow opacity clamps to the unchanged 1")
 
         let radius = InspectedAttribute()
-        radius.identifier = LookinAttr_ViewLayer_Corner_Radius
+        radius.identifier = InspectedAttribute.Identifier.ViewLayer.Corner.radius
         radius.value = NSNumber(value: 4)
         expect(DashboardModification.numberValue(NSNumber(value: 12), for: radius) == NSNumber(value: 12), "radius is not clamped")
         expect(DashboardModification.numberValue(NSNumber(value: 4), for: radius) == nil, "unchanged radius")
@@ -260,7 +260,7 @@ struct DashboardTests {
     // MARK: - Constraints
 
     private static func testConstraintOrder() {
-        func constraint(effective: Bool, type: LookinConstraintItemType, attribute: Int, constant: CGFloat) -> AutoLayoutConstraint {
+        func constraint(effective: Bool, type: AutoLayoutConstraint.ItemType, attribute: Int, constant: CGFloat) -> AutoLayoutConstraint {
             let constraint = AutoLayoutConstraint()
             constraint.effective = effective
             constraint.firstItemType = type

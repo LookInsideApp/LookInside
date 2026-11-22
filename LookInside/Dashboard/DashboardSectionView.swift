@@ -207,11 +207,11 @@ final class DashboardSectionView: BaseView {
 
         // Shown inside the class chain's own view rather than as a row.
         let classImagePaths = attrSection.attributes?
-            .first { $0.identifier == LookinAttr_Class_Class_ImagePaths }?
+            .first { $0.identifier == InspectedAttribute.Identifier.Class.Class.imagePaths }?
             .value as? [[String]]
 
         var notUsedViews = attrViews
-        for attr in attrSection.attributes ?? [] where attr.identifier != LookinAttr_Class_Class_ImagePaths {
+        for attr in attrSection.attributes ?? [] where attr.identifier != InspectedAttribute.Identifier.Class.Class.imagePaths {
             guard let viewClass = Self.attrViewClass(for: attr.attrType, identifier: attr.identifier) else {
                 // Debug builds stop here so a missing case surfaces at once;
                 // release builds skip the attribute and log it. An attribute
@@ -250,13 +250,13 @@ final class DashboardSectionView: BaseView {
 
     /// The view class for an attribute type (and, for custom objects, its
     /// identifier); nil when there is none.
-    static func attrViewClass(for type: LookinAttrType, identifier: String?) -> DashboardAttributeView.Type? {
+    static func attrViewClass(for type: InspectedAttribute.ValueType, identifier: InspectedAttribute.Identifier?) -> DashboardAttributeView.Type? {
         switch type {
         case .cgRect:
             return DashboardAttributeRectView.self
         case .uiEdgeInsets:
             return DashboardAttributeInsetsView.self
-        case .BOOL:
+        case .bool:
             return DashboardAttributeSwitchView.self
         case .float, .double, .long, .unsignedLong, .int, .unsignedInt:
             return DashboardAttributeNumberInputView.self
@@ -274,21 +274,21 @@ final class DashboardSectionView: BaseView {
             return DashboardAttributeShadowView.self
         case .json:
             return DashboardAttributeJSONView.self
-        case .customObj:
+        case .customObject:
             switch identifier ?? "" {
             case "lookinside.private_discriminator.field":
                 return DashboardAttributePrivateDiscriminatorView.self
-            case LookinAttr_UITableView_RowsNumber_Number:
+            case InspectedAttribute.Identifier.UITableView.RowsNumber.number:
                 return DashboardAttributeRowsCountView.self
-            case LookinAttr_Class_Class_Class:
+            case InspectedAttribute.Identifier.Class.Class.class:
                 return DashboardAttributeClassView.self
-            case LookinAttr_Relation_Relation_Relation:
+            case InspectedAttribute.Identifier.Relation.Relation.relation:
                 return DashboardAttributeRelationView.self
-            case LookinAttr_AutoLayout_Constraints_Constraints:
+            case InspectedAttribute.Identifier.AutoLayout.Constraints.constraints:
                 return DashboardAttributeConstraintsView.self
-            case LookinAttr_UIImageView_Open_Open, LookinAttr_NSImageView_Open_Open:
+            case InspectedAttribute.Identifier.UIImageView.Open.open, InspectedAttribute.Identifier.NSImageView.Open.open:
                 return DashboardAttributeOpenImageView.self
-            case LookinAttr_UIVisualEffectView_Style_Style:
+            case InspectedAttribute.Identifier.UIVisualEffectView.Style.style:
                 return DashboardAttributeEnumsView.self
             default:
                 return nil
@@ -320,14 +320,14 @@ final class DashboardSectionView: BaseView {
     private func resolveSectionTitle() -> String? {
         guard let attrSection else { return nil }
         if !attrSection.isUserCustom() {
-            return DashboardBlueprint.sectionTitle(withSectionID: attrSection.identifier)
+            return attrSection.identifier.flatMap(DashboardBlueprint.title(of:))
         }
         guard let attr = attrSection.attributes?.first else {
             assertionFailure()
             return nil
         }
         // A user-custom switch carries its title on the checkbox.
-        return attr.attrType == .BOOL ? nil : attr.displayTitle
+        return attr.attrType == .bool ? nil : attr.displayTitle
     }
 
     // MARK: - Manage
@@ -398,7 +398,7 @@ final class DashboardSectionViewPool {
 
     static func cacheKey(for section: AttributesSection) -> String {
         if !section.isUserCustom() {
-            return section.identifier ?? ""
+            return section.identifier?.rawValue ?? ""
         }
         return (section.attributes ?? []).map { $0.displayTitle ?? "" }.joined(separator: ",")
     }

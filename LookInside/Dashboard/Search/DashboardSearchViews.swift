@@ -103,7 +103,7 @@ final class DashboardSearchPropertyView: DashboardSearchCardView {
 
     func render(attribute: InspectedAttribute) {
         self.attribute = attribute
-        titleLabel.stringValue = attribute.displayTitle ?? DashboardBlueprint.fullTitle(withAttrID: attribute.identifier) ?? ""
+        titleLabel.stringValue = attribute.displayTitle ?? attribute.identifier.flatMap(DashboardBlueprint.fullTitle(of:)) ?? ""
         contentLabel.stringValue = Self.stringValue(of: attribute)
         needsLayout = true
     }
@@ -121,15 +121,15 @@ final class DashboardSearchPropertyView: DashboardSearchCardView {
             // the server's data, with nothing to show.
             return ""
 
-        case .void, .customObj:
+        case .void, .customObject:
             assertionFailure()
             return ""
 
         case .char, .int, .short, .long, .longLong, .unsignedChar, .unsignedInt, .unsignedShort, .unsignedLong, .unsignedLongLong,
-             .float, .double, .sel, .class, .cgVector, .cgAffineTransform, .uiOffset:
+             .float, .double, .selector, .class, .cgVector, .cgAffineTransform, .uiOffset:
             return (attribute.value as? NSObject)?.description ?? ""
 
-        case .BOOL:
+        case .bool:
             return (attribute.value as? NSNumber)?.boolValue == true ? "YES" : "NO"
 
         case .cgPoint:
@@ -149,7 +149,7 @@ final class DashboardSearchPropertyView: DashboardSearchCardView {
 
         case .enumInt, .enumLong:
             let enumValue = (attribute.value as? NSNumber)?.intValue ?? 0
-            let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute.identifier)
+            let enumListName = attribute.identifier.flatMap(DashboardBlueprint.enumListName(of:))
             return EnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
 
         case .uiColor:

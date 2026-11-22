@@ -166,8 +166,8 @@ enum XcodeViewHierarchyAttributes {
             }
             // The server drops an Auto Layout card that holds only sizing
             // priorities; a view with no constraints gets no card.
-            if catalogGroup.identifier == LookinAttrGroup_AutoLayout,
-               !sections.contains(where: { $0.identifier == LookinAttrSec_AutoLayout_Constraints })
+            if catalogGroup.identifier == AttributesGroup.Identifier.autoLayout,
+               !sections.contains(where: { $0.identifier == AttributesSection.Identifier.AutoLayout.constraints })
             {
                 continue
             }
@@ -181,7 +181,7 @@ enum XcodeViewHierarchyAttributes {
     // MARK: - One attribute
 
     private static func makingAttribute(
-        _ identifier: String,
+        _ identifier: InspectedAttribute.Identifier,
         node: XcodeViewHierarchyNode,
         layerNode: XcodeViewHierarchyNode?,
         classChain: [String],
@@ -189,26 +189,26 @@ enum XcodeViewHierarchyAttributes {
         context: XcodeViewHierarchyAttributeContext
     ) -> InspectedAttribute? {
         switch identifier {
-        case LookinAttr_Class_Class_Class:
+        case InspectedAttribute.Identifier.Class.Class.class:
             let chains = relatedClassChains(classChain, graph: graph, context: context)
-            return makingAttribute(identifier, .customObj, chains as NSArray)
+            return makingAttribute(identifier, .customObject, chains as NSArray)
 
-        case LookinAttr_Relation_Relation_Relation:
+        case InspectedAttribute.Identifier.Relation.Relation.relation:
             let relations = relationDescriptions(for: node, context: context)
             guard !relations.isEmpty else { return nil }
-            return makingAttribute(identifier, .customObj, relations as NSArray)
+            return makingAttribute(identifier, .customObject, relations as NSArray)
 
-        case LookinAttr_AutoLayout_Constraints_Constraints:
+        case InspectedAttribute.Identifier.AutoLayout.Constraints.constraints:
             guard context.role == .view else { return nil }
             let constraints = makingConstraints(for: node, graph: graph, context: context)
             guard !constraints.isEmpty else { return nil }
-            return makingAttribute(identifier, .customObj, constraints as NSArray)
+            return makingAttribute(identifier, .customObject, constraints as NSArray)
 
-        case LookinAttr_UIWindowScene_Windows_WindowCount:
+        case InspectedAttribute.Identifier.UIWindowScene.Windows.windowCount:
             guard context.role == .windowScene else { return nil }
             return makingAttribute(identifier, .long, NSNumber(value: context.sceneWindowNodes.count))
 
-        case LookinAttr_UIWindowScene_Windows_KeyWindowClassName:
+        case InspectedAttribute.Identifier.UIWindowScene.Windows.keyWindowClassName:
             guard context.role == .windowScene,
                   let keyWindowIdentifier = context.environment.keyWindowIdentifier,
                   let keyWindowClassName = context.sceneWindowNodes
@@ -216,7 +216,7 @@ enum XcodeViewHierarchyAttributes {
             else { return nil }
             return makingAttribute(identifier, .nsString, keyWindowClassName as NSString)
 
-        case LookinAttr_LayoutGuide_OwningView_OwningView:
+        case InspectedAttribute.Identifier.LayoutGuide.OwningView.owningView:
             guard context.role == .layoutGuide, let ownerNode = context.ownerNode, let ownerClassName = ownerNode.className
             else { return nil }
             // The server's shape: "UIView (0x...)".
@@ -231,7 +231,7 @@ enum XcodeViewHierarchyAttributes {
 
     /// A row the catalog maps to a capture property.
     private static func makingSpecifiedAttribute(
-        _ identifier: String,
+        _ identifier: InspectedAttribute.Identifier,
         node: XcodeViewHierarchyNode,
         layerNode: XcodeViewHierarchyNode?,
         classChain: [String],
@@ -242,7 +242,7 @@ enum XcodeViewHierarchyAttributes {
         if context.role == .layer {
             // A hostless layer answers only the rows the blueprint aims at a
             // CALayer; the view rows have no object to read from.
-            guard DashboardBlueprint.targetKind(forAttrID: identifier) == .layer else { return nil }
+            guard DashboardBlueprint.targetKind(of: identifier) == .layer else { return nil }
         } else {
             guard specification.classNames.isEmpty || specification.classNames.contains(where: classChain.contains)
             else { return nil }
@@ -252,13 +252,13 @@ enum XcodeViewHierarchyAttributes {
 
         if case .absent = property.value {
             // A captured nil: shown as nil where the blueprint wants it shown.
-            guard !DashboardBlueprint.hideIfNil(withAttrID: identifier),
+            guard !DashboardBlueprint.hidesWhenNil(identifier),
                   let attrType = nilCapableAttrType(for: specification.kind)
             else { return nil }
             return makingAttribute(identifier, attrType, nil)
         }
 
-        let isEnumeration = DashboardBlueprint.enumListName(withAttrID: identifier) != nil
+        let isEnumeration = DashboardBlueprint.enumListName(of: identifier) != nil
         guard let converted = makingValue(property.value, kind: specification.kind, isEnumeration: isEnumeration)
         else { return nil }
         return makingAttribute(identifier, converted.attrType, converted.value)
@@ -312,16 +312,16 @@ enum XcodeViewHierarchyAttributes {
     // MARK: - Values
 
     /// The attribute value a decoded capture value becomes, typed the way the
-    /// card for that kind reads it (`LookinAttrType`, LookinCoreTypes.swift).
+    /// card for that kind reads it (`InspectedAttribute.ValueType`, LookinCoreTypes.swift).
     private static func makingValue(
         _ value: XcodeViewHierarchyValue,
         kind: Specification.Kind,
         isEnumeration: Bool
-    ) -> (attrType: LookinAttrType, value: Any)? {
+    ) -> (attrType: InspectedAttribute.ValueType, value: Any)? {
         switch kind {
         case .bool:
             guard let boolValue = value.boolValue else { return nil }
-            return (.BOOL, NSNumber(value: boolValue))
+            return (.bool, NSNumber(value: boolValue))
 
         case .integer:
             guard let integerValue = integerValue(of: value) else { return nil }
@@ -381,16 +381,16 @@ enum XcodeViewHierarchyAttributes {
 
         case .imageData:
             guard case let .image(image) = value else { return nil }
-            return (.customObj, image.encodedData as NSData)
+            return (.customObject, image.encodedData as NSData)
 
         case let .maskBit(bit):
             guard let integerValue = integerValue(of: value) else { return nil }
-            return (.BOOL, NSNumber(value: (UInt64(bitPattern: integerValue) & bit) != 0))
+            return (.bool, NSNumber(value: (UInt64(bitPattern: integerValue) & bit) != 0))
         }
     }
 
     /// The type a nil value is reported under; nil for kinds that cannot be nil.
-    private static func nilCapableAttrType(for kind: Specification.Kind) -> LookinAttrType? {
+    private static func nilCapableAttrType(for kind: Specification.Kind) -> InspectedAttribute.ValueType? {
         switch kind {
         case .text, .fontName, .imageName: return .nsString
         case .color: return .uiColor
@@ -409,7 +409,7 @@ enum XcodeViewHierarchyAttributes {
     }
 
     /// RGBA in 0...1, which is what a `LookinAttrTypeUIColor` value carries
-    /// (`LookinAttrType`, LookinCoreTypes.swift). The dashboard decodes that array itself and
+    /// (`InspectedAttribute.ValueType`, LookinCoreTypes.swift). The dashboard decodes that array itself and
     /// asserts on anything else, so no `NSColor` is built here.
     ///
     /// The capture writes a colour in its own space: RGB(A), gray(+alpha) for
@@ -619,7 +619,7 @@ enum XcodeViewHierarchyAttributes {
         for node: XcodeViewHierarchyNode,
         graph: XcodeViewHierarchyObjectGraph,
         context: XcodeViewHierarchyAttributeContext
-    ) -> (object: InspectedObject?, type: LookinConstraintItemType) {
+    ) -> (object: InspectedObject?, type: AutoLayoutConstraint.ItemType) {
         guard case let .objectReference(reference)? = constraintNode.property(named: propertyName)?.value else {
             return (nil, .`nil`)
         }
@@ -628,7 +628,7 @@ enum XcodeViewHierarchyAttributes {
         object.memoryAddress = reference.objectIdentifier
         object.classChainList = graph.classChain(forClassName: reference.className)
 
-        let type: LookinConstraintItemType
+        let type: AutoLayoutConstraint.ItemType
         if reference.objectIdentifier == node.objectIdentifier {
             type = .`self`
         } else if reference.objectIdentifier == context.superviewNode?.objectIdentifier {
@@ -646,7 +646,7 @@ enum XcodeViewHierarchyAttributes {
     // MARK: - Model builders
 
     private static func makingGroup(
-        _ identifier: String,
+        _ identifier: AttributesGroup.Identifier,
         _ sections: [AttributesSection]
     ) -> AttributesGroup {
         let group = AttributesGroup()
@@ -656,7 +656,7 @@ enum XcodeViewHierarchyAttributes {
     }
 
     private static func makingSection(
-        _ identifier: String,
+        _ identifier: AttributesSection.Identifier,
         _ attributes: [InspectedAttribute]
     ) -> AttributesSection {
         let section = AttributesSection()
@@ -666,8 +666,8 @@ enum XcodeViewHierarchyAttributes {
     }
 
     private static func makingAttribute(
-        _ identifier: String,
-        _ attrType: LookinAttrType,
+        _ identifier: InspectedAttribute.Identifier,
+        _ attrType: InspectedAttribute.ValueType,
         _ value: Any?
     ) -> InspectedAttribute {
         let attribute = InspectedAttribute()
