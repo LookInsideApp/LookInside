@@ -102,6 +102,28 @@ struct DetailFetchPlanningTests {
         #expect(DetailFetchPlanning.selectionRequest(for: nodes[3], at: 3) == nil)
     }
 
+    @Test func selectedNodeComesFirstAndIsFetchedWhenNotDisplayed() {
+        var nodes = sampleTree()
+        nodes[4].isSelected = true
+        #expect(DetailFetchPlanning.foregroundRequests(for: nodes, displayedIndexes: [0, 1, 4]) == [
+            Request(nodeIndex: 4, screenshot: .group, attributes: .full),
+            Request(nodeIndex: 0, screenshot: .solo, attributes: .extensionAndCustom),
+            Request(nodeIndex: 1, screenshot: .group, attributes: .extensionAndCustom),
+        ])
+        // The label inside the folded container.
+        nodes[4].isSelected = false
+        nodes[2].isSelected = true
+        #expect(DetailFetchPlanning.foregroundRequests(for: nodes, displayedIndexes: [0, 1, 4]) == [
+            Request(nodeIndex: 2, screenshot: nil, attributes: .full),
+            Request(nodeIndex: 0, screenshot: .solo, attributes: .extensionAndCustom),
+            Request(nodeIndex: 1, screenshot: .group, attributes: .extensionAndCustom),
+            Request(nodeIndex: 4, screenshot: .group, attributes: .extensionAndCustom),
+        ])
+        nodes[2].hasAttributes = true
+        nodes[2].hasBlueprintAttributes = true
+        #expect(DetailFetchPlanning.foregroundRequests(for: nodes, displayedIndexes: [0, 1, 4]).map(\.nodeIndex) == [0, 1, 4])
+    }
+
     @Test func wholeTreeFetchesBlueprintAttributes() {
         var nodes = sampleTree()
         for index in nodes.indices {

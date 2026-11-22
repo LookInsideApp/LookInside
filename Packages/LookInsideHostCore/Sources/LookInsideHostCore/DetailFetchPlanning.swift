@@ -159,6 +159,22 @@ public enum DetailFetchPlanning {
         }
     }
 
+    /// The on-screen requests with the selected node's first, since the
+    /// dashboard shows it; a selected node that is not displayed (inside a
+    /// folded node, say) gets its blueprint groups as well.
+    public static func foregroundRequests(for nodes: [Node], displayedIndexes: [Int]) -> [Request] {
+        var requests = onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+        guard let selectedIndex = nodes.firstIndex(where: \.isSelected) else {
+            return requests
+        }
+        if let position = requests.firstIndex(where: { $0.nodeIndex == selectedIndex }) {
+            requests.insert(requests.remove(at: position), at: 0)
+        } else if let request = selectionRequest(for: nodes[selectedIndex], at: selectedIndex) {
+            requests.insert(request, at: 0)
+        }
+        return requests
+    }
+
     /// The blueprint groups of the node just selected, when it has none yet
     /// and is not a custom node (whose attributes are its custom groups).
     public static func selectionRequest(for node: Node, at index: Int) -> Request? {

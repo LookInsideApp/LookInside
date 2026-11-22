@@ -60,6 +60,21 @@ struct MCPBridgeDisplayItemAccessTests {
         text.customAttrGroupList = nil
         text.attributesGroupList = [AttributesGroup()]
         precondition(MCPBridgeDisplayItemAccess.hasCachedDetails(text))
+
+        // A native node counts as cached once it holds its blueprint groups:
+        // a displayed row's extension and custom groups do not.
+        let extensionGroup = AttributesGroup()
+        extensionGroup.identifier = "SwiftUIExtension"
+        let classGroup = AttributesGroup()
+        classGroup.identifier = LookinAttrGroup_Class
+        precondition(!MCPBridgeDisplayItemAccess.hasCachedDetails(root))
+        root.attributesGroupList = []
+        root.customAttrGroupList = [AttributesGroup()]
+        precondition(!MCPBridgeDisplayItemAccess.hasCachedDetails(root))
+        root.attributesGroupList = [extensionGroup]
+        precondition(!MCPBridgeDisplayItemAccess.hasCachedDetails(root))
+        root.attributesGroupList = [classGroup, extensionGroup]
+        precondition(MCPBridgeDisplayItemAccess.hasCachedDetails(root))
         print("MCP display item identity and cache tests passed (105 virtual nodes)")
     }
 }

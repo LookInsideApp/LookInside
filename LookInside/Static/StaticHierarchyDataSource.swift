@@ -109,9 +109,22 @@ class StaticHierarchyDataSource: HierarchyDataSource {
         }
 
         var didChangeAttributes = false
-        if let groups = detail.attributesGroupList, !groups.isEmpty {
-            item.attributesGroupList = groups
-            didChangeAttributes = true
+        if let groups = detail.attributesGroupList {
+            if groups.isEmpty {
+                // Asked for and none came (no extension group): an empty
+                // list, so the node is not planned for them again.
+                if !item.isUserCustom(), item.attributesGroupList == nil {
+                    item.attributesGroupList = []
+                }
+            } else if item.hasBlueprintAttributes, !groups.contains(where: DisplayItem.isBlueprintGroup) {
+                // Extension groups alone do not take the node's blueprint
+                // groups away.
+                item.attributesGroupList = (item.attributesGroupList ?? []).filter(DisplayItem.isBlueprintGroup) + groups
+                didChangeAttributes = true
+            } else {
+                item.attributesGroupList = groups
+                didChangeAttributes = true
+            }
         }
         if let groups = detail.customAttrGroupList, !groups.isEmpty {
             item.customAttrGroupList = groups
