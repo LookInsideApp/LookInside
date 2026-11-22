@@ -296,12 +296,12 @@ class HierarchyDataSource: NSObject {
                 // content a second time. No screenshot task; they stay in
                 // the preview (guides and cells on their owner's plane, the
                 // outer layer as a parallel plane of its own).
-                item.doNotFetchScreenshotReason = .doNotFetchScreenshotForNoPixels
+                item.doNotFetchScreenshotReason = .noPixels
             }
             if !item.isUserCustom(), !item.shouldCaptureImage {
                 item.enumerateSelfAndChildren { node in
                     node.noPreview = true
-                    node.doNotFetchScreenshotReason = .doNotFetchScreenshotForUserConfig
+                    node.doNotFetchScreenshotReason = .userConfiguration
                 }
             }
             if !serverSideIsSwiftProject, item.displayingObject()?.completedDemangledClassName().contains(".") == true {

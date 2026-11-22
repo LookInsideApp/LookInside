@@ -16,7 +16,7 @@
     @objc(LookinEventHandler)
     public class EventHandlerDescription: NSObject, NSCoding, NSSecureCoding {
         @objc(handlerType)
-        public var handlerType: LookinEventHandlerType = .targetAction
+        public var handlerType: EventHandlerDescription.HandlerType = .targetAction
         @objc(eventName)
         public var eventName: String?
         @objc(targetActions)
@@ -70,7 +70,7 @@
 
         public required init?(coder aDecoder: NSCoder) {
             super.init()
-            handlerType = LookinEventHandlerType(rawValue: aDecoder.decodeInteger(forKey: "handlerType")) ?? .targetAction
+            handlerType = EventHandlerDescription.HandlerType(rawValue: aDecoder.decodeInteger(forKey: "handlerType")) ?? .targetAction
             gestureRecognizerIsEnabled = aDecoder.decodeBool(forKey: "gestureRecognizerIsEnabled")
             eventName = aDecoder.decodeObject(forKey: "eventName") as? String
             gestureRecognizerDelegator = aDecoder.decodeObject(forKey: "gestureRecognizerDelegator") as? String

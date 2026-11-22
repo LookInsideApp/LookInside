@@ -2,16 +2,16 @@
 //  PeripheralAlerts.swift
 //  LookInside
 //
-//  Swift counterparts of the `LookinErrorMake`, `AlertError` and
+//  Swift counterparts of the `InspectionError.makeError`, `AlertError` and
 //  `AlertErrorText` macros for the peripheral modules.
 //
 
 import AppKit
 
 enum PeripheralAlerts {
-    /// `LookinErrorMake(title, detail)`: a default-code Lookin error.
+    /// `InspectionError.makeError(title: title, detail: detail)`: a default-code Lookin error.
     static func error(title: String, detail: String) -> NSError {
-        NSError(domain: LookinErrorDomain, code: LookinErrCode_Default, userInfo: [
+        NSError(domain: InspectionError.domain, code: InspectionError.Code.default, userInfo: [
             NSLocalizedDescriptionKey: title,
             NSLocalizedRecoverySuggestionErrorKey: detail,
         ])
@@ -22,7 +22,7 @@ enum PeripheralAlerts {
     @MainActor
     static func show(_ error: Error, in window: NSWindow?) {
         let error = error as NSError
-        guard error.code != LookinErrCode_Discard else { return }
+        guard error.code != InspectionError.Code.discarded else { return }
         let alert = NSAlert(error: error)
         if let window {
             alert.beginSheetModal(for: window, completionHandler: nil)

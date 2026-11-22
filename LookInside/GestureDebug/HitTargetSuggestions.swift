@@ -29,8 +29,8 @@ enum HitTargetSuggestionPlatform: String, Codable {
 
     var minimumTargetSize: Double? {
         switch self {
-        case .iPhone: LookinMinimumIPhoneTargetSize
-        case .mac: LookinMinimumMacTargetSize
+        case .iPhone: HitTargetSize.minimumOnIPhone
+        case .mac: HitTargetSize.minimumOnMac
         case .unsupported: nil
         }
     }
@@ -76,7 +76,7 @@ enum HitTargetSuggestionRule {
         var seen: Set<String> = []
         return targets.compactMap { target in
             guard let width = target.geometry.width, let height = target.geometry.height,
-                  LookinHitTargetSizeDeficit(width, height, minimum) > 0,
+                  HitTargetSize.deficit(width: width, height: height, minimum: minimum) > 0,
                   seen.insert(target.id).inserted else { return nil }
             return HitTargetSuggestion(target: target, minimumSize: minimum)
         }.sorted { $0.id < $1.id }

@@ -16,7 +16,7 @@
     @objc(LookinCustomAttrModification)
     public class CustomAttributeModification: NSObject, NSCoding, NSSecureCoding {
         @objc(attrType)
-        public var attrType: LookinAttrType = .none
+        public var attrType: InspectedAttribute.ValueType = .none
         @objc(customSetterID)
         public var customSetterID: String?
         @objc(value)
@@ -37,7 +37,7 @@
 
         public required init?(coder aDecoder: NSCoder) {
             super.init()
-            attrType = LookinAttrType(rawValue: aDecoder.decodeInteger(forKey: "attrType")) ?? .none
+            attrType = InspectedAttribute.ValueType(rawValue: aDecoder.decodeInteger(forKey: "attrType")) ?? .none
             value = aDecoder.decodeObject(forKey: "value")
             customSetterID = aDecoder.decodeObject(forKey: "customSetterID") as? String
         }

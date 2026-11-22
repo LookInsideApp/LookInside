@@ -153,11 +153,11 @@ enum XcodeViewHierarchyConverter {
 
         let hierarchyInfo = HierarchyInfo()
         hierarchyInfo.displayItems = displayItems
-        hierarchyInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        hierarchyInfo.serverVersion = Int32(ProtocolVersion.server)
         hierarchyInfo.appInfo = makingAppInfo(from: bundle, vocabulary: vocabulary)
 
         let file = HierarchyFile()
-        file.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        file.serverVersion = Int32(ProtocolVersion.server)
         file.hierarchyInfo = hierarchyInfo
         file.soloScreenshots = session.soloScreenshotsByOid
         file.groupScreenshots = session.groupScreenshotsByOid
@@ -1071,7 +1071,7 @@ enum XcodeViewHierarchyConverter {
     /// `noPreview` — the preview then receives nothing (node-model-internals,
     /// trap 1). The server sets the flag per kind and the archive decoder
     /// defaults an absent key to YES; an in-memory producer gets neither.
-    private static func makingDisplayItem(kind: LookinDisplayItemNodeKind) -> DisplayItem {
+    private static func makingDisplayItem(kind: DisplayItem.NodeKind) -> DisplayItem {
         let item = DisplayItem()
         item.nodeKind = kind
         item.shouldCaptureImage = true
@@ -1182,7 +1182,7 @@ enum XcodeViewHierarchyConverter {
     ) -> InspectedAppInfo {
         let appInfo = InspectedAppInfo()
         appInfo.appName = bundle.metadata.runnableDisplayName ?? NSLocalizedString("Xcode Capture", comment: "")
-        appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        appInfo.serverVersion = Int32(ProtocolVersion.server)
         // The images are drawn here from the capture's layer archives, as for
         // a Server that sends them: the Liquid Glass setting treats the glass
         // as drawn.

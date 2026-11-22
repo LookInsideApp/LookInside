@@ -71,7 +71,7 @@ final class DashboardAttributeTextView: DashboardAttributeView, NSTextViewDelega
     override func renderWithAttribute() {
         guard let attribute else { return }
         // Known attributes show their short title above the value.
-        if !attribute.isUserCustom(), let briefTitle = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier), !briefTitle.isEmpty {
+        if !attribute.isUserCustom(), let briefTitle = attribute.identifier.flatMap(DashboardBlueprint.briefTitle(of:)), !briefTitle.isEmpty {
             titleLabel.stringValue = briefTitle
             titleLabel.isHidden = false
         } else {

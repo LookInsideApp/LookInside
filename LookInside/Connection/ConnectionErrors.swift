@@ -3,8 +3,8 @@
 //  LookInside
 //
 //  The NSErrors the Connection layer reports: the same errors as the
-//  LookinErr_* values in LookinCoreImpl/LookinDefines.swift (formerly macros
-//  of LookinDefines.h) — same domain, codes and localization keys.
+//  `InspectionError` values in LookinCoreImpl/InspectionError.swift (formerly
+//  macros of LookinDefines.h) — same domain, codes and localization keys.
 //
 
 import Foundation
@@ -16,56 +16,56 @@ enum ConnectionError {
         if let recovery {
             userInfo[NSLocalizedRecoverySuggestionErrorKey] = recovery
         }
-        return NSError(domain: LookinErrorDomain, code: code, userInfo: userInfo)
+        return NSError(domain: InspectionError.domain, code: code, userInfo: userInfo)
     }
 
-    /// `LookinErr_Inner`
+    /// `InspectionError.inner`
     static var inner: NSError {
-        make(LookinErrCode_Inner, NSLocalizedString("The operation failed due to an inner error.", comment: ""))
+        make(InspectionError.Code.inner, NSLocalizedString("The operation failed due to an inner error.", comment: ""))
     }
 
-    /// `LookinErr_NoConnect`
+    /// `InspectionError.noConnection`
     static var noConnect: NSError {
-        make(LookinErrCode_NoConnect, NSLocalizedString("The operation failed due to disconnection with the iOS app.", comment: ""))
+        make(InspectionError.Code.noConnection, NSLocalizedString("The operation failed due to disconnection with the iOS app.", comment: ""))
     }
 
-    /// `LookinErr_ObjNotFound`
+    /// `InspectionError.objectNotFound`
     static var objectNotFound: NSError {
         make(
-            LookinErrCode_ObjectNotFound,
+            InspectionError.Code.objectNotFound,
             NSLocalizedString("Failed to get target object in iOS app", comment: ""),
             recovery: NSLocalizedString("Perhaps the related object was deallocated. You can reload LookInside to get newest data.", comment: "")
         )
     }
 
     static var discarded: NSError {
-        make(LookinErrCode_Discard, NSLocalizedString("The request is discarded due to a newer same request.", comment: ""))
+        make(InspectionError.Code.discarded, NSLocalizedString("The request is discarded due to a newer same request.", comment: ""))
     }
 
     static var timeout: NSError {
         make(
-            LookinErrCode_Timeout,
+            InspectionError.Code.timeout,
             NSLocalizedString("Request timeout", comment: ""),
-            // LookinErrorText_Timeout
+            // InspectionError.timeoutDescription
             recovery: NSLocalizedString("Perhaps your iOS app is paused with breakpoint in Xcode, blocked by other tasks in main thread, or moved to background state.", comment: "")
         )
     }
 
     /// Sending a frame failed.
     static var transport: NSError {
-        make(LookinErrCode_PeerTalk, NSLocalizedString("The operation failed due to an inner error.", comment: ""))
+        make(InspectionError.Code.peerTalk, NSLocalizedString("The operation failed due to an inner error.", comment: ""))
     }
 
     static var appInBackground: NSError {
         make(
-            LookinErrCode_PingFailForBackgroundState,
+            InspectionError.Code.pingFailedForBackgroundState,
             NSLocalizedString("The operation failed because target iOS app has entered to the background state.", comment: "")
         )
     }
 
     static var serverVersionTooLow: NSError {
         make(
-            LookinErrCode_ServerVersionTooLow,
+            InspectionError.Code.serverVersionTooLow,
             NSLocalizedString("Fail to inspect this target app due to a version problem.", comment: ""),
             recovery: NSLocalizedString("Please update the embedded LookinServer integration in your target app to a newer version from this repository.", comment: "")
         )
@@ -73,7 +73,7 @@ enum ConnectionError {
 
     static var serverVersionTooHigh: NSError {
         make(
-            LookinErrCode_ServerVersionTooHigh,
+            InspectionError.Code.serverVersionTooHigh,
             NSLocalizedString("LookInside app version is too low.", comment: ""),
             recovery: NSLocalizedString("Target app is linked with a higher version LookinServer.framework. Update this community build from the current repository source.", comment: "")
         )
@@ -81,14 +81,14 @@ enum ConnectionError {
 
     static func licenseVerificationFailed(detail: String? = nil) -> NSError {
         make(
-            LookinErrCode_LicenseRequired,
+            InspectionError.Code.licenseRequired,
             NSLocalizedString("LookInside license verification failed.", comment: ""),
             recovery: detail
         )
     }
 
     static var malformedLicenseChallenge: NSError {
-        make(LookinErrCode_Inner, NSLocalizedString("License challenge payload is malformed.", comment: ""))
+        make(InspectionError.Code.inner, NSLocalizedString("License challenge payload is malformed.", comment: ""))
     }
 
     /// The error a failed license handshake is logged with.
@@ -111,9 +111,9 @@ enum ConnectionError {
     /// anything else passes through.
     static func localized(_ serverError: NSError) -> NSError {
         switch serverError.code {
-        case LookinErrCode_ObjectNotFound:
+        case InspectionError.Code.objectNotFound:
             objectNotFound
-        case LookinErrCode_Inner:
+        case InspectionError.Code.inner:
             inner
         default:
             serverError

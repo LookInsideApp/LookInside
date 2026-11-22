@@ -19,7 +19,7 @@ enum DashboardModification {
         let modification = AttributeModification()
         modification.clientReadableVersion = clientReadableVersion
         let item = attribute.targetDisplayItem
-        switch DashboardBlueprint.targetKind(forAttrID: attribute.identifier) {
+        switch attribute.identifier.map(DashboardBlueprint.targetKind(of:)) ?? .view {
         case .view:
             modification.targetOid = item?.viewObject?.oid ?? 0
         case .window:
@@ -31,7 +31,7 @@ enum DashboardModification {
         @unknown default:
             modification.targetOid = item?.layerObject?.oid ?? 0
         }
-        guard let setter = DashboardBlueprint.setter(withAttrID: attribute.identifier) else {
+        guard let setter = attribute.identifier.flatMap(DashboardBlueprint.setter(of:)) else {
             return nil
         }
         modification.setterSelector = setter
@@ -58,14 +58,14 @@ enum DashboardModification {
 
     /// Gives untyped attributes the object type this host's blueprint
     /// declares for their identifier. Servers built before the blueprint gave
-    /// NSTableView's AutosaveName a typeIfObj send it untyped, which no
+    /// NSTableView's AutosaveName an objectValueType send it untyped, which no
     /// attribute view can show; the attribute itself takes the type because
     /// the edits above are typed from it.
     static func typeUntypedAttributes(in groups: [AttributesGroup]) {
         for group in groups {
             for section in group.attrSections ?? [] {
                 for attribute in section.attributes ?? [] where attribute.attrType == .none {
-                    attribute.attrType = DashboardBlueprint.objectAttrType(withAttrID: attribute.identifier)
+                    attribute.attrType = attribute.identifier.map(DashboardBlueprint.objectValueType(of:)) ?? .none
                 }
             }
         }
@@ -74,16 +74,16 @@ enum DashboardModification {
     // MARK: - Edited values
 
     /// The attributes whose number is an opacity, kept within 0...1.
-    static let clampedToUnitIdentifiers: Set<String> = [
-        LookinAttr_ViewLayer_Visibility_Opacity,
-        LookinAttr_ViewLayer_Shadow_Opacity,
+    static let clampedToUnitIdentifiers: Set<InspectedAttribute.Identifier> = [
+        InspectedAttribute.Identifier.ViewLayer.Visibility.opacity,
+        InspectedAttribute.Identifier.ViewLayer.Shadow.opacity,
     ]
 
     /// The number to submit for a number attribute, or nil when it equals
     /// the current value (nothing to submit).
     static func numberValue(_ parsed: NSNumber, for attribute: InspectedAttribute) -> NSNumber? {
         var value = parsed
-        if clampedToUnitIdentifiers.contains(attribute.identifier ?? "") {
+        if attribute.identifier.map(clampedToUnitIdentifiers.contains) ?? false {
             value = NSNumber(value: max(min(parsed.doubleValue, 1), 0))
         }
         if let current = attribute.value as? NSObject, value.isEqual(current) {

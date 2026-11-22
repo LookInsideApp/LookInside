@@ -4,7 +4,7 @@
 // `MCPBridgeAttribute` for the `attributes.read` MCPBridge method.
 //
 // The host represents an attribute's payload as a polymorphic `id value`
-// disambiguated by `LookinAttrType`. The wire format flattens that into a
+// disambiguated by `InspectedAttribute.ValueType`. The wire format flattens that into a
 // `kind` discriminator string plus a JSON value whose shape depends on
 // kind. v1 of this encoder handles the structurally distinct kinds with
 // dedicated projections (numbers, bools, strings, geometry struct types,
@@ -43,7 +43,7 @@ enum MCPBridgeAttributeEncoder {
             ? redactedIfString(projection)
             : projection
         return MCPBridgeAttribute(
-            identifier: attribute.identifier ?? "",
+            identifier: attribute.identifier?.rawValue ?? "",
             displayTitle: attribute.displayTitle,
             isUserCustom: attribute.isUserCustom(),
             kind: finalProjection.kind,
@@ -105,12 +105,12 @@ enum MCPBridgeAttributeEncoder {
         case .float, .double:
             return Projection(kind: "double", value: encodeNumberAsDouble(rawValue))
 
-        case .BOOL:
+        case .bool:
             // ObjC `LookinAttrTypeBOOL` keeps its uppercase initialism after
             // the importer strips the type prefix.
             return Projection(kind: "bool", value: .bool((rawValue as? NSNumber)?.boolValue ?? false))
 
-        case .sel:
+        case .selector:
             return Projection(kind: "selector", value: encodeAsString(rawValue))
 
         case .class:
@@ -152,7 +152,7 @@ enum MCPBridgeAttributeEncoder {
         case .json:
             return Projection(kind: "json", value: encodeArbitraryJSON(rawValue))
 
-        case .customObj:
+        case .customObject:
             if let constraints = rawValue as? [AutoLayoutConstraint], constraints.isEmpty == false {
                 return Projection(kind: "constraints", value: encodeConstraints(constraints))
             }
@@ -340,7 +340,7 @@ enum MCPBridgeAttributeEncoder {
 
     // MARK: - Constraints
 
-    private static func constraintItemTypeString(_ itemType: LookinConstraintItemType) -> String {
+    private static func constraintItemTypeString(_ itemType: AutoLayoutConstraint.ItemType) -> String {
         switch itemType {
         case .`nil`: return "nil"
         case .view: return "view"
@@ -361,7 +361,7 @@ enum MCPBridgeAttributeEncoder {
         }
     }
 
-    private static func encodeConstraintEndpoint(_ endpointObject: InspectedObject?, itemType: LookinConstraintItemType) -> MCPBridgeJSONValue {
+    private static func encodeConstraintEndpoint(_ endpointObject: InspectedObject?, itemType: AutoLayoutConstraint.ItemType) -> MCPBridgeJSONValue {
         var fields: [String: MCPBridgeJSONValue] = [
             "itemType": .string(constraintItemTypeString(itemType)),
         ]

@@ -105,7 +105,7 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
         }
 
         danceButton?.isHidden = true
-        if attribute.identifier == LookinAttr_Class_Class_Class, danceSource(of: attribute) != nil {
+        if attribute.identifier == InspectedAttribute.Identifier.Class.Class.class, danceSource(of: attribute) != nil {
             let button = danceButtonIfNeeded()
             button.title = NSLocalizedString("Navigate…", comment: "")
             button.isHidden = false
@@ -147,7 +147,7 @@ class DashboardAttributeStringArrayView: DashboardAttributeView {
 /// class followed by the framework it comes from when the Server sent that.
 final class DashboardAttributeClassView: DashboardAttributeStringArrayView {
     /// The image each class comes from, nested like the attribute's value
-    /// (LookinAttr_Class_Class_ImagePaths); nil from a Server that does not
+    /// (InspectedAttribute.Identifier.Class.Class.imagePaths); nil from a Server that does not
     /// send them. Set before the attribute, which renders.
     var classImagePaths: [[String]]?
 

@@ -48,7 +48,7 @@ final class GestureDebugSession: ObservableObject {
         let pushes = manager.pushEvents()
         subscriptions.append(Task { [weak self] in
             for await push in pushes {
-                guard push.type == UInt32(LookinPush_GestureDebug), let data = push.data as? Data else { continue }
+                guard push.type == UInt32(PushType.gestureDebug), let data = push.data as? Data else { continue }
                 self?.receive(data, from: push.channel)
             }
         })

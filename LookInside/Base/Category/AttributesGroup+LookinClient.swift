@@ -13,17 +13,17 @@ extension AttributesGroup {
         if let userCustomTitle, !userCustomTitle.isEmpty {
             return userCustomTitle
         }
-        if identifier == LookinAttrGroup_ViewLayer {
+        if identifier == AttributesGroup.Identifier.viewLayer {
             // +groupTitleWithGroupID: picks this title with TARGET_OS_IPHONE,
             // which is always 0 in the Host, so it would say "NSView" even
             // for an iOS target.
             return "CALayer / \(AppHelper.viewClassName(forMacTarget: isMacTarget))"
         }
-        if identifier == LookinAttrGroup_LayoutGuide {
+        if identifier == AttributesGroup.Identifier.layoutGuide {
             // The group ID is platform-neutral; the title names the inspected
             // platform's actual class.
             return isMacTarget ? "NSLayoutGuide" : "UILayoutGuide"
         }
-        return DashboardBlueprint.groupTitle(withGroupID: identifier) ?? ""
+        return identifier.flatMap(DashboardBlueprint.title(of:)) ?? ""
     }
 }

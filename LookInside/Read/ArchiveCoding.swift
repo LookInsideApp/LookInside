@@ -67,11 +67,11 @@ enum ArchiveCoding {
         return file
     }
 
-    /// `LookinErr_Inner`.
+    /// `InspectionError.inner`.
     static var innerError: NSError {
         NSError(
-            domain: LookinErrorDomain,
-            code: LookinErrCode_Inner,
+            domain: InspectionError.domain,
+            code: InspectionError.Code.inner,
             userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("The operation failed due to an inner error.", comment: "")]
         )
     }

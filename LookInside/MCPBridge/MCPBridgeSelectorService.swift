@@ -2,7 +2,7 @@
 //
 // Handles the `selectors.list` bridge route: enumerating the Objective-C
 // methods a class in the target app responds to (RPC 213
-// `LookinRequestTypeAllSelectorNames`).
+// `RequestType.allSelectorNames`).
 //
 // This route exists to make `invoke.method` usable. Without it an agent
 // has to guess selector names from the class name and discover its
@@ -238,21 +238,21 @@ final class MCPBridgeSelectorService {
 
     private func mapSelectorError(_ error: NSError, className: String) -> MCPBridgeErrorPayload {
         switch error.code {
-        case LookinErrCode_Inner:
+        case InspectionError.Code.inner:
             // RPC 213's only `Inner` path is a failed NSClassFromString,
             // so this is specific enough to name the cause outright.
             return MCPBridgeErrorPayload(
                 code: "selectors.classNotFound",
                 message: "The target app has no class named `\(className)`. Swift types need their module prefix (for example `MyApp.ContentView`); check the `classChain` reported by hierarchy.read."
             )
-        case LookinErrCode_LicenseRequired:
+        case InspectionError.Code.licenseRequired:
             return .licenseRequired
-        case LookinErrCode_NoConnect:
+        case InspectionError.Code.noConnection:
             return MCPBridgeErrorPayload(
                 code: "selectors.disconnected",
                 message: "The target app is no longer connected. Re-attach from the LookInside inspector and try again."
             )
-        case LookinErrCode_Timeout:
+        case InspectionError.Code.timeout:
             return MCPBridgeErrorPayload(
                 code: "selectors.timeout",
                 message: "The target app did not respond within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."

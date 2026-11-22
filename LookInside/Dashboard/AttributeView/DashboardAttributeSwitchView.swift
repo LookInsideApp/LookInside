@@ -37,7 +37,7 @@ final class DashboardAttributeSwitchView: DashboardAttributeView {
         if attribute.isUserCustom() {
             title = attribute.displayTitle
         } else {
-            title = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier)
+            title = attribute.identifier.flatMap(DashboardBlueprint.briefTitle(of:))
         }
         button.attributedTitle = DashboardText.attributed(title ?? "", color: NSColor(named: "DashboardCardValueColor"))
 
@@ -59,7 +59,7 @@ final class DashboardAttributeSwitchView: DashboardAttributeView {
         if attribute.isUserCustom() {
             return 1
         }
-        if attribute.identifier == LookinAttr_UIScrollView_Zoom_Bounce {
+        if attribute.identifier == InspectedAttribute.Identifier.UIScrollView.Zoom.bounce {
             return 1
         }
         return 0

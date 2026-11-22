@@ -18,9 +18,9 @@
         @objc(oid)
         public var oid: UInt = 0
         @objc(taskType)
-        public var taskType: LookinStaticAsyncUpdateTaskType = .noScreenshot
+        public var taskType: StaticAsyncUpdateTask.TaskType = .noScreenshot
         @objc(attrRequest)
-        public var attrRequest: LookinDetailUpdateTaskAttrRequest = .automatic
+        public var attrRequest: StaticAsyncUpdateTask.AttributeRequest = .automatic
         @objc(needBasisVisualInfo)
         public var needBasisVisualInfo: Bool = false
         @objc(needSubitems)
@@ -28,13 +28,13 @@
         @objc(clientReadableVersion)
         public var clientReadableVersion: String?
         /// The Host shows which image each class comes from, so the Server adds
-        /// LookinAttr_Class_Class_ImagePaths to the Class group. Archived only
+        /// InspectedAttribute.Identifier.Class.Class.imagePaths to the Class group. Archived only
         /// when set, so older Hosts' tasks encode exactly as before; older
         /// Servers ignore the key.
         @objc(wantsClassImagePaths)
         public var wantsClassImagePaths: Bool = false
         /// The newest attribute catalog revision the Host knows
-        /// (`LookinAttributeCatalogRevisionCurrent` when it was built); the
+        /// (`DashboardBlueprint.currentCatalogRevision` when it was built); the
         /// Server leaves out attributes of newer revisions. Archived only when
         /// above zero, so older Hosts' tasks encode exactly as before and read
         /// back as revision 0; older Servers ignore the key.
@@ -79,12 +79,12 @@
         public required init?(coder aDecoder: NSCoder) {
             super.init()
             oid = (aDecoder.decodeObject(forKey: "oid") as? NSNumber)?.uintValue ?? 0
-            taskType = LookinStaticAsyncUpdateTaskType(rawValue: aDecoder.decodeInteger(forKey: "taskType")) ?? .noScreenshot
+            taskType = StaticAsyncUpdateTask.TaskType(rawValue: aDecoder.decodeInteger(forKey: "taskType")) ?? .noScreenshot
             clientReadableVersion = aDecoder.decodeObject(forKey: "clientReadableVersion") as? String
             if aDecoder.containsValue(forKey: "attrRequest") {
                 let value = aDecoder.decodeInteger(forKey: "attrRequest")
-                if value >= LookinDetailUpdateTaskAttrRequest.automatic.rawValue, value <= LookinDetailUpdateTaskAttrRequest.notNeed.rawValue {
-                    attrRequest = LookinDetailUpdateTaskAttrRequest(rawValue: value) ?? .automatic
+                if value >= StaticAsyncUpdateTask.AttributeRequest.automatic.rawValue, value <= StaticAsyncUpdateTask.AttributeRequest.notNeed.rawValue {
+                    attrRequest = StaticAsyncUpdateTask.AttributeRequest(rawValue: value) ?? .automatic
                 } else {
                     attrRequest = .automatic
                 }

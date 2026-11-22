@@ -173,7 +173,7 @@
             // Dashboard with every attribute group expanded, for a label, an
             // image view and a stack view: the window, and the dashboard's
             // whole scrollable content.
-            preferences.collapsedAttrGroups = []
+            preferences.collapsedAttributeGroups = []
             for (name, item) in [("label", label), ("imageview", imageView), ("stackview", stackView)] {
                 select(item, in: dataSource)
                 try await capture("dashboard-\(name)", window: window, document: document)

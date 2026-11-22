@@ -45,7 +45,7 @@
             /// (`set<FullTitle>:`); "" makes the attribute read-only.
             var setterString: String?
             /// The concrete object type when the value is an object.
-            var typeIfObj: LookinAttrType?
+            var objectValueType: InspectedAttribute.ValueType?
             /// The enum's name (for example "NSTextAlignment") when the value
             /// is an enum; the host looks up its cases by this name.
             var enumList: String?
@@ -57,7 +57,7 @@
             /// Minimum OS major version; nil means no limit.
             var osVersion: Int?
             /// The attribute catalog revision that introduced the attribute
-            /// (`LookinAttributeCatalogRevisionCurrent`); a Host that declares an
+            /// (`DashboardBlueprint.currentCatalogRevision`); a Host that declares an
             /// older revision does not get it. Everything before revisions
             /// existed is 0.
             var revision: Int = 0
@@ -74,11 +74,8 @@
             string ?? "(null)"
         }
 
-        static func info(_ attrID: String?) -> AttributeInfo? {
-            guard let attrID else {
-                return nil
-            }
-            return attributeInfo[attrID]
+        static func info(_ attribute: InspectedAttribute.Identifier?) -> AttributeInfo? {
+            attribute.flatMap { attributeInfo[$0] }
         }
     }
 
@@ -98,81 +95,81 @@
         #endif
     }
 
+    /// What the dashboard shows for each group, section and attribute: their
+    /// order on this platform, titles, and how each attribute is read and
+    /// written. Swift asks with typed identifiers; Objective-C keeps the
+    /// string selectors `core-objc-surface.json` records, which Swift does not
+    /// see.
     @objc(LookinDashboardBlueprint)
     public class DashboardBlueprint: NSObject {
-        @objc(groupIDs)
-        public class func groupIDs() -> [String] {
-            DashboardBlueprintTables.groupIDs
+        /// The newest attribute catalog revision this build knows. Raise it by
+        /// one for each batch of attributes that needs a matching Host (new
+        /// groups, sections or enum lists), and give that batch the new
+        /// revision.
+        public static let currentCatalogRevision = 1
+
+        // MARK: Groups and sections
+
+        /// The groups on this platform, in display order.
+        public static var groupIdentifiers: [AttributesGroup.Identifier] {
+            DashboardBlueprintTables.groupIdentifiers
         }
 
-        @objc(sectionIDsForGroupID:)
-        public class func sectionIDs(forGroupID groupID: String?) -> [String]? {
-            guard let groupID else {
-                return nil
-            }
-            return DashboardBlueprintTables.sectionIDsByGroupID[groupID]
+        /// The sections of `group` on this platform, in display order; nil
+        /// when it has none here.
+        public static func sectionIdentifiers(in group: AttributesGroup.Identifier) -> [AttributesSection.Identifier]? {
+            DashboardBlueprintTables.sectionIdentifiersByGroup[group]
         }
 
-        @objc(attrIDsForSectionID:)
-        public class func attrIDs(forSectionID sectionID: String?) -> [String]? {
-            guard let sectionID else {
-                return nil
-            }
-            return DashboardBlueprintTables.attrIDsBySectionID[sectionID]
+        /// The attributes of `section` on this platform, in display order; nil
+        /// when the section is not on this platform.
+        public static func attributeIdentifiers(in section: AttributesSection.Identifier) -> [InspectedAttribute.Identifier]? {
+            DashboardBlueprintTables.attributeIdentifiersBySection[section]
         }
 
-        @objc(getHostGroupID:sectionID:fromAttrID:)
-        public class func getHostGroupID(
-            _ groupID: AutoreleasingUnsafeMutablePointer<NSString?>?,
-            sectionID: AutoreleasingUnsafeMutablePointer<NSString?>?,
-            fromAttrID targetAttrID: String?
-        ) {
-            var targetGroupID: String?
-            var targetSectionID: String?
-            search: for candidateGroupID in groupIDs() {
-                for candidateSectionID in sectionIDs(forGroupID: candidateGroupID) ?? [] {
-                    for attrID in attrIDs(forSectionID: candidateSectionID) ?? [] where attrID == targetAttrID {
-                        targetGroupID = candidateGroupID
-                        targetSectionID = candidateSectionID
-                        break search
-                    }
+        /// The group and section that list `attribute` on this platform.
+        public static func location(of attribute: InspectedAttribute.Identifier) -> (group: AttributesGroup.Identifier, section: AttributesSection.Identifier)? {
+            for group in groupIdentifiers {
+                for section in sectionIdentifiers(in: group) ?? [] where attributeIdentifiers(in: section)?.contains(attribute) == true {
+                    return (group, section)
                 }
             }
-            if let groupID, let targetGroupID {
-                groupID.pointee = targetGroupID as NSString
-            }
-            if let sectionID, let targetSectionID {
-                sectionID.pointee = targetSectionID as NSString
-            }
+            return nil
         }
 
-        @objc(groupTitleWithGroupID:)
-        public class func groupTitle(withGroupID groupID: String?) -> String? {
-            let title = groupID.flatMap { DashboardBlueprintTables.groupTitles[$0] }
-            blueprintAssert(!(title ?? "").isEmpty, method: #selector(groupTitle(withGroupID:)))
-            return title
+        /// The title of `group`. Asserts that it has one.
+        public static func title(of group: AttributesGroup.Identifier) -> String? {
+            assertedTitle(of: group)
         }
 
-        @objc(sectionTitleWithSectionID:)
-        public class func sectionTitle(withSectionID secID: String?) -> String? {
-            secID.flatMap { DashboardBlueprintTables.sectionTitles[$0] }
+        /// The title of `section`; nil when it has none.
+        public static func title(of section: AttributesSection.Identifier) -> String? {
+            DashboardBlueprintTables.sectionTitles[section]
         }
 
-        @objc(objectAttrTypeWithAttrID:)
-        public class func objectAttrType(withAttrID attrID: String?) -> LookinAttrType {
-            DashboardBlueprintTables.info(attrID)?.typeIfObj ?? LookinAttrType.none
+        /// The class every attribute of `section` belongs to, when they all
+        /// belong to the same one; the Server skips the whole section for a
+        /// target of another class.
+        public static func uniformClassName(of section: AttributesSection.Identifier) -> String? {
+            DashboardBlueprintTables.sectionClassNames[section]
         }
 
-        @objc(classNameWithAttrID:)
-        public class func className(withAttrID attrID: String?) -> String? {
-            let className = DashboardBlueprintTables.info(attrID)?.className
-            blueprintAssert(!(className ?? "").isEmpty, method: #selector(className(withAttrID:)))
-            return className
+        // MARK: Attributes
+
+        /// The concrete object type of `attribute`'s value when it is an
+        /// object; `.none` otherwise.
+        public static func objectValueType(of attribute: InspectedAttribute.Identifier) -> InspectedAttribute.ValueType {
+            DashboardBlueprintTables.info(attribute)?.objectValueType ?? .none
         }
 
-        @objc(targetKindForAttrID:)
-        public class func targetKind(forAttrID attrID: String?) -> LookinAttrTargetKind {
-            targetKind(forClassName: className(withAttrID: attrID))
+        /// The class that owns `attribute`. Asserts that it has one.
+        public static func className(of attribute: InspectedAttribute.Identifier) -> String? {
+            assertedClassName(of: attribute)
+        }
+
+        /// The object `attribute` is read from and written to.
+        public static func targetKind(of attribute: InspectedAttribute.Identifier) -> InspectedAttribute.TargetKind {
+            targetKind(forClassName: assertedClassName(of: attribute))
         }
 
         /// The object an attribute of `className` is read from. Decided by the
@@ -180,7 +177,7 @@
         /// Server agree: Core Animation classes are layers, AppKit classes
         /// ending in "Cell" are cells (NSTableCellView ends in "CellView" and
         /// stays a view), the window classes are windows, the rest views.
-        static func targetKind(forClassName className: String?) -> LookinAttrTargetKind {
+        static func targetKind(forClassName className: String?) -> InspectedAttribute.TargetKind {
             guard let className else {
                 return .view
             }
@@ -196,105 +193,255 @@
             return .view
         }
 
-        @objc(isWindowPropertyWithAttrID:)
-        public class func isWindowProperty(withAttrID attrID: String?) -> Bool {
-            targetKind(forAttrID: attrID) == .window
+        /// Whether `attribute` is read from the window.
+        public static func isWindowProperty(_ attribute: InspectedAttribute.Identifier) -> Bool {
+            targetKind(of: attribute) == .window
         }
 
-        @objc(isUIViewPropertyWithAttrID:)
-        public class func isUIViewProperty(withAttrID attrID: String?) -> Bool {
-            targetKind(forAttrID: attrID) == .view
+        /// Whether `attribute` is read from the view.
+        public static func isUIViewProperty(_ attribute: InspectedAttribute.Identifier) -> Bool {
+            targetKind(of: attribute) == .view
         }
 
-        @objc(enumListNameWithAttrID:)
-        public class func enumListName(withAttrID attrID: String?) -> String? {
-            DashboardBlueprintTables.info(attrID)?.enumList
+        /// The name of `attribute`'s enum (for example "NSTextAlignment") when
+        /// its value is one; the Host looks up the cases by this name.
+        public static func enumListName(of attribute: InspectedAttribute.Identifier) -> String? {
+            DashboardBlueprintTables.info(attribute)?.enumList
         }
 
-        @objc(needPatchAfterModificationWithAttrID:)
-        public class func needPatchAfterModification(withAttrID attrID: String?) -> Bool {
-            DashboardBlueprintTables.info(attrID)?.patch ?? false
+        /// Whether the Host refetches frames and screenshots after the user
+        /// modifies `attribute`.
+        public static func needsPatchAfterModification(_ attribute: InspectedAttribute.Identifier) -> Bool {
+            DashboardBlueprintTables.info(attribute)?.patch ?? false
         }
 
-        @objc(fullTitleWithAttrID:)
-        public class func fullTitle(withAttrID attrID: String?) -> String? {
-            DashboardBlueprintTables.info(attrID)?.fullTitle
+        /// The full name of `attribute`: its search keyword and search result
+        /// title.
+        public static func fullTitle(of attribute: InspectedAttribute.Identifier) -> String? {
+            DashboardBlueprintTables.info(attribute)?.fullTitle
         }
 
-        @objc(briefTitleWithAttrID:)
-        public class func briefTitle(withAttrID attrID: String?) -> String? {
-            let info = DashboardBlueprintTables.info(attrID)
+        /// The short name of `attribute`, falling back to its full name.
+        public static func briefTitle(of attribute: InspectedAttribute.Identifier) -> String? {
+            let info = DashboardBlueprintTables.info(attribute)
             return info?.briefTitle ?? info?.fullTitle
         }
 
-        @objc(getterWithAttrID:)
-        public class func getter(withAttrID attrID: String?) -> Selector? {
-            let info = DashboardBlueprintTables.info(attrID)
+        /// The getter of `attribute`; nil pins its value to nil.
+        public static func getter(of attribute: InspectedAttribute.Identifier) -> Selector? {
+            resolvedGetter(of: attribute)
+        }
+
+        /// The setter of `attribute`; nil makes it read-only.
+        public static func setter(of attribute: InspectedAttribute.Identifier) -> Selector? {
+            resolvedSetter(of: attribute)
+        }
+
+        /// Whether a nil value of `attribute` is left out of the transfer.
+        public static func hidesWhenNil(_ attribute: InspectedAttribute.Identifier) -> Bool {
+            DashboardBlueprintTables.info(attribute)?.hideIfNil ?? false
+        }
+
+        /// The OS major version `attribute` needs; 0 for no limit.
+        public static func minimumAvailableOSVersion(of attribute: InspectedAttribute.Identifier) -> Int {
+            DashboardBlueprintTables.info(attribute)?.osVersion ?? 0
+        }
+
+        /// The attribute catalog revision that introduced `attribute`, 0 for
+        /// an unknown identifier.
+        public static func catalogRevision(of attribute: InspectedAttribute.Identifier) -> Int {
+            DashboardBlueprintTables.info(attribute)?.revision ?? 0
+        }
+
+        /// How the value of `attribute` reaches the Host; `.value` for an
+        /// unknown identifier.
+        public static func presentation(of attribute: InspectedAttribute.Identifier) -> AttributePresentation {
+            DashboardBlueprintTables.info(attribute)?.presentation ?? .value
+        }
+
+        /// Whether `attribute` reaches the Host converted by its presentation
+        /// (as text, a count or a color) rather than as the getter returns it;
+        /// such attributes need no `objectValueType`.
+        public static func isPresented(_ attribute: InspectedAttribute.Identifier) -> Bool {
+            presentation(of: attribute) != .value
+        }
+
+        // MARK: Shared by both front ends
+
+        private static func assertedTitle(of group: AttributesGroup.Identifier?) -> String? {
+            let title = group.flatMap { DashboardBlueprintTables.groupTitles[$0] }
+            blueprintAssert(!(title ?? "").isEmpty, method: NSSelectorFromString("groupTitleWithGroupID:"))
+            return title
+        }
+
+        private static func assertedClassName(of attribute: InspectedAttribute.Identifier?) -> String? {
+            let className = DashboardBlueprintTables.info(attribute)?.className
+            blueprintAssert(!(className ?? "").isEmpty, method: NSSelectorFromString("classNameWithAttrID:"))
+            return className
+        }
+
+        private static func resolvedGetter(of attribute: InspectedAttribute.Identifier?) -> Selector? {
+            let info = DashboardBlueprintTables.info(attribute)
             if let getterString = info?.getterString {
                 // An empty string (for example image_open_open) pins the
                 // value to nil.
                 return getterString.isEmpty ? nil : NSSelectorFromString(getterString)
             }
             let fullTitle = info?.fullTitle
-            blueprintAssert(!(fullTitle ?? "").isEmpty, method: #selector(getter(withAttrID:)))
+            blueprintAssert(!(fullTitle ?? "").isEmpty, method: NSSelectorFromString("getterWithAttrID:"))
             return NSSelectorFromString(
                 DashboardBlueprintTables.formatted(fullTitle?.prefix(1).lowercased()) +
                     DashboardBlueprintTables.formatted(fullTitle.map { String($0.dropFirst()) })
             )
         }
 
-        @objc(setterWithAttrID:)
-        public class func setter(withAttrID attrID: String?) -> Selector? {
-            let info = DashboardBlueprintTables.info(attrID)
+        private static func resolvedSetter(of attribute: InspectedAttribute.Identifier?) -> Selector? {
+            let info = DashboardBlueprintTables.info(attribute)
             if let setterString = info?.setterString {
                 // An empty string means the client cannot modify the
                 // attribute.
                 return setterString.isEmpty ? nil : NSSelectorFromString(setterString)
             }
             let fullTitle = info?.fullTitle
-            blueprintAssert(!(fullTitle ?? "").isEmpty, method: #selector(setter(withAttrID:)))
+            blueprintAssert(!(fullTitle ?? "").isEmpty, method: NSSelectorFromString("setterWithAttrID:"))
             return NSSelectorFromString(
                 "set" + DashboardBlueprintTables.formatted(fullTitle?.prefix(1).uppercased()) +
                     DashboardBlueprintTables.formatted(fullTitle.map { String($0.dropFirst()) }) + ":"
             )
         }
 
+        // MARK: Objective-C
+
+        // The selectors core-objc-surface.json records, for the Objective-C
+        // tests. Swift uses the typed methods above instead.
+
+        @available(swift, obsoleted: 1)
+        @objc(groupIDs)
+        public class func objectiveCGroupIDs() -> [String] {
+            groupIdentifiers.map(\.rawValue)
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(sectionIDsForGroupID:)
+        public class func objectiveCSectionIDs(forGroupID groupID: String?) -> [String]? {
+            groupID.flatMap { sectionIdentifiers(in: AttributesGroup.Identifier(rawValue: $0))?.map(\.rawValue) }
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(attrIDsForSectionID:)
+        public class func objectiveCAttributeIDs(forSectionID sectionID: String?) -> [String]? {
+            sectionID.flatMap { attributeIdentifiers(in: AttributesSection.Identifier(rawValue: $0))?.map(\.rawValue) }
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(getHostGroupID:sectionID:fromAttrID:)
+        public class func objectiveCGetHostGroupID(
+            _ groupID: AutoreleasingUnsafeMutablePointer<NSString?>?,
+            sectionID: AutoreleasingUnsafeMutablePointer<NSString?>?,
+            fromAttrID attributeID: String?
+        ) {
+            guard let location = attributeID.flatMap({ location(of: InspectedAttribute.Identifier(rawValue: $0)) }) else {
+                return
+            }
+            groupID?.pointee = location.group.rawValue as NSString
+            sectionID?.pointee = location.section.rawValue as NSString
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(groupTitleWithGroupID:)
+        public class func objectiveCGroupTitle(withGroupID groupID: String?) -> String? {
+            assertedTitle(of: groupID.map(AttributesGroup.Identifier.init(rawValue:)))
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(sectionTitleWithSectionID:)
+        public class func objectiveCSectionTitle(withSectionID sectionID: String?) -> String? {
+            sectionID.flatMap { title(of: AttributesSection.Identifier(rawValue: $0)) }
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(objectAttrTypeWithAttrID:)
+        public class func objectiveCObjectAttributeType(withAttrID attributeID: String?) -> InspectedAttribute.ValueType {
+            DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.objectValueType ?? .none
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(classNameWithAttrID:)
+        public class func objectiveCClassName(withAttrID attributeID: String?) -> String? {
+            assertedClassName(of: attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(targetKindForAttrID:)
+        public class func objectiveCTargetKind(forAttrID attributeID: String?) -> InspectedAttribute.TargetKind {
+            targetKind(forClassName: assertedClassName(of: attributeID.map(InspectedAttribute.Identifier.init(rawValue:))))
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(isWindowPropertyWithAttrID:)
+        public class func objectiveCIsWindowProperty(withAttrID attributeID: String?) -> Bool {
+            targetKind(forClassName: assertedClassName(of: attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))) == .window
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(isUIViewPropertyWithAttrID:)
+        public class func objectiveCIsUIViewProperty(withAttrID attributeID: String?) -> Bool {
+            targetKind(forClassName: assertedClassName(of: attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))) == .view
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(enumListNameWithAttrID:)
+        public class func objectiveCEnumListName(withAttrID attributeID: String?) -> String? {
+            DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.enumList
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(needPatchAfterModificationWithAttrID:)
+        public class func objectiveCNeedsPatchAfterModification(withAttrID attributeID: String?) -> Bool {
+            DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.patch ?? false
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(fullTitleWithAttrID:)
+        public class func objectiveCFullTitle(withAttrID attributeID: String?) -> String? {
+            DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.fullTitle
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(briefTitleWithAttrID:)
+        public class func objectiveCBriefTitle(withAttrID attributeID: String?) -> String? {
+            let info = DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))
+            return info?.briefTitle ?? info?.fullTitle
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(getterWithAttrID:)
+        public class func objectiveCGetter(withAttrID attributeID: String?) -> Selector? {
+            resolvedGetter(of: attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))
+        }
+
+        @available(swift, obsoleted: 1)
+        @objc(setterWithAttrID:)
+        public class func objectiveCSetter(withAttrID attributeID: String?) -> Selector? {
+            resolvedSetter(of: attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))
+        }
+
+        @available(swift, obsoleted: 1)
         @objc(hideIfNilWithAttrID:)
-        public class func hideIfNil(withAttrID attrID: String?) -> Bool {
-            DashboardBlueprintTables.info(attrID)?.hideIfNil ?? false
+        public class func objectiveCHidesWhenNil(withAttrID attributeID: String?) -> Bool {
+            DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.hideIfNil ?? false
         }
 
+        @available(swift, obsoleted: 1)
         @objc(minAvailableOSVersionWithAttrID:)
-        public class func minAvailableOSVersion(withAttrID attrID: String?) -> Int {
-            DashboardBlueprintTables.info(attrID)?.osVersion ?? 0
+        public class func objectiveCMinimumAvailableOSVersion(withAttrID attributeID: String?) -> Int {
+            DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.osVersion ?? 0
         }
 
-        /// The attribute catalog revision that introduced `attrID`, 0 for an
-        /// unknown identifier. Swift only, so the Objective-C surface of the
-        /// class stays as recorded.
-        public static func catalogRevision(ofAttrID attrID: String) -> Int {
-            DashboardBlueprintTables.info(attrID)?.revision ?? 0
-        }
-
-        /// How the value of `attrID` reaches the Host; `.value` for an unknown
-        /// identifier. Swift only, like `catalogRevision(ofAttrID:)`.
-        public static func presentation(ofAttrID attrID: String) -> AttributePresentation {
-            DashboardBlueprintTables.info(attrID)?.presentation ?? .value
-        }
-
-        /// Whether `attrID` reaches the Host converted by its presentation (as
-        /// text, a count or a color) rather than as the getter returns it; such
-        /// attributes need no `typeIfObj`.
+        @available(swift, obsoleted: 1)
         @objc(isPresentedWithAttrID:)
-        public class func isPresented(withAttrID attrID: String?) -> Bool {
-            (DashboardBlueprintTables.info(attrID)?.presentation ?? .value) != .value
-        }
-
-        /// The class every attribute of `sectionID` belongs to, when they all
-        /// belong to the same one; the Server skips the whole section for a
-        /// target of another class. Swift only.
-        public static func uniformClassName(ofSectionID sectionID: String) -> String? {
-            DashboardBlueprintTables.sectionClassNames[sectionID]
+        public class func objectiveCIsPresented(withAttrID attributeID: String?) -> Bool {
+            (DashboardBlueprintTables.info(attributeID.map(InspectedAttribute.Identifier.init(rawValue:)))?.presentation ?? .value) != .value
         }
     }
 

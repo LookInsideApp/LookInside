@@ -41,7 +41,7 @@ class DashboardAttributeView: BaseView {
         if attribute.isUserCustom() {
             return !(attribute.customSetterID ?? "").isEmpty
         }
-        let setter = DashboardBlueprint.setter(withAttrID: attribute.identifier)
+        let setter = attribute.identifier.flatMap(DashboardBlueprint.setter(of:))
         return setter != nil && (dashboardViewController?.isStaticMode ?? false)
     }
 

@@ -15,15 +15,15 @@ protocol DashboardAccessoryWindowControllerDelegate: AnyObject {
 /// The panel beside the window that lists a card's hidden sections, each
 /// with a button that adds it to the card.
 final class DashboardAccessoryWindowController: WindowController, NSWindowDelegate {
-    private let groupID: String?
+    private let group: AttributesGroup.Identifier?
     private weak var dashboardController: DashboardViewController?
     /// Keyed by section identifier.
-    private var sectionViews: [String: DashboardSectionView] = [:]
+    private var sectionViews: [AttributesSection.Identifier: DashboardSectionView] = [:]
 
     weak var delegate: DashboardAccessoryWindowControllerDelegate?
 
-    init(dashboardController: DashboardViewController?, attrGroupID groupID: String?) {
-        self.groupID = groupID
+    init(dashboardController: DashboardViewController?, group: AttributesGroup.Identifier?) {
+        self.group = group
         self.dashboardController = dashboardController
         let panel = PopPanel(size: NSSize(width: 400, height: 100))
         super.init(window: panel)
@@ -60,8 +60,8 @@ final class DashboardAccessoryWindowController: WindowController, NSWindowDelega
 
         let normalSectionWidth = DashboardMetrics.viewWidth - DashboardMetrics.horInset * 2
         var y: CGFloat = 8
-        for sectionID in DashboardBlueprint.sectionIDs(forGroupID: groupID) ?? [] {
-            guard let view = sectionViews[sectionID], !view.isHidden else { continue }
+        for sectionIdentifier in group.flatMap({ DashboardBlueprint.sectionIdentifiers(in: $0) }) ?? [] {
+            guard let view = sectionViews[sectionIdentifier], !view.isHidden else { continue }
             view.dashboardLayout.x(DashboardMetrics.horInset).width(normalSectionWidth - DashboardMetrics.horInset * 2).heightToFit().y(y)
             y = view.frame.maxY + DashboardMetrics.sectionMarginTop
         }

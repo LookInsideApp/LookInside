@@ -155,7 +155,7 @@ extension HostAppTests {
             let probeWindow = LiveSessionState.backgroundProbeInterval + .seconds(3)
             #expect(await waitUntil(timeout: probeWindow) { document.applicationInBackgroundBannerMessage == nil })
             #expect(server.receivedRequestTypes.count > pingsBeforeProbe)
-            #expect(server.receivedRequestTypes.dropFirst(pingsBeforeProbe).allSatisfy { $0 == UInt32(LookinRequestTypePing) })
+            #expect(server.receivedRequestTypes.dropFirst(pingsBeforeProbe).allSatisfy { $0 == UInt32(RequestType.ping) })
         }
 
         /// The app's process went away and came back on a new channel: the
@@ -193,14 +193,14 @@ extension HostAppTests {
         @Test(.timeLimit(.minutes(1)))
         func refreshAfterReturnWaitsForTheRunningFetch() async throws {
             let server = FakeServer()
-            server.heldRequestTypes = [UInt32(LookinRequestTypeHierarchy)]
+            server.heldRequestTypes = [UInt32(RequestType.hierarchy)]
             defer { server.shutDown() }
             let channel = server.connectChannel()
             let document = LiveDocument(inspectableApp: makeApp(server, channel: channel))
             defer { document.close() }
             document.makeWindowControllers()
             let windowController = try #require(document.staticWindowController)
-            let hierarchyRequestCount = { server.receivedRequestTypes.filter { $0 == UInt32(LookinRequestTypeHierarchy) }.count }
+            let hierarchyRequestCount = { server.receivedRequestTypes.filter { $0 == UInt32(RequestType.hierarchy) }.count }
 
             let runningFetch = Task { try? await windowController.reloadHierarchy(initiator: .host) }
             #expect(await waitUntil { hierarchyRequestCount() == 1 })

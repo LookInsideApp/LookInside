@@ -152,9 +152,9 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             return
         }
         switch attrGroup.identifier {
-        case LookinAttrGroup_Class:
+        case AttributesGroup.Identifier.class:
             contentsY = 28
-        case LookinAttrGroup_Relation:
+        case AttributesGroup.Identifier.relation:
             contentsY = 30
         default:
             contentsY = 35
@@ -173,7 +173,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
         titleControl.toolTip = isSwiftUIGroup ? NSLocalizedString("LookInside Pro · Activated", comment: "") : nil
         titleControl.needsLayout = true
 
-        detailButton.isHidden = !shouldShowDetailButton(groupID: attrGroup.identifier)
+        detailButton.isHidden = !shouldShowDetailButton(group: attrGroup.identifier)
 
         sectionViews.forEach { $0.removeFromSuperview() }
         sectionViews.removeAll()
@@ -196,7 +196,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
             renderAccessoryWindowController()
         }
 
-        if attrGroup.identifier == LookinAttrGroup_Relation {
+        if attrGroup.identifier == AttributesGroup.Identifier.relation {
             showRelationHelpButton()
         } else {
             relationHelpButton?.removeFromSuperview()
@@ -281,101 +281,101 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
     }
 
     /// Internal for DashboardRegistrationTests.
-    static let groupIconNames: [String: String] = {
-        let names: [String: String] = [
-            LookinAttrGroup_Class: "dashboard_class",
-            LookinAttrGroup_Relation: "dashboard_relation",
-            LookinAttrGroup_Layout: "dashboard_layout",
-            LookinAttrGroup_AutoLayout: "dashboard_autolayout",
-            LookinAttrGroup_ViewLayer: "dashboard_layer",
-            LookinAttrGroup_UIImageView: "dashboard_imageview",
-            LookinAttrGroup_UILabel: "dashboard_label",
-            LookinAttrGroup_UIButton: "dashboard_button",
-            LookinAttrGroup_UIControl: "dashboard_control",
-            LookinAttrGroup_UIScrollView: "dashboard_scrollview",
-            LookinAttrGroup_UITableView: "dashboard_tableview",
-            LookinAttrGroup_UITextView: "dashboard_textview",
-            LookinAttrGroup_UITextField: "dashboard_textfield",
-            LookinAttrGroup_UIVisualEffectView: "dashboard_effectview",
-            LookinAttrGroup_UIStackView: "dashboard_stackview",
-            LookinAttrGroup_NSImageView: "dashboard_imageview",
-            LookinAttrGroup_NSControl: "dashboard_control",
-            LookinAttrGroup_NSButton: "dashboard_button",
-            LookinAttrGroup_NSScrollView: "dashboard_scrollview",
-            LookinAttrGroup_NSTableView: "dashboard_tableview",
-            LookinAttrGroup_NSTextView: "dashboard_textview",
-            LookinAttrGroup_NSTextField: "dashboard_textfield",
-            LookinAttrGroup_NSVisualEffectView: "dashboard_effectview",
-            LookinAttrGroup_NSStackView: "dashboard_stackview",
+    static let groupIconNames: [AttributesGroup.Identifier: String] = {
+        let names: [AttributesGroup.Identifier: String] = [
+            AttributesGroup.Identifier.class: "dashboard_class",
+            AttributesGroup.Identifier.relation: "dashboard_relation",
+            AttributesGroup.Identifier.layout: "dashboard_layout",
+            AttributesGroup.Identifier.autoLayout: "dashboard_autolayout",
+            AttributesGroup.Identifier.viewLayer: "dashboard_layer",
+            AttributesGroup.Identifier.uiImageView: "dashboard_imageview",
+            AttributesGroup.Identifier.uiLabel: "dashboard_label",
+            AttributesGroup.Identifier.uiButton: "dashboard_button",
+            AttributesGroup.Identifier.uiControl: "dashboard_control",
+            AttributesGroup.Identifier.uiScrollView: "dashboard_scrollview",
+            AttributesGroup.Identifier.uiTableView: "dashboard_tableview",
+            AttributesGroup.Identifier.uiTextView: "dashboard_textview",
+            AttributesGroup.Identifier.uiTextField: "dashboard_textfield",
+            AttributesGroup.Identifier.uiVisualEffectView: "dashboard_effectview",
+            AttributesGroup.Identifier.uiStackView: "dashboard_stackview",
+            AttributesGroup.Identifier.nsImageView: "dashboard_imageview",
+            AttributesGroup.Identifier.nsControl: "dashboard_control",
+            AttributesGroup.Identifier.nsButton: "dashboard_button",
+            AttributesGroup.Identifier.nsScrollView: "dashboard_scrollview",
+            AttributesGroup.Identifier.nsTableView: "dashboard_tableview",
+            AttributesGroup.Identifier.nsTextView: "dashboard_textview",
+            AttributesGroup.Identifier.nsTextField: "dashboard_textfield",
+            AttributesGroup.Identifier.nsVisualEffectView: "dashboard_effectview",
+            AttributesGroup.Identifier.nsStackView: "dashboard_stackview",
             // NSControl subclasses share the green hue NSControl itself uses.
-            LookinAttrGroup_NSSlider: "dashboard_slider",
-            LookinAttrGroup_NSStepper: "dashboard_stepper",
-            LookinAttrGroup_NSSwitch: "dashboard_switch",
-            LookinAttrGroup_NSSegmentedControl: "dashboard_segmentedcontrol",
-            LookinAttrGroup_NSLevelIndicator: "dashboard_levelindicator",
-            LookinAttrGroup_NSProgressIndicator: "dashboard_progressindicator",
-            LookinAttrGroup_NSPopUpButton: "dashboard_popupbutton",
-            LookinAttrGroup_NSComboBox: "dashboard_combobox",
-            LookinAttrGroup_NSColorWell: "dashboard_colorwell",
-            LookinAttrGroup_NSDatePicker: "dashboard_datepicker",
+            AttributesGroup.Identifier.nsSlider: "dashboard_slider",
+            AttributesGroup.Identifier.nsStepper: "dashboard_stepper",
+            AttributesGroup.Identifier.nsSwitch: "dashboard_switch",
+            AttributesGroup.Identifier.nsSegmentedControl: "dashboard_segmentedcontrol",
+            AttributesGroup.Identifier.nsLevelIndicator: "dashboard_levelindicator",
+            AttributesGroup.Identifier.nsProgressIndicator: "dashboard_progressindicator",
+            AttributesGroup.Identifier.nsPopUpButton: "dashboard_popupbutton",
+            AttributesGroup.Identifier.nsComboBox: "dashboard_combobox",
+            AttributesGroup.Identifier.nsColorWell: "dashboard_colorwell",
+            AttributesGroup.Identifier.nsDatePicker: "dashboard_datepicker",
             // Data containers share the blue hue NSTableView uses.
-            LookinAttrGroup_NSOutlineView: "dashboard_outlineview",
-            LookinAttrGroup_NSCollectionView: "dashboard_collectionview",
-            LookinAttrGroup_NSGridView: "dashboard_gridview",
+            AttributesGroup.Identifier.nsOutlineView: "dashboard_outlineview",
+            AttributesGroup.Identifier.nsCollectionView: "dashboard_collectionview",
+            AttributesGroup.Identifier.nsGridView: "dashboard_gridview",
             // Structural containers share the pink hue NSStackView uses.
-            LookinAttrGroup_NSSplitView: "dashboard_splitview",
-            LookinAttrGroup_NSTabView: "dashboard_tabview",
-            LookinAttrGroup_NSBox: "dashboard_box",
+            AttributesGroup.Identifier.nsSplitView: "dashboard_splitview",
+            AttributesGroup.Identifier.nsTabView: "dashboard_tabview",
+            AttributesGroup.Identifier.nsBox: "dashboard_box",
             // Window chrome gets a graphite hue no content group uses.
-            LookinAttrGroup_NSWindow: "dashboard_window",
-            LookinAttrGroup_UIWindowScene: "dashboard_windowscene",
-            LookinAttrGroup_UITraitCollection: "dashboard_traitcollection",
-            LookinAttrGroup_LayoutGuide: "dashboard_layoutguide",
-            LookinAttrGroup_NSCell: "dashboard_cell",
-            LookinAttrGroup_UISlider: "dashboard_slider",
-            LookinAttrGroup_UIStepper: "dashboard_stepper",
-            LookinAttrGroup_UISwitch: "dashboard_switch",
-            LookinAttrGroup_UISegmentedControl: "dashboard_segmentedcontrol",
-            LookinAttrGroup_UIProgressView: "dashboard_progressindicator",
-            LookinAttrGroup_UIActivityIndicatorView: "dashboard_progressindicator",
-            LookinAttrGroup_UIPageControl: "dashboard_pagecontrol",
-            LookinAttrGroup_UIDatePicker: "dashboard_datepicker",
-            LookinAttrGroup_UIColorWell: "dashboard_colorwell",
-            LookinAttrGroup_UIRefreshControl: "dashboard_progressindicator",
-            LookinAttrGroup_UIPickerView: "dashboard_picker",
-            LookinAttrGroup_UICalendarView: "dashboard_datepicker",
-            LookinAttrGroup_UIPasteControl: "dashboard_button",
-            LookinAttrGroup_UICollectionView: "dashboard_collectionview",
-            LookinAttrGroup_UICollectionReusableView: "dashboard_cell",
-            LookinAttrGroup_UITableViewCell: "dashboard_cell",
-            LookinAttrGroup_UITableViewHeaderFooterView: "dashboard_cell",
-            LookinAttrGroup_UINavigationBar: "dashboard_navigationbar",
-            LookinAttrGroup_UITabBar: "dashboard_tabbar",
-            LookinAttrGroup_UIToolbar: "dashboard_toolbar",
-            LookinAttrGroup_UISearchBar: "dashboard_searchfield",
-            LookinAttrGroup_UIInputView: "dashboard_view",
-            LookinAttrGroup_UIContentUnavailableView: "dashboard_view",
-            LookinAttrGroup_UIBackgroundExtensionView: "dashboard_effectview",
-            LookinAttrGroup_UIWindow: "dashboard_window",
-            LookinAttrGroup_UIView: "dashboard_view",
-            LookinAttrGroup_NSClipView: "dashboard_scrollview",
-            LookinAttrGroup_NSScroller: "dashboard_scrollview",
-            LookinAttrGroup_NSBrowser: "dashboard_browser",
-            LookinAttrGroup_NSMatrix: "dashboard_gridview",
-            LookinAttrGroup_NSPathControl: "dashboard_pathcontrol",
-            LookinAttrGroup_NSRuleEditor: "dashboard_ruleeditor",
-            LookinAttrGroup_NSSearchField: "dashboard_searchfield",
-            LookinAttrGroup_NSComboButton: "dashboard_button",
-            LookinAttrGroup_NSGlassEffectView: "dashboard_effectview",
-            LookinAttrGroup_NSBackgroundExtensionView: "dashboard_effectview",
-            LookinAttrGroup_NSRulerView: "dashboard_ruler",
-            LookinAttrGroup_NSTableCellView: "dashboard_cell",
-            LookinAttrGroup_NSTableRowView: "dashboard_tableview",
-            LookinAttrGroup_NSTableHeaderView: "dashboard_tableview",
-            LookinAttrGroup_NSTextInsertionIndicator: "dashboard_textview",
-            LookinAttrGroup_NSView: "dashboard_view",
-            LookinAttrGroup_CALayer: "dashboard_layer",
-            LookinAttrGroup_UserCustom: "dashboard_custom",
+            AttributesGroup.Identifier.nsWindow: "dashboard_window",
+            AttributesGroup.Identifier.uiWindowScene: "dashboard_windowscene",
+            AttributesGroup.Identifier.uiTraitCollection: "dashboard_traitcollection",
+            AttributesGroup.Identifier.layoutGuide: "dashboard_layoutguide",
+            AttributesGroup.Identifier.nsCell: "dashboard_cell",
+            AttributesGroup.Identifier.uiSlider: "dashboard_slider",
+            AttributesGroup.Identifier.uiStepper: "dashboard_stepper",
+            AttributesGroup.Identifier.uiSwitch: "dashboard_switch",
+            AttributesGroup.Identifier.uiSegmentedControl: "dashboard_segmentedcontrol",
+            AttributesGroup.Identifier.uiProgressView: "dashboard_progressindicator",
+            AttributesGroup.Identifier.uiActivityIndicatorView: "dashboard_progressindicator",
+            AttributesGroup.Identifier.uiPageControl: "dashboard_pagecontrol",
+            AttributesGroup.Identifier.uiDatePicker: "dashboard_datepicker",
+            AttributesGroup.Identifier.uiColorWell: "dashboard_colorwell",
+            AttributesGroup.Identifier.uiRefreshControl: "dashboard_progressindicator",
+            AttributesGroup.Identifier.uiPickerView: "dashboard_picker",
+            AttributesGroup.Identifier.uiCalendarView: "dashboard_datepicker",
+            AttributesGroup.Identifier.uiPasteControl: "dashboard_button",
+            AttributesGroup.Identifier.uiCollectionView: "dashboard_collectionview",
+            AttributesGroup.Identifier.uiCollectionReusableView: "dashboard_cell",
+            AttributesGroup.Identifier.uiTableViewCell: "dashboard_cell",
+            AttributesGroup.Identifier.uiTableViewHeaderFooterView: "dashboard_cell",
+            AttributesGroup.Identifier.uiNavigationBar: "dashboard_navigationbar",
+            AttributesGroup.Identifier.uiTabBar: "dashboard_tabbar",
+            AttributesGroup.Identifier.uiToolbar: "dashboard_toolbar",
+            AttributesGroup.Identifier.uiSearchBar: "dashboard_searchfield",
+            AttributesGroup.Identifier.uiInputView: "dashboard_view",
+            AttributesGroup.Identifier.uiContentUnavailableView: "dashboard_view",
+            AttributesGroup.Identifier.uiBackgroundExtensionView: "dashboard_effectview",
+            AttributesGroup.Identifier.uiWindow: "dashboard_window",
+            AttributesGroup.Identifier.uiView: "dashboard_view",
+            AttributesGroup.Identifier.nsClipView: "dashboard_scrollview",
+            AttributesGroup.Identifier.nsScroller: "dashboard_scrollview",
+            AttributesGroup.Identifier.nsBrowser: "dashboard_browser",
+            AttributesGroup.Identifier.nsMatrix: "dashboard_gridview",
+            AttributesGroup.Identifier.nsPathControl: "dashboard_pathcontrol",
+            AttributesGroup.Identifier.nsRuleEditor: "dashboard_ruleeditor",
+            AttributesGroup.Identifier.nsSearchField: "dashboard_searchfield",
+            AttributesGroup.Identifier.nsComboButton: "dashboard_button",
+            AttributesGroup.Identifier.nsGlassEffectView: "dashboard_effectview",
+            AttributesGroup.Identifier.nsBackgroundExtensionView: "dashboard_effectview",
+            AttributesGroup.Identifier.nsRulerView: "dashboard_ruler",
+            AttributesGroup.Identifier.nsTableCellView: "dashboard_cell",
+            AttributesGroup.Identifier.nsTableRowView: "dashboard_tableview",
+            AttributesGroup.Identifier.nsTableHeaderView: "dashboard_tableview",
+            AttributesGroup.Identifier.nsTextInsertionIndicator: "dashboard_textview",
+            AttributesGroup.Identifier.nsView: "dashboard_view",
+            AttributesGroup.Identifier.caLayer: "dashboard_layer",
+            AttributesGroup.Identifier.userCustom: "dashboard_custom",
         ]
         #if DEBUG
             // Fail on the first card rendered rather than only when someone
@@ -394,8 +394,8 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
     /// it has enums) the enum lists. An unregistered group falls back to a
     /// generic icon.
     static func image(for group: AttributesGroup) -> NSImage? {
-        let name = groupIconNames[group.identifier ?? ""]
-        assert(name != nil, "missing dashboard icon for group \(group.identifier ?? "nil")")
+        let name = group.identifier.flatMap { groupIconNames[$0] }
+        assert(name != nil, "missing dashboard icon for group \(group.identifier?.rawValue ?? "nil")")
         return DashboardStyle.image(name ?? "dashboard_layer")
     }
 
@@ -468,7 +468,7 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
         }
 
         guard let attrGroup else { return }
-        let controller = DashboardAccessoryWindowController(dashboardController: dashboardViewController, attrGroupID: attrGroup.identifier)
+        let controller = DashboardAccessoryWindowController(dashboardController: dashboardViewController, group: attrGroup.identifier)
         controller.delegate = self
         accessoryWindowController = controller
 
@@ -487,16 +487,16 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
 
         sectionViews.forEach { $0.manageState = .canRemove }
 
-        let allSectionIDs = DashboardBlueprint.sectionIDs(forGroupID: attrGroup.identifier) ?? []
-        let hiddenSectionIDs = allSectionIDs.filter { !PreferenceManager.shared.isSectionShowing($0) }
-        if hiddenSectionIDs.isEmpty {
+        let allSections = attrGroup.identifier.flatMap { DashboardBlueprint.sectionIdentifiers(in: $0) } ?? []
+        let hiddenSections = allSections.filter { !PreferenceManager.shared.isSectionShowing($0) }
+        if hiddenSections.isEmpty {
             controller.window?.contentView?.isHidden = true
             return
         }
         controller.window?.contentView?.isHidden = false
 
-        let sections = hiddenSectionIDs.compactMap { sectionID in
-            (attrGroup.attrSections ?? []).first { $0.identifier == sectionID }
+        let sections = hiddenSections.compactMap { sectionIdentifier in
+            (attrGroup.attrSections ?? []).first { $0.identifier == sectionIdentifier }
         }
         let contentSize = controller.render(attrSections: sections)
 
@@ -522,14 +522,14 @@ final class DashboardCardView: BaseView, UserActionManagerDelegate, DashboardAcc
         accessoryWindowController = nil
     }
 
-    private func shouldShowDetailButton(groupID: String?) -> Bool {
-        if groupID == LookinAttrGroup_UserCustom {
+    private func shouldShowDetailButton(group: AttributesGroup.Identifier?) -> Bool {
+        if group == .userCustom {
             return false
         }
         // The group's own section count, not the blueprint's: some groups
         // (Layout for NSWindow, for example) are built with fewer sections.
         let actualCount = attrGroup?.attrSections?.count ?? 0
-        let blueprintCount = DashboardBlueprint.sectionIDs(forGroupID: groupID)?.count ?? 0
+        let blueprintCount = group.flatMap { DashboardBlueprint.sectionIdentifiers(in: $0)?.count } ?? 0
         return min(actualCount, blueprintCount) > 1
     }
 }

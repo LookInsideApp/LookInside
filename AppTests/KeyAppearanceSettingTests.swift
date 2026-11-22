@@ -24,13 +24,13 @@ extension HostAppTests {
             let level = PreferenceManager.shared.inspectedAppKeyAppearanceLevel
 
             let hierarchyParameters = InspectableApp.hierarchyRequestParameters()
-            #expect(hierarchyParameters[LookinParam_KeyAppearanceLevel] as? NSNumber == NSNumber(value: level.serverLevel.rawValue))
-            #expect(hierarchyParameters[LookinParam_KeepsKeyAppearance] as? NSNumber == NSNumber(value: level != .off))
+            #expect(hierarchyParameters[RequestParameterKey.keyAppearanceLevel] as? NSNumber == NSNumber(value: level.serverLevel.rawValue))
+            #expect(hierarchyParameters[RequestParameterKey.keepsKeyAppearance] as? NSNumber == NSNumber(value: level != .off))
 
             let localIdentifiers = NSArray(array: [NSNumber(value: 7)])
             let appParameters = AppsManager.appRequestParameters(needImages: true, localIdentifiers: localIdentifiers)
-            #expect(appParameters[LookinParam_KeyAppearanceLevel] as? NSNumber == NSNumber(value: level.serverLevel.rawValue))
-            #expect(appParameters[LookinParam_KeepsKeyAppearance] as? NSNumber == NSNumber(value: level != .off))
+            #expect(appParameters[RequestParameterKey.keyAppearanceLevel] as? NSNumber == NSNumber(value: level.serverLevel.rawValue))
+            #expect(appParameters[RequestParameterKey.keepsKeyAppearance] as? NSNumber == NSNumber(value: level != .off))
             #expect(appParameters["needImages"] as? NSNumber == NSNumber(value: true), "the keys the Server always read stay")
             #expect(appParameters["local"] as? NSArray == localIdentifiers)
         }
@@ -38,7 +38,7 @@ extension HostAppTests {
         /// An older Server reads only the switch: it draws the window as key
         /// at either level above off.
         @Test func eachLevelSendsTheSwitchOlderServersRead() {
-            let expected: [(InspectedAppKeyAppearanceLevel, LookinKeyAppearanceLevel, Bool)] = [
+            let expected: [(InspectedAppKeyAppearanceLevel, KeyAppearanceLevel, Bool)] = [
                 (.off, .off, false),
                 (.drawsAsKey, .drawsAsKey, true),
                 (.treatsAsKey, .treatsAsKey, true),
@@ -47,8 +47,8 @@ extension HostAppTests {
             for (level, serverLevel, keepsKeyAppearance) in expected {
                 let parameters = level.requestParameters
                 #expect(level.serverLevel == serverLevel)
-                #expect(parameters[LookinParam_KeyAppearanceLevel as NSString] == NSNumber(value: serverLevel.rawValue))
-                #expect(parameters[LookinParam_KeepsKeyAppearance as NSString] == NSNumber(value: keepsKeyAppearance))
+                #expect(parameters[RequestParameterKey.keyAppearanceLevel as NSString] == NSNumber(value: serverLevel.rawValue))
+                #expect(parameters[RequestParameterKey.keepsKeyAppearance as NSString] == NSNumber(value: keepsKeyAppearance))
             }
         }
 

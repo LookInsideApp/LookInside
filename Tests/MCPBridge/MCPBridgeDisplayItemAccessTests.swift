@@ -66,7 +66,7 @@ struct MCPBridgeDisplayItemAccessTests {
         let extensionGroup = AttributesGroup()
         extensionGroup.identifier = "SwiftUIExtension"
         let classGroup = AttributesGroup()
-        classGroup.identifier = LookinAttrGroup_Class
+        classGroup.identifier = AttributesGroup.Identifier.class
         precondition(!MCPBridgeDisplayItemAccess.hasCachedDetails(root))
         root.attributesGroupList = []
         root.customAttrGroupList = [AttributesGroup()]

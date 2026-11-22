@@ -4,7 +4,7 @@ import Metal
 import QuartzCore
 
 /// Coverage for a live session's window archive: the reply a macOS Server
-/// sends for `LookinRequestTypeLayerArchive`, decoded and checked against the
+/// sends for `RequestType.layerArchive`, decoded and checked against the
 /// walk the Server listed. The archives are written by QuartzCore's own
 /// `CAEncodeLayerTree`, the function the Server calls.
 @main
@@ -400,7 +400,7 @@ struct LiveLayerArchiveTests {
 
     /// RuntimeViewer's sidebar outline is 364.5 × 107829 points with every
     /// group expanded. The preview takes no image longer than
-    /// `LookinNodeImageMaxLengthInPx` on a side and asserts on one: either
+    /// `PreviewLimits.maximumNodeImageLengthInPixels` on a side and asserts on one: either
     /// image drawn from the archive for such a layer is shrunk to fit.
     private static func testImageOfAVeryTallLayerFitsThePreview() {
         guard MTLCreateSystemDefaultDevice() != nil else {
@@ -437,7 +437,7 @@ struct LiveLayerArchiveTests {
             }
             let longestSide = max(image.width, image.height)
             expect(
-                Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                Double(longestSide) <= PreviewLimits.maximumNodeImageLengthInPixels,
                 "the \(kind) image of a 364.5 × 107829 layer should fit the preview, got \(image.width) × \(image.height)"
             )
         }

@@ -612,7 +612,7 @@ extension HierarchyView: NSMenuDelegate {
 
         if displayItem.hasPreviewBoxAbility() {
             if displayItem.inNoPreviewHierarchy {
-                let title = displayItem.doNotFetchScreenshotReason == .fetchScreenshotPermitted
+                let title = displayItem.doNotFetchScreenshotReason == .permitted
                     ? NSLocalizedString("Show screenshot", comment: "")
                     : NSLocalizedString("Show layer border", comment: "")
                 menu.addItem(menuItem(title, action: #selector(handleShowPreview(_:))))

@@ -3,7 +3,7 @@
 // Handles the `invoke.method` bridge route: arbitrary zero-argument
 // Objective-C selector invocation on a view in an attached target app.
 // This is the bridge's first mutating route — it goes over the connection channel
-// (RPC 206 `LookinRequestType_InvokeMethod`) and can change the
+// (RPC 206 `RequestType.invokeMethod`) and can change the
 // inspected app's state. Read-only inspection routes live in
 // `MCPBridgeInspectionService`; they share the live-document /
 // display-item lookup through `MCPBridgeLiveDocumentLookup`.
@@ -59,7 +59,7 @@ final class MCPBridgeInvocationService {
         // anything that wouldn't go through RPC 206's zero-argument
         // gate on the server side). Centralizing this here gives a
         // single explicit error code with a hint instead of relying on
-        // the server's generic `LookinErrCode_Inner`.
+        // the server's generic `InspectionError.Code.inner`.
         if selector.contains(":") {
             return .failure(
                 identifier: identifier,
@@ -132,11 +132,11 @@ final class MCPBridgeInvocationService {
         // `invokeMethod(oid:text:)`: that one replaces the Server's
         // void-return marker with a localized sentence, and the marker is
         // what `returnedVoid` is decided from. A missing channel throws
-        // `LookinErr_NoConnect`, mapped to `invoke.disconnected` below.
+        // `InspectionError.noConnection`, mapped to `invoke.disconnected` below.
         let rawDictionary: NSDictionary
         do {
             rawDictionary = try await document.inspectableApp.response(
-                type: UInt32(LookinRequestTypeInvokeMethod),
+                type: UInt32(RequestType.invokeMethod),
                 data: InspectableApp.invokeMethodParameters(oid: nativeOid, text: selector),
                 as: NSDictionary.self
             )
@@ -165,7 +165,7 @@ final class MCPBridgeInvocationService {
         redactSecureContent: Bool
     ) -> MCPBridgeInvocationResult {
         let rawDescription = dictionary["description"] as? String
-        let returnedVoid = rawDescription == LookinStringFlag_VoidReturn
+        let returnedVoid = rawDescription == RequestType.invokeMethodVoidReturnDescription
 
         let surfacedDescription: String?
         if redactSecureContent {
@@ -201,24 +201,24 @@ final class MCPBridgeInvocationService {
 
     private func mapInvocationError(_ error: NSError) -> MCPBridgeErrorPayload {
         switch error.code {
-        case LookinErrCode_ObjectNotFound:
+        case InspectionError.Code.objectNotFound:
             return MCPBridgeErrorPayload(
                 code: "invoke.objectNotFound",
                 message: "The target app could not find an object for this identifier or it does not respond to the selector. The object may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
-        case LookinErrCode_Inner:
+        case InspectionError.Code.inner:
             return MCPBridgeErrorPayload(
                 code: "invoke.invalidSelector",
                 message: "The target app rejected the selector — most likely it requires arguments or has no method signature. Only zero-argument selectors are supported."
             )
-        case LookinErrCode_LicenseRequired:
+        case InspectionError.Code.licenseRequired:
             return .licenseRequired
-        case LookinErrCode_NoConnect:
+        case InspectionError.Code.noConnection:
             return MCPBridgeErrorPayload(
                 code: "invoke.disconnected",
                 message: "The target app is no longer connected. Re-attach from the LookInside inspector and try again."
             )
-        case LookinErrCode_Timeout:
+        case InspectionError.Code.timeout:
             return MCPBridgeErrorPayload(
                 code: "invoke.timeout",
                 message: "The target app did not respond within the request timeout. Check whether it is paused in Xcode or blocked on the main thread."

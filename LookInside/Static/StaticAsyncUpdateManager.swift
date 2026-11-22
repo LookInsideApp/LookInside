@@ -250,7 +250,7 @@ final class StaticAsyncUpdateManager: NSObject {
         }
         var tasks: [StaticAsyncUpdateTask] = []
         displayItem.enumerateSelfAndAncestors { item, _ in
-            guard item.doNotFetchScreenshotReason == .fetchScreenshotPermitted else { return }
+            guard item.doNotFetchScreenshotReason == .permitted else { return }
             if item === displayItem, !(item.subitems ?? []).isEmpty, !isDrawnFromArchive(.solo, of: item),
                let task = self.task(from: item, type: .soloScreenshot)
             {
@@ -276,7 +276,7 @@ final class StaticAsyncUpdateManager: NSObject {
             }
             guard !tasks.isEmpty else { return }
         }
-        startRequest(app: app, type: LookinRequestTypeAttrModificationPatch, tasks: tasks) { [weak self] event in
+        startRequest(app: app, type: RequestType.attributeModificationPatch, tasks: tasks) { [weak self] event in
             guard let self else { return }
             switch event {
             case let .value(value):
@@ -317,7 +317,7 @@ final class StaticAsyncUpdateManager: NSObject {
         var redrawsLeft = 0
         var droppedOids = Set<UInt>()
         window.enumerateSelfAndChildren { item in
-            guard item !== window, item.doNotFetchScreenshotReason == .fetchScreenshotPermitted else { return }
+            guard item !== window, item.doNotFetchScreenshotReason == .permitted else { return }
             for kind in [LiveLayerArchive.ImageKind.group, .solo] {
                 let wasDrawnFromArchive = self.layerArchiveStore.hasDrawnOrQueued(kind, of: item)
                 let source = succeeded ? self.layerArchiveStore.imageSource(kind, of: item) : .server
@@ -574,7 +574,7 @@ final class StaticAsyncUpdateManager: NSObject {
             isWaitingForChannel = false
             // A reload or an expand started a request meanwhile.
             guard ongoingRequest == nil else { return }
-            if inspectableApp?.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchyDetails)) == true {
+            if inspectableApp?.isRequestInFlight(type: UInt32(RequestType.hierarchyDetails)) == true {
                 resumeWhenChannelIsFree()
             } else {
                 fetchForDisplayingItems()
@@ -603,7 +603,7 @@ final class StaticAsyncUpdateManager: NSObject {
                     isExpandable: item.isExpandable,
                     isExpanded: item.isExpanded,
                     hasPixelBearingSubitems: item.hasPixelBearingSubitems(),
-                    mayFetchScreenshot: item.doNotFetchScreenshotReason == .fetchScreenshotPermitted
+                    mayFetchScreenshot: item.doNotFetchScreenshotReason == .permitted
                         && (!item.isUserCustom() || item.customInfo?.detailHasScreenshots == true),
                     isUserCustom: !item.canFetchDetails,
                     hasSoloScreenshot: item.soloScreenshot != nil,
@@ -646,7 +646,7 @@ final class StaticAsyncUpdateManager: NSObject {
                 let item = items[request.nodeIndex]
                 let screenshot = self.routingToLayerArchive(request.screenshot, of: item, for: kind)
                 guard screenshot != nil || request.wantsAttributes else { continue }
-                let taskType: LookinStaticAsyncUpdateTaskType = switch screenshot {
+                let taskType: StaticAsyncUpdateTask.TaskType = switch screenshot {
                 case .solo: .soloScreenshot
                 case .group: .groupScreenshot
                 case nil: .noScreenshot
@@ -699,7 +699,7 @@ final class StaticAsyncUpdateManager: NSObject {
         }
     }
 
-    private func task(from item: DisplayItem, type: LookinStaticAsyncUpdateTaskType) -> StaticAsyncUpdateTask? {
+    private func task(from item: DisplayItem, type: StaticAsyncUpdateTask.TaskType) -> StaticAsyncUpdateTask? {
         let context = TaskContext(appInfo: dataSource?.rawHierarchyInfo?.appInfo)
         if context.isMacTarget, item.isSwiftUISupportRelated(), !Self.swiftUISupportAccessAllowed() {
             return nil
@@ -709,7 +709,7 @@ final class StaticAsyncUpdateManager: NSObject {
 
     /// The task, or nil for an item without an oid. The SwiftUI license
     /// check is the caller's.
-    private static func task(from item: DisplayItem, type: LookinStaticAsyncUpdateTaskType, context: TaskContext) -> StaticAsyncUpdateTask? {
+    private static func task(from item: DisplayItem, type: StaticAsyncUpdateTask.TaskType, context: TaskContext) -> StaticAsyncUpdateTask? {
         var oid: UInt = 0
         switch item.resolvedNodeKind() {
         case .window, .windowScene:
@@ -751,7 +751,7 @@ final class StaticAsyncUpdateManager: NSObject {
         task.taskType = type
         task.needBasisVisualInfo = true
         task.clientReadableVersion = context.clientReadableVersion
-        task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
+        task.attributeCatalogRevision = DashboardBlueprint.currentCatalogRevision
         // The Class card shows the image each class comes from.
         task.wantsClassImagePaths = true
         return task
@@ -852,7 +852,7 @@ final class StaticAsyncUpdateManager: NSObject {
         guard let app = inspectableApp, !newTasks.isEmpty else { return }
         // The same request cannot run twice at once: cancel the previous one.
         endUpdating()
-        if yieldsToOtherRequests, app.isRequestInFlight(type: UInt32(LookinRequestTypeHierarchyDetails)) {
+        if yieldsToOtherRequests, app.isRequestInFlight(type: UInt32(RequestType.hierarchyDetails)) {
             // This manager's ended above: the one in flight is another
             // client's.
             resumeWhenChannelIsFree()
@@ -878,7 +878,7 @@ final class StaticAsyncUpdateManager: NSObject {
         // ping: another client's request may have started meanwhile.
         request.sink = startRequest(
             app: app,
-            type: LookinRequestTypeHierarchyDetails,
+            type: RequestType.hierarchyDetails,
             tasks: request.packages as NSArray,
             yieldsToRequestInFlight: yieldsToOtherRequests
         ) { [weak self] event in
@@ -904,14 +904,14 @@ final class StaticAsyncUpdateManager: NSObject {
 
     private func receive(details: [DisplayItemDetail], for request: DetailUpdateRequest) {
         for detail in details {
-            if detail.failureCode != LookinDisplayItemDetailFailureCode.none.rawValue {
+            if detail.failureCode != DisplayItemDetail.FailureCode.none.rawValue {
                 // ObjectGone is routine: the inspected app released the
                 // object after the hierarchy build (TextKit 2 fragment views,
                 // portals and other short-lived internals go away on their
                 // own). The node keeps the data captured at build time, so
                 // only real faults feed the "Some layer data failed to
                 // transmit" alert.
-                let objectIsGone = detail.failureCode == LookinDisplayItemDetailFailureCode.objectGone.rawValue
+                let objectIsGone = detail.failureCode == DisplayItemDetail.FailureCode.objectGone.rawValue
                 if !objectIsGone {
                     request.failedTasksCount += 1
                 }
@@ -939,7 +939,7 @@ final class StaticAsyncUpdateManager: NSObject {
         ongoingRequest = nil
         notifyTasksCountToDelegate()
 
-        if error.code == LookinErrCode_Discard {
+        if error.code == InspectionError.Code.discarded {
             // Another client's detail request took the channel, or held it
             // as this one was about to go (the MCP bridge asks for
             // screenshots and details this way). Nothing went wrong: what is
@@ -1030,7 +1030,7 @@ extension StaticAsyncUpdateManager {
         guard let item, canReload(item) else { return [] }
         let appInfo = inspectableApp?.appInfo
         var tasks: [StaticAsyncUpdateTask] = []
-        if item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
+        if item.doNotFetchScreenshotReason == .permitted {
             if let task = Self.reloadTask(from: item, appInfo: appInfo) {
                 task.taskType = .groupScreenshot
                 tasks.append(task)
@@ -1095,7 +1095,7 @@ extension StaticAsyncUpdateManager {
         task.oid = oid
         task.frameSize = item.frame.size
         task.clientReadableVersion = AppHelper.readableVersion()
-        task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
+        task.attributeCatalogRevision = DashboardBlueprint.currentCatalogRevision
         return task
     }
 }
@@ -1187,11 +1187,11 @@ private final class DetailUpdateRequest {
 
 // MARK: - Errors
 
-/// The NSError the Objective-C `LookinErrorMake` / `AlertError` macros made
+/// The NSError the Objective-C `InspectionError.makeError` / `AlertError` macros made
 /// and showed.
 enum StaticErrors {
     static func make(title: String, detail: String) -> NSError {
-        NSError(domain: LookinErrorDomain, code: LookinErrCode_Default, userInfo: [
+        NSError(domain: InspectionError.domain, code: InspectionError.Code.default, userInfo: [
             NSLocalizedDescriptionKey: title,
             NSLocalizedRecoverySuggestionErrorKey: detail,
         ])
@@ -1200,7 +1200,7 @@ enum StaticErrors {
     /// Shows `error` as a sheet on `window`, unless it is a discard error.
     static func alert(_ error: Error, in window: NSWindow?) {
         let error = error as NSError
-        guard error.code != LookinErrCode_Discard else { return }
+        guard error.code != InspectionError.Code.discarded else { return }
         let alert = NSAlert(error: error)
         if let window {
             alert.beginSheetModal(for: window, completionHandler: nil)

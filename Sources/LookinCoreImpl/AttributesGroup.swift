@@ -17,8 +17,13 @@
     public class AttributesGroup: NSObject, NSCoding, NSSecureCoding, NSCopying {
         @objc(userCustomTitle)
         public var userCustomTitle: String?
+        public var identifier: Identifier?
+        /// `identifier` as Objective-C, KVC and the archive see it.
         @objc(identifier)
-        public var identifier: String?
+        public var rawIdentifier: String? {
+            get { identifier?.rawValue }
+            set { identifier = newValue.map(Identifier.init(rawValue:)) }
+        }
         @objc(attrSections)
         public var attrSections: [AttributesSection]?
         @objc(isSwiftUIGroup)
@@ -45,7 +50,7 @@
         @objc(encodeWithCoder:)
         public func encode(with aCoder: NSCoder) {
             aCoder.encode(userCustomTitle, forKey: "userCustomTitle")
-            aCoder.encode(identifier, forKey: "identifier")
+            aCoder.encode(rawIdentifier, forKey: "identifier")
             aCoder.encode(attrSections, forKey: "attrSections")
             aCoder.encode(isSwiftUIGroup, forKey: "isSwiftUIGroup")
         }
@@ -53,7 +58,7 @@
         public required init?(coder aDecoder: NSCoder) {
             super.init()
             userCustomTitle = aDecoder.decodeObject(forKey: "userCustomTitle") as? String
-            identifier = aDecoder.decodeObject(forKey: "identifier") as? String
+            rawIdentifier = aDecoder.decodeObject(forKey: "identifier") as? String
             attrSections = aDecoder.decodeObject(forKey: "attrSections") as? [AttributesSection]
             isSwiftUIGroup = aDecoder.decodeBool(forKey: "isSwiftUIGroup")
         }
@@ -76,10 +81,10 @@
             guard let targetObject = object as? AttributesGroup else {
                 return false
             }
-            if !stringsEqual(identifier, targetObject.identifier) {
+            if !stringsEqual(rawIdentifier, targetObject.rawIdentifier) {
                 return false
             }
-            if stringsEqual(identifier, LookinAttrGroup_UserCustom) {
+            if identifier == .userCustom {
                 return stringsEqual(userCustomTitle, targetObject.userCustomTitle)
             }
             return true
@@ -87,15 +92,15 @@
 
         @objc(uniqueKey)
         public func uniqueKey() -> String? {
-            if stringsEqual(identifier, LookinAttrGroup_UserCustom) {
+            if identifier == .userCustom {
                 return userCustomTitle
             }
-            return identifier
+            return rawIdentifier
         }
 
         @objc(isUserCustom)
         public func isUserCustom() -> Bool {
-            stringsEqual(identifier, LookinAttrGroup_UserCustom)
+            identifier == .userCustom
         }
 
         @objc(groupsByKeepingFirstGroupForEachUniqueKey:)

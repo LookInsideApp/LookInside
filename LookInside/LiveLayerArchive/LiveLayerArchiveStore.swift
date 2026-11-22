@@ -470,7 +470,7 @@ final class LiveLayerArchiveStore {
         var found = false
         for subitem in item.subitems ?? [] where !found {
             subitem.enumerateSelfAndChildren { node in
-                guard !found, node.isPixelBearing(), node.doNotFetchScreenshotReason == .fetchScreenshotPermitted else { return }
+                guard !found, node.isPixelBearing(), node.doNotFetchScreenshotReason == .permitted else { return }
                 if node.isUserCustom() {
                     found = node.customInfo?.detailHasScreenshots == true
                 } else {
@@ -640,7 +640,7 @@ final class LiveLayerArchiveStore {
             screenshot = image.map { Self.wrapping($0, size: size) }
             if screenshot == nil {
                 drawnImages[job.key] = .empty
-            } else if let item = job.item, item.doNotFetchScreenshotReason == .fetchScreenshotPermitted {
+            } else if let item = job.item, item.doNotFetchScreenshotReason == .permitted {
                 // A node too large for an image gets none, as from the
                 // Server; whoever asked for it still hears it.
                 drawnImages[job.key] = .onTheNode
@@ -661,7 +661,7 @@ final class LiveLayerArchiveStore {
     /// `image` at `size` in points, holding the pixels it has.
     /// `NSImage(cgImage:size:)` reports `size` at the screen's scale as its
     /// pixel size: an image the renderer shrank to fit
-    /// `LookinNodeImageMaxLengthInPx` claimed the full size, which the
+    /// `PreviewLimits.maximumNodeImageLengthInPixels` claimed the full size, which the
     /// preview refuses.
     private static func wrapping(_ image: CGImage, size: CGSize) -> NSImage {
         let representation = NSBitmapImageRep(cgImage: image)

@@ -15,12 +15,17 @@
 
     @objc(LookinAttribute)
     public class InspectedAttribute: NSObject, NSCoding, NSSecureCoding, NSCopying {
+        public var identifier: Identifier?
+        /// `identifier` as Objective-C, KVC and the archive see it.
         @objc(identifier)
-        public var identifier: String?
+        public var rawIdentifier: String? {
+            get { identifier?.rawValue }
+            set { identifier = newValue.map(Identifier.init(rawValue:)) }
+        }
         @objc(displayTitle)
         public var displayTitle: String?
         @objc(attrType)
-        public var attrType: LookinAttrType = .none
+        public var attrType: InspectedAttribute.ValueType = .none
         @objc(value)
         public var value: Any?
         @objc(extraValue)
@@ -53,7 +58,7 @@
         @objc(encodeWithCoder:)
         public func encode(with aCoder: NSCoder) {
             aCoder.encode(displayTitle, forKey: "displayTitle")
-            aCoder.encode(identifier, forKey: "identifier")
+            aCoder.encode(rawIdentifier, forKey: "identifier")
             aCoder.encode(attrType.rawValue, forKey: "attrType")
             aCoder.encode(value, forKey: "value")
             aCoder.encode(extraValue, forKey: "extraValue")
@@ -63,8 +68,8 @@
         public required init?(coder aDecoder: NSCoder) {
             super.init()
             displayTitle = aDecoder.decodeObject(forKey: "displayTitle") as? String
-            identifier = aDecoder.decodeObject(forKey: "identifier") as? String
-            attrType = LookinAttrType(rawValue: aDecoder.decodeInteger(forKey: "attrType")) ?? .none
+            rawIdentifier = aDecoder.decodeObject(forKey: "identifier") as? String
+            attrType = InspectedAttribute.ValueType(rawValue: aDecoder.decodeInteger(forKey: "attrType")) ?? .none
             value = aDecoder.decodeObject(forKey: "value")
             extraValue = aDecoder.decodeObject(forKey: "extraValue")
             customSetterID = aDecoder.decodeObject(forKey: "customSetterID") as? String
@@ -77,7 +82,7 @@
 
         @objc(isUserCustom)
         public func isUserCustom() -> Bool {
-            stringsEqual(identifier, LookinAttr_UserCustom)
+            identifier == .userCustom
         }
     }
 

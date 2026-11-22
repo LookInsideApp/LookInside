@@ -34,12 +34,12 @@
 
     /// One attribute: its identifier and what the blueprint knows about it.
     struct BlueprintAttribute {
-        let identifier: LookinAttrIdentifier
+        let identifier: InspectedAttribute.Identifier
         /// nil: the platforms of the section it is in.
         let platforms: BlueprintPlatforms?
         let info: DashboardBlueprintTables.AttributeInfo
 
-        init(_ identifier: LookinAttrIdentifier, on platforms: BlueprintPlatforms? = nil, _ info: DashboardBlueprintTables.AttributeInfo) {
+        init(_ identifier: InspectedAttribute.Identifier, on platforms: BlueprintPlatforms? = nil, _ info: DashboardBlueprintTables.AttributeInfo) {
             self.identifier = identifier
             self.platforms = platforms
             self.info = info
@@ -48,14 +48,14 @@
 
     /// One section of a group, with its attributes in display order.
     struct BlueprintSection {
-        let identifier: LookinAttrSectionIdentifier
+        let identifier: AttributesSection.Identifier
         /// nil: the section has no title.
         let title: String?
         /// nil: the platforms of the group it is in.
         let platforms: BlueprintPlatforms?
         let attributes: [BlueprintAttribute]
 
-        init(_ identifier: LookinAttrSectionIdentifier, title: String? = nil, on platforms: BlueprintPlatforms? = nil, attributes: [BlueprintAttribute]) {
+        init(_ identifier: AttributesSection.Identifier, title: String? = nil, on platforms: BlueprintPlatforms? = nil, attributes: [BlueprintAttribute]) {
             self.identifier = identifier
             self.title = title
             self.platforms = platforms
@@ -65,13 +65,13 @@
 
     /// One attribute group, with its sections in display order.
     struct BlueprintGroup {
-        let identifier: LookinAttrGroupIdentifier
+        let identifier: AttributesGroup.Identifier
         let title: String
-        /// The platforms whose `groupIDs()` list the group.
+        /// The platforms whose `DashboardBlueprint.groupIdentifiers` list the group.
         let platforms: BlueprintPlatforms
         let sections: [BlueprintSection]
 
-        init(_ identifier: LookinAttrGroupIdentifier, title: String, on platforms: BlueprintPlatforms, sections: [BlueprintSection]) {
+        init(_ identifier: AttributesGroup.Identifier, title: String, on platforms: BlueprintPlatforms, sections: [BlueprintSection]) {
             self.identifier = identifier
             self.title = title
             self.platforms = platforms
@@ -82,58 +82,58 @@
     /// The lookup tables `DashboardBlueprint` answers from, derived from a
     /// catalog for one platform:
     ///
-    /// - `groupIDs`: the groups on the platform, in catalog order.
-    /// - `sectionIDsByGroupID`: for each group, its sections on the platform; no
-    ///   entry when it has none. The group itself need not be listed there: the
-    ///   NSCell group's sections are on both platforms although only AppKit
-    ///   lists the group.
-    /// - `attrIDsBySectionID`: for each section on the platform, its attributes
-    ///   on the platform.
+    /// - `groupIdentifiers`: the groups on the platform, in catalog order.
+    /// - `sectionIdentifiersByGroup`: for each group, its sections on the
+    ///   platform; no entry when it has none. The group itself need not be
+    ///   listed there: the NSCell group's sections are on both platforms
+    ///   although only AppKit lists the group.
+    /// - `attributeIdentifiersBySection`: for each section on the platform, its
+    ///   attributes on the platform.
     /// - `groupTitles`, `sectionTitles`, `attributeInfo`: every entry of the
     ///   catalog, whatever its platforms, because the macOS Host shows iOS data.
     ///   A section without a title has no entry.
     struct DashboardBlueprintDerivedTables {
-        var groupIDs: [String] = []
-        var sectionIDsByGroupID: [String: [String]] = [:]
-        var attrIDsBySectionID: [String: [String]] = [:]
-        var groupTitles: [String: String] = [:]
-        var sectionTitles: [String: String] = [:]
-        var attributeInfo: [String: DashboardBlueprintTables.AttributeInfo] = [:]
+        var groupIdentifiers: [AttributesGroup.Identifier] = []
+        var sectionIdentifiersByGroup: [AttributesGroup.Identifier: [AttributesSection.Identifier]] = [:]
+        var attributeIdentifiersBySection: [AttributesSection.Identifier: [InspectedAttribute.Identifier]] = [:]
+        var groupTitles: [AttributesGroup.Identifier: String] = [:]
+        var sectionTitles: [AttributesSection.Identifier: String] = [:]
+        var attributeInfo: [InspectedAttribute.Identifier: DashboardBlueprintTables.AttributeInfo] = [:]
         /// The class of a section whose attributes on this platform all belong
         /// to one class.
-        var sectionClassNames: [String: String] = [:]
+        var sectionClassNames: [AttributesSection.Identifier: String] = [:]
 
         init(catalog: [BlueprintGroup], platform: BlueprintPlatforms) {
             assert(Self.duplicateIdentifiers(in: catalog).isEmpty, "duplicate identifiers in the blueprint catalog: \(Self.duplicateIdentifiers(in: catalog))")
             for group in catalog {
                 if group.platforms.contains(platform) {
-                    groupIDs.append(group.identifier)
+                    groupIdentifiers.append(group.identifier)
                 }
                 groupTitles[group.identifier] = group.title
-                var sectionIDs: [String] = []
+                var sectionIdentifiers: [AttributesSection.Identifier] = []
                 for section in group.sections {
                     let sectionPlatforms = section.platforms ?? group.platforms
                     if let title = section.title {
                         sectionTitles[section.identifier] = title
                     }
-                    var attrIDs: [String] = []
+                    var attributeIdentifiers: [InspectedAttribute.Identifier] = []
                     for attribute in section.attributes {
                         attributeInfo[attribute.identifier] = attribute.info
                         if (attribute.platforms ?? sectionPlatforms).contains(platform) {
-                            attrIDs.append(attribute.identifier)
+                            attributeIdentifiers.append(attribute.identifier)
                         }
                     }
                     if sectionPlatforms.contains(platform) {
-                        sectionIDs.append(section.identifier)
-                        attrIDsBySectionID[section.identifier] = attrIDs
-                        let classNames = Set(attrIDs.map { attributeInfo[$0]?.className })
+                        sectionIdentifiers.append(section.identifier)
+                        attributeIdentifiersBySection[section.identifier] = attributeIdentifiers
+                        let classNames = Set(attributeIdentifiers.map { attributeInfo[$0]?.className })
                         if classNames.count == 1, let className = classNames.first ?? nil {
                             sectionClassNames[section.identifier] = className
                         }
                     }
                 }
-                if !sectionIDs.isEmpty {
-                    sectionIDsByGroupID[group.identifier] = sectionIDs
+                if !sectionIdentifiers.isEmpty {
+                    sectionIdentifiersByGroup[group.identifier] = sectionIdentifiers
                 }
             }
         }
@@ -151,11 +151,11 @@
                 }
             }
             for group in catalog {
-                visit(group.identifier)
+                visit(group.identifier.rawValue)
                 for section in group.sections {
-                    visit(section.identifier)
+                    visit(section.identifier.rawValue)
                     for attribute in section.attributes {
-                        visit(attribute.identifier)
+                        visit(attribute.identifier.rawValue)
                     }
                 }
             }
@@ -167,19 +167,20 @@
         /// The tables for the platform this code runs on, built on first use.
         static let derived = DashboardBlueprintDerivedTables(catalog: catalog, platform: .current)
 
-        /// `+groupIDs`, in display order.
-        static let groupIDs: [String] = derived.groupIDs
-        /// `+sectionIDsForGroupID:`.
-        static let sectionIDsByGroupID: [String: [String]] = derived.sectionIDsByGroupID
-        /// `+attrIDsForSectionID:`, in display order.
-        static let attrIDsBySectionID: [String: [String]] = derived.attrIDsBySectionID
-        /// `+groupTitleWithGroupID:`.
-        static let groupTitles: [String: String] = derived.groupTitles
-        /// `+sectionTitleWithSectionID:`; a missing entry means no title.
-        static let sectionTitles: [String: String] = derived.sectionTitles
+        /// `DashboardBlueprint.groupIdentifiers`, in display order.
+        static let groupIdentifiers: [AttributesGroup.Identifier] = derived.groupIdentifiers
+        /// `DashboardBlueprint.sectionIdentifiers(in:)`.
+        static let sectionIdentifiersByGroup: [AttributesGroup.Identifier: [AttributesSection.Identifier]] = derived.sectionIdentifiersByGroup
+        /// `DashboardBlueprint.attributeIdentifiers(in:)`, in display order.
+        static let attributeIdentifiersBySection: [AttributesSection.Identifier: [InspectedAttribute.Identifier]] = derived.attributeIdentifiersBySection
+        /// `DashboardBlueprint.title(of:)` for groups.
+        static let groupTitles: [AttributesGroup.Identifier: String] = derived.groupTitles
+        /// `DashboardBlueprint.title(of:)` for sections; a missing entry means
+        /// no title.
+        static let sectionTitles: [AttributesSection.Identifier: String] = derived.sectionTitles
         /// The per-attribute information behind the attribute queries.
-        static let attributeInfo: [String: AttributeInfo] = derived.attributeInfo
-        static let sectionClassNames: [String: String] = derived.sectionClassNames
+        static let attributeInfo: [InspectedAttribute.Identifier: AttributeInfo] = derived.attributeInfo
+        static let sectionClassNames: [AttributesSection.Identifier: String] = derived.sectionClassNames
     }
 
 #endif

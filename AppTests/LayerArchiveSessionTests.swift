@@ -3,7 +3,7 @@
 //  LookInsideAppTests
 //
 //  A live macOS session whose Server encodes layer trees
-//  (LookinRequestTypeLayerArchive, 211): after a reload the window's archive
+//  (RequestType.layerArchive, 211): after a reload the window's archive
 //  is fetched, and the node images come from it, while the Server is asked
 //  only for the window's own screenshot and the attributes. A Server that
 //  does not encode layer trees, and a window over the layer limit, keep the
@@ -96,7 +96,7 @@ extension HostAppTests {
             appInfo.deviceType = .mac
             appInfo.osDescription = "macOS"
             appInfo.screenScale = 2
-            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.serverVersion = Int32(ProtocolVersion.server)
             appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
             appInfo.layerArchiveProtocolVersion = encodesLayerTrees ? 1 : 0
             let hierarchy = HierarchyInfo()
@@ -231,7 +231,7 @@ extension HostAppTests {
             appInfo.deviceType = .mac
             appInfo.osDescription = "macOS"
             appInfo.screenScale = 2
-            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.serverVersion = Int32(ProtocolVersion.server)
             appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
             appInfo.layerArchiveProtocolVersion = 1
             let hierarchy = HierarchyInfo()
@@ -253,7 +253,7 @@ extension HostAppTests {
         /// Answers the window's archive request with `nodes`' whole layer
         /// tree.
         private static func answeringLayerArchive(of nodes: LayerNodes, on server: FakeServer) {
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 let reply = LayerArchive()
                 reply.layerCount = UInt(nodes.layers.count)
                 reply.layerOids = nodes.layers.map(nodes.oid(of:))
@@ -277,7 +277,7 @@ extension HostAppTests {
         /// The oids the Server was asked to screenshot.
         private static func screenshotTaskOids(in server: FakeServer) -> Set<UInt> {
             var oids: Set<UInt> = []
-            for request in server.receivedRequests where request.type == UInt32(LookinRequestTypeHierarchyDetails) {
+            for request in server.receivedRequests where request.type == UInt32(RequestType.hierarchyDetails) {
                 for package in request.data as? [StaticAsyncUpdateTasksPackage] ?? [] {
                     for task in package.tasks ?? [] where task.taskType != .noScreenshot {
                         oids.insert(task.oid)
@@ -320,7 +320,7 @@ extension HostAppTests {
             on server: FakeServer,
             into dataSource: StaticHierarchyDataSource = StaticHierarchyDataSource()
         ) async -> Session {
-            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { emptyDetails(for: $0) }
+            server.responders[UInt32(RequestType.hierarchyDetails)] = { emptyDetails(for: $0) }
             let channel = server.connectChannel()
             let app = InspectableApp()
             app.appInfo = hierarchy.appInfo
@@ -556,7 +556,7 @@ extension HostAppTests {
 
         /// RuntimeViewer's sidebar outline grew to 364.5 × 107829 points.
         /// Its image from the archive is shrunk to fit
-        /// `LookinNodeImageMaxLengthInPx`, but was wrapped as though it held
+        /// `PreviewLimits.maximumNodeImageLengthInPixels`, but was wrapped as though it held
         /// the full size at the screen's scale, and the preview's check that
         /// no image is longer than that stopped the Host. The image holds the
         /// pixels it has, at the layer's size in points.
@@ -577,14 +577,14 @@ extension HostAppTests {
             let representation = image.representations.first
             let longestSide = max(representation?.pixelsWide ?? 0, representation?.pixelsHigh ?? 0)
             #expect(
-                longestSide > 0 && Double(longestSide) <= LookinNodeImageMaxLengthInPx,
+                longestSide > 0 && Double(longestSide) <= PreviewLimits.maximumNodeImageLengthInPixels,
                 "the image should be no longer than the preview takes, got \(representation?.pixelsWide ?? 0) × \(representation?.pixelsHigh ?? 0) pixels"
             )
             #expect(image.size == CGSize(width: 364.5, height: 107_829), "the image should keep the layer's size in points, got \(image.size)")
             withExtendedLifetime(session) {}
         }
 
-        /// A detail that grows a node past `LookinNodeImageMaxLengthInPx`
+        /// A detail that grows a node past `PreviewLimits.maximumNodeImageLengthInPixels`
         /// takes its images away — they showed it at its old size — and, as
         /// after a reload, the preview takes none of it: an image drawn from
         /// the archive for another caller stays off the node. A detail that
@@ -603,7 +603,7 @@ extension HostAppTests {
             #expect(outlineItem.groupScreenshot != nil, "the outline fit when the hierarchy listed it")
 
             session.dataSource.modify(with: Self.outlineDetail(of: outlineItem, height: 107_829))
-            #expect(outlineItem.doNotFetchScreenshotReason == .doNotFetchScreenshotForTooLarge)
+            #expect(outlineItem.doNotFetchScreenshotReason == .tooLarge)
             #expect(outlineItem.groupScreenshot == nil, "the image showed the outline at its old size")
             guard case .image? = await session.manager.layerArchiveImage(.group, of: outlineItem) else {
                 Issue.record("another caller should still get an image of the outline")
@@ -612,7 +612,7 @@ extension HostAppTests {
             #expect(outlineItem.groupScreenshot == nil, "the preview takes no image of a node too large for one")
 
             session.dataSource.modify(with: Self.outlineDetail(of: outlineItem, height: 1007))
-            #expect(outlineItem.doNotFetchScreenshotReason == .fetchScreenshotPermitted)
+            #expect(outlineItem.doNotFetchScreenshotReason == .permitted)
             guard case let .image(image)? = await session.manager.layerArchiveImage(.group, of: outlineItem) else {
                 Issue.record("the outline should have a group image again")
                 return
@@ -683,7 +683,7 @@ extension HostAppTests {
             appInfo.deviceType = .mac
             appInfo.osDescription = "macOS"
             appInfo.screenScale = 2
-            appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            appInfo.serverVersion = Int32(ProtocolVersion.server)
             appInfo.hierarchyAcquisitionProtocolVersion = HierarchyAcquisitionSupport.requiredProtocolVersion
             appInfo.layerArchiveProtocolVersion = 1
             let hierarchy = HierarchyInfo()
@@ -759,7 +759,7 @@ extension HostAppTests {
 
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 let reply = LayerArchive()
                 reply.layerCount = UInt(nodes.layers.count)
                 reply.layerOids = nodes.layerOids
@@ -798,14 +798,14 @@ extension HostAppTests {
             let server = FakeServer()
             defer { server.shutDown() }
             var archiveRequest: NSDictionary?
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { data in
+            server.responders[UInt32(RequestType.layerArchive)] = { data in
                 archiveRequest = data as? NSDictionary
                 return Self.layerArchive(of: inspected, layerLimit: 4000)
             }
 
             let session = await Self.loadingSession(inspected, on: server)
-            #expect((archiveRequest?[LookinParam_LayerArchiveWindowOid] as? NSNumber)?.uintValue == InspectedWindow.windowOid)
-            #expect((archiveRequest?[LookinParam_LayerArchiveLayerLimit] as? NSNumber)?.uintValue == LiveLayerArchive.layerLimit)
+            #expect((archiveRequest?[RequestParameterKey.layerArchiveWindowOid] as? NSNumber)?.uintValue == InspectedWindow.windowOid)
+            #expect((archiveRequest?[RequestParameterKey.layerArchiveLayerLimit] as? NSNumber)?.uintValue == LiveLayerArchive.layerLimit)
             #expect(session.manager.layerArchiveStore.isActive)
 
             #expect(await Self.fetchingWholeTree(session.manager), "the whole tree should be fetched")
@@ -838,7 +838,7 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 Self.layerArchive(of: inspected, layerLimit: 4000)
             }
             let session = await Self.loadingSession(inspected, on: server)
@@ -864,9 +864,9 @@ extension HostAppTests {
                 await waitUntil(timeout: .seconds(10)) { Self.isGreen(Self.middleColour(of: inspected.redItem.groupScreenshot)) },
                 "the red view's image on screen should be drawn again from the new archive"
             )
-            #expect(server.receivedRequestTypes.filter { $0 == UInt32(LookinRequestTypeLayerArchive) }.count == 2, "the edit should fetch the window's archive again")
+            #expect(server.receivedRequestTypes.filter { $0 == UInt32(RequestType.layerArchive) }.count == 2, "the edit should fetch the window's archive again")
             var patchedOids = Set<UInt>()
-            for request in server.receivedRequests where request.type == UInt32(LookinRequestTypeAttrModificationPatch) {
+            for request in server.receivedRequests where request.type == UInt32(RequestType.attributeModificationPatch) {
                 for task in request.data as? [StaticAsyncUpdateTask] ?? [] {
                     patchedOids.insert(task.oid)
                 }
@@ -887,7 +887,7 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 Self.layerArchive(of: inspected, layerLimit: 4000)
             }
             let session = await Self.loadingSession(inspected, on: server)
@@ -913,7 +913,7 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 Self.layerArchive(of: inspected, layerLimit: 4000)
             }
             let session = await Self.loadingSession(inspected, on: server)
@@ -961,7 +961,7 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 Self.layerArchive(of: inspected, layerLimit: 4000)
             }
             let session = await Self.loadingSession(inspected, on: server)
@@ -1003,10 +1003,10 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 Self.layerArchive(of: inspected, layerLimit: 4000)
             }
-            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
+            server.responders[UInt32(RequestType.hierarchyDetails)] = { Self.emptyDetails(for: $0) }
             let channel = server.connectChannel()
             let dataSource = StaticHierarchyDataSource()
             let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
@@ -1035,8 +1035,8 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.heldRequestTypes = [UInt32(LookinRequestTypeLayerArchive)]
-            server.responders[UInt32(LookinRequestTypeHierarchyDetails)] = { Self.emptyDetails(for: $0) }
+            server.heldRequestTypes = [UInt32(RequestType.layerArchive)]
+            server.responders[UInt32(RequestType.hierarchyDetails)] = { Self.emptyDetails(for: $0) }
             let channel = server.connectChannel()
             let app = InspectableApp()
             app.appInfo = inspected.hierarchy.appInfo
@@ -1045,7 +1045,7 @@ extension HostAppTests {
             let manager = StaticAsyncUpdateManager(hierarchyDataSource: dataSource, inspectableApp: nil)
             manager.inspectableApp = app
             dataSource.reload(with: inspected.hierarchy, keepState: false)
-            #expect(await waitUntil { server.receivedRequestTypes.contains(UInt32(LookinRequestTypeLayerArchive)) })
+            #expect(await waitUntil { server.receivedRequestTypes.contains(UInt32(RequestType.layerArchive)) })
             #expect(manager.layerArchiveStore.hasPendingArchives)
 
             var result: StaticAsyncUpdateManager.LayerArchiveImage?
@@ -1057,7 +1057,7 @@ extension HostAppTests {
             try? await Task.sleep(for: .milliseconds(200))
             #expect(!hasResult, "the image should wait for the archive")
             let attachment = ConnectionResponseAttachment()
-            attachment.lookinServerVersion = Int32(LOOKIN_SERVER_VERSION)
+            attachment.lookinServerVersion = Int32(ProtocolVersion.server)
             attachment.data = Self.layerArchive(of: inspected, layerLimit: 4000)
             server.answerHeldRequests(with: attachment)
             #expect(await waitUntil(timeout: .seconds(10)) { hasResult })
@@ -1078,7 +1078,7 @@ extension HostAppTests {
             let session = await Self.loadingSession(inspected, on: server)
             #expect(!session.manager.layerArchiveStore.isActive)
             #expect(await Self.fetchingWholeTree(session.manager), "the whole tree should be fetched")
-            #expect(!server.receivedRequestTypes.contains(UInt32(LookinRequestTypeLayerArchive)), "an older Server must not be sent the request")
+            #expect(!server.receivedRequestTypes.contains(UInt32(RequestType.layerArchive)), "an older Server must not be sent the request")
             #expect(Self.screenshotTaskOids(in: server).isSuperset(of: InspectedWindow.viewOids), "the views' screenshots should be asked of the Server")
             withExtendedLifetime(session) {}
         }
@@ -1088,7 +1088,7 @@ extension HostAppTests {
             defer { inspected.window.close() }
             let server = FakeServer()
             defer { server.shutDown() }
-            server.responders[UInt32(LookinRequestTypeLayerArchive)] = { _ in
+            server.responders[UInt32(RequestType.layerArchive)] = { _ in
                 Self.layerArchive(of: inspected, layerLimit: 2)
             }
 

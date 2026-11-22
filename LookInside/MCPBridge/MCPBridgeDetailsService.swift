@@ -188,7 +188,7 @@ final class MCPBridgeDetailsService {
             task.needBasisVisualInfo = false
             task.needSubitems = false
             task.clientReadableVersion = clientReadableVersion
-            task.attributeCatalogRevision = LookinAttributeCatalogRevisionCurrent
+            task.attributeCatalogRevision = DashboardBlueprint.currentCatalogRevision
             return task
         }
         let package = StaticAsyncUpdateTasksPackage()
@@ -296,12 +296,12 @@ final class MCPBridgeDetailsService {
         let groups = (inbuiltGroups ?? []) + (includeUserCustom ? customGroups ?? [] : [])
         let encoded = groups.map { group in
             MCPBridgeAttributeGroup(
-                identifier: group.userCustomTitle ?? group.identifier ?? "",
+                identifier: group.userCustomTitle ?? group.identifier?.rawValue ?? "",
                 isUserCustom: group.userCustomTitle != nil,
                 isSwiftUIGroup: group.isSwiftUIGroup,
                 sections: (group.attrSections ?? []).map { section in
                     MCPBridgeAttributeSection(
-                        identifier: section.identifier ?? "",
+                        identifier: section.identifier?.rawValue ?? "",
                         attributes: (section.attributes ?? []).map {
                             MCPBridgeAttributeEncoder.encode($0, redactingSecureContent: redact)
                         }
@@ -332,24 +332,24 @@ final class MCPBridgeDetailsService {
 
     private func mapDetailsError(_ error: NSError) -> MCPBridgeErrorPayload {
         switch error.code {
-        case LookinErrCode_ObjectNotFound:
+        case InspectionError.Code.objectNotFound:
             return MCPBridgeErrorPayload(
                 code: "details.objectNotFound",
                 message: "The target app could not find one or more of the requested objects. They may have been deallocated. \(MCPBridgeRecoveryHint.objectIsGone)"
             )
-        case LookinErrCode_Inner:
+        case InspectionError.Code.inner:
             return MCPBridgeErrorPayload(
                 code: "details.internalError",
                 message: "The target app rejected the details request with a generic inner error."
             )
-        case LookinErrCode_LicenseRequired:
+        case InspectionError.Code.licenseRequired:
             return .licenseRequired
-        case LookinErrCode_NoConnect:
+        case InspectionError.Code.noConnection:
             return MCPBridgeErrorPayload(
                 code: "details.disconnected",
                 message: "The target app is no longer connected. Re-attach from the LookInside inspector and try again."
             )
-        case LookinErrCode_Timeout:
+        case InspectionError.Code.timeout:
             return MCPBridgeErrorPayload(
                 code: "details.timeout",
                 message: "The target app did not respond within the request timeout. Reduce the batch size or check whether the target is paused in Xcode."

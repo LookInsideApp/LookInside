@@ -88,7 +88,7 @@
     @objc(LookinDisplayItemDelegate)
     public protocol DisplayItemDelegate: NSObjectProtocol {
         @objc(displayItem:propertyDidChange:)
-        func displayItem(_ displayItem: DisplayItem, propertyDidChange property: LookinDisplayItemProperty)
+        func displayItem(_ displayItem: DisplayItem, propertyDidChange property: DisplayItem.Property)
     }
 
     @objc(LookinDisplayItem)
@@ -108,7 +108,7 @@
         private var _isExpandable: Bool = false
         private var _displayingInHierarchy: Bool = false
         private var _inHiddenHierarchy: Bool = false
-        private var _doNotFetchScreenshotReason: LookinDoNotFetchScreenshotReason = .fetchScreenshotPermitted
+        private var _doNotFetchScreenshotReason: DisplayItem.DoNotFetchScreenshotReason = .permitted
         private var _noPreview: Bool = false
         private var _inNoPreviewHierarchy: Bool = false
         private var _indentLevel: Int = 0
@@ -123,7 +123,7 @@
         @objc(customInfo)
         public var customInfo: CustomDisplayItemInfo?
         @objc(nodeKind)
-        public var nodeKind: LookinDisplayItemNodeKind = .unspecified
+        public var nodeKind: DisplayItem.NodeKind = .unspecified
         @objc(kindObject)
         public var kindObject: InspectedObject?
         @objc(representsSystemManagedNode)
@@ -160,7 +160,7 @@
         /// header's import gave it.
         @objc(superItem) public weak var `super`: DisplayItem?
         @objc(screenshotEncodeType)
-        public var screenshotEncodeType: LookinDisplayItemImageEncodeType = .none
+        public var screenshotEncodeType: DisplayItem.ImageEncoding = .none
         // `previewLayer` and `previewNode` keep their Objective-C accessors
         // (same selectors, same weak storage). Only the host app has the
         // DisplayItemNode class, so only its build types previewNode;
@@ -302,7 +302,7 @@
             // These fields exist since the nodeKind mechanism landed; absent keys
             // decode to Unspecified / nil / NO, which is exactly the legacy-data
             // contract resolvedNodeKind derives from.
-            nodeKind = aDecoder.containsValue(forKey: "nodeKind") ? (LookinDisplayItemNodeKind(rawValue: aDecoder.decodeInteger(forKey: "nodeKind")) ?? .unspecified) : .unspecified
+            nodeKind = aDecoder.containsValue(forKey: "nodeKind") ? (DisplayItem.NodeKind(rawValue: aDecoder.decodeInteger(forKey: "nodeKind")) ?? .unspecified) : .unspecified
             kindObject = aDecoder.decodeObject(forKey: "kindObject") as? InspectedObject
             representsSystemManagedNode = aDecoder.decodeBool(forKey: "representsSystemManagedNode")
             cellObject = aDecoder.decodeObject(forKey: "cellObject") as? InspectedObject
@@ -354,7 +354,7 @@
         }
 
         @objc(resolvedNodeKind)
-        public func resolvedNodeKind() -> LookinDisplayItemNodeKind {
+        public func resolvedNodeKind() -> DisplayItem.NodeKind {
             if nodeKind != .unspecified {
                 return nodeKind
             }
@@ -410,7 +410,7 @@
             if let customInfo {
                 return customInfo.hasValidFrame()
             }
-            return LookinIsUsableRect(frame)
+            return frame.isUsable
         }
 
         @objc(calculateFrameToRoot)
@@ -425,7 +425,7 @@
                     return frameInWindow.rectValue
                 #endif
             }
-            if !LookinIsUsableRect(frame) {
+            if !frame.isUsable {
                 return .zero
             }
             guard let superItem = self.super else {
@@ -440,7 +440,7 @@
         public func convertRectToRoot(fromBounds rect: CGRect) -> CGRect {
             let frameToRoot = calculateFrameToRoot()
             var ownBounds = bounds
-            if !LookinIsUsableRect(ownBounds) {
+            if !ownBounds.isUsable {
                 ownBounds = .zero
             }
 
@@ -743,7 +743,7 @@
         }
 
         @objc(doNotFetchScreenshotReason)
-        public var doNotFetchScreenshotReason: LookinDoNotFetchScreenshotReason {
+        public var doNotFetchScreenshotReason: DisplayItem.DoNotFetchScreenshotReason {
             get { _doNotFetchScreenshotReason }
             set {
                 if _doNotFetchScreenshotReason == newValue {
@@ -794,7 +794,7 @@
             _notifyDelegates(with: .isHovered)
         }
 
-        private func _notifyDelegates(with property: LookinDisplayItemProperty) {
+        private func _notifyDelegates(with property: DisplayItem.Property) {
             previewItemDelegate?.displayItem(self, propertyDidChange: property)
             rowViewDelegate?.displayItem(self, propertyDidChange: property)
         }

@@ -134,7 +134,7 @@ class TipsView: BaseView {
         updateButton()
     }
 
-    func setImage(byDeviceType type: LookinAppInfoDevice) {
+    func setImage(byDeviceType type: InspectedAppInfo.Device) {
         switch type {
         case .mac, .macCatalyst:
             // A Catalyst app runs on Mac hardware, so it gets the Mac icon

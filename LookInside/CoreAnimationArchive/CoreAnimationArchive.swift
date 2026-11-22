@@ -96,7 +96,7 @@ enum CoreAnimationArchive {
         // A well-formed archive whose root is not a dictionary makes CAPackage
         // send it -objectForKey:, which raises rather than failing; any file
         // can arrive here, so a raise is a malformed file, not a crash.
-        let exception = LookinCatchException {
+        let exception = objectiveCException {
             do {
                 package = try packageFactory.makingPackage(with: data, type: typeIdentifier, options: nil)
             } catch {

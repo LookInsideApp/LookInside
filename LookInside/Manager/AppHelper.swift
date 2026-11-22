@@ -177,6 +177,6 @@ final class AppHelper {
         NSTextView.scrollableTextView()
     }
 
-    // Frame validation moved into LookinCore as LookinIsUsableRect, next to the
+    // Frame validation moved into LookinCore as `CGRect.isUsable`, next to the
     // calculateFrameToRoot walk that consumes it.
 }

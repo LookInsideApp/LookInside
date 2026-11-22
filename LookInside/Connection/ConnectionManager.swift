@@ -35,7 +35,7 @@ struct ConnectionPush {
 /// What a channel's Server said about its app being in the foreground.
 struct ApplicationStateReport {
     enum Kind {
-        /// `LookinPush_ApplicationStateChanged`; Servers that predate it
+        /// `PushType.applicationStateChanged`; Servers that predate it
         /// never send it.
         case serverReported(isActive: Bool)
         /// A response came back with `appIsInBackground`, from any request
@@ -52,7 +52,7 @@ struct ApplicationStateReport {
 final class ServerChannelConnectionState {
     /// Requests sent on this channel whose responses have not all arrived:
     /// one of a type at a time, pings excepted.
-    let activeRequests = ActiveRequests<ConnectionRequest>(typesThatMayOverlap: [UInt32(LookinRequestTypePing)])
+    let activeRequests = ActiveRequests<ConnectionRequest>(typesThatMayOverlap: [UInt32(RequestType.ping)])
     let licenseHandshake = LicenseHandshakeGate()
     /// Identifies this channel to the activation runtime's signing policy,
     /// which remembers a failed handshake per channel.
@@ -107,7 +107,7 @@ final class ConnectionManager: NSObject {
 
     /// Which timed-out requests may show a channel to be dead.
     private static let channelLivenessPolicy = ChannelLivenessPolicy(
-        probeRequestTypes: [UInt32(LookinRequestTypePing), UInt32(LookinRequestTypeApp)]
+        probeRequestTypes: [UInt32(RequestType.ping), UInt32(RequestType.app)]
     )
 
     /// Totals for the log line of a large multi-frame response.
@@ -115,10 +115,10 @@ final class ConnectionManager: NSObject {
     private var responseStartTime: CFTimeInterval = 0
 
     override private init() {
-        simulatorPorts = (Int32(LookinSimulatorIPv4PortNumberStart) ... Int32(LookinSimulatorIPv4PortNumberEnd)).map {
+        simulatorPorts = (Int32(ListeningPorts.simulator.lowerBound) ... Int32(ListeningPorts.simulator.upperBound)).map {
             ConnectionPort(number: $0, kind: .simulator)
         }
-        macPorts = (Int32(LookinMacIPv4PortNumberStart) ... Int32(LookinMacIPv4PortNumberEnd)).map {
+        macPorts = (Int32(ListeningPorts.mac.lowerBound) ... Int32(ListeningPorts.mac.upperBound)).map {
             ConnectionPort(number: $0, kind: .mac)
         }
         super.init()
@@ -263,7 +263,7 @@ final class ConnectionManager: NSObject {
                         self.usbSerialNumbersByDeviceID[deviceID] = serialNumber
                     }
                     // Each device has its own port range; see the file comment.
-                    for number in Int32(LookinUSBDeviceIPv4PortNumberStart) ... Int32(LookinUSBDeviceIPv4PortNumberEnd) {
+                    for number in Int32(ListeningPorts.usbDevice.lowerBound) ... Int32(ListeningPorts.usbDevice.upperBound) {
                         self.usbPorts.append(ConnectionPort(number: number, kind: .usb(deviceID: deviceID)))
                     }
                     #log(.default, "Lookin - USB device attached, DeviceID: \(NSNumber(value: deviceID), privacy: .public)")
@@ -311,14 +311,14 @@ final class ConnectionManager: NSObject {
     /// each response frame, then a failure or a completion.
     ///
     /// An older request of the same type still waiting on this channel fails
-    /// with `LookinErrCode_Discard` when this one is sent. With
+    /// with `InspectionError.Code.discarded` when this one is sent. With
     /// `yieldsToRequestInFlight`, this one fails that way instead, unsent,
     /// while one of its type is in flight. A request cancelled while its ping
     /// runs (`cancelRequest(receivingEventsWith:channel:)`) is not sent.
     func request(type: UInt32, data: NSObject?, channel: ServerChannel, yieldsToRequestInFlight: Bool = false, sink: ResponseSink) {
         // An app in the background keeps its channel but cannot answer; a
         // long ping timeout would hold up the launch window's app list.
-        let pingTimeout: TimeInterval = type == UInt32(LookinRequestTypeApp) ? 0.5 : 2
+        let pingTimeout: TimeInterval = type == UInt32(RequestType.app) ? 0.5 : 2
 
         let pingSink = ResponseSink { [weak self] event in
             guard let self else { return }
@@ -352,7 +352,7 @@ final class ConnectionManager: NSObject {
                 break
             }
         }
-        sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: pingTimeout, sink: pingSink)
+        sendFrame(type: UInt32(RequestType.ping), channel: channel, data: nil, timeoutInterval: pingTimeout, sink: pingSink)
     }
 
     /// Sends one ping, and only that: no version check, no license
@@ -372,7 +372,7 @@ final class ConnectionManager: NSObject {
                     continuation.resume(throwing: error)
                 }
             }
-            sendFrame(type: UInt32(LookinRequestTypePing), channel: channel, data: nil, timeoutInterval: 2, sink: sink)
+            sendFrame(type: UInt32(RequestType.ping), channel: channel, data: nil, timeoutInterval: 2, sink: sink)
         }
     }
 
@@ -402,7 +402,7 @@ final class ConnectionManager: NSObject {
 
     /// Response frames of one request, until it completes. The stream
     /// throws the transport error or, for a frame that cannot be decoded,
-    /// `LookinErr_Inner`. Cancelling the consuming task stops the delivery;
+    /// `InspectionError.inner`. Cancelling the consuming task stops the delivery;
     /// the request on the channel runs to its end or its timeout.
     func responses(type: UInt32, data: NSObject?, channel: ServerChannel) -> AsyncThrowingStream<ConnectionResponseAttachment, Error> {
         AsyncThrowingStream { continuation in
@@ -440,7 +440,7 @@ final class ConnectionManager: NSObject {
     /// Ping and the license exchange itself never wait for a handshake.
     nonisolated static func canStartLicenseHandshake(forRequestType type: UInt32) -> Bool {
         switch Int(type) {
-        case LookinRequestTypePing, LookinRequestTypeLicenseChallenge, LookinRequestTypeLicenseVerify:
+        case RequestType.ping, RequestType.licenseChallenge, RequestType.licenseVerify:
             false
         default:
             true
@@ -449,7 +449,7 @@ final class ConnectionManager: NSObject {
 
     static func timeoutInterval(forRequestType type: UInt32) -> TimeInterval {
         switch Int(type) {
-        case LookinRequestTypeHierarchy, LookinRequestTypeHierarchyDetails:
+        case RequestType.hierarchy, RequestType.hierarchyDetails:
             PreferenceManager.shared.hierarchyRequestTimeoutInterval
         default:
             5
@@ -458,7 +458,7 @@ final class ConnectionManager: NSObject {
 
     private func serverVersionError(for pingResponse: ConnectionResponseAttachment?) -> NSError? {
         let serverVersion = Int(pingResponse?.lookinServerVersion ?? 0)
-        let supported = Int(LOOKIN_SUPPORTED_SERVER_MIN) ... Int(LOOKIN_SUPPORTED_SERVER_MAX)
+        let supported = Int(ProtocolVersion.supportedServers.lowerBound) ... Int(ProtocolVersion.supportedServers.upperBound)
         switch ServerVersionCompatibility(serverVersion: serverVersion, supported: supported) {
         case .compatible:
             return nil
@@ -555,9 +555,9 @@ final class ConnectionManager: NSObject {
         attachment.data = data
         let payload = archivedPayload(rootObject: attachment)
         switch Int(type) {
-        case LookinRequestTypeHierarchy:
+        case RequestType.hierarchy:
             request.signpostInterval = #signpost(.begin, "Hierarchy request")
-        case LookinRequestTypeHierarchyDetails:
+        case RequestType.hierarchyDetails:
             request.signpostInterval = #signpost(.begin, "Detail request")
         default:
             break
@@ -574,9 +574,9 @@ final class ConnectionManager: NSObject {
     // MARK: - Frame delivery
 
     private static let pushFrameTypes: Set<UInt32> = [
-        UInt32(LookinPush_SwiftUISupportDetected),
-        UInt32(LookinPush_GestureDebug),
-        UInt32(LookinPush_ApplicationStateChanged),
+        UInt32(PushType.swiftUISupportDetected),
+        UInt32(PushType.gestureDebug),
+        UInt32(PushType.applicationStateChanged),
     ]
 
     private func shouldAcceptFrame(on channel: ServerChannel, type: UInt32, tag: UInt32) -> Bool {
@@ -665,13 +665,13 @@ final class ConnectionManager: NSObject {
     }
 
     private func handlePush(type: UInt32, data: Any?, channel: ServerChannel) {
-        if type == UInt32(LookinPush_ApplicationStateChanged) {
+        if type == UInt32(PushType.applicationStateChanged) {
             guard let isActive = ApplicationStatePush.isActive(inPayload: data) else { return }
             #log(.default, "Lookin - the app reported that it is \(isActive ? "active" : "in the background", privacy: .public), channel:\(channel, privacy: .public)")
             applicationStateBroadcaster.yield(ApplicationStateReport(channel: channel, kind: .serverReported(isActive: isActive)))
             return
         }
-        guard type == UInt32(LookinPush_SwiftUISupportDetected) else { return }
+        guard type == UInt32(PushType.swiftUISupportDetected) else { return }
         #log(.default, "LookinClient - received SwiftUI support detection push from channel:\(channel, privacy: .public) data:\(data.map { String(describing: $0) } ?? "(null)", privacy: .public)")
         DispatchQueue.main.async {
             let gatekeeper = SwiftUISupportGatekeeper.sharedInstance()

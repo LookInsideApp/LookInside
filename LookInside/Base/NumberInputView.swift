@@ -116,7 +116,7 @@ class NumberInputView: BaseView {
 
     /// The value `string` parses to for `attrType` (an integer or a floating
     /// point type), or nil when it does not parse.
-    static func parsedValue(with string: String, attrType: LookinAttrType) -> Any? {
+    static func parsedValue(with string: String, attrType: InspectedAttribute.ValueType) -> Any? {
         switch attrType {
         case .int, .long, .longLong:
             return Scanner(string: string).scanInt64().map { NSNumber(value: $0) }

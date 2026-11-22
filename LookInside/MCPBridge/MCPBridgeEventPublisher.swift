@@ -219,7 +219,7 @@ final class MCPBridgeEventPublisher {
     }
 
     private func handleServerPush(_ push: ConnectionPush) {
-        guard push.type == UInt32(LookinPush_SwiftUISupportDetected) else { return }
+        guard push.type == UInt32(PushType.swiftUISupportDetected) else { return }
         var payload: [String: MCPBridgeJSONValue] = [:]
         if let document = document(forChannel: push.channel) {
             payload = targetPayload(for: document)

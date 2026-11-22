@@ -39,7 +39,7 @@
 
         override public init() {
             super.init()
-            lookinServerVersion = Int32(LOOKIN_SERVER_VERSION)
+            lookinServerVersion = Int32(ProtocolVersion.server)
             dataTotalCount = 0
         }
 

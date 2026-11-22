@@ -28,7 +28,7 @@
             return []
         }
         let arguments = [hasScreenshots, hasAttrList, lowQuality, readCustomInfo, saveCustomSetter].map { NSNumber(value: $0) }
-        let items = LookinInvoke(makerClass, selector, arguments, nil)
+        let items = invokeMethod(target: makerClass, selector: selector, arguments: arguments, error: nil)
         return (items as? [DisplayItem]) ?? []
     }
 
@@ -56,7 +56,7 @@
             }
 
             let info = unsafeDowncast((self as NSObject.Type).init(), to: self)
-            info.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            info.serverVersion = Int32(ProtocolVersion.server)
             info.displayItems = makeDisplayItems(screenshots: false, attrList: false, lowImageQuality: false, readCustomInfo: readCustomInfo, saveCustomSetter: true)
             info.appInfo = InspectedAppInfo.currentInfo(withScreenshot: false, icon: true, localIdentifiers: nil)
             info.collapsedClassList = []
@@ -68,7 +68,7 @@
         @objc(exportedInfo)
         public class func exported() -> Self {
             let info = unsafeDowncast((self as NSObject.Type).init(), to: self)
-            info.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+            info.serverVersion = Int32(ProtocolVersion.server)
             info.displayItems = makeDisplayItems(screenshots: true, attrList: true, lowImageQuality: true, readCustomInfo: true, saveCustomSetter: false)
             info.appInfo = InspectedAppInfo.currentInfo(withScreenshot: false, icon: true, localIdentifiers: nil)
             info.collapsedClassList = []

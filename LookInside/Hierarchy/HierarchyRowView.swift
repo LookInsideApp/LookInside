@@ -441,7 +441,7 @@ class HierarchyRowView: OutlineRowView {
 }
 
 extension HierarchyRowView: DisplayItemDelegate {
-    func displayItem(_: DisplayItem, propertyDidChange property: LookinDisplayItemProperty) {
+    func displayItem(_: DisplayItem, propertyDidChange property: DisplayItem.Property) {
         if property == .isHovered {
             updateHoverState()
         } else {

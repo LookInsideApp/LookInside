@@ -64,7 +64,7 @@ final class MCPBridgeInspectionService {
         )
     }
 
-    private func deviceKindString(for kind: LookinAppInfoDevice) -> String {
+    private func deviceKindString(for kind: InspectedAppInfo.Device) -> String {
         switch kind {
         case .simulator: return "simulator"
         case .iPad: return "iPad"
@@ -316,7 +316,7 @@ final class MCPBridgeInspectionService {
         _ group: AttributesGroup,
         redactingSecureContent: Bool
     ) -> MCPBridgeAttributeGroup {
-        let identifier = group.userCustomTitle ?? group.identifier
+        let identifier = group.userCustomTitle ?? group.identifier?.rawValue
         let sections = (group.attrSections ?? []).map { section in
             encodeSection(section, redactingSecureContent: redactingSecureContent)
         }
@@ -339,7 +339,7 @@ final class MCPBridgeInspectionService {
             )
         }
         return MCPBridgeAttributeSection(
-            identifier: section.identifier ?? "",
+            identifier: section.identifier?.rawValue ?? "",
             attributes: attributes
         )
     }

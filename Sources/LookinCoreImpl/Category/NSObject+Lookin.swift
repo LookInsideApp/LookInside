@@ -204,7 +204,7 @@
 
     public extension NSObject {
         @objc(lookin_encodedObjectWithType:)
-        func encodedObject(with type: LookinCodingValueType) -> Any? {
+        func encodedObject(with type: ConnectionAttachment.ValueType) -> Any? {
             switch type {
             case .color:
                 guard isKind(of: PlatformColor.self) else {
@@ -265,12 +265,12 @@
         }
 
         @available(*, deprecated, renamed: "encodedObject(with:)")
-        func lookin_encodedObject(with type: LookinCodingValueType) -> Any? {
+        func lookin_encodedObject(with type: ConnectionAttachment.ValueType) -> Any? {
             encodedObject(with: type)
         }
 
         @objc(lookin_decodedObjectWithType:)
-        func decodedObject(with type: LookinCodingValueType) -> Any? {
+        func decodedObject(with type: ConnectionAttachment.ValueType) -> Any? {
             switch type {
             case .color:
                 guard isKind(of: NSArray.self) else {
@@ -297,7 +297,7 @@
         }
 
         @available(*, deprecated, renamed: "decodedObject(with:)")
-        func lookin_decodedObject(with type: LookinCodingValueType) -> Any? {
+        func lookin_decodedObject(with type: ConnectionAttachment.ValueType) -> Any? {
             decodedObject(with: type)
         }
     }
@@ -356,8 +356,8 @@
             return 0
         }
         var result: Double = 0
-        if let returned = LookinInvoke(object, selector, nil, nil) as? NSValue,
-           LookinMethodReturnType(object, selector, nil) == LookinEncoding(.double)
+        if let returned = invokeMethod(target: object, selector: selector, arguments: nil, error: nil) as? NSValue,
+           methodReturnType(target: object, selector: selector, argumentCount: nil) == objectiveCEncoding(of: .double)
         {
             returned.getValue(&result, size: MemoryLayout<Double>.size)
         }

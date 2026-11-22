@@ -44,9 +44,9 @@ struct LaunchToolbarReadTests {
 
     private static func testLegacyArchiveOpens(_ fixture: Data) {
         let file = decode(fixture)
-        expect(file.serverVersion == LOOKIN_SERVER_VERSION, "file server version")
+        expect(file.serverVersion == ProtocolVersion.server, "file server version")
         let info = file.hierarchyInfo
-        expect(info?.serverVersion == LOOKIN_SERVER_VERSION, "hierarchy server version")
+        expect(info?.serverVersion == ProtocolVersion.server, "hierarchy server version")
         expect(info?.collapsedClassList == ["UITableViewCellContentView"], "collapsed class list")
         expect(info?.colorAlias?.keys.sorted() == ["Brand"], "color alias")
 
@@ -103,13 +103,13 @@ struct LaunchToolbarReadTests {
     }
 
     private static func testUnreadableArchiveFailsAsInnerError() {
-        expectError(Data("not an archive".utf8), code: LookinErrCode_Inner, "garbage data")
-        expectError(Data(), code: LookinErrCode_Inner, "empty data")
+        expectError(Data("not an archive".utf8), code: InspectionError.Code.inner, "garbage data")
+        expectError(Data(), code: InspectionError.Code.inner, "empty data")
     }
 
     private static func testArchiveOfAnotherClassFailsAsInnerError() {
         let data = try! NSKeyedArchiver.archivedData(withRootObject: "text" as NSString, requiringSecureCoding: true)
-        expectError(data, code: LookinErrCode_Inner, "a string archive")
+        expectError(data, code: InspectionError.Code.inner, "a string archive")
     }
 
     /// A `.lookin` file is decoded without secure coding, which instantiates
@@ -122,7 +122,7 @@ struct LaunchToolbarReadTests {
             withRootObject: [ArchiveDecodingCanary()] as NSArray,
             requiringSecureCoding: false
         )
-        expectError(data, code: LookinErrCode_Inner, "an archive naming an unexpected class")
+        expectError(data, code: InspectionError.Code.inner, "an archive naming an unexpected class")
         expect(ArchiveDecodingCanary.decodedCount == 0, "a class outside the model should never be decoded")
     }
 
@@ -169,7 +169,7 @@ struct LaunchToolbarReadTests {
         let info = HierarchyInfo()
         info.displayItems = [item]
         let file = HierarchyFile()
-        file.serverVersion = LOOKIN_SERVER_VERSION
+        file.serverVersion = ProtocolVersion.server
         file.hierarchyInfo = info
 
         let opened = decode(encode(file)).hierarchyInfo?.displayItems?.first
@@ -183,9 +183,9 @@ struct LaunchToolbarReadTests {
 
     private static func testArchiveVersionLimits() {
         for (version, code) in [
-            (Int32(0), LookinErrCode_ServerVersionTooLow),
-            (LOOKIN_SUPPORTED_SERVER_MIN - 1, LookinErrCode_ServerVersionTooLow),
-            (LOOKIN_SUPPORTED_SERVER_MAX + 1, LookinErrCode_ServerVersionTooHigh),
+            (Int32(0), InspectionError.Code.serverVersionTooLow),
+            (ProtocolVersion.supportedServers.lowerBound - 1, InspectionError.Code.serverVersionTooLow),
+            (ProtocolVersion.supportedServers.upperBound + 1, InspectionError.Code.serverVersionTooHigh),
         ] {
             let file = HierarchyFile()
             file.serverVersion = version
@@ -193,9 +193,9 @@ struct LaunchToolbarReadTests {
             expectError(encode(file), code: code, "server version \(version)")
         }
         let file = HierarchyFile()
-        file.serverVersion = LOOKIN_SUPPORTED_SERVER_MIN
+        file.serverVersion = ProtocolVersion.supportedServers.lowerBound
         file.hierarchyInfo = HierarchyInfo()
-        expect(decode(encode(file)).serverVersion == LOOKIN_SUPPORTED_SERVER_MIN, "oldest supported version opens")
+        expect(decode(encode(file)).serverVersion == ProtocolVersion.supportedServers.lowerBound, "oldest supported version opens")
     }
 
     // MARK: - Reader screenshots
@@ -261,21 +261,21 @@ struct LaunchToolbarReadTests {
     private static func testLaunchServerVersionErrors() {
         // Learn More opens a page that exists: the in-app link helper only
         // shows a "links are disabled" alert, which 3.1.0 shipped with.
-        expect(LaunchRules.serverVersionHelpURL(errorCode: LookinErrCode_ServerVersionTooLow).absoluteString == "https://lookinside-app.com/docs/update-server", "too low page")
-        expect(LaunchRules.serverVersionHelpURL(errorCode: LookinErrCode_ServerVersionTooHigh).absoluteString == "https://lookinside-app.com/#cta", "too high page")
-        expect(LaunchRules.serverVersionHelpURL(errorCode: LookinErrCode_Inner).absoluteString == "https://lookinside-app.com/#cta", "other errors use the too high page")
+        expect(LaunchRules.serverVersionHelpURL(errorCode: InspectionError.Code.serverVersionTooLow).absoluteString == "https://lookinside-app.com/docs/update-server", "too low page")
+        expect(LaunchRules.serverVersionHelpURL(errorCode: InspectionError.Code.serverVersionTooHigh).absoluteString == "https://lookinside-app.com/#cta", "too high page")
+        expect(LaunchRules.serverVersionHelpURL(errorCode: InspectionError.Code.inner).absoluteString == "https://lookinside-app.com/#cta", "other errors use the too high page")
         expect(
-            LaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooLow, localizedDescription: "x")
+            LaunchRules.serverVersionErrorTitle(errorCode: InspectionError.Code.serverVersionTooLow, localizedDescription: "x")
                 == "Update LookInside Server to inspect this app.",
             "too low title"
         )
         expect(
-            LaunchRules.serverVersionErrorTitle(errorCode: LookinErrCode_ServerVersionTooHigh, localizedDescription: "x")
+            LaunchRules.serverVersionErrorTitle(errorCode: InspectionError.Code.serverVersionTooHigh, localizedDescription: "x")
                 == "Update LookInside to inspect this app.",
             "too high title"
         )
-        expect(LaunchRules.serverVersionAlertTitle(errorCode: LookinErrCode_ServerVersionTooLow, appName: "Notes") == "“Notes” uses an older LookInside Server.", "too low alert title")
-        expect(LaunchRules.serverVersionAlertTitle(errorCode: LookinErrCode_ServerVersionTooHigh, appName: nil) == "This app uses a newer LookInside Server.", "too high alert title, no name")
+        expect(LaunchRules.serverVersionAlertTitle(errorCode: InspectionError.Code.serverVersionTooLow, appName: "Notes") == "“Notes” uses an older LookInside Server.", "too low alert title")
+        expect(LaunchRules.serverVersionAlertTitle(errorCode: InspectionError.Code.serverVersionTooHigh, appName: nil) == "This app uses a newer LookInside Server.", "too high alert title, no name")
         expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "Custom") == "Custom", "own description")
         expect(LaunchRules.serverVersionErrorTitle(errorCode: -1, localizedDescription: "") == "Unable to inspect this app.", "fallback title")
     }
@@ -463,7 +463,7 @@ struct LaunchToolbarReadTests {
             fail("\(message): decoding should fail")
         } catch {
             let error = error as NSError
-            expect(error.domain == LookinErrorDomain && error.code == code, "\(message): got \(error.domain) \(error.code)")
+            expect(error.domain == InspectionError.domain && error.code == code, "\(message): got \(error.domain) \(error.code)")
         }
     }
 

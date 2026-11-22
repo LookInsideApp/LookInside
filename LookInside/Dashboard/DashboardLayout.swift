@@ -363,7 +363,7 @@ enum DashboardStyle {
     /// discarded-request error.
     static func alert(_ error: Error, window: NSWindow?) {
         let error = error as NSError
-        guard error.code != LookinErrCode_Discard else { return }
+        guard error.code != InspectionError.Code.discarded else { return }
         let alert = NSAlert(error: error)
         if let window {
             alert.beginSheetModal(for: window, completionHandler: nil)
@@ -374,7 +374,7 @@ enum DashboardStyle {
 
     /// `AlertErrorText`: an error with a title and a recovery suggestion.
     static func alert(title: String, detail: String, window: NSWindow?) {
-        let error = NSError(domain: LookinErrorDomain, code: LookinErrCode_Default, userInfo: [
+        let error = NSError(domain: InspectionError.domain, code: InspectionError.Code.default, userInfo: [
             NSLocalizedDescriptionKey: title,
             NSLocalizedRecoverySuggestionErrorKey: detail,
         ])

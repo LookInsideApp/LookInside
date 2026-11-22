@@ -48,11 +48,11 @@ enum CoreAnimationArchiveConverter {
 
         let hierarchyInfo = HierarchyInfo()
         hierarchyInfo.displayItems = [rootItem]
-        hierarchyInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        hierarchyInfo.serverVersion = Int32(ProtocolVersion.server)
         hierarchyInfo.appInfo = makingAppInfo(origin: capture.origin)
 
         let file = HierarchyFile()
-        file.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        file.serverVersion = Int32(ProtocolVersion.server)
         file.hierarchyInfo = hierarchyInfo
         file.soloScreenshots = session.soloScreenshotsByOid
         file.groupScreenshots = session.groupScreenshotsByOid
@@ -183,7 +183,7 @@ enum CoreAnimationArchiveConverter {
             "Core Animation Archive",
             comment: "App name shown for an opened .caar file (a Core Animation archive) whose file name does not say which app it came from."
         )
-        appInfo.serverVersion = Int32(LOOKIN_SERVER_VERSION)
+        appInfo.serverVersion = Int32(ProtocolVersion.server)
         // The images are drawn here from a layer archive, as for a Server
         // that sends them: the Liquid Glass setting treats the glass as drawn.
         appInfo.layerArchiveProtocolVersion = 1
@@ -383,53 +383,53 @@ enum CoreAnimationArchiveAttributes {
     }
 
     private static func makingAttribute(
-        _ identifier: String,
+        _ identifier: InspectedAttribute.Identifier,
         of layer: CALayer,
         viewIdentity: CoreAnimationArchiveViewIdentity?
     ) -> InspectedAttribute? {
         switch identifier {
-        case LookinAttr_Class_Class_Class:
+        case InspectedAttribute.Identifier.Class.Class.class:
             // The server's `lks_relatedClassChainList`: for a layer that backs
             // a view, the view's chain up to NSView (the view controller's
             // chain it adds is not in the archive); for any other layer, its
             // own chain, cut after CALayer.
             if let viewIdentity {
-                return attribute(identifier, .customObj, [viewIdentity.classCardChain] as NSArray)
+                return attribute(identifier, .customObject, [viewIdentity.classCardChain] as NSArray)
             }
             let chain = CoreAnimationArchiveConverter.classChain(of: layer)
             let trimmedChain = chain.firstIndex(of: "CALayer").map { Array(chain[...$0]) } ?? chain
-            return attribute(identifier, .customObj, [trimmedChain] as NSArray)
-        case LookinAttr_Layout_Frame_Frame:
+            return attribute(identifier, .customObject, [trimmedChain] as NSArray)
+        case InspectedAttribute.Identifier.Layout.Frame.frame:
             return attribute(identifier, .cgRect, NSValue(rect: layer.frame))
-        case LookinAttr_Layout_Bounds_Bounds:
+        case InspectedAttribute.Identifier.Layout.Bounds.bounds:
             return attribute(identifier, .cgRect, NSValue(rect: layer.bounds))
-        case LookinAttr_Layout_Position_Position:
+        case InspectedAttribute.Identifier.Layout.Position.position:
             return attribute(identifier, .cgPoint, NSValue(point: layer.position))
-        case LookinAttr_Layout_AnchorPoint_AnchorPoint:
+        case InspectedAttribute.Identifier.Layout.AnchorPoint.anchorPoint:
             return attribute(identifier, .cgPoint, NSValue(point: layer.anchorPoint))
-        case LookinAttr_ViewLayer_Visibility_Hidden:
-            return attribute(identifier, .BOOL, NSNumber(value: layer.isHidden))
-        case LookinAttr_ViewLayer_Visibility_Opacity:
+        case InspectedAttribute.Identifier.ViewLayer.Visibility.hidden:
+            return attribute(identifier, .bool, NSNumber(value: layer.isHidden))
+        case InspectedAttribute.Identifier.ViewLayer.Visibility.opacity:
             return attribute(identifier, .float, NSNumber(value: layer.opacity))
-        case LookinAttr_ViewLayer_InterationAndMasks_MasksToBounds:
-            return attribute(identifier, .BOOL, NSNumber(value: layer.masksToBounds))
-        case LookinAttr_ViewLayer_Corner_Radius:
+        case InspectedAttribute.Identifier.ViewLayer.InteractionAndMasks.masksToBounds:
+            return attribute(identifier, .bool, NSNumber(value: layer.masksToBounds))
+        case InspectedAttribute.Identifier.ViewLayer.Corner.radius:
             return attribute(identifier, .double, NSNumber(value: Double(layer.cornerRadius)))
-        case LookinAttr_ViewLayer_BgColor_BgColor:
+        case InspectedAttribute.Identifier.ViewLayer.BackgroundColor.backgroundColor:
             return colorAttribute(identifier, layer.backgroundColor)
-        case LookinAttr_ViewLayer_Border_Color:
+        case InspectedAttribute.Identifier.ViewLayer.Border.color:
             return colorAttribute(identifier, layer.borderColor)
-        case LookinAttr_ViewLayer_Border_Width:
+        case InspectedAttribute.Identifier.ViewLayer.Border.width:
             return attribute(identifier, .double, NSNumber(value: Double(layer.borderWidth)))
-        case LookinAttr_ViewLayer_Shadow_Color:
+        case InspectedAttribute.Identifier.ViewLayer.Shadow.color:
             return colorAttribute(identifier, layer.shadowColor)
-        case LookinAttr_ViewLayer_Shadow_Opacity:
+        case InspectedAttribute.Identifier.ViewLayer.Shadow.opacity:
             return attribute(identifier, .float, NSNumber(value: layer.shadowOpacity))
-        case LookinAttr_ViewLayer_Shadow_Radius:
+        case InspectedAttribute.Identifier.ViewLayer.Shadow.radius:
             return attribute(identifier, .double, NSNumber(value: Double(layer.shadowRadius)))
-        case LookinAttr_ViewLayer_Shadow_OffsetW:
+        case InspectedAttribute.Identifier.ViewLayer.Shadow.offsetWidth:
             return attribute(identifier, .double, NSNumber(value: Double(layer.shadowOffset.width)))
-        case LookinAttr_ViewLayer_Shadow_OffsetH:
+        case InspectedAttribute.Identifier.ViewLayer.Shadow.offsetHeight:
             return attribute(identifier, .double, NSNumber(value: Double(layer.shadowOffset.height)))
         default:
             // The class image paths and the Relation card: a decoded layer
@@ -439,14 +439,14 @@ enum CoreAnimationArchiveAttributes {
     }
 
     /// A colour row: RGBA in 0...1, the value a `LookinAttrTypeUIColor`
-    /// carries (`LookinAttrType`, LookinCoreTypes.swift). No colour — or one with no RGB
+    /// carries (`InspectedAttribute.ValueType`, LookinCoreTypes.swift). No colour — or one with no RGB
     /// equivalent, such as a pattern — is shown as nil unless the blueprint
     /// hides nil for the row.
-    private static func colorAttribute(_ identifier: String, _ color: CGColor?) -> InspectedAttribute? {
+    private static func colorAttribute(_ identifier: InspectedAttribute.Identifier, _ color: CGColor?) -> InspectedAttribute? {
         if let components = rgbaComponents(of: color) {
             return attribute(identifier, .uiColor, components as NSArray)
         }
-        guard !DashboardBlueprint.hideIfNil(withAttrID: identifier) else { return nil }
+        guard !DashboardBlueprint.hidesWhenNil(identifier) else { return nil }
         return attribute(identifier, .uiColor, nil)
     }
 
@@ -460,7 +460,7 @@ enum CoreAnimationArchiveAttributes {
         return components.map { NSNumber(value: Double(min(max($0, 0), 1))) }
     }
 
-    private static func attribute(_ identifier: String, _ attrType: LookinAttrType, _ value: Any?) -> InspectedAttribute {
+    private static func attribute(_ identifier: InspectedAttribute.Identifier, _ attrType: InspectedAttribute.ValueType, _ value: Any?) -> InspectedAttribute {
         let attribute = InspectedAttribute()
         attribute.identifier = identifier
         attribute.attrType = attrType

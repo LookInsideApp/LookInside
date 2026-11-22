@@ -119,7 +119,7 @@
             @objc(valueWithCGVector:)
             class func value(cgVector vector: CGVector) -> NSValue {
                 var vector = vector
-                return NSValue(bytes: &vector, objCType: LookinEncoding(.cgVector))
+                return NSValue(bytes: &vector, objCType: objectiveCEncoding(of: .cgVector))
             }
 
             @available(*, deprecated, renamed: "value(cgVector:)")
@@ -160,7 +160,7 @@
             @objc(valueWithCGAffineTransform:)
             class func value(cgAffineTransform transform: CGAffineTransform) -> NSValue {
                 var transform = transform
-                return NSValue(bytes: &transform, objCType: LookinEncoding(.cgAffineTransform))
+                return NSValue(bytes: &transform, objCType: objectiveCEncoding(of: .cgAffineTransform))
             }
 
             @available(*, deprecated, renamed: "value(cgAffineTransform:)")

@@ -19,9 +19,9 @@ extension HostAppTests {
     struct DashboardRowsCountTests {
         private func rowsCountAttribute(_ numbers: [Int]?) -> InspectedAttribute {
             let attribute = InspectedAttribute()
-            // LookinAttr_UITableView_RowsNumber_Number.
+            // InspectedAttribute.Identifier.UITableView.RowsNumber.number.
             attribute.identifier = "tv_r_n"
-            attribute.attrType = .customObj
+            attribute.attrType = .customObject
             attribute.value = numbers.map { $0.map(NSNumber.init(value:)) as NSArray }
             return attribute
         }

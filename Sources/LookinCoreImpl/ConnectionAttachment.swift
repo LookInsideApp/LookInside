@@ -19,7 +19,7 @@
     @objc(LookinConnectionAttachment)
     public class ConnectionAttachment: NSObject, NSCoding, NSSecureCoding {
         @objc(dataType)
-        public var dataType: LookinCodingValueType = .unknown
+        public var dataType: ConnectionAttachment.ValueType = .unknown
         @objc(data)
         public var data: Any?
 
@@ -37,7 +37,7 @@
 
         public required init?(coder aDecoder: NSCoder) {
             super.init()
-            dataType = LookinCodingValueType(rawValue: aDecoder.decodeInteger(forKey: Key_DataType)) ?? .unknown
+            dataType = ConnectionAttachment.ValueType(rawValue: aDecoder.decodeInteger(forKey: Key_DataType)) ?? .unknown
             data = (aDecoder.decodeObject(forKey: Key_Data) as? NSObject)?.decodedObject(with: dataType)
         }
 

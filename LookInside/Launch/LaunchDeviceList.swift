@@ -16,7 +16,7 @@ enum LaunchDeviceIdentity: Hashable {
     /// (a USB device), so two devices that report the same name and OS stay
     /// apart; it is nil on the Simulator ports, which every running
     /// Simulator shares, and on the Mac ports.
-    case reported(deviceDescription: String, osDescription: String, deviceType: LookinAppInfoDevice, originGroupKey: String? = nil)
+    case reported(deviceDescription: String, osDescription: String, deviceType: InspectedAppInfo.Device, originGroupKey: String? = nil)
     /// Apps that sent no app info (an app in the background, or a Server
     /// whose version this Host does not support) and could not be placed on
     /// a reported device. `originGroupKey` names where their channels come

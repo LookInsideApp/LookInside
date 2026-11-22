@@ -28,7 +28,7 @@ extension NSColor {
 }
 
 extension NSColor {
-    /// `LookinColorMake` / `LookinColorRGBAMake` for Swift: 0...255
+    /// A color from 0...255
     /// channels and a 0...1 alpha.
     static func rgb255(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat, _ alpha: CGFloat = 1) -> NSColor {
         NSColor(red: red / 255, green: green / 255, blue: blue / 255, alpha: alpha)

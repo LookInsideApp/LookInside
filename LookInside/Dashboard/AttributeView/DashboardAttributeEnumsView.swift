@@ -70,7 +70,7 @@ final class DashboardAttributeEnumsView: DashboardAttributeView {
     override func renderWithAttribute() {
         guard let attribute else { return }
         // Known attributes show their short title above the value.
-        if !attribute.isUserCustom(), let briefTitle = DashboardBlueprint.briefTitle(withAttrID: attribute.identifier), !briefTitle.isEmpty {
+        if !attribute.isUserCustom(), let briefTitle = attribute.identifier.flatMap(DashboardBlueprint.briefTitle(of:)), !briefTitle.isEmpty {
             titleLabel.stringValue = briefTitle
             titleLabel.isHidden = false
         } else {
@@ -85,7 +85,7 @@ final class DashboardAttributeEnumsView: DashboardAttributeView {
             textLabel.stringValue = text
         } else {
             let enumValue = (attribute.value as? NSNumber)?.intValue ?? 0
-            let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute.identifier)
+            let enumListName = attribute.identifier.flatMap(DashboardBlueprint.enumListName(of:))
             textLabel.stringValue = EnumListRegistry.shared.desc(forEnumName: enumListName, value: enumValue) ?? ""
         }
     }
@@ -105,7 +105,7 @@ final class DashboardAttributeEnumsView: DashboardAttributeView {
         let currentOSVersion = dashboardViewController?.currentDataSource()?.rawHierarchyInfo?.appInfo?.osMainVersion ?? 0
         let menu = NSMenu()
         menu.autoenablesItems = false
-        let enumListName = DashboardBlueprint.enumListName(withAttrID: attribute?.identifier)
+        let enumListName = attribute?.identifier.flatMap(DashboardBlueprint.enumListName(of:))
         let currentValue = (attribute?.value as? NSNumber)?.intValue ?? 0
         let editable = canEdit()
         for enumItem in EnumListRegistry.shared.items(forEnumName: enumListName) ?? [] {
