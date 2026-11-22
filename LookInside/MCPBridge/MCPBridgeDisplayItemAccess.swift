@@ -35,7 +35,10 @@ enum MCPBridgeDisplayItemAccess {
         return nil
     }
 
+    /// Whether the host holds every attribute group of `item`. A displayed
+    /// row may hold its extension and custom groups only: the blueprint
+    /// groups come for the selected node, or from `read_view_details`.
     static func hasCachedDetails(_ item: DisplayItem) -> Bool {
-        item.attributesGroupList != nil || item.customAttrGroupList != nil
+        item.hasEveryAttributeGroup
     }
 }

@@ -58,6 +58,7 @@
 				Base/BaseViewController.swift,
 				"Base/Category/AttributesGroup+LookinClient.swift",
 				"Base/Category/AutoLayoutConstraint+LookinClient.swift",
+				"Base/Category/DisplayItem+AttributeGroups.swift",
 				"Base/Category/DisplayItem+LookinClient.swift",
 				"Base/Category/InspectedObject+LookinClient.swift",
 				"Base/Category/NSAppearance+LookinClient.swift",

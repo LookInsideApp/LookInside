@@ -40,6 +40,13 @@
         /// back as revision 0; older Servers ignore the key.
         @objc(attributeCatalogRevision)
         public var attributeCatalogRevision: Int = 0
+        /// The Host wants only the extension and custom attribute groups of this
+        /// node (the SwiftUI groups it links nodes by), not the blueprint
+        /// groups: it reads those for the selected node alone. Archived only
+        /// when set, so older Hosts' tasks encode exactly as before; older
+        /// Servers ignore the key and send every group.
+        @objc(omitsBlueprintAttributes)
+        public var omitsBlueprintAttributes: Bool = false
         /// Not archived.
         @objc(frameSize)
         public var frameSize: CGSize = .zero
@@ -63,6 +70,9 @@
             }
             if attributeCatalogRevision > 0 {
                 aCoder.encode(attributeCatalogRevision, forKey: "attributeCatalogRevision")
+            }
+            if omitsBlueprintAttributes {
+                aCoder.encode(true, forKey: "omitsBlueprintAttributes")
             }
         }
 
@@ -96,6 +106,7 @@
 
             wantsClassImagePaths = aDecoder.containsValue(forKey: "wantsClassImagePaths") && aDecoder.decodeBool(forKey: "wantsClassImagePaths")
             attributeCatalogRevision = aDecoder.containsValue(forKey: "attributeCatalogRevision") ? max(0, aDecoder.decodeInteger(forKey: "attributeCatalogRevision")) : 0
+            omitsBlueprintAttributes = aDecoder.containsValue(forKey: "omitsBlueprintAttributes") && aDecoder.decodeBool(forKey: "omitsBlueprintAttributes")
         }
 
         @objc(supportsSecureCoding)

@@ -106,7 +106,7 @@ final class MCPBridgeModificationService {
                     code: "modify.attributeNotFound",
                     message: MCPBridgeRecoveryHint.attributeNotFoundMessage(
                         attributeIdentifier: attributeIdentifier,
-                        viewDetailsFetched: displayItem.attributesGroupList != nil
+                        viewDetailsFetched: MCPBridgeDisplayItemAccess.hasCachedDetails(displayItem)
                     )
                 )
             )

@@ -12,14 +12,20 @@ import Foundation
 /// - **On screen**: for each displayed node, the screenshot the preview
 ///   shows for it (`StaticAsyncUpdateManager` mirrors
 ///   `DisplayItem.appropriateScreenshot()`), and its attributes when it has
-///   none yet. The window shows the progress.
+///   none yet: the extension and custom groups (the SwiftUI groups nodes
+///   are linked by), and the blueprint groups only for the selected node,
+///   the one node the dashboard shows (selected-node-attributes-plan.md).
+///   The window shows the progress.
+/// - **Selection**: the blueprint groups of a newly selected node that has
+///   none yet.
 /// - **Prefetch**: what expanding a folded node would show — its solo
 ///   screenshot and its children's group screenshots — breadth first from
 ///   the rows on screen, so the next expand finds them ready; then what
 ///   collapsing a displayed node would show, its group screenshot. Never
 ///   attributes: a node gets those when it is displayed.
 /// - **Whole tree**: before a file of the hierarchy is written, everything
-///   any node misses, attributes included. The window shows the progress.
+///   any node misses, every node's full attributes included. The window
+///   shows the progress.
 public enum DetailFetchPlanning {
     public enum Screenshot: Equatable, Sendable {
         case solo
@@ -39,7 +45,13 @@ public enum DetailFetchPlanning {
         public var isUserCustom: Bool
         public var hasSoloScreenshot: Bool
         public var hasGroupScreenshot: Bool
+        /// Has any attribute groups at all.
         public var hasAttributes: Bool
+        /// Has the blueprint groups: the dashboard's groups, which a node gets
+        /// only when it is selected or written into a file.
+        public var hasBlueprintAttributes: Bool
+        /// The node the dashboard shows.
+        public var isSelected: Bool
 
         public init(
             childIndexes: [Int],
@@ -50,7 +62,9 @@ public enum DetailFetchPlanning {
             isUserCustom: Bool,
             hasSoloScreenshot: Bool,
             hasGroupScreenshot: Bool,
-            hasAttributes: Bool
+            hasAttributes: Bool,
+            hasBlueprintAttributes: Bool? = nil,
+            isSelected: Bool = false
         ) {
             self.childIndexes = childIndexes
             self.isExpandable = isExpandable
@@ -61,6 +75,8 @@ public enum DetailFetchPlanning {
             self.hasSoloScreenshot = hasSoloScreenshot
             self.hasGroupScreenshot = hasGroupScreenshot
             self.hasAttributes = hasAttributes
+            self.hasBlueprintAttributes = hasBlueprintAttributes ?? hasAttributes
+            self.isSelected = isSelected
         }
 
         /// The screenshot the preview shows for the node in its current
@@ -80,18 +96,47 @@ public enum DetailFetchPlanning {
         }
     }
 
+    /// Which attribute groups to ask for.
+    public enum AttributeRequest: Equatable, Sendable {
+        case none
+        /// The extension and custom groups, without the blueprint groups
+        /// (`StaticAsyncUpdateTask.omitsBlueprintAttributes`).
+        case extensionAndCustom
+        /// Every group.
+        case full
+    }
+
     /// One thing to ask for: a node's screenshot, its attributes, or both.
     public struct Request: Equatable, Sendable {
         public var nodeIndex: Int
         /// Nil for attributes alone.
         public var screenshot: Screenshot?
-        public var wantsAttributes: Bool
+        public var attributes: AttributeRequest
 
-        public init(nodeIndex: Int, screenshot: Screenshot?, wantsAttributes: Bool) {
+        public var wantsAttributes: Bool {
+            attributes != .none
+        }
+
+        public init(nodeIndex: Int, screenshot: Screenshot?, attributes: AttributeRequest) {
             self.nodeIndex = nodeIndex
             self.screenshot = screenshot
-            self.wantsAttributes = wantsAttributes
+            self.attributes = attributes
         }
+
+        /// Full attributes or none.
+        public init(nodeIndex: Int, screenshot: Screenshot?, wantsAttributes: Bool) {
+            self.init(nodeIndex: nodeIndex, screenshot: screenshot, attributes: wantsAttributes ? .full : .none)
+        }
+    }
+
+    /// The attributes a displayed node misses: the full groups for the
+    /// selected node without its blueprint groups, the extension and custom
+    /// groups for any other node without attribute groups.
+    static func onScreenAttributes(for node: Node) -> AttributeRequest {
+        if node.isSelected, !node.hasBlueprintAttributes {
+            return .full
+        }
+        return node.hasAttributes ? .none : .extensionAndCustom
     }
 
     /// What the displayed nodes miss, in display order: the screenshot the
@@ -106,12 +151,37 @@ public enum DetailFetchPlanning {
             if node.mayFetchScreenshot, !node.has(node.shownScreenshot) {
                 screenshot = node.shownScreenshot
             }
-            let wantsAttributes = !node.hasAttributes
-            guard screenshot != nil || wantsAttributes else {
+            let attributes = onScreenAttributes(for: node)
+            guard screenshot != nil || attributes != .none else {
                 return nil
             }
-            return Request(nodeIndex: index, screenshot: screenshot, wantsAttributes: wantsAttributes)
+            return Request(nodeIndex: index, screenshot: screenshot, attributes: attributes)
         }
+    }
+
+    /// The on-screen requests with the selected node's first, since the
+    /// dashboard shows it; a selected node that is not displayed (inside a
+    /// folded node, say) gets its blueprint groups as well.
+    public static func foregroundRequests(for nodes: [Node], displayedIndexes: [Int]) -> [Request] {
+        var requests = onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+        guard let selectedIndex = nodes.firstIndex(where: \.isSelected) else {
+            return requests
+        }
+        if let position = requests.firstIndex(where: { $0.nodeIndex == selectedIndex }) {
+            requests.insert(requests.remove(at: position), at: 0)
+        } else if let request = selectionRequest(for: nodes[selectedIndex], at: selectedIndex) {
+            requests.insert(request, at: 0)
+        }
+        return requests
+    }
+
+    /// The blueprint groups of the node just selected, when it has none yet
+    /// and is not a custom node (whose attributes are its custom groups).
+    public static func selectionRequest(for node: Node, at index: Int) -> Request? {
+        guard !node.isUserCustom, !node.hasBlueprintAttributes else {
+            return nil
+        }
+        return Request(nodeIndex: index, screenshot: nil, attributes: .full)
     }
 
     /// What expanding the folded nodes would show, breadth first from the
@@ -159,13 +229,26 @@ public enum DetailFetchPlanning {
     /// first, as on screen; then the rest in list order, a node's attributes
     /// with its first request.
     public static func wholeTreeRequests(for nodes: [Node], displayedIndexes: [Int]) -> [Request] {
-        var requests = onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+        // A file gets every node's full attributes: a displayed node's
+        // request asks for them instead of the extension and custom groups,
+        // and one that has those already gets a request of its own.
+        var requests = onScreenRequests(for: nodes, displayedIndexes: displayedIndexes).map { request in
+            var request = request
+            if !nodes[request.nodeIndex].hasBlueprintAttributes {
+                request.attributes = .full
+            }
+            return request
+        }
+        let requestedIndexes = Set(requests.map(\.nodeIndex))
+        for index in displayedIndexes where !nodes[index].isUserCustom && !nodes[index].hasBlueprintAttributes && !requestedIndexes.contains(index) {
+            requests.append(Request(nodeIndex: index, screenshot: nil, attributes: .full))
+        }
         // A displayed node's attributes and shown screenshot are asked for
         // above already, when it misses them.
         let displayedIndexSet = Set(displayedIndexes)
         for (index, node) in nodes.enumerated() where !node.isUserCustom {
             let isDisplayed = displayedIndexSet.contains(index)
-            var wantsAttributes = !node.hasAttributes && !isDisplayed
+            var wantsAttributes = !node.hasBlueprintAttributes && !isDisplayed
             if node.mayFetchScreenshot {
                 var missingScreenshots: [Screenshot] = []
                 if !node.hasGroupScreenshot {

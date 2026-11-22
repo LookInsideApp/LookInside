@@ -87,6 +87,7 @@ final class StaticAsyncUpdateManager: NSObject {
 
     private let dataSourceSignals = SyncSubscriptionBag()
     private var glassLayerSettingObservation: NSKeyValueObservation?
+    private var selectedItemObservation: NSKeyValueObservation?
 
     /// The windows' layer archives, when the Server encodes them: the images
     /// planning asks for are drawn from them where it can, instead of being
@@ -134,6 +135,11 @@ final class StaticAsyncUpdateManager: NSObject {
             dataSource?.previewOrderDidChange.send()
             // The images planned while the archive was on its way.
             updateForDisplayingItems()
+        }
+        selectedItemObservation = hierarchyDataSource?.observe(\.selectedItem, options: [.new]) { [weak self] _, _ in
+            MainActor.assumeIsolated {
+                self?.selectedItemDidChange()
+            }
         }
         if let preferences = hierarchyDataSource?.preferenceManager() {
             layerArchiveStore.glassLayerVisibility = preferences.glassLayerVisibility
@@ -492,6 +498,17 @@ final class StaticAsyncUpdateManager: NSObject {
         }
     }
 
+    /// The dashboard shows the selected node: one without its blueprint
+    /// attribute groups gets them now, ahead of the displayed rows' details;
+    /// a prefetch or a fetch of the displayed rows running gives way and is
+    /// planned again with it (selected-node-attributes-plan.md).
+    private func selectedItemDidChange() {
+        guard let item = dataSource?.selectedItem, item.canFetchDetails, !item.hasEveryAttributeGroup else { return }
+        // A whole tree fetch brings them.
+        guard ongoingRequest?.kind != .wholeTree else { return }
+        updateForDisplayingItems()
+    }
+
     private func startPrefetchIfNeeded() {
         guard ongoingRequest == nil, inspectableApp != nil else { return }
         let newTasks = #signpostInterval("Make prefetch tasks") {
@@ -574,6 +591,7 @@ final class StaticAsyncUpdateManager: NSObject {
         guard let dataSource else { return [] }
         let items = dataSource.flatItems ?? []
         var indexByItem: [ObjectIdentifier: Int] = [:]
+        let selectedItem = dataSource.selectedItem
         let nodes = #signpostInterval("Build planning nodes") {
             indexByItem.reserveCapacity(items.count)
             for (index, item) in items.enumerated() {
@@ -590,10 +608,16 @@ final class StaticAsyncUpdateManager: NSObject {
                     isUserCustom: !item.canFetchDetails,
                     hasSoloScreenshot: item.soloScreenshot != nil,
                     hasGroupScreenshot: item.groupScreenshot != nil,
-                    // A custom node's attributes are its custom groups.
+                    // A custom node's attributes are its custom groups. A
+                    // node asked for its extension and custom groups that has
+                    // none holds an empty list.
                     hasAttributes: item.isUserCustom()
                         ? !(item.customAttrGroupList ?? []).isEmpty
-                        : !(item.attributesGroupList ?? []).isEmpty
+                        : item.attributesGroupList != nil,
+                    hasBlueprintAttributes: item.isUserCustom()
+                        ? !(item.customAttrGroupList ?? []).isEmpty
+                        : item.hasBlueprintAttributes,
+                    isSelected: item === selectedItem
                 )
             }
         }
@@ -603,7 +627,7 @@ final class StaticAsyncUpdateManager: NSObject {
             // switch for the closure's value.
             return switch kind {
             case .foreground:
-                DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: displayedIndexes)
+                DetailFetchPlanning.foregroundRequests(for: nodes, displayedIndexes: displayedIndexes)
             case .prefetch:
                 DetailFetchPlanning.prefetchRequests(for: nodes, displayedIndexes: displayedIndexes)
             case .wholeTree:
@@ -629,6 +653,7 @@ final class StaticAsyncUpdateManager: NSObject {
                 }
                 guard let task = Self.task(from: item, type: taskType, context: context) else { continue }
                 task.attrRequest = request.wantsAttributes ? .need : .notNeed
+                task.omitsBlueprintAttributes = request.attributes == .extensionAndCustom
                 let key = DetailTaskKey(task)
                 guard !self.answeredTasks.contains(key), taskKeys.insert(key).inserted else { continue }
                 tasks.append(task)
@@ -1110,11 +1135,15 @@ private struct DetailTaskKey: Hashable {
     let oid: UInt
     let taskType: Int
     let requestsAttributes: Bool
+    /// Asked for the extension and custom groups only: the selected node's
+    /// full attributes are a task of their own.
+    let omitsBlueprintAttributes: Bool
 
     init(_ task: StaticAsyncUpdateTask) {
         oid = task.oid
         taskType = task.taskType.rawValue
         requestsAttributes = task.attrRequest == .need
+        omitsBlueprintAttributes = task.omitsBlueprintAttributes
     }
 }
 
