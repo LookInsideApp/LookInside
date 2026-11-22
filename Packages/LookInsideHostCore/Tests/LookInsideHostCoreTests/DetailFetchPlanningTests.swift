@@ -24,9 +24,9 @@ struct DetailFetchPlanningTests {
     @Test func onScreenNodesGetTheScreenshotThePreviewShowsAndTheirAttributes() {
         let requests = DetailFetchPlanning.onScreenRequests(for: sampleTree(), displayedIndexes: [0, 1, 4])
         #expect(requests == [
-            Request(nodeIndex: 0, screenshot: .solo, wantsAttributes: true),
-            Request(nodeIndex: 1, screenshot: .group, wantsAttributes: true),
-            Request(nodeIndex: 4, screenshot: .group, wantsAttributes: true),
+            Request(nodeIndex: 0, screenshot: .solo, attributes: .extensionAndCustom),
+            Request(nodeIndex: 1, screenshot: .group, attributes: .extensionAndCustom),
+            Request(nodeIndex: 4, screenshot: .group, attributes: .extensionAndCustom),
         ])
     }
 
@@ -38,7 +38,7 @@ struct DetailFetchPlanningTests {
         nodes[4].hasAttributes = true
         let requests = DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [0, 1, 4])
         #expect(requests == [
-            Request(nodeIndex: 1, screenshot: nil, wantsAttributes: true),
+            Request(nodeIndex: 1, screenshot: nil, attributes: .extensionAndCustom),
             Request(nodeIndex: 4, screenshot: .group, wantsAttributes: false),
         ])
     }
@@ -47,7 +47,7 @@ struct DetailFetchPlanningTests {
         var nodes = sampleTree()
         nodes[0].hasPixelBearingSubitems = false
         let requests = DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [0])
-        #expect(requests == [Request(nodeIndex: 0, screenshot: .group, wantsAttributes: true)])
+        #expect(requests == [Request(nodeIndex: 0, screenshot: .group, attributes: .extensionAndCustom)])
     }
 
     @Test func nodesThatMayNotBeScreenshotGetAttributesOnlyAndCustomNodesNothing() {
@@ -55,7 +55,69 @@ struct DetailFetchPlanningTests {
         nodes[1].mayFetchScreenshot = false
         nodes[4].isUserCustom = true
         let requests = DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [1, 4])
-        #expect(requests == [Request(nodeIndex: 1, screenshot: nil, wantsAttributes: true)])
+        #expect(requests == [Request(nodeIndex: 1, screenshot: nil, attributes: .extensionAndCustom)])
+    }
+
+    @Test func displayedRowsGetExtensionAndCustomAttributes() {
+        var nodes = sampleTree()
+        nodes[0].hasSoloScreenshot = true
+        let requests = DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [0])
+        #expect(requests == [Request(nodeIndex: 0, screenshot: nil, attributes: .extensionAndCustom)])
+    }
+
+    @Test func selectedRowGetsFullAttributes() {
+        var nodes = sampleTree()
+        nodes[1].isSelected = true
+        // The selected node got its extension and custom groups earlier.
+        nodes[4].isSelected = false
+        nodes[4].hasAttributes = true
+        let requests = DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [1, 4])
+        #expect(requests == [
+            Request(nodeIndex: 1, screenshot: .group, attributes: .full),
+            Request(nodeIndex: 4, screenshot: .group, attributes: .none),
+        ])
+        nodes[4].isSelected = true
+        let selectedLater = DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [4])
+        #expect(selectedLater == [Request(nodeIndex: 4, screenshot: .group, attributes: .full)])
+    }
+
+    @Test func rowWithFullGroupsFromOlderServerIsNotFetchedAgain() {
+        var nodes = sampleTree()
+        nodes[4].hasAttributes = true
+        nodes[4].hasBlueprintAttributes = true
+        nodes[4].hasGroupScreenshot = true
+        nodes[4].isSelected = true
+        #expect(DetailFetchPlanning.onScreenRequests(for: nodes, displayedIndexes: [4]).isEmpty)
+        #expect(DetailFetchPlanning.selectionRequest(for: nodes[4], at: 4) == nil)
+    }
+
+    @Test func selectionRequestSkipsCustomNodesAndFetchedNodes() {
+        var nodes = sampleTree()
+        #expect(DetailFetchPlanning.selectionRequest(for: nodes[2], at: 2) == Request(nodeIndex: 2, screenshot: nil, attributes: .full))
+        nodes[2].hasAttributes = true
+        #expect(DetailFetchPlanning.selectionRequest(for: nodes[2], at: 2) == Request(nodeIndex: 2, screenshot: nil, attributes: .full))
+        nodes[2].hasBlueprintAttributes = true
+        #expect(DetailFetchPlanning.selectionRequest(for: nodes[2], at: 2) == nil)
+        nodes[3].isUserCustom = true
+        #expect(DetailFetchPlanning.selectionRequest(for: nodes[3], at: 3) == nil)
+    }
+
+    @Test func wholeTreeFetchesBlueprintAttributes() {
+        var nodes = sampleTree()
+        for index in nodes.indices {
+            nodes[index].hasSoloScreenshot = true
+            nodes[index].hasGroupScreenshot = true
+            nodes[index].hasAttributes = true
+            nodes[index].hasBlueprintAttributes = true
+        }
+        // A displayed node and a folded one have only their extension and custom groups.
+        nodes[1].hasBlueprintAttributes = false
+        nodes[5].hasBlueprintAttributes = false
+        let requests = DetailFetchPlanning.wholeTreeRequests(for: nodes, displayedIndexes: [0, 1, 4])
+        #expect(requests == [
+            Request(nodeIndex: 1, screenshot: nil, attributes: .full),
+            Request(nodeIndex: 5, screenshot: nil, attributes: .full),
+        ])
     }
 
     @Test func prefetchGoesBreadthFirstThroughWhatExpandingWouldShowThenWhatCollapsingWould() {
@@ -135,8 +197,10 @@ struct DetailFetchPlanningTests {
             nodes[index].hasSoloScreenshot = true
             nodes[index].hasGroupScreenshot = true
             nodes[index].hasAttributes = true
+            nodes[index].hasBlueprintAttributes = true
         }
         nodes[2].hasAttributes = false
+        nodes[2].hasBlueprintAttributes = false
         nodes[3].hasSoloScreenshot = false
         let requests = DetailFetchPlanning.wholeTreeRequests(for: nodes, displayedIndexes: [0, 1, 4])
         #expect(requests == [
