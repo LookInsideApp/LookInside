@@ -213,6 +213,11 @@
             BlueprintSection(.LayoutGuide.layoutFrame, title: "LayoutFrame", attributes: [
                 BlueprintAttribute(.LayoutGuide.LayoutFrame.layoutFrame, AttributeInfo(className: layoutGuideClassName, fullTitle: "LayoutFrame", getterString: "lks_layoutFrame", setterString: "")),
             ]),
+            // The constraints naming the guide as an endpoint, collected with
+            // the views' (PlatformLayoutGuide+LookinServer.swift).
+            BlueprintSection(.LayoutGuide.constraints, title: "Constraints", attributes: [
+                BlueprintAttribute(.LayoutGuide.Constraints.constraints, AttributeInfo(className: layoutGuideClassName, fullTitle: "Constraints", getterString: "lks_layoutGuideConstraints", setterString: "", objectValueType: .customObject, hideIfNil: true, revision: 2)),
+            ]),
             BlueprintSection(.LayoutGuide.owningView, title: "OwningView", attributes: [
                 BlueprintAttribute(.LayoutGuide.OwningView.owningView, AttributeInfo(className: layoutGuideClassName, fullTitle: "OwningView", getterString: "lks_owningViewDescription", setterString: "", objectValueType: .nsString, hideIfNil: true)),
             ]),
@@ -223,7 +228,11 @@
             BlueprintSection(.LayoutGuide.keyboardLayoutGuide, title: "UIKeyboardLayoutGuide", on: .uiKit, attributes: [
                 BlueprintAttribute(.LayoutGuide.KeyboardLayoutGuide.followsUndockedKeyboard, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "FollowsUndockedKeyboard", getterString: "followsUndockedKeyboard", setterString: "setFollowsUndockedKeyboard:", patch: false, revision: 2)),
                 BlueprintAttribute(.LayoutGuide.KeyboardLayoutGuide.usesBottomSafeArea, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "UsesBottomSafeArea", getterString: "usesBottomSafeArea", setterString: "setUsesBottomSafeArea:", patch: false, revision: 2)),
-                BlueprintAttribute(.LayoutGuide.KeyboardLayoutGuide.keyboardDismissPadding, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "KeyboardDismissPadding", getterString: "keyboardDismissPadding", setterString: "setKeyboardDismissPadding:", patch: false, revision: 2)),
+            ]),
+            // A number beside a switch squeezes the field and cuts its title;
+            // on its own it reads like the other single-value sections.
+            BlueprintSection(.LayoutGuide.keyboardDismissPadding, title: "KeyboardDismissPadding", on: .uiKit, attributes: [
+                BlueprintAttribute(.LayoutGuide.KeyboardDismissPadding.keyboardDismissPadding, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "KeyboardDismissPadding", briefTitle: "Padding", getterString: "keyboardDismissPadding", setterString: "setKeyboardDismissPadding:", patch: false, revision: 2)),
             ]),
             // The constraints a tracking guide switches, one row per edge mask
             // they are registered under (TrackingLayoutGuide+LookinServer.swift).

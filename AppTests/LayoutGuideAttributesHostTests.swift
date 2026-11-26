@@ -52,6 +52,7 @@ extension HostAppTests {
 
         @Test func trackedConstraintsUseTheConstraintRows() {
             for identifier in [
+                InspectedAttribute.Identifier.LayoutGuide.Constraints.constraints,
                 InspectedAttribute.Identifier.LayoutGuide.ConstraintsActiveNearEdges.constraints,
                 InspectedAttribute.Identifier.LayoutGuide.ConstraintsActiveAwayFromEdges.constraints,
             ] {
@@ -78,7 +79,9 @@ extension HostAppTests {
 
         @Test func theKeyboardAndTrackingSectionsShowByDefault() {
             for section in [
+                AttributesSection.Identifier.LayoutGuide.constraints,
                 AttributesSection.Identifier.LayoutGuide.keyboardLayoutGuide,
+                AttributesSection.Identifier.LayoutGuide.keyboardDismissPadding,
                 AttributesSection.Identifier.LayoutGuide.constraintsActiveNearEdges,
                 AttributesSection.Identifier.LayoutGuide.constraintsActiveAwayFromEdges,
             ] {

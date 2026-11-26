@@ -670,7 +670,9 @@
             public static let guideIdentifier: AttributesSection.Identifier = "LayoutGuide_Identifier"
             public static let layoutFrame: AttributesSection.Identifier = "LayoutGuide_LayoutFrame"
             public static let owningView: AttributesSection.Identifier = "LayoutGuide_OwningView"
+            public static let constraints: AttributesSection.Identifier = "LayoutGuide_Constraints"
             public static let keyboardLayoutGuide: AttributesSection.Identifier = "LayoutGuide_KeyboardLayoutGuide"
+            public static let keyboardDismissPadding: AttributesSection.Identifier = "LayoutGuide_KeyboardDismissPadding"
             public static let constraintsActiveNearEdges: AttributesSection.Identifier = "LayoutGuide_ConstraintsActiveNearEdges"
             public static let constraintsActiveAwayFromEdges: AttributesSection.Identifier = "LayoutGuide_ConstraintsActiveAwayFromEdges"
         }
@@ -3298,10 +3300,17 @@
                 public static let owningView: InspectedAttribute.Identifier = "LayoutGuide_OwningView_OwningView"
             }
 
+            public enum Constraints {
+                public static let constraints: InspectedAttribute.Identifier = "LayoutGuide_Constraints_Constraints"
+            }
+
             public enum KeyboardLayoutGuide {
                 public static let followsUndockedKeyboard: InspectedAttribute.Identifier = "LayoutGuide_KeyboardLayoutGuide_FollowsUndockedKeyboard"
                 public static let usesBottomSafeArea: InspectedAttribute.Identifier = "LayoutGuide_KeyboardLayoutGuide_UsesBottomSafeArea"
-                public static let keyboardDismissPadding: InspectedAttribute.Identifier = "LayoutGuide_KeyboardLayoutGuide_KeyboardDismissPadding"
+            }
+
+            public enum KeyboardDismissPadding {
+                public static let keyboardDismissPadding: InspectedAttribute.Identifier = "LayoutGuide_KeyboardDismissPadding_KeyboardDismissPadding"
             }
 
             public enum ConstraintsActiveNearEdges {

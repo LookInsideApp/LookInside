@@ -42,6 +42,7 @@ final class DashboardSectionView: BaseView {
         updateColors()
     }
 
+    @available(*, unavailable)
     required init?(coder _: NSCoder) {
         fatalError("init(coder:) is not supported")
     }
@@ -285,6 +286,7 @@ final class DashboardSectionView: BaseView {
             case InspectedAttribute.Identifier.Relation.Relation.relation:
                 return DashboardAttributeRelationView.self
             case InspectedAttribute.Identifier.AutoLayout.Constraints.constraints,
+                 InspectedAttribute.Identifier.LayoutGuide.Constraints.constraints,
                  InspectedAttribute.Identifier.LayoutGuide.ConstraintsActiveNearEdges.constraints,
                  InspectedAttribute.Identifier.LayoutGuide.ConstraintsActiveAwayFromEdges.constraints:
                 return DashboardAttributeConstraintsView.self
