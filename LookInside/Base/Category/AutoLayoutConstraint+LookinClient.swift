@@ -11,6 +11,20 @@ import AppKit
 import LookInsideHostCore
 
 extension AutoLayoutConstraint {
+    /// The edges of `trackingEdges`, top, leading, bottom, trailing in that
+    /// order; empty for a constraint no tracking layout guide registered.
+    var trackingEdgeNames: [String] {
+        let edges: [(edge: NSDirectionalRectEdge, name: String)] = [(.top, "top"), (.leading, "leading"), (.bottom, "bottom"), (.trailing, "trailing")]
+        return edges.filter { trackingEdges.contains($0.edge) }.map(\.name)
+    }
+
+    /// `trackingEdgeNames` as the constraint rows write them, "top +
+    /// leading"; nil for a constraint no tracking layout guide registered.
+    var trackingEdgesDescription: String? {
+        let names = trackingEdgeNames
+        return names.isEmpty ? nil : names.joined(separator: " + ")
+    }
+
     static func description(withItemObject object: InspectedObject?, type: AutoLayoutConstraint.ItemType, detailed: Bool) -> String {
         switch type {
         case .`nil`:

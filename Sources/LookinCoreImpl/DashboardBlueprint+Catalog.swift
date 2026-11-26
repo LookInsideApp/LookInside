@@ -216,6 +216,23 @@
             BlueprintSection(.LayoutGuide.owningView, title: "OwningView", attributes: [
                 BlueprintAttribute(.LayoutGuide.OwningView.owningView, AttributeInfo(className: layoutGuideClassName, fullTitle: "OwningView", getterString: "lks_owningViewDescription", setterString: "", objectValueType: .nsString, hideIfNil: true)),
             ]),
+            // UIKeyboardLayoutGuide and UITrackingLayoutGuide (iOS 15, not on
+            // tvOS or watchOS): the class filter keeps these sections to those
+            // guides. usesBottomSafeArea and keyboardDismissPadding are iOS 17;
+            // an older UIKit lacks the getter and the row is left out.
+            BlueprintSection(.LayoutGuide.keyboardLayoutGuide, title: "UIKeyboardLayoutGuide", on: .uiKit, attributes: [
+                BlueprintAttribute(.LayoutGuide.KeyboardLayoutGuide.followsUndockedKeyboard, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "FollowsUndockedKeyboard", getterString: "followsUndockedKeyboard", setterString: "setFollowsUndockedKeyboard:", patch: false, revision: 2)),
+                BlueprintAttribute(.LayoutGuide.KeyboardLayoutGuide.usesBottomSafeArea, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "UsesBottomSafeArea", getterString: "usesBottomSafeArea", setterString: "setUsesBottomSafeArea:", patch: false, revision: 2)),
+                BlueprintAttribute(.LayoutGuide.KeyboardLayoutGuide.keyboardDismissPadding, AttributeInfo(className: "UIKeyboardLayoutGuide", fullTitle: "KeyboardDismissPadding", getterString: "keyboardDismissPadding", setterString: "setKeyboardDismissPadding:", patch: false, revision: 2)),
+            ]),
+            // The constraints a tracking guide switches, one row per edge mask
+            // they are registered under (TrackingLayoutGuide+LookinServer.swift).
+            BlueprintSection(.LayoutGuide.constraintsActiveNearEdges, title: "Active Near Edges", on: .uiKit, attributes: [
+                BlueprintAttribute(.LayoutGuide.ConstraintsActiveNearEdges.constraints, AttributeInfo(className: "UITrackingLayoutGuide", fullTitle: "ConstraintsActiveNearEdges", getterString: "lks_constraintsActiveNearEdges", setterString: "", objectValueType: .customObject, hideIfNil: true, revision: 2)),
+            ]),
+            BlueprintSection(.LayoutGuide.constraintsActiveAwayFromEdges, title: "Active Away From Edges", on: .uiKit, attributes: [
+                BlueprintAttribute(.LayoutGuide.ConstraintsActiveAwayFromEdges.constraints, AttributeInfo(className: "UITrackingLayoutGuide", fullTitle: "ConstraintsActiveAwayFromEdges", getterString: "lks_constraintsActiveAwayFromEdges", setterString: "", objectValueType: .customObject, hideIfNil: true, revision: 2)),
+            ]),
         ])
 
         static let caLayerGroup = BlueprintGroup(.caLayer, title: "CALayer", on: .all, sections: [

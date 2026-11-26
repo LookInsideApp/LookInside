@@ -48,10 +48,25 @@ final class ConstraintPopoverController: BaseViewController {
         textsView.type = .center
         view.addSubview(textsView)
 
+        let texts = Self.rows(for: constraint)
+
+        if let firstJumpObject = constraint.jumpableItemObject(for: .first) {
+            textsView.add(jumpButton(for: firstJumpObject, canJumpToObject: canJumpToObject), at: 0)
+        }
+        if let secondJumpObject = constraint.jumpableItemObject(for: .second) {
+            textsView.add(jumpButton(for: secondJumpObject, canJumpToObject: canJumpToObject), at: 3)
+        }
+
+        textsView.texts = texts
+    }
+
+    /// The popover's rows: a title and a value for every field of
+    /// `constraint`. The jump buttons go next to rows 0 and 3, the items.
+    static func rows(for constraint: AutoLayoutConstraint) -> [StringTwoTuple] {
         func tuple(_ first: String, _ second: String?) -> StringTwoTuple {
             StringTwoTuple(first: first, second: second ?? "")
         }
-        let texts = [
+        var rows = [
             tuple("FirstItem", AutoLayoutConstraint.description(withItemObject: constraint.firstItem, type: constraint.firstItemType, detailed: true)),
             tuple("FirstAttribute", (AutoLayoutConstraint.description(withAttributeInt: constraint.firstAttribute) as NSString).capitalizingFirstLetter()),
             tuple("Relation", AutoLayoutConstraint.description(with: constraint.relation)),
@@ -64,15 +79,10 @@ final class ConstraintPopoverController: BaseViewController {
             tuple("ShouldBeArchived", constraint.shouldBeArchived ? "YES" : "NO"),
             tuple("Identifier", constraint.identifier ?? ""),
         ]
-
-        if let firstJumpObject = constraint.jumpableItemObject(for: .first) {
-            textsView.add(jumpButton(for: firstJumpObject, canJumpToObject: canJumpToObject), at: 0)
+        if let trackingEdges = constraint.trackingEdgesDescription {
+            rows.append(tuple("TrackingEdges", trackingEdges))
         }
-        if let secondJumpObject = constraint.jumpableItemObject(for: .second) {
-            textsView.add(jumpButton(for: secondJumpObject, canJumpToObject: canJumpToObject), at: 3)
-        }
-
-        textsView.texts = texts
+        return rows
     }
 
     required init?(coder _: NSCoder) {

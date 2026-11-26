@@ -8,8 +8,10 @@
 
 import AppKit
 
-/// One constraint as a line of text, such as "self.width = 100 @ 750".
-/// Constraints that do not affect the view are greyed out.
+/// One constraint as a line of text, such as "self.width = 100 @ 750"; a
+/// constraint a tracking layout guide switches starts with the edges it is
+/// registered under, "top + leading · ...". Constraints that do not affect
+/// the view are greyed out.
 final class DashboardAttributeConstraintsItemControl: TextControl {
     var constraint: AutoLayoutConstraint? {
         didSet {
@@ -63,6 +65,9 @@ final class DashboardAttributeConstraintsItemControl: TextControl {
         }
         if constraint.priority != 1000 {
             string += " @ \(NSNumber(value: Double(constraint.priority)))"
+        }
+        if let trackingEdges = constraint.trackingEdgesDescription {
+            string = "\(trackingEdges) · " + string
         }
         return string
     }

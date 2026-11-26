@@ -77,6 +77,13 @@
         public var identifier: String?
         @objc(constraintOid)
         public var constraintOid: UInt = 0
+        /// The edges a tracking layout guide registered the constraint under
+        /// (`UITrackingLayoutGuide.setConstraints(_:activeWhenNearEdge:)` and
+        /// `setConstraints(_:activeWhenAwayFrom:)`); empty for every other
+        /// constraint. Archived under "trackingEdges" only when non-empty, so
+        /// every other archive keeps exactly the keys it had.
+        @objc(trackingEdges)
+        public var trackingEdges: NSDirectionalRectEdge = []
 
         /// `+instanceFromNSConstraint:isEffective:firstItemType:secondItemType:`.
         /// An Objective-C factory must be a class method here.
@@ -128,6 +135,9 @@
             aCoder.encode(Double(priority), forKey: "priority")
             aCoder.encode(identifier, forKey: "identifier")
             aCoder.encode(Int(bitPattern: constraintOid), forKey: "constraintOid")
+            if !trackingEdges.isEmpty {
+                aCoder.encode(Int(bitPattern: trackingEdges.rawValue), forKey: "trackingEdges")
+            }
         }
 
         public required init?(coder aDecoder: NSCoder) {
@@ -149,6 +159,8 @@
             // Absent in old archives: decodeInteger returns 0, which is exactly
             // the "no identity" contract.
             constraintOid = UInt(bitPattern: aDecoder.decodeInteger(forKey: "constraintOid"))
+            // Absent everywhere but on tracked constraints: 0 is the empty set.
+            trackingEdges = NSDirectionalRectEdge(rawValue: UInt(bitPattern: aDecoder.decodeInteger(forKey: "trackingEdges")))
         }
 
         @objc(jumpableItemObjectForEndpoint:)

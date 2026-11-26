@@ -106,7 +106,7 @@
         /// one for each batch of attributes that needs a matching Host (new
         /// groups, sections or enum lists), and give that batch the new
         /// revision.
-        public static let currentCatalogRevision = 1
+        public static let currentCatalogRevision = 2
 
         // MARK: Groups and sections
 
@@ -176,13 +176,17 @@
         /// name alone, so the Host (which cannot load UIKit classes) and every
         /// Server agree: Core Animation classes are layers, AppKit classes
         /// ending in "Cell" are cells (NSTableCellView ends in "CellView" and
-        /// stays a view), the window classes are windows, the rest views.
+        /// stays a view), the window classes are windows, UIKit and AppKit
+        /// classes ending in "LayoutGuide" are layout guides, the rest views.
         static func targetKind(forClassName className: String?) -> InspectedAttribute.TargetKind {
             guard let className else {
                 return .view
             }
             if className == "UIWindowScene" || className == "NSWindow" {
                 return .window
+            }
+            if className.hasSuffix("LayoutGuide"), className.hasPrefix("UI") || className.hasPrefix("NS") {
+                return .layoutGuide
             }
             if className.hasPrefix("CA") {
                 return .layer

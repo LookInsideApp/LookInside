@@ -26,6 +26,9 @@ enum DashboardModification {
             modification.targetOid = item?.windowObject?.oid ?? 0
         case .cell:
             modification.targetOid = item?.cellObject?.oid ?? 0
+        case .layoutGuide:
+            // A layout guide node names its guide only as its kindObject.
+            modification.targetOid = item?.kindObject?.oid ?? 0
         case .layer:
             modification.targetOid = item?.layerObject?.oid ?? 0
         @unknown default:

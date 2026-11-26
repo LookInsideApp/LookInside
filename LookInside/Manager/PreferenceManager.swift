@@ -581,7 +581,7 @@ final class PreferenceManager: NSObject {
     func reset() {}
 
     /// 返回默认情况下，哪些 section 应该被显示在主界面上
-    private static let sectionsShowingByDefault: Set<AttributesSection.Identifier> = [
+    static let sectionsShowingByDefault: Set<AttributesSection.Identifier> = [
         AttributesSection.Identifier.Class.class,
         AttributesSection.Identifier.Relation.relation,
         AttributesSection.Identifier.Layout.frame,
@@ -594,6 +594,9 @@ final class PreferenceManager: NSObject {
         AttributesSection.Identifier.LayoutGuide.guideIdentifier,
         AttributesSection.Identifier.LayoutGuide.layoutFrame,
         AttributesSection.Identifier.LayoutGuide.owningView,
+        AttributesSection.Identifier.LayoutGuide.keyboardLayoutGuide,
+        AttributesSection.Identifier.LayoutGuide.constraintsActiveNearEdges,
+        AttributesSection.Identifier.LayoutGuide.constraintsActiveAwayFromEdges,
         AttributesSection.Identifier.NSCell.cell,
         AttributesSection.Identifier.NSCell.content,
         AttributesSection.Identifier.NSCell.behavior,

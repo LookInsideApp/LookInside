@@ -670,6 +670,9 @@
             public static let guideIdentifier: AttributesSection.Identifier = "LayoutGuide_Identifier"
             public static let layoutFrame: AttributesSection.Identifier = "LayoutGuide_LayoutFrame"
             public static let owningView: AttributesSection.Identifier = "LayoutGuide_OwningView"
+            public static let keyboardLayoutGuide: AttributesSection.Identifier = "LayoutGuide_KeyboardLayoutGuide"
+            public static let constraintsActiveNearEdges: AttributesSection.Identifier = "LayoutGuide_ConstraintsActiveNearEdges"
+            public static let constraintsActiveAwayFromEdges: AttributesSection.Identifier = "LayoutGuide_ConstraintsActiveAwayFromEdges"
         }
 
         public enum NSCell {
@@ -3293,6 +3296,20 @@
 
             public enum OwningView {
                 public static let owningView: InspectedAttribute.Identifier = "LayoutGuide_OwningView_OwningView"
+            }
+
+            public enum KeyboardLayoutGuide {
+                public static let followsUndockedKeyboard: InspectedAttribute.Identifier = "LayoutGuide_KeyboardLayoutGuide_FollowsUndockedKeyboard"
+                public static let usesBottomSafeArea: InspectedAttribute.Identifier = "LayoutGuide_KeyboardLayoutGuide_UsesBottomSafeArea"
+                public static let keyboardDismissPadding: InspectedAttribute.Identifier = "LayoutGuide_KeyboardLayoutGuide_KeyboardDismissPadding"
+            }
+
+            public enum ConstraintsActiveNearEdges {
+                public static let constraints: InspectedAttribute.Identifier = "LayoutGuide_ConstraintsActiveNearEdges_Constraints"
+            }
+
+            public enum ConstraintsActiveAwayFromEdges {
+                public static let constraints: InspectedAttribute.Identifier = "LayoutGuide_ConstraintsActiveAwayFromEdges_Constraints"
             }
         }
 

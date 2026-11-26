@@ -401,6 +401,11 @@ enum MCPBridgeAttributeEncoder {
             if let identifier = constraint.identifier, identifier.isEmpty == false {
                 fields["identifier"] = .string(identifier)
             }
+            // Only constraints a tracking layout guide switches have edges.
+            let trackingEdgeNames = constraint.trackingEdgeNames
+            if !trackingEdgeNames.isEmpty {
+                fields["trackingEdges"] = .array(trackingEdgeNames.map { .string($0) })
+            }
             return .object(fields)
         }
         return .array(encodedConstraints)

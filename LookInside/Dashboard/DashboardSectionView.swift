@@ -284,7 +284,9 @@ final class DashboardSectionView: BaseView {
                 return DashboardAttributeClassView.self
             case InspectedAttribute.Identifier.Relation.Relation.relation:
                 return DashboardAttributeRelationView.self
-            case InspectedAttribute.Identifier.AutoLayout.Constraints.constraints:
+            case InspectedAttribute.Identifier.AutoLayout.Constraints.constraints,
+                 InspectedAttribute.Identifier.LayoutGuide.ConstraintsActiveNearEdges.constraints,
+                 InspectedAttribute.Identifier.LayoutGuide.ConstraintsActiveAwayFromEdges.constraints:
                 return DashboardAttributeConstraintsView.self
             case InspectedAttribute.Identifier.UIImageView.Open.open, InspectedAttribute.Identifier.NSImageView.Open.open:
                 return DashboardAttributeOpenImageView.self

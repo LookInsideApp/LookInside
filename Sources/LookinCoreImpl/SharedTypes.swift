@@ -77,6 +77,9 @@
             @objc(LookinAttrTargetKindWindow) case window = 2
             /// AppKit only.
             @objc(LookinAttrTargetKindCell) case cell = 3
+            /// A layout guide node's own guide (`UILayoutGuide`, `NSLayoutGuide`
+            /// and their subclasses), which the node carries as its kindObject.
+            @objc(LookinAttrTargetKindLayoutGuide) case layoutGuide = 4
         }
     }
 
