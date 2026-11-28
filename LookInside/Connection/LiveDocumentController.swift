@@ -43,6 +43,6 @@ final class LiveDocumentController: NSObject {
         guard let channel else { return nil }
         return NSDocumentController.shared.documents
             .compactMap { $0 as? LiveDocument }
-            .first { $0.inspectableApp.channel === channel }
+            .first { $0.connectedChannel === channel }
     }
 }

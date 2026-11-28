@@ -6,9 +6,9 @@
 //  app over its channel. It is untitled, never autosaves, and Save As exports
 //  the current hierarchy as a `.lookin` file. When the app's channel ends,
 //  the document shows a banner and looks for the same app every 3 seconds;
-//  when it reappears, the document switches to its new channel and fetches
-//  the hierarchy again. While the app is in the background the document
-//  shows another banner and refreshes once the app is back.
+//  when it reappears, the document watches its new channel. AppKit apps
+//  refresh on reconnect. UIKit apps keep their tree when they return and
+//  wait for a reload before switching to a new process.
 //  `LiveSessionState` makes those decisions; this class carries them out.
 //
 
@@ -38,11 +38,17 @@ final class LiveDocument: NSDocument {
     /// KVO; the window shows it as a banner.
     @objc private(set) dynamic var connectionLossBannerMessage: String?
 
-    /// Set while the app is in the background, which keeps it from
-    /// answering; nil otherwise. Never set together with
-    /// `connectionLossBannerMessage`. Observable with KVO; the window shows it
-    /// as a banner.
-    @objc private(set) dynamic var applicationInBackgroundBannerMessage: String?
+    /// Explains why the app cannot be inspected yet, while it is in the
+    /// background or while a new process is waiting for a hierarchy reload.
+    @objc private(set) dynamic var applicationStatusBannerMessage: String?
+
+    /// Only hierarchy reloads can use this app until the new tree arrives.
+    /// Requests for objects in the old tree still use the disconnected app.
+    private(set) var reconnectedAppAwaitingReload: InspectableApp?
+
+    var connectedChannel: ServerChannel? {
+        (reconnectedAppAwaitingReload ?? inspectableApp).channel
+    }
 
     private var sessionState = LiveSessionState()
 
@@ -57,7 +63,7 @@ final class LiveDocument: NSDocument {
     private var applicationStateTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
     private var backgroundProbeTask: Task<Void, Never>?
-    /// The refresh started after the app returned, with its retries.
+    /// The refresh started after a Mac app reconnected, with its retries.
     private var automaticRefreshTask: Task<Void, Never>?
 
     private static let automaticRefreshRetryPolicy = AutomaticRefreshRetryPolicy()
@@ -188,6 +194,7 @@ final class LiveDocument: NSDocument {
         backgroundProbeTask = nil
         automaticRefreshTask?.cancel()
         automaticRefreshTask = nil
+        reconnectedAppAwaitingReload = nil
         super.close()
     }
 
@@ -198,7 +205,7 @@ final class LiveDocument: NSDocument {
     /// The app holds its channel weakly, so the channel may already be gone,
     /// or ended, when this runs; that counts as an end, and the document
     /// reconnects.
-    private func watchCurrentChannel() {
+    private func watchCurrentChannel(reloadHierarchyOnReconnect: Bool = false) {
         channelEndTask?.cancel()
         channelEndTask = nil
         applicationStateTask?.cancel()
@@ -206,7 +213,7 @@ final class LiveDocument: NSDocument {
         // A refresh still waiting to be retried was meant for the old one.
         automaticRefreshTask?.cancel()
         automaticRefreshTask = nil
-        guard let channel = inspectableApp.channel, channel.isConnected else {
+        guard let channel = connectedChannel, channel.isConnected else {
             handle(.watchedChannel(isAlive: false))
             return
         }
@@ -229,7 +236,7 @@ final class LiveDocument: NSDocument {
                 }
             }
         }
-        handle(.watchedChannel(isAlive: true))
+        handle(.watchedChannel(isAlive: true, reloadHierarchyOnReconnect: reloadHierarchyOnReconnect))
     }
 
     /// Applies `event` to the session, shows its banner and carries out
@@ -248,6 +255,7 @@ final class LiveDocument: NSDocument {
         for action in actions {
             switch action {
             case .startReconnecting:
+                reconnectedAppAwaitingReload = nil
                 if let appInfo = inspectableApp.appInfo {
                     lastKnownAppInfo = appInfo
                 }
@@ -258,7 +266,7 @@ final class LiveDocument: NSDocument {
                 automaticRefreshTask = nil
                 attemptAutoReconnect()
             case .reloadHierarchy:
-                reloadHierarchyAfterReturn()
+                reloadHierarchyAfterReconnect()
             case let .startBackgroundProbe(interval):
                 startBackgroundProbe(interval: interval)
             case .stopBackgroundProbe:
@@ -273,18 +281,20 @@ final class LiveDocument: NSDocument {
         let appName = (appInfo?.appName).flatMap { $0.isEmpty ? nil : $0 }
             ?? NSLocalizedString("Inspected app", comment: "")
         let lossMessage: String?
-        let backgroundMessage: String?
+        let applicationMessage: String?
         switch sessionState.banner {
         case .none:
             lossMessage = nil
-            backgroundMessage = nil
+            applicationMessage = reconnectedAppAwaitingReload.map { _ in
+                String(format: NSLocalizedString("Connection to %@ restored. Reload to inspect the current hierarchy.", comment: "Banner when a reconnected app needs a manual hierarchy reload; %@ is the app's name"), appName)
+            }
         case .connectionLost:
             lossMessage = String(format: NSLocalizedString("Connection to %@ lost. Trying to reconnect…", comment: ""), appName)
-            backgroundMessage = nil
+            applicationMessage = nil
         case .applicationInBackground:
             lossMessage = nil
-            backgroundMessage = String(
-                format: NSLocalizedString("%@ is in the background. LookInside refreshes when it returns.", comment: "Banner over a live inspector window while the inspected app is in the background; %@ is the app's name"),
+            applicationMessage = String(
+                format: NSLocalizedString("%@ is in the background.", comment: "Banner while the inspected app is in the background; %@ is the app's name"),
                 appName
             )
         }
@@ -292,8 +302,8 @@ final class LiveDocument: NSDocument {
         if connectionLossBannerMessage != lossMessage {
             connectionLossBannerMessage = lossMessage
         }
-        if applicationInBackgroundBannerMessage != backgroundMessage {
-            applicationInBackgroundBannerMessage = backgroundMessage
+        if applicationStatusBannerMessage != applicationMessage {
+            applicationStatusBannerMessage = applicationMessage
         }
     }
 
@@ -312,13 +322,19 @@ final class LiveDocument: NSDocument {
         }
     }
 
-    /// Switches to the app found again; watching its channel fetches the
-    /// hierarchy again (`LiveSessionState`), since the tree on screen belongs
-    /// to the old process.
     private func adoptReconnectedApp(_ newApp: InspectableApp) {
-        replaceApp(with: newApp)
+        let osDescription = newApp.appInfo?.osDescription?.lowercased() ?? ""
+        let reloadAutomatically = osDescription.hasPrefix("macos") || osDescription.hasPrefix("os x")
+            || (osDescription.isEmpty && newApp.appInfo?.deviceType == .mac)
+        let treeProcessID = hierarchyDataSource?.rawHierarchyInfo?.appInfo?.appInfoIdentifier
+            ?? inspectableApp.appInfo?.appInfoIdentifier ?? 0
+        if reloadAutomatically || (treeProcessID != 0 && treeProcessID == newApp.appInfo?.appInfoIdentifier) {
+            replaceApp(with: newApp)
+        } else {
+            reconnectedAppAwaitingReload = newApp
+        }
         reconnectTask = nil
-        watchCurrentChannel()
+        watchCurrentChannel(reloadHierarchyOnReconnect: reloadAutomatically)
     }
 
     /// Makes `app` the one this document inspects: its window was just
@@ -329,9 +345,13 @@ final class LiveDocument: NSDocument {
     /// stops.
     func bind(to app: InspectableApp) {
         guard app !== inspectableApp else { return }
-        let isOnAnotherChannel = app.channel !== inspectableApp.channel
+        let isOnAnotherChannel = app.channel !== connectedChannel
+        reconnectedAppAwaitingReload = nil
         replaceApp(with: app)
-        guard isOnAnotherChannel else { return }
+        guard isOnAnotherChannel else {
+            updateBanners()
+            return
+        }
         reconnectTask?.cancel()
         reconnectTask = nil
         watchCurrentChannel()
@@ -394,15 +414,14 @@ final class LiveDocument: NSDocument {
         deviceType: -1
     )
 
-    /// The refresh after a reconnect or after the app came back from the
-    /// background. A refresh the window refuses because a fetch or the
-    /// detail sync is running is tried again once that is over
+    /// The refresh after an AppKit app reconnects. If the window refuses
+    /// because a fetch or a detail sync is running, try again once it ends
     /// (`AutomaticRefreshRetryPolicy`); a refresh started meanwhile, a new
     /// channel and closing the document cancel the retries. Any other
     /// failure leaves the old tree: a refusal in the background shows its
     /// banner through the connection manager's report, and other errors are
     /// the ones a manual reload would show.
-    private func reloadHierarchyAfterReturn() {
+    private func reloadHierarchyAfterReconnect() {
         automaticRefreshTask?.cancel()
         automaticRefreshTask = Task { [weak self] in
             var retriesSoFar = 0
@@ -420,7 +439,7 @@ final class LiveDocument: NSDocument {
         }
     }
 
-    /// One attempt of `reloadHierarchyAfterReturn()`; nil without a window.
+    /// One attempt of `reloadHierarchyAfterReconnect()`; nil without a window.
     private func attemptAutomaticRefresh() async -> AutomaticRefreshRetryPolicy.Outcome? {
         guard let staticWindowController else { return nil }
         do {
@@ -450,7 +469,7 @@ final class LiveDocument: NSDocument {
             while !Task.isCancelled {
                 try? await Task.sleep(for: interval)
                 guard !Task.isCancelled, let self else { return }
-                guard let channel = inspectableApp.channel, channel.isConnected else { return }
+                guard let channel = connectedChannel, channel.isConnected else { return }
                 do {
                     try await ConnectionManager.shared.ping(channel: channel)
                 } catch {

@@ -9,17 +9,19 @@
 # Host does and how fast:
 #
 #   terminate   the app is terminated: targets.disconnected and the
-#               connection-lost banner; relaunched: banner cleared and
-#               hierarchy.reloaded{initiator: host}, new pid
+#               connection-lost banner; relaunched: new pid, then refresh
+#               on demand in the simulator and automatically in AppKit
 #   background  another app comes to the front: the background banner (or
 #               connection lost, when the app is suspended); back to the
-#               front: banner cleared and an automatic refresh
+#               front: banner cleared, no automatic refresh, and an explicit
+#               refresh succeeds
 #               (simulator only)
 #   stop        SIGSTOP, silence, an MCP hierarchy.refresh: "closing a silent
-#               channel" and connection lost; SIGCONT: reconnect + refresh
+#               channel" and connection lost; SIGCONT: reconnect, with an
+#               automatic refresh only in AppKit mode
 #   pending     an MCP refresh in flight when the app dies fails at once,
-#               not at its timeout; the refresh after the reconnect is not
-#               refused as already running
+#               not at its timeout; an explicit refresh after reconnect
+#               succeeds without a busy rejection
 #
 # Usage:
 #   Scripts/e2e-reconnect.sh [--mode simulator|appkit] [--skip-build]

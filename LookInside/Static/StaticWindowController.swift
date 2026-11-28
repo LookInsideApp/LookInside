@@ -371,7 +371,8 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             )))
             return
         }
-        guard let app = inspectableApp else {
+        let pendingApp = (document as? LiveDocument)?.reconnectedAppAwaitingReload
+        guard let app = pendingApp ?? inspectableApp else {
             completion(.failure(ReloadError.make(
                 ReloadError.noInspectableApp,
                 NSLocalizedString("This window is not attached to an app.", comment: "")
@@ -413,8 +414,20 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
             }
             switch result {
             case let .info(info):
-                viewController.progressView.finish(completion: nil)
-                hierarchyDataSource.reload(with: info, keepState: true)
+                if let pendingApp {
+                    guard let info, pendingApp.channel?.isConnected == true,
+                          (document as? LiveDocument)?.reconnectedAppAwaitingReload === pendingApp
+                    else {
+                        viewController.progressView.resetToZero()
+                        isFetchingHierarchy = false
+                        completion(.failure(info == nil ? ConnectionError.inner : ConnectionError.noConnect))
+                        return
+                    }
+                    applyHierarchyInfo(info, for: pendingApp, keepState: false)
+                } else {
+                    viewController.progressView.finish(completion: nil)
+                    hierarchyDataSource.reload(with: info, keepState: true)
+                }
                 isFetchingHierarchy = false
                 PerformanceReporter.sharedInstance().didFetchHierarchy()
                 completion(.success(info))
@@ -551,6 +564,7 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
 
     @objc(_handleShowBackingLayersDidChange:)
     private func handleShowBackingLayersDidChange(_: MessageActionParameters) {
+        guard (document as? LiveDocument)?.reconnectedAppAwaitingReload == nil else { return }
         // No app bound or a reload already running: the new value still
         // applies on the next manual reload, so refusals stay quiet.
         reloadHierarchy { _ in }
@@ -805,14 +819,21 @@ final class StaticWindowController: WindowController, NSToolbarDelegate, @precon
     /// here, and so does a hierarchy the launch window or the app picker
     /// fetched for this window.
     func applyHierarchyInfo(_ info: HierarchyInfo?, for app: InspectableApp, keepState: Bool) {
+        let liveDocument = document as? LiveDocument
+        let reconnectedChannel = liveDocument?.reconnectedAppAwaitingReload?.channel
+        let replacesProcess = reconnectedChannel != nil && reconnectedChannel === app.channel
+        if replacesProcess, info == nil {
+            viewController.progressView.resetToZero()
+            return
+        }
         viewController.progressView.finish(completion: nil)
         inspectableApp = app
         asyncUpdateManager.inspectableApp = app
         // Both hold the app weakly; the document keeps it alive, so it has
         // to take the app on too, or the window loses it once the caller —
         // the launch window, the app picker — lets its scan's copy go.
-        (document as? LiveDocument)?.bind(to: app)
-        hierarchyDataSource.reload(with: info, keepState: keepState)
+        liveDocument?.bind(to: app)
+        hierarchyDataSource.reload(with: info, keepState: keepState && !replacesProcess)
 
         // Move this bundle id to the front of the expansion-state LRU, so
         // inspected apps aren't evicted just because nothing was toggled yet.

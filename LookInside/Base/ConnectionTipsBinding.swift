@@ -5,8 +5,8 @@
 //  Drives a view controller's "Reconnecting…" banner from its live
 //  document: the banner shows (and pulses) while the document has a
 //  connection-loss message and follows the document's current app icon.
-//  A second, neutral banner shows the document's message while the app is
-//  in the background.
+//  A second, neutral banner shows when the app is in the background or
+//  when the user needs to reload its hierarchy.
 //  Used by BaseViewController, which stays Objective-C while ObjC view
 //  controllers still subclass it.
 //
@@ -37,10 +37,10 @@ final class ConnectionTipsBinding: NSObject {
                     containerView.needsLayout = true
                 }
             },
-            document.observe(\.applicationInBackgroundBannerMessage, options: [.initial, .new]) { [weak backgroundTipsView, weak viewController] document, _ in
+            document.observe(\.applicationStatusBannerMessage, options: [.initial, .new]) { [weak backgroundTipsView, weak viewController] document, _ in
                 guard let backgroundTipsView, let viewController else { return }
                 let containerView = viewController.view
-                let message = document.applicationInBackgroundBannerMessage ?? ""
+                let message = document.applicationStatusBannerMessage ?? ""
                 if message.isEmpty {
                     backgroundTipsView.isHidden = true
                 } else {

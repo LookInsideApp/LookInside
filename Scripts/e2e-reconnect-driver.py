@@ -41,7 +41,7 @@ TIMEOUTS = {
     "disconnect": env_float("E2E_DISCONNECT_TIMEOUT", 2),
     "reconnect": env_float("E2E_RECONNECT_TIMEOUT", 8),
     "background": env_float("E2E_BACKGROUND_TIMEOUT", 1),
-    "foreground_refresh": env_float("E2E_FOREGROUND_REFRESH_TIMEOUT", 6),
+    "foreground": env_float("E2E_FOREGROUND_REFRESH_TIMEOUT", 6),
     "stop_silence": env_float("E2E_STOP_SILENCE", 6),
     "silent_close": env_float("E2E_SILENT_CLOSE_TIMEOUT", 4),
     "pending_failure": env_float("E2E_PENDING_FAILURE_TIMEOUT", 1),
@@ -464,6 +464,7 @@ class Driver:
         if not self.ensure_connected(name):
             return
         old_pid = self.app.pid()
+        old_target = self.target_identifier()
         start = time.time()
         self.app.terminate()
         disconnected = self.wait_disconnected(start, TIMEOUTS["disconnect"] + 3)
@@ -484,7 +485,15 @@ class Driver:
         start = time.time()
         new_pid = self.app.launch()
         self.results.check(name, "relaunched with a new pid", new_pid and new_pid != old_pid, f"{old_pid} -> {new_pid}")
-        self.expect_return(name, start, TIMEOUTS["reconnect"], "reconnect")
+        returned = self.expect_return(name, start, TIMEOUTS["reconnect"], "reconnect")
+        if returned and self.arguments.mode == "simulator":
+            result = self.refresh_explicitly(name)
+            if result is None:
+                return
+            new_target = self.target_identifier()
+            self.results.check(name, "refresh adopts the relaunched target", old_target and new_target and old_target != new_target)
+            returned_target = result.get("targetIdentifier")
+            self.results.check(name, "refresh returns the relaunched target ID", new_target and returned_target == new_target)
 
     def expect_return(self, name, start, limit, label):
         cleared = self.wait_banner({"none"}, start, limit + 10)
@@ -494,6 +503,18 @@ class Driver:
             cleared and cleared["_time"] - start <= limit,
             f"{seconds(cleared['_time'] - start)} ({cleared['event']}, actions {cleared['actions']})" if cleared else "never",
         )
+        if not cleared:
+            return False
+        if self.arguments.mode == "simulator":
+            reloaded = self.wait_reloaded(start, TIMEOUTS["settle"])
+            self.results.check(
+                name,
+                f"{label}: no automatic refresh",
+                "reloadHierarchy" not in cleared["actions"] and reloaded is None,
+                f"actions {cleared['actions']}" if reloaded is None else f"reloaded after {seconds(reloaded[0] - start)}",
+            )
+            return True
+
         reloaded = self.wait_reloaded(start, limit + 10)
         self.results.check(
             name,
@@ -503,7 +524,22 @@ class Driver:
         )
         if reloaded:
             self.settle()
-        return reloaded
+        return reloaded is not None
+
+    def refresh_explicitly(self, name):
+        target = self.target_identifier()
+        frame, elapsed = self.mcp.call("hierarchy.refresh", {"targetIdentifier": target}, timeout=TIMEOUTS["refresh_after_reconnect"])
+        error = (frame or {}).get("error") or {}
+        refreshed = self.results.check(
+            name,
+            "explicit hierarchy refresh succeeds",
+            frame is not None and "result" in frame,
+            f"{error.get('code', 'ok')} after {seconds(elapsed)}" if frame else "no response",
+        )
+        if refreshed:
+            self.settle()
+            return frame["result"]
+        return None
 
     def scenario_background(self):
         name = "3 background+return"
@@ -512,6 +548,7 @@ class Driver:
             return
         if not self.ensure_connected(name):
             return
+        original_pid = self.app.pid()
         start = time.time()
         self.app.background()
         entry = self.wait_banner({"applicationInBackground", "connectionLost"}, start, TIMEOUTS["background"] + 5)
@@ -526,9 +563,11 @@ class Driver:
         banner = self.current_banner()
         self.results.check(name, "banner holds while in the background", banner in ("applicationInBackground", "connectionLost"), f"banner {banner}")
         start = time.time()
-        self.app.foreground()
-        limit = TIMEOUTS["foreground_refresh"] if banner != "connectionLost" else TIMEOUTS["reconnect"]
-        self.expect_return(name, start, limit, "return")
+        foreground_pid = self.app.foreground()
+        self.results.check(name, "returned in the same process", original_pid and foreground_pid == original_pid, f"{original_pid} -> {foreground_pid}")
+        limit = TIMEOUTS["foreground"] if banner != "connectionLost" else TIMEOUTS["reconnect"]
+        if self.expect_return(name, start, limit, "return"):
+            self.refresh_explicitly(name)
 
     def scenario_stop(self):
         name = "4 SIGSTOP silent channel"
@@ -593,8 +632,7 @@ class Driver:
         time.sleep(1)
         start = time.time()
         self.app.launch()
-        reloaded = self.expect_return(name, start, TIMEOUTS["reconnect"], "reconnect")
-        if not reloaded:
+        if not self.expect_return(name, start, TIMEOUTS["reconnect"], "reconnect"):
             return
         # The fetch of the dead channel must not leave the window busy.
         deadline = time.time() + TIMEOUTS["refresh_after_reconnect"]

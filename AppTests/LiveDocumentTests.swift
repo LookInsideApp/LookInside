@@ -5,7 +5,7 @@
 //  LiveDocument carrying out LiveSessionState's decisions against
 //  FakeServers: the banners for a lost channel and an app in the
 //  background, which channel's events count, the background probe, the
-//  reconnect to the same app, and the retried refresh after it returns.
+//  reconnect to the same app, and refreshing only when requested on iOS.
 //
 
 import AppKit
@@ -22,6 +22,30 @@ extension HostAppTests {
             app.appInfo = server.appInfo
             app.channel = channel
             return app
+        }
+
+        private func makeIOSServer(bundleIdentifier: String) -> FakeServer {
+            let server = FakeServer(bundleIdentifier: bundleIdentifier)
+            server.appInfo.deviceDescription = "Test iPhone"
+            server.appInfo.osDescription = "iOS 27.0"
+            server.appInfo.deviceType = .others
+            server.appInfo.appInfoIdentifier = 1
+            server.appInfo.screenScale = 2
+            return server
+        }
+
+        private func makeHierarchy(for appInfo: InspectedAppInfo?) -> HierarchyInfo {
+            let hierarchy = HierarchyInfo()
+            hierarchy.appInfo = appInfo
+            hierarchy.displayItems = []
+            return hierarchy
+        }
+
+        private func closeInspector(_ document: LiveDocument) {
+            document.close()
+            // Closing the window schedules reopening Launch on the main queue.
+            // Its scans would reach the other tests' ports.
+            DispatchQueue.main.async { NavigationManager.shared.closeLaunch() }
         }
 
         /// Lets events already queued on the main queue reach the document.
@@ -44,7 +68,7 @@ extension HostAppTests {
             let endedChannelDocument = LiveDocument(inspectableApp: makeApp(server, channel: endedChannel))
             defer { endedChannelDocument.close() }
             #expect(endedChannelDocument.connectionLossBannerMessage != nil)
-            #expect(endedChannelDocument.applicationInBackgroundBannerMessage == nil)
+            #expect(endedChannelDocument.applicationStatusBannerMessage == nil)
         }
 
         /// Entering an app that is already open — from the launch window, the
@@ -123,14 +147,14 @@ extension HostAppTests {
             otherServer.pushApplicationState(isActive: false)
             #expect(await waitUntil { reports.elements.contains { $0.channel === otherChannel } })
             await drainMainQueue()
-            #expect(document.applicationInBackgroundBannerMessage == nil)
+            #expect(document.applicationStatusBannerMessage == nil)
 
             watchedServer.pushApplicationState(isActive: false)
-            #expect(await waitUntil { document.applicationInBackgroundBannerMessage != nil })
+            #expect(await waitUntil { document.applicationStatusBannerMessage != nil })
             #expect(document.connectionLossBannerMessage == nil)
 
             watchedServer.pushApplicationState(isActive: true)
-            #expect(await waitUntil { document.applicationInBackgroundBannerMessage == nil })
+            #expect(await waitUntil { document.applicationStatusBannerMessage == nil })
         }
 
         /// A Server that does not push its state: a refused request shows
@@ -138,39 +162,45 @@ extension HostAppTests {
         /// the app is back.
         @Test(.timeLimit(.minutes(1)))
         func backgroundProbeClearsTheBannerOnceAPingIsAnswered() async throws {
-            let server = FakeServer()
+            let server = makeIOSServer(bundleIdentifier: "com.lookinside.apptests.background-probe")
             server.behavior = .inBackground
             defer { server.shutDown() }
             let channel = server.connectChannel()
             let document = LiveDocument(inspectableApp: makeApp(server, channel: channel))
-            defer { document.close() }
+            defer { closeInspector(document) }
+            document.makeWindowControllers()
 
             await #expect(throws: (any Error).self) {
                 try await ConnectionManager.shared.ping(channel: channel)
             }
-            #expect(await waitUntil { document.applicationInBackgroundBannerMessage != nil })
+            #expect(await waitUntil { document.applicationStatusBannerMessage != nil })
             let pingsBeforeProbe = server.receivedRequestTypes.count
 
             server.behavior = .answering
             let probeWindow = LiveSessionState.backgroundProbeInterval + .seconds(3)
-            #expect(await waitUntil(timeout: probeWindow) { document.applicationInBackgroundBannerMessage == nil })
+            #expect(await waitUntil(timeout: probeWindow) { document.applicationStatusBannerMessage == nil })
+            await drainMainQueue()
             #expect(server.receivedRequestTypes.count > pingsBeforeProbe)
             #expect(server.receivedRequestTypes.dropFirst(pingsBeforeProbe).allSatisfy { $0 == UInt32(RequestType.ping) })
         }
 
         /// The app's process went away and came back on a new channel: the
         /// scan every 3 seconds finds it by identity, and the document
-        /// switches to it and clears the banner.
+        /// switches to it and refreshes the hierarchy on macOS.
         @Test(.timeLimit(.minutes(1)))
-        func reconnectAdoptsTheSameAppOnItsNewChannel() async throws {
+        func reconnectAdoptsAndRefreshesTheSameMacAppOnItsNewChannel() async throws {
             let server = FakeServer(appName: "Reconnect Target", bundleIdentifier: "com.lookinside.apptests.reconnect")
+            server.appInfo.screenScale = 2
+            let hierarchy = makeHierarchy(for: server.appInfo)
+            server.responders[UInt32(RequestType.hierarchy)] = { _ in hierarchy }
             defer { server.shutDown() }
             let port = try server.listen()
             let apps = await AppsManager.shared.fetchAppInfos(needImages: false, localInfos: nil)
             let originalApp = try #require(apps.first { $0.origin?.port == port })
             let originalChannel = try #require(originalApp.channel)
             let document = LiveDocument(inspectableApp: originalApp)
-            defer { document.close() }
+            defer { closeInspector(document) }
+            document.makeWindowControllers()
 
             server.disconnectAll()
             #expect(await waitUntil { document.connectionLossBannerMessage != nil })
@@ -182,49 +212,104 @@ extension HostAppTests {
             #expect(adoptedChannel.port == port)
             #expect(document.inspectableApp.appInfo?.appBundleIdentifier == "com.lookinside.apptests.reconnect")
             #expect(document.connectionLossBannerMessage == nil)
+            #expect(await waitUntil { document.hierarchyDataSource?.rawHierarchyInfo?.appInfo?.appName == "Reconnect Target" })
 
             // The new channel is watched: its end shows the banner again.
             server.disconnectAll()
             #expect(await waitUntil { document.connectionLossBannerMessage != nil })
         }
 
-        /// The refresh after the app returns is refused while the window
-        /// still fetches; it is tried again until that fetch is over.
         @Test(.timeLimit(.minutes(1)))
-        func refreshAfterReturnWaitsForTheRunningFetch() async throws {
-            let server = FakeServer()
-            server.heldRequestTypes = [UInt32(RequestType.hierarchy)]
+        func foregroundPushWaitsForExplicitRefresh() async throws {
+            let server = makeIOSServer(bundleIdentifier: "com.lookinside.apptests.foreground")
+            let hierarchy = makeHierarchy(for: server.appInfo)
+            let hierarchyRequest = UInt32(RequestType.hierarchy)
+            server.responders[hierarchyRequest] = { _ in hierarchy }
             defer { server.shutDown() }
             let channel = server.connectChannel()
             let document = LiveDocument(inspectableApp: makeApp(server, channel: channel))
-            defer { document.close() }
+            defer { closeInspector(document) }
             document.makeWindowControllers()
             let windowController = try #require(document.staticWindowController)
-            let hierarchyRequestCount = { server.receivedRequestTypes.filter { $0 == UInt32(RequestType.hierarchy) }.count }
-
-            let runningFetch = Task { try? await windowController.reloadHierarchy(initiator: .host) }
-            #expect(await waitUntil { hierarchyRequestCount() == 1 })
 
             server.pushApplicationState(isActive: false)
-            #expect(await waitUntil { document.applicationInBackgroundBannerMessage != nil })
+            #expect(await waitUntil { document.applicationStatusBannerMessage != nil })
             server.pushApplicationState(isActive: true)
-            #expect(await waitUntil { document.applicationInBackgroundBannerMessage == nil })
-            // The refresh was refused; give it a retry or two while the
-            // first fetch still runs.
-            try await Task.sleep(for: AutomaticRefreshRetryPolicy.defaultRetryInterval * 3)
-            #expect(hierarchyRequestCount() == 1)
+            #expect(await waitUntil { document.applicationStatusBannerMessage == nil })
+            await drainMainQueue()
+            #expect(!server.receivedRequestTypes.contains(hierarchyRequest))
 
-            server.answerHeldRequests(with: ConnectionResponseAttachment.attachment(error: ConnectionError.inner))
-            _ = await runningFetch.value
-            #expect(await waitUntil { hierarchyRequestCount() == 2 })
+            let refreshed = try await windowController.reloadHierarchy(initiator: .host)
+            #expect(refreshed?.appInfo?.appInfoIdentifier == 1)
+            #expect(server.receivedRequestTypes.filter { $0 == hierarchyRequest }.count == 1)
+        }
 
-            server.answerHeldRequests(with: ConnectionResponseAttachment.attachment(error: ConnectionError.inner))
+        @Test(.timeLimit(.minutes(1)))
+        func reconnectingToTheSameIOSProcessDoesNotRefresh() async throws {
+            let server = makeIOSServer(bundleIdentifier: "com.lookinside.apptests.same-ios-process")
+            defer { server.shutDown() }
+            let port = try server.listen()
+            let apps = await AppsManager.shared.fetchAppInfos(needImages: false, localInfos: nil)
+            let originalApp = try #require(apps.first { $0.origin?.port == port })
+            let originalChannel = try #require(originalApp.channel)
+            let document = LiveDocument(inspectableApp: originalApp)
+            defer { closeInspector(document) }
+            document.makeWindowControllers()
 
-            // Closing the inspector window brings the launch window back
-            // (AppDelegate), whose scans would reach the other tests' ports.
-            document.close()
-            _ = await waitUntil(timeout: .seconds(1)) { NavigationManager.shared.launchWindowController != nil }
-            NavigationManager.shared.closeLaunch()
+            server.disconnectAll()
+            #expect(await waitUntil { document.connectionLossBannerMessage != nil })
+            #expect(await waitUntil(timeout: .seconds(10)) { document.inspectableApp !== originalApp })
+            #expect(document.inspectableApp.channel !== originalChannel)
+            #expect(document.inspectableApp.channel?.isConnected == true)
+            #expect(document.connectionLossBannerMessage == nil)
+            await drainMainQueue()
+            #expect(!server.receivedRequestTypes.contains(UInt32(RequestType.hierarchy)))
+
+            server.disconnectAll()
+            #expect(await waitUntil { document.connectionLossBannerMessage != nil })
+        }
+
+        @Test(.timeLimit(.minutes(1)))
+        func reconnectingToANewIOSProcessWaitsForExplicitRefresh() async throws {
+            let server = makeIOSServer(bundleIdentifier: "com.lookinside.apptests.new-ios-process")
+            defer { server.shutDown() }
+            let port = try server.listen()
+            let apps = await AppsManager.shared.fetchAppInfos(needImages: false, localInfos: nil)
+            let originalApp = try #require(apps.first { $0.origin?.port == port })
+            let document = LiveDocument(inspectableApp: originalApp)
+            defer { closeInspector(document) }
+            document.makeWindowControllers()
+            let windowController = try #require(document.staticWindowController)
+            windowController.applyHierarchyInfo(makeHierarchy(for: originalApp.appInfo), for: originalApp, keepState: false)
+
+            server.appInfo.appInfoIdentifier = 2
+            let hierarchy = makeHierarchy(for: server.appInfo)
+            let hierarchyRequest = UInt32(RequestType.hierarchy)
+            server.disconnectAll()
+            #expect(await waitUntil { document.connectionLossBannerMessage != nil })
+            #expect(await waitUntil(timeout: .seconds(10)) { document.applicationStatusBannerMessage != nil })
+            #expect(document.connectionLossBannerMessage == nil)
+            await drainMainQueue()
+            #expect(!server.receivedRequestTypes.contains(hierarchyRequest))
+            #expect(document.inspectableApp === originalApp)
+            #expect(document.inspectableApp.channel?.isConnected != true)
+            #expect(windowController.hierarchyDataSource.rawHierarchyInfo?.appInfo?.appInfoIdentifier == 1)
+
+            await #expect(throws: (any Error).self) {
+                try await windowController.reloadHierarchy(initiator: .host)
+            }
+            #expect(document.inspectableApp === originalApp)
+            #expect(document.applicationStatusBannerMessage != nil)
+            #expect(windowController.hierarchyDataSource.rawHierarchyInfo?.appInfo?.appInfoIdentifier == 1)
+
+            server.responders[hierarchyRequest] = { _ in hierarchy }
+            let refreshed = try await windowController.reloadHierarchy(initiator: .host)
+            #expect(refreshed?.appInfo?.appInfoIdentifier == 2)
+            #expect(server.receivedRequestTypes.filter { $0 == hierarchyRequest }.count == 2)
+            #expect(document.inspectableApp !== originalApp)
+            #expect(windowController.hierarchyDataSource.rawHierarchyInfo?.appInfo?.appInfoIdentifier == 2)
+            #expect(document.applicationStatusBannerMessage == nil)
+            #expect(document.connectionLossBannerMessage == nil)
         }
     }
 }

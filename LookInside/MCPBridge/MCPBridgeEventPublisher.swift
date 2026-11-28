@@ -205,7 +205,10 @@ final class MCPBridgeEventPublisher {
     /// name a target identifier the client already knows rather than an
     /// opaque channel the bridge protocol never exposes.
     private func document(forChannel channel: ServerChannel) -> LiveDocument? {
-        LiveDocumentController.shared.liveDocument(for: channel)
+        guard let document = LiveDocumentController.shared.liveDocument(for: channel),
+              document.inspectableApp.channel === channel
+        else { return nil }
+        return document
     }
 
     private func publishDisconnected(channel: ServerChannel) {

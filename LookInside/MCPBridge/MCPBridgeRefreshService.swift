@@ -110,7 +110,7 @@ final class MCPBridgeRefreshService {
             .map { MCPBridgeLiveDocumentLookup.objectIdentifierString(for: $0) }
 
         let result = MCPBridgeRefreshResult(
-            targetIdentifier: targetIdentifier,
+            targetIdentifier: document.inspectableApp.appInfo.map { String($0.appInfoIdentifier) } ?? targetIdentifier,
             rootObjectIdentifiers: rootIdentifiers,
             nodeCount: document.hierarchyDataSource?.rawFlatItems?.count ?? 0,
             previousNodeCount: previousNodeCount,

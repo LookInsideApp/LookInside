@@ -4,8 +4,8 @@
 //
 //  What a live inspection window knows about its app's connection, and what
 //  it does when that changes: the banner it shows, reconnecting after the
-//  channel ended, refreshing the hierarchy once the app is back, and
-//  watching an app that went to the background. `LiveDocument` feeds it the
+//  channel ended, optionally refreshing on reconnect, and watching an app
+//  that went to the background. `LiveDocument` feeds it the
 //  events and carries out the actions.
 //
 
@@ -25,7 +25,7 @@ public struct LiveSessionState: Equatable, Sendable {
         /// The window started watching its app's channel: when it opened, or
         /// after a reconnect handed it a new one. `isAlive` is false when the
         /// channel was already released or ended by then.
-        case watchedChannel(isAlive: Bool)
+        case watchedChannel(isAlive: Bool, reloadHierarchyOnReconnect: Bool = true)
         /// The watched channel ended.
         case channelEnded
         /// The Server pushed its application's state (Servers that predate
@@ -75,7 +75,7 @@ public struct LiveSessionState: Equatable, Sendable {
     /// Applies `event` and returns what to do, in order.
     public mutating func handle(_ event: Event) -> [Action] {
         switch event {
-        case let .watchedChannel(isAlive):
+        case let .watchedChannel(isAlive, reloadHierarchyOnReconnect):
             guard isAlive else {
                 return endConnection()
             }
@@ -83,9 +83,8 @@ public struct LiveSessionState: Equatable, Sendable {
             guard banner == .connectionLost else {
                 return []
             }
-            // A reconnect: the tree on screen is the old process's.
             banner = .none
-            return [.reloadHierarchy]
+            return reloadHierarchyOnReconnect ? [.reloadHierarchy] : []
 
         case .channelEnded:
             return endConnection()
@@ -124,14 +123,12 @@ public struct LiveSessionState: Equatable, Sendable {
         return stopProbing() + [.startReconnecting]
     }
 
-    /// Clears the background banner and refreshes, once.
+    /// Clears the background banner and stops probing.
     private mutating func returnToForeground() -> [Action] {
-        let stop = stopProbing()
-        guard banner == .applicationInBackground else {
-            return stop
+        if banner == .applicationInBackground {
+            banner = .none
         }
-        banner = .none
-        return stop + [.reloadHierarchy]
+        return stopProbing()
     }
 
     /// Probes while the background banner shows, at the interval that
@@ -154,8 +151,7 @@ public struct LiveSessionState: Equatable, Sendable {
     }
 }
 
-/// Whether a refresh a live window starts on its own (`reloadHierarchy`:
-/// after a reconnect, after its app came back) is tried again.
+/// Whether an automatic refresh after a reconnect is tried again.
 ///
 /// The window refuses a refresh while a hierarchy fetch or the detail sync
 /// is running. Dropping the automatic refresh then left the old tree on

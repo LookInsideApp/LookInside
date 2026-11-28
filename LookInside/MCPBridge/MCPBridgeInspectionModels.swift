@@ -501,7 +501,7 @@ struct MCPBridgeSelectorListResult: Sendable, Codable {
 /// same screen it already had. Reporting both counts answers that without a
 /// follow-up `hierarchy.read`.
 struct MCPBridgeRefreshResult: Sendable, Codable {
-    /// Echo of the requested target.
+    /// The refreshed target, which may have a new identifier after an app restart.
     let targetIdentifier: String
 
     /// Top-level windows / scenes after the reload. Usable directly as

@@ -40,6 +40,14 @@ struct LiveSessionStateTests {
         #expect(state.banner == .none)
     }
 
+    @Test("a reconnect that leaves reload to the user still clears the connection-loss banner")
+    func aReconnectCanSkipTheHierarchyReload() {
+        var state = openWindow()
+        _ = state.handle(.channelEnded)
+        #expect(state.handle(.watchedChannel(isAlive: true, reloadHierarchyOnReconnect: false)) == [])
+        #expect(state.banner == .none)
+    }
+
     /// The channel is held weakly: it can be released, or end, before the
     /// window starts watching it. Until now the window then watched nothing
     /// and never reconnected.
@@ -65,23 +73,21 @@ struct LiveSessionStateTests {
         #expect(state.banner == .applicationInBackground)
     }
 
-    @Test("a Server that reports its app active again clears the banner, stops pinging and refreshes")
-    func aForegroundPushRefreshes() {
+    @Test("a foreground push clears the banner and stops pinging without reloading")
+    func aForegroundPushStopsProbing() {
         var state = openWindow()
         _ = state.handle(.serverReportedApplicationState(isActive: false))
-        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [.stopBackgroundProbe, .reloadHierarchy])
+        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [.stopBackgroundProbe])
         #expect(state.banner == .none)
-        // The probe answering late refreshes nothing more.
+        // The probe answering late does not change the session again.
         #expect(state.handle(.backgroundProbeAnswered) == [])
     }
 
-    /// The probe and the push both report the return; the hierarchy is
-    /// fetched once.
-    @Test("a ping answered before the foreground push refreshes once")
-    func aProbeAnsweredBeforeTheForegroundPushRefreshesOnce() {
+    @Test("a ping answered before the foreground push stops probing without reloading")
+    func aProbeAnsweredBeforeTheForegroundPushStopsProbing() {
         var state = openWindow()
         _ = state.handle(.serverReportedApplicationState(isActive: false))
-        #expect(state.handle(.backgroundProbeAnswered) == [.stopBackgroundProbe, .reloadHierarchy])
+        #expect(state.handle(.backgroundProbeAnswered) == [.stopBackgroundProbe])
         #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [])
         #expect(state.banner == .none)
     }
@@ -131,22 +137,22 @@ struct LiveSessionStateTests {
         #expect(state.handle(.requestRefusedInBackground) == [])
     }
 
-    @Test("an answered ping clears the banner, stops pinging and refreshes")
-    func anAnsweredProbeRefreshes() {
+    @Test("an answered ping clears the banner and stops pinging without reloading")
+    func anAnsweredProbeStopsProbing() {
         var state = openWindow()
         _ = state.handle(.requestRefusedInBackground)
-        #expect(state.handle(.backgroundProbeAnswered) == [.stopBackgroundProbe, .reloadHierarchy])
+        #expect(state.handle(.backgroundProbeAnswered) == [.stopBackgroundProbe])
         #expect(state.banner == .none)
     }
 
     /// A Server that pushes and was refused before its first push (the
     /// Host connected while the app was inactive): the push and the probe
-    /// can both report the return; the hierarchy is fetched once.
-    @Test("a foreground push while pinging stops the ping and refreshes once")
-    func aForegroundPushWhileProbingRefreshesOnce() {
+    /// can both report the return.
+    @Test("a foreground push while pinging stops the ping without reloading")
+    func aForegroundPushWhileProbingStopsProbing() {
         var state = openWindow()
         _ = state.handle(.requestRefusedInBackground)
-        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [.stopBackgroundProbe, .reloadHierarchy])
+        #expect(state.handle(.serverReportedApplicationState(isActive: true)) == [.stopBackgroundProbe])
         #expect(state.handle(.backgroundProbeAnswered) == [])
         #expect(state.banner == .none)
     }
@@ -183,7 +189,7 @@ struct LiveSessionStateTests {
 }
 
 struct AutomaticRefreshRetryPolicyTests {
-    /// The refresh after a reconnect or a return from the background was
+    /// The refresh after a reconnect was
     /// dropped when a fetch was running, and the tree stayed stale.
     @Test("a refresh refused while a fetch or the detail sync runs is tried again after the interval")
     func aRefusedRefreshIsRetried() {
